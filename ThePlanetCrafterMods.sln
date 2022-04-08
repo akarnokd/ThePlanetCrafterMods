@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowPlayerTooltipItemCoun
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfLoadInventoriesFaster", "PerfLoadInventoriesFaster\PerfLoadInventoriesFaster.csproj", "{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIPhotomodeHideBeacons", "UIPhotomodeHideBeacons\UIPhotomodeHideBeacons.csproj", "{AE0F6743-7EF5-4722-A4F0-BFFD780E7751}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIGrowerGrabVegetableOnly", "UIGrowerGrabVegetableOnly\UIGrowerGrabVegetableOnly.csproj", "{6DC2E508-AB06-463C-AAD4-266E61F9F395}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +67,14 @@ Global
 		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE0F6743-7EF5-4722-A4F0-BFFD780E7751}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE0F6743-7EF5-4722-A4F0-BFFD780E7751}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE0F6743-7EF5-4722-A4F0-BFFD780E7751}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE0F6743-7EF5-4722-A4F0-BFFD780E7751}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DC2E508-AB06-463C-AAD4-266E61F9F395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DC2E508-AB06-463C-AAD4-266E61F9F395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DC2E508-AB06-463C-AAD4-266E61F9F395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DC2E508-AB06-463C-AAD4-266E61F9F395}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
