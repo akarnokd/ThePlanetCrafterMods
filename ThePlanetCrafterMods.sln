@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIInventoryMoveMultiple", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIDontCloseCraftWindow", "UIDontCloseCraftWindow\UIDontCloseCraftWindow.csproj", "{FEE9D314-2432-42CD-B0FB-0046C0A0CCB7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowPlayerInventoryCount", "UIShowPlayerInventoryCount\UIShowPlayerInventoryCount.csproj", "{8A194581-90E3-4EB1-A0EC-53898856EF7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{FEE9D314-2432-42CD-B0FB-0046C0A0CCB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FEE9D314-2432-42CD-B0FB-0046C0A0CCB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FEE9D314-2432-42CD-B0FB-0046C0A0CCB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
