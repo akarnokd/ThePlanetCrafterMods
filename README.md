@@ -41,6 +41,13 @@ consume an Oxygen bottle, Water bottle or any food item from the player's invent
 
 Marked as cheat because it is expected the player does these manually.
 
+## (Cheat) Photomode Hide Water
+
+Press <kbd>Shift+F2</kbd> to toggle photomode and hide water as well.
+
+This is marked as cheat because allows picking up objects near the water edge
+where they can't be picked up normally.
+
 ## (Cheat) Highlight Nearby Resources
 
 Press <kbd>CTRL+F</kbd> to highlight nearby resources.
@@ -87,6 +94,53 @@ This mod makes no attempts at remedying this shortcoming.
 Capacity = 250
 ```
 
+## (Cheat) Machines Deposit Into Remote Containers
+
+For this mod to work, you have to rename your containers. For example,
+to make machines deposit Iron, rename your container(s) to something that includes
+`*Iron`. For Uranium, rename them to `*Uranim`. Note the `*` in front of the identifiers.
+Identifiers can be any case. 
+
+You can combine multiple resources by mentioning them together: `*Iron *Cobalt`.
+
+Typical identifiers are: 
+-`Cobalt`,`Silicon`,`Iron`,`ice`,
+`Magnesium`,`Titanium`,`Aluminium`,`Uranim`,
+`Iridium`,`Alloy`,`Zeolite`,`Osmium`,
+`Sulfur`
+
+You can have as many containers as you like, but they will be filled in non-deterministically.
+If there are no renamed containers or all renamed containers are full, the machines
+will deposit the resource into their own container, as would they without this mod.
+
+Note also that machines are slow to mine resources.
+
+
+## (Cheat) Teleport to Nearest Minable
+
+- Press <kbd>F8</kbd> to teleport to the nearest minable resource. 
+- Press <kbd>Shift+F8</kbd> to teleport to the nearest minable resource and mine it instantly. 
+- Press <kbd>CTRL+F8</kbd> to mine the nearest resource without moving the character. 
+
+
+Note that some
+resources are out of bounds and are not normally player-reachable. You may also
+fall to your death so be careful on permadeath!
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg`
+
+```
+[General]
+
+## List of comma-separated resource ids to look for.
+# Setting type: String
+# Default value: Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
+ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
+```
+
+
 ## (Perf) Load Inventories Faster
 
 This speeds up loading the game when there are lots of containers or (modded) containers have a lot of items.
@@ -94,6 +148,14 @@ This speeds up loading the game when there are lots of containers or (modded) co
 ### Configuration
 
 None.
+
+## (Perf) Reduce Save Size
+
+This mods the save process and removes attributes with default values from the `WorldObject`s, reducing
+the save size. These attributes are automatically restored when the game loads.
+
+The save remains compatible with the vanilla game so it will still work without this mod (but will be
+full size again).
 
 ## (UI) Customize Inventory Sort Order
 

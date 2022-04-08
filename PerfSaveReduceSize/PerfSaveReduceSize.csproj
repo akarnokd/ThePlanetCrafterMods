@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <AssemblyName>PerfSaveReduceSize</AssemblyName>
+    <Description>(Perf) Reduce Save Size</Description>
+    <Version>1.0.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU</Platforms>
+	<PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="Exists('c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter')">
+	  <GameDir>c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter\</GameDir>
+	  <GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
+	  <PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
+  </PropertyGroup>
+	<PropertyGroup Condition="Exists('e:\Steam\steamapps\common\The Planet Crafter')">
+		<GameDir>e:\Steam\steamapps\common\The Planet Crafter\</GameDir>
+		<GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
+		<PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
+	</PropertyGroup>
+
+	<ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="UnityEngine.Modules" Version="2020.3.26" IncludeAssets="compile" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Assembly-CSharp">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="com.mijugames.miju-tools">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Unity.InputSystem">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.UI">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="CopyDLLs" AfterTargets="Build">
+		<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+		<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+		<ZipDirectory
+            SourceDirectory="$(TargetDir)\$(AssemblyName)"
+            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
+            Overwrite="true" />
+	</Target>
+</Project>
