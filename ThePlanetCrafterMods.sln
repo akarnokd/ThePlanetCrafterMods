@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIDontCloseCraftWindow", "U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowPlayerInventoryCount", "UIShowPlayerInventoryCount\UIShowPlayerInventoryCount.csproj", "{8A194581-90E3-4EB1-A0EC-53898856EF7B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowContainerInfo", "UIShowContainerInfo\UIShowContainerInfo.csproj", "{43B6B631-BB9E-4F70-89C8-30C2342E7FA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A194581-90E3-4EB1-A0EC-53898856EF7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43B6B631-BB9E-4F70-89C8-30C2342E7FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43B6B631-BB9E-4F70-89C8-30C2342E7FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43B6B631-BB9E-4F70-89C8-30C2342E7FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43B6B631-BB9E-4F70-89C8-30C2342E7FA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
