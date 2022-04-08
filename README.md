@@ -9,6 +9,38 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 # Mods
 
+## (Cheat) Asteroid Landing Position Override
+
+Fixes the asteroid landing position relative to the player by an offset.
+This includes asteroids from rockets and random meteor showers.
+
+Note that currently, this may fail if the landing position is determined by the game as invalid. Be in the clear open!
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatasteroidlandingposition.cfg`
+
+```
+[General]
+
+## Relative position east-west (east is positive).
+# Setting type: Int32
+# Default value: 100
+DeltaX = 100
+
+## Relative position north-south (north is positive).
+# Setting type: Int32
+# Default value: 0
+DeltaZ = 0
+```
+
+## (Cheat) Auto Consume Oxygen-Water-Food
+
+When the Oxygen, Thirst and Health meters reach a critical level, this mod will automatically
+consume an Oxygen bottle, Water bottle or any food item from the player's inventory.
+
+Marked as cheat because it is expected the player does these manually.
+
 ## (Cheat) Highlight Nearby Resources
 
 Press <kbd>CTRL+F</kbd> to highlight nearby resources.
@@ -36,6 +68,24 @@ StretchY = 1
 ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
 ```
 
+## (Cheat) Inventory Capacity Override
+
+This is a very basic override of game inventories, existing and new alike. It tries to not break certain containers
+with capacity 1 or 3. Note that the game is not really setup to handle large inventories that don't fit on the screen.
+This mod makes no attempts at remedying this shortcoming.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatinventorycapacity.cfg`
+
+```
+[General]
+
+## The overridden default inventory capacity.
+# Setting type: Int32
+# Default value: 250
+Capacity = 250
+```
 
 ## (Perf) Load Inventories Faster
 

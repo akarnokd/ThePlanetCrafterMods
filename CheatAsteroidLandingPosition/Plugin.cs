@@ -28,7 +28,7 @@ namespace CheatAsteroidLandingPosition
             Logger.LogInfo($"Plugin is loaded!");
 
             deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).").Value;
-            deltaZ = Config.Bind("General", "DeltaY", 0, "Relative position north-south (north is positive).").Value;
+            deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).").Value;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
