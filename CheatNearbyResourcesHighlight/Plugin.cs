@@ -15,15 +15,15 @@ namespace CheatNearbyResourcesHighlight
         /// <summary>
         /// Specifies how far to look for resources.
         /// </summary>
-        private static ConfigEntry<int> radius;
+        private static int radius;
         /// <summary>
         /// Specifies how high the resource image to stretch.
         /// </summary>
-        private static ConfigEntry<int> stretchY;
+        private static int stretchY;
         /// <summary>
         /// List of comma-separated resource ids to look for.
         /// </summary>
-        private static ConfigEntry<string> resourceSet;
+        private static HashSet<string> resourceSet;
 
         static readonly string defaultResourceSet = string.Join(",", new string[]
         {
@@ -42,14 +42,18 @@ namespace CheatNearbyResourcesHighlight
             "Sulfur"
         });
 
+        static List<GameObject> scannerImageList = new List<GameObject>();
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            radius = Config.Bind("General", "Radius", 30, "Specifies how far to look for resources.");
-            stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.");
-            resourceSet = Config.Bind("General", "ResourceSet", defaultResourceSet, "List of comma-separated resource ids to look for.");
+            radius = Config.Bind("General", "Radius", 30, "Specifies how far to look for resources.").Value;
+            stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.").Value;
+            string resourceSetStr = Config.Bind("General", "ResourceSet", defaultResourceSet, "List of comma-separated resource ids to look for.").Value;
+
+            resourceSet = new HashSet<string>(resourceSetStr.Split(new char[] { ',' }));
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -61,18 +65,15 @@ namespace CheatNearbyResourcesHighlight
             if (Keyboard.current[Key.LeftCtrl].isPressed)
             {
                 // Prepare configuration values
-                float maxRangeSqr = radius.Value * radius.Value;
-                HashSet<string> hashSet = new HashSet<string>(resourceSet.Value.Split(new char[] { ',' }));
-                float sy = stretchY.Value;
+                float maxRangeSqr = radius * radius;
+                float sy = stretchY;
         
                 // hide any previously shown scanner images.
-                foreach (GameObject go in UnityEngine.Object.FindObjectsOfType<GameObject>())
+                foreach (GameObject go in scannerImageList)
                 {
-                    if (go.name == "ScannerImage")
-                    {
-                        go.SetActive(false);
-                    }
+                    go.SetActive(false);
                 }
+                scannerImageList.Clear();
 
                 // where is the player?
                 Transform player = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform;
@@ -87,7 +88,7 @@ namespace CheatNearbyResourcesHighlight
                     if (component != null)
                     {
                         WorldObject worldObject = component.GetWorldObject();
-                        if (worldObject != null && hashSet.Contains(worldObject.GetGroup().GetId()))
+                        if (worldObject != null && resourceSet.Contains(worldObject.GetGroup().GetId()))
                         {
                             Vector3 resourcePosition = resource.gameObject.transform.position;
                             if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f 
@@ -103,6 +104,7 @@ namespace CheatNearbyResourcesHighlight
                                 gameObject.transform.LookAt(player, player.up);
                                 gameObject.SetActive(true);
                                 UnityEngine.Object.Destroy(gameObject, 15f);
+                                scannerImageList.Add(gameObject);
                                 c++;
                             }
                         }
@@ -119,12 +121,9 @@ namespace CheatNearbyResourcesHighlight
         static void PlayerInputDispatcher_Update()
         {
             Transform player = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform;
-            foreach (GameObject go in UnityEngine.Object.FindObjectsOfType<GameObject>())
+            foreach (GameObject go in scannerImageList)
             {
-                if (go.name == "ScannerImage")
-                {
-                    go.transform.LookAt(player, player.up);
-                }
+                go.transform.LookAt(player, player.up);
             }
         }
     }
