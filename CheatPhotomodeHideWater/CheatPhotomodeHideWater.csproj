@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>CheatPhotomodeHideWater</AssemblyName>
-    <Description>(UI) Hide Water in Photomode</Description>
+    <Description>(Cheat) Hide Water in Photomode</Description>
     <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
