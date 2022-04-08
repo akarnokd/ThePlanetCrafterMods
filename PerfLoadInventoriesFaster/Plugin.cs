@@ -7,9 +7,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace PerfLoadingInventories
+namespace PerfLoadInventoriesFaster
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.perfloadinginventories", "(Perf) Loading Inventories Faster", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.perfloadinventoriesfaster", "(Perf) Load Inventories Faster", "1.0.0.0")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -23,7 +23,6 @@ namespace PerfLoadingInventories
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SavedDataHandler), "LoadInventoriesData")]
-
         static bool SavedDataHandler_LoadInventoriesData(List<JsonableInventory> _jsonableInventories)
         {
             List<WorldObject> all = WorldObjectsHandler.GetAllWorldObjects();

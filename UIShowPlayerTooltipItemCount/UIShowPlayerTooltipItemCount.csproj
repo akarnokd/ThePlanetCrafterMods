@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>UIShowContainerInfo</AssemblyName>
-    <Description>(UI) Show Container Content Info</Description>
+    <AssemblyName>UIShowPlayerTooltipItemCount</AssemblyName>
+    <Description>(UI) Show Player Tooltip Item Count</Description>
     <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>

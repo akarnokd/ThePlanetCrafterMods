@@ -62,5 +62,10 @@
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
 		<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+		<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\tozip\akarnokd - $(Description)" />
+		<ZipDirectory
+            SourceDirectory="$(TargetDir)\tozip"
+            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
+            Overwrite="true" />
 	</Target>
 </Project>

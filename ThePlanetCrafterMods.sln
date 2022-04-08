@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowContainerInfo", "UISh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowRocketCount", "UIShowRocketCount\UIShowRocketCount.csproj", "{290EF238-4052-40BB-B5D5-ED2482491810}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfLoadingInventories", "PerfLoadingInventories\PerfLoadingInventories.csproj", "{37A8DB68-6E5E-47BD-A0C6-4C64C6287170}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowPlayerTooltipItemCount", "UIShowPlayerTooltipItemCount\UIShowPlayerTooltipItemCount.csproj", "{10B39461-2449-4762-B763-E8216F51136C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfLoadInventoriesFaster", "PerfLoadInventoriesFaster\PerfLoadInventoriesFaster.csproj", "{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +55,14 @@ Global
 		{290EF238-4052-40BB-B5D5-ED2482491810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{290EF238-4052-40BB-B5D5-ED2482491810}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{290EF238-4052-40BB-B5D5-ED2482491810}.Release|Any CPU.Build.0 = Release|Any CPU
-		{37A8DB68-6E5E-47BD-A0C6-4C64C6287170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37A8DB68-6E5E-47BD-A0C6-4C64C6287170}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37A8DB68-6E5E-47BD-A0C6-4C64C6287170}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37A8DB68-6E5E-47BD-A0C6-4C64C6287170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10B39461-2449-4762-B763-E8216F51136C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10B39461-2449-4762-B763-E8216F51136C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10B39461-2449-4762-B763-E8216F51136C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10B39461-2449-4762-B763-E8216F51136C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCD9FC98-40D1-4EA7-8925-C2CE1B140D0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
