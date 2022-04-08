@@ -5,7 +5,7 @@ Steam: https://store.steampowered.com/app/1284190/The_Planet_Crafter/
 
 Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/filedetails/?id=2784319459
 
-## Version 1.0.0.0
+## Version <a href='https://github.com/akarnokd/ThePlanetCrafterMods/releases'><img src='https://img.shields.io/github/v/release/akarnokd/ThePlanetCrafterMods' alt='Latest GitHub Release Version'/></a>
 
 # Mods
 
