@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("com.github.akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "Highlight Nearby Resources (Cheat)", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.0")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -45,7 +45,7 @@ namespace CheatNearbyResourcesHighlight
         private void Awake()
         {
             // Plugin startup logic
-            Logger.LogInfo($"Plugin com.github.akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight is loaded!");
+            Logger.LogInfo($"Plugin is loaded!");
 
             radius = Config.Bind("General", "Radius", 30, "Specifies how far to look for resources.");
             stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.");

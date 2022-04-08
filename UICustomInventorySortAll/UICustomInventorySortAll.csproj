@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>CheatNearbyResourcesHighlight</AssemblyName>
-    <Description>(Cheat) Highlight Nearby Resources</Description>
+    <AssemblyName>UICustomInventorySortAll</AssemblyName>
+    <Description>(UI) Customize Inventory Sort Order</Description>
     <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
