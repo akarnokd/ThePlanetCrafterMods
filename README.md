@@ -389,6 +389,9 @@ void OnDestroy()
 }
 ```
 
+:warning: Please make sure the string you return does not contain the `@` or `|` characters as these are treated by the vanilla game
+and this mod as separators.
+
 #### Loading Lifecycle
 
 This plugin will deliver the custom save data (if any) after the `SessionController.Start` of the game
