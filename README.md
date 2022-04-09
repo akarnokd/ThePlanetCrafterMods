@@ -299,3 +299,93 @@ FontSize = 25
 # Default value: 850
 PanelWidth = 850
 ```
+
+## (Lib) Support Mods with Load n Save
+
+This mod alters the loading and saving of the game by parsing/appending custom information based on
+registered callbacks. These callbacks can be registered by other plugins and thus they can use this
+plugin for save-specific persistency.
+
+Here is an example plugin that utilizes this plugin:
+
+https://github.com/akarnokd/ThePlanetCrafterMods/blob/main/ExampleModLoadSaveSupportSoft/Plugin.cs
+
+### Developer notes
+
+#### Dependency setup
+
+To add a (soft) dependency to this plugin in your own plugin, use the `BepInDependency` annotation
+with the guid (`akarnokd.theplanetcraftermods.libmodloadsavesupport`) of this plugin:
+
+```cs
+[BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.0")]
+[BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
+public class Plugin : BaseUnityPlugin
+{
+    const string libModLoadSaveSupportGuid = "akarnokd.theplanetcraftermods.libmodloadsavesupport";
+
+    const string guid = "akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft";
+}
+```
+
+This way, BepInEx knows to load your plugin after this plugin.
+
+#### Registering callbacks
+
+This plugin uses callbacks to get what to save or notify about what has been loaded for a plugin.
+
+First, locate this plugin via its guid:
+
+```cs
+using BepInEx.Bootstrap;
+
+if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, out BepInEx.PluginInfo pi))
+{
+}
+```
+
+If found, locate the `RegisterLoadSave` method on its instance:
+
+```cs
+// public IDisposable RegisterLoadSave(string guid, Action<string> onLoad, Func<string> onSave)
+
+MethodInfo mi = pi.Instance.GetType().GetMethod("RegisterLoadSave",
+                   new Type[] { typeof(string), typeof(Action<string>), typeof(Func<string>) });
+
+```
+
+Then, invoke it with your plugin id and the delegates to a load and a save function:
+
+```
+this.handle = (IDisposable)mi.Invoke(pi.Instance, new object[] { 
+    guid, new Action<string>(OnLoad), new Func<string>(OnSave) 
+});
+
+//...
+
+IDisposable handle;
+
+void OnLoad(string content) {
+
+}
+string OnSave() {
+
+}
+```
+
+The handle is there to remove the registration if needed.
+
+```cs
+void OnDestroy()
+{
+    handle?.Dispose();
+    handle = null;
+}
+```
+
+#### Loading Lifecycle
+
+This plugin will deliver the custom save data (if any) after the `SessionController.Start` of the game
+returns control. This way, every vanilla game data should be initialized.
+
+Note that there is no guaranteed order of loading data for different registered plugins.
