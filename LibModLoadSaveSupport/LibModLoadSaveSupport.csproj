@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>UIPinRecipe</AssemblyName>
-    <Description>(UI) Pin Recipe to Screen</Description>
-    <Version>1.0.0.1</Version>
+    <AssemblyName>LibModLoadSaveSupport</AssemblyName>
+    <Description>(Lib) Support Mods with Load n Save</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -51,11 +51,6 @@
 		<Reference Include="UnityEngine.UI">
 			<SpecificVersion>False</SpecificVersion>
 			<HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-		<Reference Include="Unity.TextMeshPro">
-			<SpecificVersion>False</SpecificVersion>
-			<HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 	</ItemGroup>

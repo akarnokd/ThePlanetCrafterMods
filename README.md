@@ -7,6 +7,8 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 ## Version <a href='https://github.com/akarnokd/ThePlanetCrafterMods/releases'><img src='https://img.shields.io/github/v/release/akarnokd/ThePlanetCrafterMods' alt='Latest GitHub Release Version'/></a>
 
+## Supported Game Version: 0.4.0.8
+
 # Mods
 
 ## (Cheat) Asteroid Landing Position Override

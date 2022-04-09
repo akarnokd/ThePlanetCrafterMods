@@ -12,7 +12,7 @@ using System;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<int> fontSize;
@@ -246,6 +246,19 @@ namespace UIPinRecipe
             return true;
         }
 
-        
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            pinnedRecipes.Clear();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
+        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        {
+            bool active = !___handObjectsToHide[0].activeSelf;
+            parent?.SetActive(active);
+        }
     }
 }

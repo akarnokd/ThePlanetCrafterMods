@@ -46,6 +46,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfSaveReduceSize", "PerfS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIPinRecipe", "UIPinRecipe\UIPinRecipe.csproj", "{60435D27-3430-4837-830F-0BFD126D07E6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibModLoadSaveSupport", "LibModLoadSaveSupport\LibModLoadSaveSupport.csproj", "{DD897306-702F-4DA1-A1D8-020CBD4360B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleModLoadSaveSupportSoft", "ExampleModLoadSaveSupportSoft\ExampleModLoadSaveSupportSoft.csproj", "{0F9F35E2-F9A0-4D51-A459-B381F6D63295}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -128,6 +132,14 @@ Global
 		{60435D27-3430-4837-830F-0BFD126D07E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60435D27-3430-4837-830F-0BFD126D07E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60435D27-3430-4837-830F-0BFD126D07E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD897306-702F-4DA1-A1D8-020CBD4360B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD897306-702F-4DA1-A1D8-020CBD4360B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD897306-702F-4DA1-A1D8-020CBD4360B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD897306-702F-4DA1-A1D8-020CBD4360B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F9F35E2-F9A0-4D51-A459-B381F6D63295}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F9F35E2-F9A0-4D51-A459-B381F6D63295}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F9F35E2-F9A0-4D51-A459-B381F6D63295}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F9F35E2-F9A0-4D51-A459-B381F6D63295}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
