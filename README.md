@@ -300,6 +300,21 @@ FontSize = 25
 PanelWidth = 850
 ```
 
+## (UI) Craft Equipment Inplace
+
+When crafting upgrades to equimpent currently equipped, the newer equipment
+will be replaced inplace. This avoids loosing backpack capacity or equipment capacity
+for the duration of a traditional crafting step.
+
+Note that the UI will indicate you are missing the equipment as an ingredient but
+the crafting action will succeed if the rest of the materials are in your backpack.
+
+:warning: Please make a backup of your save before attempting to use this mod, just in case.
+
+### Configuration
+
+None.
+
 ## (Lib) Support Mods with Load n Save
 
 This mod alters the loading and saving of the game by parsing/appending custom information based on
