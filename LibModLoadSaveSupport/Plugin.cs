@@ -239,7 +239,7 @@ namespace LibModLoadSaveSupport
                         int i = element.IndexOf(':');
                         if (i != -1)
                         {
-                            string guid = element.Substring(0, i);
+                            string guid = element.Substring(0, i).Trim();
                             string content = element.Substring(i + 1);
 
                             savedata[guid] = content;
