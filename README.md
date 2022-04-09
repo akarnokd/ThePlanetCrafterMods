@@ -339,7 +339,8 @@ First, locate this plugin via its guid:
 ```cs
 using BepInEx.Bootstrap;
 
-if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, out BepInEx.PluginInfo pi))
+if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, 
+        out BepInEx.PluginInfo pi))
 {
 }
 ```
@@ -350,13 +351,18 @@ If found, locate the `RegisterLoadSave` method on its instance:
 // public IDisposable RegisterLoadSave(string guid, Action<string> onLoad, Func<string> onSave)
 
 MethodInfo mi = pi.Instance.GetType().GetMethod("RegisterLoadSave",
-                   new Type[] { typeof(string), typeof(Action<string>), typeof(Func<string>) });
+                   new Type[] { 
+                       typeof(string), 
+                       typeof(Action<string>), 
+                       typeof(Func<string>) 
+                   }
+);
 
 ```
 
 Then, invoke it with your plugin id and the delegates to a load and a save function:
 
-```
+```cs
 this.handle = (IDisposable)mi.Invoke(pi.Instance, new object[] { 
     guid, new Action<string>(OnLoad), new Func<string>(OnSave) 
 });
