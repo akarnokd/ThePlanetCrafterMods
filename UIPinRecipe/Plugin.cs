@@ -9,15 +9,22 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using System;
+using BepInEx.Bootstrap;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.4")]
+    [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string uiCraftEquipmentInPlaceGuid = "akarnokd.theplanetcraftermods.uicraftequipmentinplace";
+
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
-
+        /// <summary>
+        /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
+        /// </summary>
+        static bool craftInPlaceEnabled;
         private void Awake()
         {
             // Plugin startup logic
@@ -26,6 +33,7 @@ namespace UIPinRecipe
             fontSize = Config.Bind("General", "FontSize", 25, "The size of the font used");
             panelWidth = Config.Bind("General", "PanelWidth", 850, "The width of the recipe panel");
 
+            craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -90,6 +98,16 @@ namespace UIPinRecipe
                     string gid = wo.GetGroup().GetId();
                     inventoryCounts.TryGetValue(gid, out int c);
                     inventoryCounts[gid] = c + 1;
+                }
+
+                if (craftInPlaceEnabled)
+                {
+                    foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                    {
+                        string gid = wo.GetGroup().GetId();
+                        inventoryCounts.TryGetValue(gid, out int c);
+                        inventoryCounts[gid] = c + 1;
+                    }
                 }
 
                 int craftableCount = int.MaxValue;
