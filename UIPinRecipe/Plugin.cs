@@ -12,7 +12,7 @@ using System;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<int> fontSize;
@@ -68,7 +68,7 @@ namespace UIPinRecipe
         {
             public TextSpriteBackground product;
             public List<TextSpriteBackground> components;
-            public GroupItem group;
+            public Group group;
             public int bottom;
             public void Destroy()
             {
@@ -173,77 +173,117 @@ namespace UIPinRecipe
         {
             if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
             {
-                if (parent == null)
-                {
-                    parent = new GameObject();
-                    Canvas canvas = parent.AddComponent<Canvas>();
-                    canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                }
-                GroupItem group = (GroupItem)eventTriggerCallbackData.group;
-                Recipe recipe = group.GetRecipe();
-                if (recipe != null)
-                {
-                    int fs = fontSize.Value;
-
-                    PinnedRecipe alreadyPinned = null;
-                    int dy = Screen.height / 2 - 150;
-
-                    foreach (PinnedRecipe pr in pinnedRecipes)
-                    {
-                        if (pr.group.GetId() == group.GetId())
-                        {
-                            alreadyPinned = pr;
-                        }
-                        dy = Math.Min(dy, pr.bottom);
-                    }
-                    if (pinnedRecipes.Count > 0)
-                    {
-                        dy -= fs + 10;
-                    }
-                    if (alreadyPinned == null)
-                    {
-
-                        Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
-                        Dictionary<string, Group> recipeGroups = new Dictionary<string, Group>();
-                        List<Group> ingredientsGroupInRecipe = recipe.GetIngredientsGroupInRecipe();
-                        foreach (Group g in ingredientsGroupInRecipe)
-                        {
-                            recipeCounts.TryGetValue(g.GetId(), out int c);
-                            recipeCounts[g.GetId()] = c + 1;
-                            recipeGroups[g.GetId()] = g;
-                        }
-
-                        string productStr = Readable.GetGroupName(group);
-
-                        int px = Screen.width / 2 - 150;
-                        PinnedRecipe current = new PinnedRecipe();
-                        current.group = group;
-                        current.product = CreateText(px, dy, 0, parent, productStr, group.GetImage());
-                        current.components = new List<TextSpriteBackground>();
-
-                        foreach (Group g in recipeGroups.Values)
-                        {
-                            dy -= fs + 5;
-                            string cn = Readable.GetGroupName(g) + " x " + recipeCounts[g.GetId()];
-                            TextSpriteBackground comp = CreateText(px, dy, fs + 5, parent, cn, g.GetImage());
-                            comp.group = g;
-                            comp.count = recipeCounts[g.GetId()];
-                            current.components.Add(comp);
-                        }
-                        current.bottom = dy;
-                        current.UpdateState();
-
-                        pinnedRecipes.Add(current);
-                    }
-                    else
-                    {
-                        alreadyPinned.Destroy();
-                        pinnedRecipes.Remove(alreadyPinned);
-                    }
-                }
+                PinUnpinGroup(eventTriggerCallbackData.group);
                 return false;
             }
             return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowConstruction), "OnImageClicked")]
+        static bool UiWindowConstruction_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData)
+        {
+            if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
+            {
+                PinUnpinGroup(eventTriggerCallbackData.group);
+                return false;
+            }
+            return true;
+        }
+
+        static void PinUnpinGroup(Group group)
+        {
+            if (parent == null)
+            {
+                parent = new GameObject();
+                Canvas canvas = parent.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
+
+            Recipe recipe = group.GetRecipe();
+            if (recipe != null)
+            {
+                int fs = fontSize.Value;
+
+                PinnedRecipe alreadyPinned = null;
+                int dy = Screen.height / 2 - 150;
+
+                foreach (PinnedRecipe pr in pinnedRecipes)
+                {
+                    if (pr.group.GetId() == group.GetId())
+                    {
+                        alreadyPinned = pr;
+                    }
+                    dy = Math.Min(dy, pr.bottom);
+                }
+                if (pinnedRecipes.Count > 0)
+                {
+                    dy -= fs + 10;
+                }
+                if (alreadyPinned == null)
+                {
+                    pinnedRecipes.Add(CreatePinnedRecipe(group, recipe, dy, fs));
+                }
+                else
+                {
+                    alreadyPinned.Destroy();
+
+                    dy = Screen.height / 2 - 150;
+                    List<PinnedRecipe> copy = new List<PinnedRecipe>();
+
+                    foreach (PinnedRecipe rec in pinnedRecipes)
+                    {
+                        if (rec != alreadyPinned)
+                        {
+                            Group gr = rec.group;
+                            rec.Destroy();
+
+                            PinnedRecipe pr = CreatePinnedRecipe(gr, gr.GetRecipe(), dy, fs);
+                            copy.Add(pr);
+                            dy = pr.bottom;
+
+                            dy -= fs + 10;
+                        }
+                    }
+                    pinnedRecipes.Clear();
+                    pinnedRecipes.AddRange(copy);
+                }
+            }
+        }
+
+        static PinnedRecipe CreatePinnedRecipe(Group group, Recipe recipe, int dy, int fs)
+        {
+            Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
+            Dictionary<string, Group> recipeGroups = new Dictionary<string, Group>();
+            List<Group> ingredientsGroupInRecipe = recipe.GetIngredientsGroupInRecipe();
+            foreach (Group g in ingredientsGroupInRecipe)
+            {
+                recipeCounts.TryGetValue(g.GetId(), out int c);
+                recipeCounts[g.GetId()] = c + 1;
+                recipeGroups[g.GetId()] = g;
+            }
+
+            string productStr = Readable.GetGroupName(group);
+
+            int px = Screen.width / 2 - 150;
+            PinnedRecipe current = new PinnedRecipe();
+            current.group = group;
+            current.product = CreateText(px, dy, 0, parent, productStr, group.GetImage());
+            current.components = new List<TextSpriteBackground>();
+
+            foreach (Group g in recipeGroups.Values)
+            {
+                dy -= fs + 5;
+                string cn = Readable.GetGroupName(g) + " x " + recipeCounts[g.GetId()];
+                TextSpriteBackground comp = CreateText(px, dy, fs + 5, parent, cn, g.GetImage());
+                comp.group = g;
+                comp.count = recipeCounts[g.GetId()];
+                current.components.Add(comp);
+            }
+            current.bottom = dy;
+            current.UpdateState();
+
+            return current;
         }
 
         [HarmonyPrefix]
