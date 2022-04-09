@@ -271,3 +271,29 @@ Example: ` 2 x -----    6000.00 nPa/s`
 
 None.
 
+## (UI) Pin Recipe to Screen
+
+On the various craft screens, use <kbd>Middle click</kbd> to pin or unpin a craftable recipe to the screen.
+
+In the panel, the curly parenthesis indicates how many of that item is in the player's inventory.
+The `< 2 >` indicates how many of the recipe can be crafted from the given inventory.
+
+Note that pinned recipes can't be saved currently as it requires save modding.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uipinrecipe.cfg`
+
+```cs
+[General]
+
+## The size of the font used
+# Setting type: Int32
+# Default value: 25
+FontSize = 25
+
+## The width of the recipe panel
+# Setting type: Int32
+# Default value: 850
+PanelWidth = 850
+```
