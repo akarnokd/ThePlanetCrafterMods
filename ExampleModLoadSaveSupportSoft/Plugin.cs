@@ -7,6 +7,8 @@ using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
 using BepInEx.Logging;
+using MijuTools;
+using System.Text;
 
 namespace ExampleModLoadSaveSupportSoft
 {
@@ -71,8 +73,41 @@ namespace ExampleModLoadSaveSupportSoft
         {
             foreach (TerraformStage stage in ___allGlobalTerraStage)
             {
-                logger.LogInfo(stage.GetTerraId() + " @ " + stage.GetStageStartValue() + " " + stage.GetWorldUnitType());                
+                logger.LogInfo(stage.GetTerraId() + " \"" + Readable.GetTerraformStageName(stage) + "\" @ " 
+                    + string.Format("{0:##,###}", stage.GetStageStartValue()) + " " + stage.GetWorldUnitType());                
             }
+
+            UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
+
+            List<List<GroupData>> tiers = new List<List<GroupData>>
+            {
+                unlock.tier1GroupToUnlock,
+                unlock.tier2GroupToUnlock,
+                unlock.tier3GroupToUnlock,
+                unlock.tier4GroupToUnlock,
+                unlock.tier5GroupToUnlock,
+                unlock.tier6GroupToUnlock,
+                unlock.tier7GroupToUnlock,
+                unlock.tier8GroupToUnlock,
+                unlock.tier9GroupToUnlock,
+                unlock.tier10GroupToUnlock,
+            };
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("\r\n");
+
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                List<GroupData> gd = tiers[i];
+                sb.Append("Tier #").Append(i + 1).Append("\r\n");
+
+                foreach (GroupData g in gd)
+                {
+                    sb.Append("- ").Append(g.id).Append("\r\n");
+                }
+            }
+
+            logger.LogInfo(sb.ToString());
         }
     }
 }
