@@ -3,10 +3,14 @@ using UnityEngine;
 using BepInEx.Bootstrap;
 using System.Reflection;
 using System;
+using HarmonyLib;
+using SpaceCraft;
+using System.Collections.Generic;
+using BepInEx.Logging;
 
 namespace ExampleModLoadSaveSupportSoft
 {
-    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.0")]
+    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.1")]
     [BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -14,6 +18,8 @@ namespace ExampleModLoadSaveSupportSoft
         const string guid = "akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft";
 
         private IDisposable handle;
+
+        static ManualLogSource logger;
 
         private void Awake()
         {
@@ -35,6 +41,10 @@ namespace ExampleModLoadSaveSupportSoft
             {
                 Logger.LogInfo("Could not find " + libModLoadSaveSupportGuid);
             }
+
+            logger = Logger;
+
+            Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         void OnDestroy()
@@ -55,5 +65,14 @@ namespace ExampleModLoadSaveSupportSoft
             return "ExampleModLoadSaveSupportSoft example content";
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(TerraformStagesHandler), "Start")]
+        static void TerraformStagesHandler_Start(List<TerraformStage> ___allGlobalTerraStage)
+        {
+            foreach (TerraformStage stage in ___allGlobalTerraStage)
+            {
+                logger.LogInfo(stage.GetTerraId() + " @ " + stage.GetStageStartValue() + " " + stage.GetWorldUnitType());                
+            }
+        }
     }
 }
