@@ -129,6 +129,33 @@ Note that some
 resources are out of bounds and are not normally player-reachable. You may also
 fall to your death so be careful on permadeath!
 
+## (Cheat) Minimap
+
+Display a minimap on the lower left side of the screen.
+
+Notes
+- Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
+- Currently, this was the best map that I could find and also wouldn't be huge.
+- Can't do much about the rotating square, Unity has some UI rendering quirks.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatminimap.cfg`
+
+```
+[General]
+
+## The minimap panel size
+# Setting type: Int32
+# Default value: 400
+MapSize = 400
+
+## The zoom level
+# Setting type: Int32
+# Default value: 4
+ZoomLevel = 4
+```
+
 ### Configuration
 
 `akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg`
