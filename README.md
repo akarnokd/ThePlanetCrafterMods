@@ -137,6 +137,8 @@ Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
 - Currently, this was the best map that I could find and also wouldn't be huge.
 - Can't do much about the rotating square, Unity has some UI rendering quirks.
+- The current map is from https://map.fistshake.net/PlanetCrafter/ by **I crash at random** on the Steam Guides page https://steamcommunity.com/sharedfiles/filedetails/?id=2786757809
+
 
 ### Configuration
 
