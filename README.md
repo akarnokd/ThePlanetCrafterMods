@@ -13,7 +13,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 Public releases are relatively infrequent (once per week). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
-:information: I have not tested my mods with the developer/preview/demo releases. They might work just fine or suddenly break.
+:warning: I have not tested my mods with the developer/preview/demo releases. They might work just fine or suddenly break.
 I don't promise to fix my mods for these versions as they can get quite out-of-sync with the public release.
 
 ## Preparation
