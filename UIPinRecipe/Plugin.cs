@@ -9,7 +9,9 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using System;
+using System.Linq;
 using BepInEx.Bootstrap;
+using UnityEngine.InputSystem;
 
 namespace UIPinRecipe
 {
@@ -21,6 +23,7 @@ namespace UIPinRecipe
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
+        static ConfigEntry<int> holdTime;
         /// <summary>
         /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
         /// </summary>
@@ -32,6 +35,8 @@ namespace UIPinRecipe
 
             fontSize = Config.Bind("General", "FontSize", 25, "The size of the font used");
             panelWidth = Config.Bind("General", "PanelWidth", 850, "The width of the recipe panel");
+            holdTime = Config.Bind("General", "HoldToClearList", 2, "Amount of time to hold button to clear pinned recipe\r\n" +
+                "Hold middle mouse button to clear the list");
 
             craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
 
@@ -41,6 +46,30 @@ namespace UIPinRecipe
         void Start()
         {
             StartCoroutine(UpdatePinnedRecipesCoroutine());
+        }
+
+        static float pressingCounter;
+        void Update()
+        {
+            if (Mouse.current.middleButton.isPressed)
+            {
+                pressingCounter -= Time.smoothDeltaTime;
+                
+                if (pressingCounter >= 0)
+                    return;
+
+                if (pinnedRecipes.Count < 1)
+                    return;
+
+                //Clear all pinned
+                List<Group> pinnedGroup = pinnedRecipes.Select(i => i.group).ToList();
+                pinnedGroup.ForEach(i => PinUnpinGroup(i));
+                pinnedRecipes.Clear();
+            }
+            else
+            {
+                pressingCounter = holdTime.Value;
+            }
         }
 
         System.Collections.IEnumerator UpdatePinnedRecipesCoroutine()
