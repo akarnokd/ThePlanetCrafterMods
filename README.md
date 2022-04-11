@@ -222,6 +222,9 @@ ZoomOutMouseButton = 5
 
 Items in inventories now stack. The stack count is displayed on the middle of the item.
 
+:warning: The game is not meant to be working with stacks of items and I might not have
+found all places where this can be bad. Backup your saves!
+
 ### Configuration
 
 [General]
