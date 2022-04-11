@@ -129,6 +129,19 @@ Note that some
 resources are out of bounds and are not normally player-reachable. You may also
 fall to your death so be careful on permadeath!
 
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg`
+
+```
+[General]
+
+## List of comma-separated resource ids to look for.
+# Setting type: String
+# Default value: Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
+ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
+```
+
 ## (Cheat) Minimap
 
 Display a minimap on the lower left side of the screen.
@@ -157,20 +170,6 @@ MapSize = 400
 # Default value: 4
 ZoomLevel = 4
 ```
-
-### Configuration
-
-`akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg`
-
-```
-[General]
-
-## List of comma-separated resource ids to look for.
-# Setting type: String
-# Default value: Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
-ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
-```
-
 
 ## (Perf) Load Inventories Faster
 

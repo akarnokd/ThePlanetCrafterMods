@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -33,13 +33,13 @@ namespace CheatMachineRemoteDeposit
             string gid = "*" + worldObject.GetGroup().GetId().ToLower();
             foreach (WorldObject wo2 in WorldObjectsHandler.GetAllWorldObjects())
             {
-                if (wo2.HasLinkedInventory())
+                if (wo2 != null && wo2.HasLinkedInventory())
                 {
                     Inventory inv2 = InventoriesHandler.GetInventoryById(wo2.GetLinkedInventoryId());
-                    if (!inv2.IsFull())
+                    if (inv2 != null && !inv2.IsFull())
                     {
-                        string txt = wo2.GetText().ToLower();
-                        if (txt.Contains(gid))
+                        string txt = wo2.GetText();
+                        if (txt != null && txt.ToLower().Contains(gid))
                         {
                             inventory = inv2;
                             break;
