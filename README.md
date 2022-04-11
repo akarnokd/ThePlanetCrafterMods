@@ -227,6 +227,7 @@ found all places where this can be bad. Backup your saves!
 
 ### Configuration
 
+```
 [General]
 
 ## The stack size of all item types in the inventory
@@ -238,7 +239,7 @@ StackSize = 10
 # Setting type: Int32
 # Default value: 25
 FontSize = 25
-
+```
 
 ## (Perf) Load Inventories Faster
 
