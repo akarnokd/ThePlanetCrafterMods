@@ -10,10 +10,12 @@ using System.Collections.Generic;
 using BepInEx.Configuration;
 using System;
 using BepInEx.Bootstrap;
+using UnityEngine.InputSystem;
+using System.Reflection;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.5")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -21,6 +23,7 @@ namespace UIPinRecipe
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
+        static ConfigEntry<string> clearKey;
         /// <summary>
         /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
         /// </summary>
@@ -32,6 +35,7 @@ namespace UIPinRecipe
 
             fontSize = Config.Bind("General", "FontSize", 25, "The size of the font used");
             panelWidth = Config.Bind("General", "PanelWidth", 850, "The width of the recipe panel");
+            clearKey = Config.Bind("General", "ClearKey", "C", "The key to press to clear all pinned recipes");
 
             craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
 
@@ -52,6 +56,22 @@ namespace UIPinRecipe
                     pr.UpdateState();
                 }
                 yield return new WaitForSeconds(0.25f);
+            }
+        }
+
+        void Update()
+        {
+            if (pinnedRecipes.Count != 0) {
+                PropertyInfo pi = typeof(Key).GetProperty(clearKey.Value.ToString().ToUpper());
+                Key k = Key.C;
+                if (pi != null)
+                {
+                    k = (Key)pi.GetRawConstantValue();
+                }
+                if (Keyboard.current[k].isPressed)
+                {
+                    ClearPinnedRecipes();
+                }
             }
         }
 
@@ -304,11 +324,20 @@ namespace UIPinRecipe
             return current;
         }
 
+        static void ClearPinnedRecipes()
+        {
+            foreach (PinnedRecipe pr in pinnedRecipes)
+            {
+                pr.Destroy();
+            }
+            pinnedRecipes.Clear();
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
-            pinnedRecipes.Clear();
+            ClearPinnedRecipes();
         }
 
         [HarmonyPostfix]

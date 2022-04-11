@@ -146,6 +146,10 @@ ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridiu
 
 Display a minimap on the lower left side of the screen.
 
+Press <kbd>N</kbd> to show/hide the minimap.
+Press <kbd>Shift+N</kbd> to zoom in.
+Press <kbd>Ctrl+N</kbd> to zoom out.
+
 Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
 - Currently, this was the best map that I could find and also wouldn't be huge.
@@ -169,6 +173,11 @@ MapSize = 400
 # Setting type: Int32
 # Default value: 4
 ZoomLevel = 4
+
+## The key to press to toggle the minimap
+# Setting type: String
+# Default value: N
+ToggleKey = N
 ```
 
 ## (Perf) Load Inventories Faster
@@ -305,6 +314,8 @@ None.
 
 On the various craft screens, use <kbd>Middle click</kbd> to pin or unpin a craftable recipe to the screen.
 
+To unpin all recipes, press <kbd>C</kbd>.
+
 In the panel, the curly parenthesis indicates how many of that item is in the player's inventory.
 The `< 2 >` indicates how many of the recipe can be crafted from the given inventory.
 
@@ -326,6 +337,11 @@ FontSize = 25
 # Setting type: Int32
 # Default value: 850
 PanelWidth = 850
+
+## The key to press to clear all pinned recipes
+# Setting type: String
+# Default value: C
+ClearKey = C
 ```
 
 ## (UI) Craft Equipment Inplace

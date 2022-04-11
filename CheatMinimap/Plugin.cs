@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -22,8 +22,10 @@ namespace CheatMinimap
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> zoomLevel;
+        ConfigEntry<string> toggleKey;
 
         static bool mapVisible = true;
+        static bool mapManualVisible = true;
 
         private void Awake()
         {
@@ -39,13 +41,40 @@ namespace CheatMinimap
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             zoomLevel = Config.Bind("General", "ZoomLevel", 4, "The zoom level");
+            toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
+        void Update()
+        {
+            PropertyInfo pi = typeof(Key).GetProperty(toggleKey.Value.ToString().ToUpper());
+            Key k = Key.N;
+            if (pi != null)
+            {
+                k = (Key)pi.GetRawConstantValue();
+            }
+            if (Keyboard.current[k].wasPressedThisFrame)
+            {
+                if (Keyboard.current[Key.LeftShift].isPressed)
+                {
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                }
+                else
+                if (Keyboard.current[Key.LeftCtrl].isPressed)
+                {
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                }
+                else
+                {
+                    mapManualVisible = !mapManualVisible;
+                }
+            }
+        }
+
         void OnGUI()
         {
-            if (mapVisible)
+            if (mapVisible && mapManualVisible)
             {
                 PlayersManager pm = Managers.GetManager<PlayersManager>();
                 PlayerMainController player = pm?.GetActivePlayerController();
