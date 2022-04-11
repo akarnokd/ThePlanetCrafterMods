@@ -10,10 +10,11 @@ using System.IO;
 using System.Reflection;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -23,6 +24,8 @@ namespace CheatMinimap
         ConfigEntry<int> mapSize;
         ConfigEntry<int> zoomLevel;
         ConfigEntry<string> toggleKey;
+        ConfigEntry<int> zoomInMouseButton;
+        ConfigEntry<int> zoomOutMouseButton;
 
         static bool mapVisible = true;
         static bool mapManualVisible = true;
@@ -42,8 +45,23 @@ namespace CheatMinimap
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             zoomLevel = Config.Bind("General", "ZoomLevel", 4, "The zoom level");
             toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
+            zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
+            zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        static ButtonControl MouseButtonForIndex(int index)
+        {
+            switch (index)
+            {
+                case 1: return Mouse.current.leftButton;
+                case 2: return Mouse.current.rightButton;
+                case 3: return Mouse.current.middleButton;
+                case 4: return Mouse.current.forwardButton;
+                case 5: return Mouse.current.backButton;
+                default: return null;
+            }
         }
 
         void Update()
@@ -54,6 +72,16 @@ namespace CheatMinimap
             {
                 k = (Key)pi.GetRawConstantValue();
             }
+
+            if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
+            {
+                zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+            }
+            if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
+            {
+                zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+            }
+
             if (Keyboard.current[k].wasPressedThisFrame)
             {
                 if (Keyboard.current[Key.LeftShift].isPressed)
