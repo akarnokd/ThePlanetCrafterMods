@@ -14,7 +14,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -40,9 +40,13 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
         static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
         {
-            __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize);
+            if (stackSize.Value > 1)
+            {
+                __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize);
 
-            return false;
+                return false;
+            }
+            return true;
         }
 
         static bool IsFullStacked(List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
@@ -79,31 +83,34 @@ namespace CheatInventoryStacking
             Inventory __instance,
             List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
         {
-            List<WorldObject> toDrop = new List<WorldObject>();
+            if (stackSize.Value > 1) {
+                List<WorldObject> toDrop = new List<WorldObject>();
 
-            bool refresh = false;
+                bool refresh = false;
 
-            while (IsFullStacked(___worldObjectsInInventory, ___inventorySize))
-            {
-                int lastIdx = ___worldObjectsInInventory.Count - 1;
-                WorldObject worldObject = ___worldObjectsInInventory[lastIdx];
-                toDrop.Add(worldObject);
+                while (IsFullStacked(___worldObjectsInInventory, ___inventorySize))
+                {
+                    int lastIdx = ___worldObjectsInInventory.Count - 1;
+                    WorldObject worldObject = ___worldObjectsInInventory[lastIdx];
+                    toDrop.Add(worldObject);
 
-                WorldObjectsHandler.DropOnFloor(worldObject, _dropPosition, 0f);
-                ___worldObjectsInInventory.RemoveAt(lastIdx);
+                    WorldObjectsHandler.DropOnFloor(worldObject, _dropPosition, 0f);
+                    ___worldObjectsInInventory.RemoveAt(lastIdx);
 
-                __instance.inventoryContentModified?.Invoke(worldObject, false);
+                    __instance.inventoryContentModified?.Invoke(worldObject, false);
 
-                refresh = true;
+                    refresh = true;
+                }
+
+                if (refresh)
+                {
+                    __instance.RefreshDisplayerContent();
+                }
+
+                __result = toDrop;
+                return false;
             }
-
-            if (refresh)
-            {
-                __instance.RefreshDisplayerContent();
-            }
-
-            __result = toDrop;
-            return false;
+            return true;
         }
 
         static Action<EventTriggerCallbackData> CreateMouseCallback(string name, InventoryDisplayer __instance)
@@ -126,155 +133,158 @@ namespace CheatInventoryStacking
             Inventory ___inventory, GridLayoutGroup ___grid, int ___selectionIndex,
             ref Vector2 ___originalSizeDelta, Inventory ___inventoryInteracting)
         {
-            int fs = fontSize.Value;
             int n = stackSize.Value;
-
-            if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out var inventoryGO))
+            if (n > 1)
             {
-                foreach (GameObject go in inventoryGO)
+                int fs = fontSize.Value;
+
+                if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out var inventoryGO))
                 {
-                    UnityEngine.Object.Destroy(go);
-                }
-                inventoryGO.Clear();
-            } else
-            {
-                inventoryGO = new List<GameObject>();
-                inventoryCountGameObjects[___inventory.GetId()] = inventoryGO;
-            }
-
-
-            inventoryCountGameObjects.Clear();
-
-            GameObjects.DestroyAllChildren(___grid.gameObject, false);
-
-            WindowsGamepadHandler manager = Managers.GetManager<WindowsGamepadHandler>();
-            
-            GroupInfosDisplayerBlocksSwitches groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches();
-            groupInfosDisplayerBlocksSwitches.showActions = true;
-            groupInfosDisplayerBlocksSwitches.showDescription = true;
-            groupInfosDisplayerBlocksSwitches.showMultipliers = true;
-            groupInfosDisplayerBlocksSwitches.showInfos = true;
-
-            VisualsResourcesHandler manager2 = Managers.GetManager<VisualsResourcesHandler>();
-            GameObject inventoryBlock = manager2.GetInventoryBlock();
-
-            bool showDropIcon = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ___inventory;
-
-            List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
-            Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
-
-            Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback("OnImageClicked", __instance);
-            Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback("OnDropClicked", __instance);
-
-            Action<WorldObject, Group, int> onActionViaGamepadDelegate = CreateGamepadCallback("OnActionViaGamepad", __instance);
-            Action<WorldObject, Group, int> onConsumeViaGamepadDelegate = CreateGamepadCallback("OnConsumeViaGamepad", __instance);
-            Action<WorldObject, Group, int> onDropViaGamepadDelegate = CreateGamepadCallback("OnDropViaGamepad", __instance);
-
-            Dictionary<string, InventorySlot> currentSlot = new Dictionary<string, InventorySlot>();
-            List<InventorySlot> slots = new List<InventorySlot>();
-
-            foreach (WorldObject worldObject in ___inventory.GetInsideWorldObjects())
-            {
-                string gid = worldObject.GetGroup().GetId();
-
-                if (currentSlot.TryGetValue(gid, out InventorySlot slot))
-                {
-                    if (++slot.count == n)
+                    foreach (GameObject go in inventoryGO)
                     {
-                        currentSlot.Remove(gid);
+                        UnityEngine.Object.Destroy(go);
                     }
-                } else
-                {
-                    slot = new InventorySlot();
-                    slot.worldObject = worldObject;
-                    slot.count = 1;
-                    slots.Add(slot);
-                    currentSlot[gid] = slot;
+                    inventoryGO.Clear();
                 }
-            }
-
-            for (int i = 0; i < ___inventory.GetSize(); i++)
-            {
-                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(inventoryBlock, ___grid.transform);
-                InventoryBlock component = gameObject.GetComponent<InventoryBlock>();
-                component.SetAuthorizedGroupIcon(authorizedGroupIcon);
-
-                if (slots.Count > i)
+                else
                 {
-                    InventorySlot slot = slots[i];
-                    WorldObject worldObject = slot.worldObject;
+                    inventoryGO = new List<GameObject>();
+                    inventoryCountGameObjects[___inventory.GetId()] = inventoryGO;
+                }
 
-                    component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
+                GameObjects.DestroyAllChildren(___grid.gameObject, false);
 
-                    RectTransform rectTransform;
+                WindowsGamepadHandler manager = Managers.GetManager<WindowsGamepadHandler>();
 
-                    if (slot.count > 1)
+                GroupInfosDisplayerBlocksSwitches groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches();
+                groupInfosDisplayerBlocksSwitches.showActions = true;
+                groupInfosDisplayerBlocksSwitches.showDescription = true;
+                groupInfosDisplayerBlocksSwitches.showMultipliers = true;
+                groupInfosDisplayerBlocksSwitches.showInfos = true;
+
+                VisualsResourcesHandler manager2 = Managers.GetManager<VisualsResourcesHandler>();
+                GameObject inventoryBlock = manager2.GetInventoryBlock();
+
+                bool showDropIcon = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ___inventory;
+
+                List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
+                Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
+
+                Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback("OnImageClicked", __instance);
+                Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback("OnDropClicked", __instance);
+
+                Action<WorldObject, Group, int> onActionViaGamepadDelegate = CreateGamepadCallback("OnActionViaGamepad", __instance);
+                Action<WorldObject, Group, int> onConsumeViaGamepadDelegate = CreateGamepadCallback("OnConsumeViaGamepad", __instance);
+                Action<WorldObject, Group, int> onDropViaGamepadDelegate = CreateGamepadCallback("OnDropViaGamepad", __instance);
+
+                Dictionary<string, InventorySlot> currentSlot = new Dictionary<string, InventorySlot>();
+                List<InventorySlot> slots = new List<InventorySlot>();
+
+                foreach (WorldObject worldObject in ___inventory.GetInsideWorldObjects())
+                {
+                    string gid = worldObject.GetGroup().GetId();
+
+                    if (currentSlot.TryGetValue(gid, out InventorySlot slot))
                     {
-                        GameObject countBackground = new GameObject();
-                        inventoryGO.Add(countBackground);
-                        countBackground.transform.parent = component.transform;
-
-                        Image image = countBackground.AddComponent<Image>();
-                        image.color = new Color(0.25f, 0.25f, 0.25f, 0.8f);
-
-                        rectTransform = image.GetComponent<RectTransform>();
-                        rectTransform.localPosition = new Vector3(0, 0, 0);
-                        rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
-
-                        GameObject count = new GameObject();
-                        inventoryGO.Add(count);
-                        count.transform.parent = component.transform;
-                        Text text = count.AddComponent<Text>();
-                        text.text = slot.count.ToString();
-                        text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                        text.color = new Color(1f, 1f, 1f, 1f);
-                        text.fontSize = fs;
-                        text.resizeTextForBestFit = false;
-                        text.verticalOverflow = VerticalWrapMode.Overflow;
-                        text.horizontalOverflow = HorizontalWrapMode.Overflow;
-                        text.alignment = TextAnchor.MiddleCenter;
-
-                        rectTransform = text.GetComponent<RectTransform>();
-                        rectTransform.localPosition = new Vector3(0, 0, 0);
-                        rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
+                        if (++slot.count == n)
+                        {
+                            currentSlot.Remove(gid);
+                        }
                     }
-
-                    GameObject dropIcon = component.GetDropIcon();
-                    if (!worldObject.GetIsLockedInInventory())
+                    else
                     {
-                        EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick,
-                            onImageClickedDelegate, null, worldObject);
-                        EventsHelpers.AddTriggerEvent(dropIcon, EventTriggerType.PointerClick,
-                            onDropClickedDelegate, null, worldObject);
-
-                        gameObject.AddComponent<EventGamepadAction>().SetEventGamepadAction(
-                            onActionViaGamepadDelegate, 
-                            worldObject.GetGroup(), worldObject, i,
-                            onConsumeViaGamepadDelegate,
-                            onDropViaGamepadDelegate
-                        );
+                        slot = new InventorySlot();
+                        slot.worldObject = worldObject;
+                        slot.count = 1;
+                        slots.Add(slot);
+                        currentSlot[gid] = slot;
                     }
                 }
-                gameObject.SetActive(true);
-                if (i == ___selectionIndex && (___inventoryInteracting == null || ___inventoryInteracting == ___inventory))
+
+                for (int i = 0; i < ___inventory.GetSize(); i++)
                 {
-                    manager.SelectForController(gameObject, true);
+                    GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(inventoryBlock, ___grid.transform);
+                    InventoryBlock component = gameObject.GetComponent<InventoryBlock>();
+                    component.SetAuthorizedGroupIcon(authorizedGroupIcon);
+
+                    if (slots.Count > i)
+                    {
+                        InventorySlot slot = slots[i];
+                        WorldObject worldObject = slot.worldObject;
+
+                        component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
+
+                        RectTransform rectTransform;
+
+                        if (slot.count > 1)
+                        {
+                            GameObject countBackground = new GameObject();
+                            inventoryGO.Add(countBackground);
+                            countBackground.transform.parent = component.transform;
+
+                            Image image = countBackground.AddComponent<Image>();
+                            image.color = new Color(0.25f, 0.25f, 0.25f, 0.8f);
+
+                            rectTransform = image.GetComponent<RectTransform>();
+                            rectTransform.localPosition = new Vector3(0, 0, 0);
+                            rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
+
+                            GameObject count = new GameObject();
+                            inventoryGO.Add(count);
+                            count.transform.parent = component.transform;
+                            Text text = count.AddComponent<Text>();
+                            text.text = slot.count.ToString();
+                            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                            text.color = new Color(1f, 1f, 1f, 1f);
+                            text.fontSize = fs;
+                            text.resizeTextForBestFit = false;
+                            text.verticalOverflow = VerticalWrapMode.Overflow;
+                            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+                            text.alignment = TextAnchor.MiddleCenter;
+
+                            rectTransform = text.GetComponent<RectTransform>();
+                            rectTransform.localPosition = new Vector3(0, 0, 0);
+                            rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
+                        }
+
+                        GameObject dropIcon = component.GetDropIcon();
+                        if (!worldObject.GetIsLockedInInventory())
+                        {
+                            EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick,
+                                onImageClickedDelegate, null, worldObject);
+                            EventsHelpers.AddTriggerEvent(dropIcon, EventTriggerType.PointerClick,
+                                onDropClickedDelegate, null, worldObject);
+
+                            gameObject.AddComponent<EventGamepadAction>().SetEventGamepadAction(
+                                onActionViaGamepadDelegate,
+                                worldObject.GetGroup(), worldObject, i,
+                                onConsumeViaGamepadDelegate,
+                                onDropViaGamepadDelegate
+                            );
+                        }
+                    }
+                    gameObject.SetActive(true);
+                    if (i == ___selectionIndex && (___inventoryInteracting == null || ___inventoryInteracting == ___inventory))
+                    {
+                        manager.SelectForController(gameObject, true);
+                    }
                 }
+                if (___originalSizeDelta == Vector2.zero)
+                {
+                    ___originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
+                }
+                if (___inventory.GetSize() > 28)
+                {
+                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 50f, ___originalSizeDelta.y);
+                }
+                else
+                {
+                    __instance.GetComponent<RectTransform>().sizeDelta = ___originalSizeDelta;
+                }
+                __instance.SetIconsPositionRelativeToGrid();
+                return false;
             }
-            if (___originalSizeDelta == Vector2.zero)
-            {
-                ___originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
-            }
-            if (___inventory.GetSize() > 28)
-            {
-                __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 50f, ___originalSizeDelta.y);
-            }
-            else
-            {
-                __instance.GetComponent<RectTransform>().sizeDelta = ___originalSizeDelta;
-            }
-            __instance.SetIconsPositionRelativeToGrid();
-            return false;
+            return true;
         }
 
         class InventorySlot
