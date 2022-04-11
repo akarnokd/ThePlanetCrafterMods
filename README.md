@@ -11,6 +11,27 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 ## Supported Game Version: 0.4.0.8
 
+Public releases are relatively infrequent (once per week). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
+
+:information: I have not tested my mods with the developer/preview/demo releases. They might work just fine or suddenly break.
+I don't promise to fix my mods for these versions as they can get quite out-of-sync with the public release.
+
+## Preparation
+
+In order to use my or anyone other's mods, you need to install BepInEx first. The wiki has a guide for this:
+
+https://planet-crafter.fandom.com/wiki/Modding#Using_Mods
+
+When installing my mods, unzip the mod into the `BepInEx\Plugins` directory, including the folder inside the zip file.
+
+You'll have a directory structure like this:
+
+`BepInEx\Plugins\akarnokd - (UI) Pin Recipe to Screen\UIPinRecipe.dll`
+
+Such organization avoids overwriting each others' files if they happen to be named the same as well as allows removing plugin files together 
+by deleting the directory itself.
+
+
 # Mods
 
 | Cheats | UI/QoL | Other |
