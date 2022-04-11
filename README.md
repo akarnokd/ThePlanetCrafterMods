@@ -218,6 +218,25 @@ ZoomInMouseButton = 4
 ZoomOutMouseButton = 5
 ```
 
+## (Cheat) Inventory Stacking
+
+Items in inventories now stack. The stack count is displayed on the middle of the item.
+
+### Configuration
+
+[General]
+
+## The stack size of all item types in the inventory
+# Setting type: Int32
+# Default value: 10
+StackSize = 10
+
+## The font size for the stack amount
+# Setting type: Int32
+# Default value: 25
+FontSize = 25
+
+
 ## (Perf) Load Inventories Faster
 
 This speeds up loading the game when there are lots of containers or (modded) containers have a lot of items.
