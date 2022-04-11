@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -77,7 +77,7 @@ namespace CheatMinimap
             {
                 zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
             }
-            if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
+            if (MouseButtonForIndex(zoomOutMouseButton.Value)?.wasPressedThisFrame ?? false)
             {
                 zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
             }
