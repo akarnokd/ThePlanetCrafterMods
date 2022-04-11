@@ -154,8 +154,8 @@ ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridiu
 Display a minimap on the lower left side of the screen.
 
 Press <kbd>N</kbd> to show/hide the minimap.
-Press <kbd>Shift+N</kbd> to zoom in.
-Press <kbd>Ctrl+N</kbd> to zoom out.
+Press <kbd>Shift+N</kbd> or <kbd>Mouse 4</kbd> to zoom in.
+Press <kbd>Ctrl+N</kbd> or <kbd>Mouse 5</kbd> to zoom out.
 
 Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
@@ -185,6 +185,16 @@ ZoomLevel = 4
 # Setting type: String
 # Default value: N
 ToggleKey = N
+
+## Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)
+# Setting type: Int32
+# Default value: 4
+ZoomInMouseButton = 4
+
+## Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)
+# Setting type: Int32
+# Default value: 5
+ZoomOutMouseButton = 5
 ```
 
 ## (Perf) Load Inventories Faster
