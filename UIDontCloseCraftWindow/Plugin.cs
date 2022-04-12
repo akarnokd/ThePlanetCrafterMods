@@ -13,10 +13,10 @@ namespace UIDontCloseCraftWindow
     public class Plugin : BaseUnityPlugin
     {
 
-		/// <summary>
-		/// Have to pass state between OnImageClicked and TryToCraftInInventory.
-		/// </summary>
-		private static bool rightMouseClicked;
+        /// <summary>
+        /// Have to pass state between OnImageClicked and TryToCraftInInventory.
+        /// </summary>
+        private static bool rightMouseClicked;
 
         private void Awake()
         {
