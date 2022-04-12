@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.2")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -28,8 +28,12 @@ namespace UICraftEquipmentInPlace
             ActionCrafter _sourceCrafter, PlayerMainController _playerController, GroupItem groupItem,
             ref int ___totalCraft)
         {
+            // In Free Craft mode, skip this mod.
+            if (Managers.GetManager<PlayModeHandler>().GetFreeCraft())
+            {
+                return true;
+            }
             // Unfortunately, the whole method has to be rewritten
-
             DataConfig.EquipableType equipType = groupItem.GetEquipableType();
             if (equipType == DataConfig.EquipableType.OxygenTank
                 || equipType == DataConfig.EquipableType.BackpackIncrease

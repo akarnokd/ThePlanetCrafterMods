@@ -158,7 +158,7 @@ Enabled = false
 
 For this mod to work, you have to rename your containers. For example,
 to make machines deposit Iron, rename your container(s) to something that includes
-`*Iron`. For Uranium, rename them to `*Uranim`. Note the `*` in front of the identifiers.
+`*Iron`. For Uranium, rename them to `*Uranim` (remark: this is a misspelling in the vanilla game which will probably never be fixed as it would break saves). Note the `*` in front of the identifiers.
 Identifiers can be any case. 
 
 You can combine multiple resources by mentioning them together: `*Iron *Cobalt`.
@@ -186,6 +186,8 @@ Note also that machines are slow to mine resources.
 Note that some
 resources are out of bounds and are not normally player-reachable. You may also
 fall to your death so be careful on permadeath!
+
+Remark: `Uranim` is a misspelling in the vanilla game which will probably never be fixed as it would break saves.
 
 ### Configuration
 
