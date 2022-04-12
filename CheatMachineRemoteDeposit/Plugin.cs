@@ -10,7 +10,8 @@ using System.Reflection;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.2")]
+    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -47,7 +48,10 @@ namespace CheatMachineRemoteDeposit
                     }
                 }
             }
-            inventory.AddItem(worldObject);
+            if (!inventory.AddItem(worldObject))
+            {
+                WorldObjectsHandler.DestroyWorldObject(worldObject);
+            }
             return false;
         }
     }

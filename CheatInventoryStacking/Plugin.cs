@@ -10,12 +10,11 @@ using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using BepInEx.Logging;
 using BepInEx.Bootstrap;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.4")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -23,7 +22,9 @@ namespace CheatInventoryStacking
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
 
-        static ManualLogSource logger;
+        static string expectedGroupIdToAdd;
+
+        static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
 
         private void Awake()
         {
@@ -33,26 +34,12 @@ namespace CheatInventoryStacking
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
 
-            logger = Logger;
-
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        static string expectedGroupIdToAdd;
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
-        static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
-        {
-            if (stackSize.Value > 1)
-            {
-                string gid = expectedGroupIdToAdd;
-                expectedGroupIdToAdd = null;
-                __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize, gid);
-                return false;
-            }
-            return true;
-        }
+        // --------------------------------------------------------------------------------------------------------
+        // Helper Methods
+        // --------------------------------------------------------------------------------------------------------
 
         static bool IsFullStacked(List<WorldObject> ___worldObjectsInInventory, int ___inventorySize, string gid = null)
         {
@@ -61,7 +48,7 @@ namespace CheatInventoryStacking
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (var worldObject in ___worldObjectsInInventory)
+            foreach (WorldObject worldObject in ___worldObjectsInInventory)
             {
                 AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
             }
@@ -88,44 +75,6 @@ namespace CheatInventoryStacking
                 count = 1;
             }
             groupCounts[gid] = count;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.DropObjectsIfNotEnoughSpace))]
-        static bool Inventory_DropObjectsIfNotEnoughSpace(
-            ref List<WorldObject> __result, Vector3 _dropPosition,
-            Inventory __instance,
-            List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
-        {
-            if (stackSize.Value > 1)
-            {
-                List<WorldObject> toDrop = new List<WorldObject>();
-
-                bool refresh = false;
-
-                while (IsFullStacked(___worldObjectsInInventory, ___inventorySize))
-                {
-                    int lastIdx = ___worldObjectsInInventory.Count - 1;
-                    WorldObject worldObject = ___worldObjectsInInventory[lastIdx];
-                    toDrop.Add(worldObject);
-
-                    WorldObjectsHandler.DropOnFloor(worldObject, _dropPosition, 0f);
-                    ___worldObjectsInInventory.RemoveAt(lastIdx);
-
-                    __instance.inventoryContentModified?.Invoke(worldObject, false);
-
-                    refresh = true;
-                }
-
-                if (refresh)
-                {
-                    __instance.RefreshDisplayerContent();
-                }
-
-                __result = toDrop;
-                return false;
-            }
-            return true;
         }
 
         static Action<EventTriggerCallbackData> CreateMouseCallback(string name, InventoryDisplayer __instance)
@@ -169,7 +118,69 @@ namespace CheatInventoryStacking
             return slots;
         }
 
-        static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
+        // --------------------------------------------------------------------------------------------------------
+        // Patches
+        // --------------------------------------------------------------------------------------------------------
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
+        static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
+        {
+            if (stackSize.Value > 1)
+            {
+                string gid = expectedGroupIdToAdd;
+                expectedGroupIdToAdd = null;
+                __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize, gid);
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.DropObjectsIfNotEnoughSpace))]
+        static bool Inventory_DropObjectsIfNotEnoughSpace(
+            ref List<WorldObject> __result, Vector3 _dropPosition,
+            Inventory __instance,
+            List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
+        {
+            if (stackSize.Value > 1)
+            {
+                List<WorldObject> toDrop = new List<WorldObject>();
+
+                bool refresh = false;
+
+                while (IsFullStacked(___worldObjectsInInventory, ___inventorySize))
+                {
+                    int lastIdx = ___worldObjectsInInventory.Count - 1;
+                    WorldObject worldObject = ___worldObjectsInInventory[lastIdx];
+                    toDrop.Add(worldObject);
+
+                    WorldObjectsHandler.DropOnFloor(worldObject, _dropPosition, 0f);
+                    ___worldObjectsInInventory.RemoveAt(lastIdx);
+
+                    __instance.inventoryContentModified?.Invoke(worldObject, false);
+
+                    refresh = true;
+                }
+
+                if (refresh)
+                {
+                    __instance.RefreshDisplayerContent();
+                }
+
+                __result = toDrop;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
+        static bool Inventory_AddItemInInventory(WorldObject _worldObject)
+        {
+            expectedGroupIdToAdd = _worldObject.GetGroup().GetId();
+            return true;
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
@@ -183,7 +194,7 @@ namespace CheatInventoryStacking
             {
                 int fs = fontSize.Value;
 
-                if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out var inventoryGO))
+                if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out List<GameObject> inventoryGO))
                 {
                     foreach (GameObject go in inventoryGO)
                     {
@@ -309,6 +320,7 @@ namespace CheatInventoryStacking
             }
             return true;
         }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
         static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
@@ -355,14 +367,6 @@ namespace CheatInventoryStacking
                     }
                 }
             }
-            return true;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
-        static bool Inventory_AddItemInInventory(WorldObject _worldObject)
-        {
-            expectedGroupIdToAdd = _worldObject.GetGroup().GetId();
             return true;
         }
 
@@ -505,10 +509,23 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
+        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, List<GroupData> ___groupDatas)
+        {
+            if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit"))
+            {
+                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(
+                    GroupsHandler.GetGroupViaId(
+                        ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id), 0);
 
-        // There is a fullness check in MachineGenerator.TryToGenerate and and unconditional add in MachineGenerator.GenerateAnObject
-        // without knowing the item ahead, IsFull would probably let the item through and then AddItem would reject it if the wrong type
-        // I don't think MachineGenerator needs to be patched, which is great given the CheatMachineRemoteDeposit would need to interact
-        // with this mod.
+                if (!___inventory.AddItem(worldObject))
+                {
+                    WorldObjectsHandler.DestroyWorldObject(worldObject);
+                }
+                return false;
+            }
+            return true;
+        }
     }
 }
