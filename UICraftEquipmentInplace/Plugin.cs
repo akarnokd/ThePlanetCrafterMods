@@ -1,15 +1,12 @@
 ﻿using BepInEx;
 using MijuTools;
-using BepInEx.Configuration;
 using SpaceCraft;
-using UnityEngine.InputSystem;
 using HarmonyLib;
-using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.3")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -49,15 +46,20 @@ namespace UICraftEquipmentInPlace
                 List<Group> fromBackpack = new List<Group>();
                 List<Group> fromEquipment = new List<Group>();
 
+                List<WorldObject> equipments = new List<WorldObject>(equipment.GetInsideWorldObjects());
+                List<WorldObject> backpacks = new List<WorldObject>(backpack.GetInsideWorldObjects());
+
                 bool inEquipment = false;
                 for (int i = ingredients.Count - 1; i >= 0; i--)
                 {
                     Group ingredient = ingredients[i];
-                    foreach (WorldObject wo in equipment.GetInsideWorldObjects())
+                    for (int j = 0; j < equipments.Count; j++)
                     {
+                        WorldObject wo = equipments[j];
                         if (wo.GetGroup().GetId() == ingredient.GetId())
                         {
                             ingredients.RemoveAt(i);
+                            equipments.RemoveAt(j);
                             fromEquipment.Add(ingredient);
                             inEquipment = true;
                             break;
@@ -65,11 +67,13 @@ namespace UICraftEquipmentInPlace
                     }
                     if (!inEquipment)
                     {
-                        foreach (WorldObject wo in backpack.GetInsideWorldObjects())
+                        for (int j = 0; j < backpacks.Count; j++)
                         {
+                            WorldObject wo = backpacks[j];
                             if (wo.GetGroup().GetId() == ingredient.GetId())
                             {
                                 ingredients.RemoveAt(i);
+                                backpacks.RemoveAt(j);
                                 fromBackpack.Add(ingredient);
                                 break;
                             }
