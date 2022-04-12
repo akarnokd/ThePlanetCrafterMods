@@ -80,7 +80,9 @@ where they can't be picked up normally.
 
 ## (Cheat) Highlight Nearby Resources
 
-Press <kbd>CTRL+F</kbd> to highlight nearby resources.
+Press <kbd>CTRL+F</kbd> or <kbd>X</kbd> to highlight nearby resources.
+Press <kbd>Shift+X</kbd> to highlight and cycle forward through the set of resources configured.
+Press <kbd>Ctrl+X</kbd> to highlight and cycle backward through the set of resources configured.
 
 ### Configuration
 
@@ -103,6 +105,12 @@ StretchY = 1
 # Setting type: String
 # Default value: Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
 ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur
+
+## Key used for cycling resources from the set
+# Setting type: String
+# Default value: X
+CycleResourceKey = X
+
 ```
 
 ## (Cheat) Inventory Capacity Override
