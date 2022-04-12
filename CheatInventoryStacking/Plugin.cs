@@ -11,10 +11,11 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using BepInEx.Bootstrap;
+using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.5")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -26,6 +27,7 @@ namespace CheatInventoryStacking
 
         static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
 
+        static ManualLogSource logger;
         private void Awake()
         {
             // Plugin startup logic
@@ -33,6 +35,8 @@ namespace CheatInventoryStacking
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
+
+            logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -176,10 +180,9 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
-        static bool Inventory_AddItemInInventory(WorldObject _worldObject)
+        static void Inventory_AddItemInInventory(WorldObject _worldObject)
         {
             expectedGroupIdToAdd = _worldObject.GetGroup().GetId();
-            return true;
         }
 
         [HarmonyPrefix]
@@ -321,6 +324,36 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.OnMoveAll))]
+        static bool InventoryDisplayer_OnMoveAll(Inventory ___inventory)
+        {
+            if (stackSize.Value > 1)
+            {
+                // The original always tries to move the 0th inventory item so
+                // when that has no room in the target, the 1st, 2nd etc items wouldn't move either
+                // so I have to rewrite part of the method
+                DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.Genetics)
+                {
+                    Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
+                    if (___inventory != null && otherInventory != null)
+                    {
+                        List<WorldObject> sourceList = ___inventory.GetInsideWorldObjects();
+                        for (int i = sourceList.Count - 1; i >= 0; i--)
+                        {
+                            WorldObject obj = sourceList[i];
+                            if (!obj.GetIsLockedInInventory() && otherInventory.AddItem(obj))
+                            {
+                                ___inventory.RemoveItem(obj);
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
         static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
