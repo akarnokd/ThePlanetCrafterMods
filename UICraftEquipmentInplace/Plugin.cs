@@ -3,20 +3,70 @@ using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using System.Reflection;
+using BepInEx.Logging;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.4")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+
+        static ConfigEntry<bool> crafts;
+
+        static ManualLogSource logger;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+            logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            if (Chainloader.PluginInfos.TryGetValue("AdvancedMode", out PluginInfo pi))
+            {
+                Logger.LogInfo("Disabling AdvancedMode's Free Crafting mode.");
+                FieldInfo fi = AccessTools.Field(pi.Instance.GetType(), "Crafts");
+                crafts = (ConfigEntry<bool>)fi.GetValue(null);
+
+                ConfigEntry<bool> ovr = Config.Bind("General", "OverrideAdvancedModeCrafts", false, "Override the configuration object inside the AdvancedMode plugin");
+                ovr.Value = false; // this will pass the execution along to our patch
+                fi.SetValue(null, ovr);
+                Logger.LogInfo("Disabled AdvancedMode's Free Crafting mode (" + crafts.Value + ")");
+            } else
+            {
+                Logger.LogInfo("AdvancedMode Plugin not found.");
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItems))]
+        static bool Inventory_RemoveItems(Inventory __instance)
+        {
+            logger.LogInfo("Inventory_RemoveItems called");
+            // no AdvancedMode || FreeCrafts disabled || inventory is the equipment
+            return crafts == null || !crafts.Value || __instance.GetId() == 2;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayModeHandler), nameof(PlayModeHandler.GetFreeCraft))]
+        static void PlayModeHandler_GetFreeCraft(ref bool __result, DataConfig.PlayMode ___playMode)
+        {
+            logger.LogInfo("PlayModeHandler_GetFreeCraft called");
+            if (crafts != null)
+            {
+                __result = crafts.Value;
+            } 
+            else 
+            {
+                __result = ___playMode == DataConfig.PlayMode.Free
+                    || ___playMode == DataConfig.PlayMode.FreeLimited;
+            }
         }
 
         [HarmonyPrefix]
@@ -26,10 +76,8 @@ namespace UICraftEquipmentInPlace
             ref int ___totalCraft)
         {
             // In Free Craft mode, skip this mod.
-            if (Managers.GetManager<PlayModeHandler>().GetFreeCraft())
-            {
-                return true;
-            }
+            bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+
             // Unfortunately, the whole method has to be rewritten
             DataConfig.EquipableType equipType = groupItem.GetEquipableType();
             if (equipType == DataConfig.EquipableType.OxygenTank
@@ -90,7 +138,7 @@ namespace UICraftEquipmentInPlace
                     return false;
                 }
 
-                if (ingredients.Count == 0)
+                if (ingredients.Count == 0 || isFreeCraft)
                 {
                     _sourceCrafter.CraftAnimation(groupItem);
 
