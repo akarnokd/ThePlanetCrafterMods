@@ -71,12 +71,29 @@ consume an Oxygen bottle, Water bottle or any food item from the player's invent
 
 Marked as cheat because it is expected the player does these manually.
 
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatautoconsume.cfg`
+
+```
+[General]
+
+## The percentage for which below food/water/oxygen is consumed.
+# Setting type: Int32
+# Default value: 9
+Threshold = 9
+```
+
 ## (Cheat) Photomode Hide Water
 
 Press <kbd>Shift+F2</kbd> to toggle photomode and hide water as well.
 
 This is marked as cheat because allows picking up objects near the water edge
 where they can't be picked up normally.
+
+### Configuration
+
+None.
 
 ## (Cheat) Highlight Nearby Resources
 

@@ -6,108 +6,108 @@ using TMPro;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using BepInEx.Configuration;
 
 namespace PerfLoadInventoriesFaster
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
+
+        private static ConfigEntry<int> threshold;
+
+        static bool oxygenWarning;
+        static bool waterWarning;
+        static bool foodWarning;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
+            threshold = Config.Bind("General", "Threshold", 9, "The percentage for which below food/water/oxygen is consumed.");
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        static bool FindAndConsume(DataConfig.UsableType type)
+        {
+            PlayerMainController activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            Inventory inv = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
+            PlayerGaugesHandler gh = activePlayerController.GetGaugesHandler();
+            foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
+            {
+                if (_worldObject.GetGroup() is GroupItem)
+                {
+                    GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
+                    int groupValue = groupItem.GetGroupValue();
+                    if (groupItem.GetUsableType() == type)
+                    {
+                        if ((type == DataConfig.UsableType.Eatable && gh.Eat(groupValue))
+                                || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
+                                || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
+                                ) {
+                            inv.RemoveItem(_worldObject, true);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeOxygen), "GaugeVerifications")]
-        static void PlayerGaugeOxygen_GaugeVerifications_Pre(bool ___hasAlertedCritical, ref bool __state)
+        static void PlayerGaugeOxygen_GaugeVerifications(float ___gaugeValue)
         {
-            __state = ___hasAlertedCritical;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayerGaugeOxygen), "GaugeVerifications")]
-        static void PlayerGaugeOxygen_GaugeVerifications_Post(bool ___hasAlertedCritical, ref bool __state)
-        {
-            if (!__state && ___hasAlertedCritical)
+            if (___gaugeValue < threshold.Value && !oxygenWarning)
             {
-                PlayerMainController activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                Inventory inv = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
-                foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
+                if (!FindAndConsume(DataConfig.UsableType.Breathable))
                 {
-                    if (_worldObject.GetGroup() is GroupItem)
-                    {
-                        GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
-                        int groupValue = groupItem.GetGroupValue();
-                        if (groupItem.GetUsableType() == DataConfig.UsableType.Breathable && activePlayerController.GetGaugesHandler().Breath(groupValue))
-                        {
-                            inv.RemoveItem(_worldObject, true);
-                            break;
-                        }
-                    }
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "No Oxygen In Inventory!");
+                    oxygenWarning = true;
                 }
+            } 
+            else
+            {
+                oxygenWarning = false;
             }
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeThirst), "GaugeVerifications")]
-        static void PlayerGaugeThirst_GaugeVerifications_Pre(bool ___hasAlertedCritical, ref bool __state)
+        static void PlayerGaugeThirst_GaugeVerifications_Pre(float ___gaugeValue)
         {
-            __state = ___hasAlertedCritical;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayerGaugeOxygen), "GaugeVerifications")]
-        static void PlayerGaugeThirst_GaugeVerifications_Post(bool ___hasAlertedCritical, ref bool __state)
-        {
-            if (!__state && ___hasAlertedCritical)
+            if (___gaugeValue < threshold.Value && !waterWarning)
             {
-                PlayerMainController activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                Inventory inv = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
-                foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
+                if (!FindAndConsume(DataConfig.UsableType.Drinkable))
                 {
-                    if (_worldObject.GetGroup() is GroupItem)
-                    {
-                        GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
-                        int groupValue = groupItem.GetGroupValue();
-                        if (groupItem.GetUsableType() == DataConfig.UsableType.Drinkable && activePlayerController.GetGaugesHandler().Drink(groupValue))
-                        {
-                            inv.RemoveItem(_worldObject, true);
-                            break;
-                        }
-                    }
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "No Water In Inventory!");
+                    waterWarning = true;
                 }
+            }
+            else
+            {
+                waterWarning = false;
             }
         }
 
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeHealth), "GaugeVerifications")]
-        static void PlayerGaugeHealth_GaugeVerifications_Pre(bool ___hasAlertedCritical, ref bool __state)
+        static void PlayerGaugeHealth_GaugeVerifications_Pre(float ___gaugeValue)
         {
-            __state = ___hasAlertedCritical;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayerGaugeOxygen), "GaugeVerifications")]
-        static void PlayerGaugeHealth_GaugeVerifications_Post(bool ___hasAlertedCritical, ref bool __state)
-        {
-            if (!__state && ___hasAlertedCritical)
+            if (___gaugeValue < threshold.Value && !foodWarning)
             {
-                PlayerMainController activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                Inventory inv = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
-                foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
+                if (!FindAndConsume(DataConfig.UsableType.Eatable))
                 {
-                    if (_worldObject.GetGroup() is GroupItem)
-                    {
-                        GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
-                        int groupValue = groupItem.GetGroupValue();
-                        if (groupItem.GetUsableType() == DataConfig.UsableType.Eatable && activePlayerController.GetGaugesHandler().Eat(groupValue))
-                        {
-                            inv.RemoveItem(_worldObject, true);
-                            break;
-                        }
-                    }
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "No Food In Inventory!");
+                    foodWarning = true;
                 }
+            }
+            else
+            {
+                foodWarning = false;
             }
         }
     }
