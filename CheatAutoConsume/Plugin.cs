@@ -58,8 +58,16 @@ namespace PerfLoadInventoriesFaster
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeOxygen), "GaugeVerifications")]
-        static void PlayerGaugeOxygen_GaugeVerifications(float ___gaugeValue)
+        static void PlayerGaugeOxygen_GaugeVerifications(float ___gaugeValue, bool ___isInited)
         {
+            if (!___isInited)
+            {
+                return;
+            }
+            if (___gaugeValue >= threshold.Value)
+            {
+                oxygenWarning = false;
+            }
             if (___gaugeValue < threshold.Value && !oxygenWarning)
             {
                 if (!FindAndConsume(DataConfig.UsableType.Breathable))
@@ -67,17 +75,21 @@ namespace PerfLoadInventoriesFaster
                     Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "No Oxygen In Inventory!");
                     oxygenWarning = true;
                 }
-            } 
-            else
-            {
-                oxygenWarning = false;
             }
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeThirst), "GaugeVerifications")]
-        static void PlayerGaugeThirst_GaugeVerifications_Pre(float ___gaugeValue)
+        static void PlayerGaugeThirst_GaugeVerifications_Pre(float ___gaugeValue, bool ___isInited)
         {
+            if (!___isInited)
+            {
+                return;
+            }
+            if (___gaugeValue >= threshold.Value)
+            {
+                waterWarning = false;
+            }
             if (___gaugeValue < threshold.Value && !waterWarning)
             {
                 if (!FindAndConsume(DataConfig.UsableType.Drinkable))
@@ -86,17 +98,21 @@ namespace PerfLoadInventoriesFaster
                     waterWarning = true;
                 }
             }
-            else
-            {
-                waterWarning = false;
-            }
         }
 
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerGaugeHealth), "GaugeVerifications")]
-        static void PlayerGaugeHealth_GaugeVerifications_Pre(float ___gaugeValue)
+        static void PlayerGaugeHealth_GaugeVerifications_Pre(float ___gaugeValue, bool ___isInited)
         {
+            if (!___isInited)
+            {
+                return;
+            }
+            if (___gaugeValue >= threshold.Value)
+            {
+                foodWarning = false;
+            }
             if (___gaugeValue < threshold.Value && !foodWarning)
             {
                 if (!FindAndConsume(DataConfig.UsableType.Eatable))
@@ -104,10 +120,6 @@ namespace PerfLoadInventoriesFaster
                     Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "No Food In Inventory!");
                     foodWarning = true;
                 }
-            }
-            else
-            {
-                foodWarning = false;
             }
         }
     }
