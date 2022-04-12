@@ -11,10 +11,11 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using BepInEx.Logging;
+using BepInEx.Bootstrap;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.3")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -37,20 +38,23 @@ namespace CheatInventoryStacking
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
+        static string expectedGroupIdToAdd;
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
         static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
         {
             if (stackSize.Value > 1)
             {
-                __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize);
-
+                string gid = expectedGroupIdToAdd;
+                expectedGroupIdToAdd = null;
+                __result = IsFullStacked(___worldObjectsInInventory, ___inventorySize, gid);
                 return false;
             }
             return true;
         }
 
-        static bool IsFullStacked(List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
+        static bool IsFullStacked(List<WorldObject> ___worldObjectsInInventory, int ___inventorySize, string gid = null)
         {
             Dictionary<string, int> groupCounts = new Dictionary<string, int>();
 
@@ -59,22 +63,31 @@ namespace CheatInventoryStacking
 
             foreach (var worldObject in ___worldObjectsInInventory)
             {
-                string gid = worldObject.GetGroup().GetId();
-                groupCounts.TryGetValue(gid, out int count);
-
-                if (++count == 1)
-                {
-                    stacks++;
-                }
-                if (count > n)
-                {
-                    stacks++;
-                    count = 1;
-                }
-                groupCounts[gid] = count;
+                AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
             }
 
-            return stacks >= ___inventorySize;
+            if (gid != null)
+            {
+                AddToStack(gid, groupCounts, n, ref stacks);
+            }
+
+            return stacks > ___inventorySize;
+        }
+
+        static void AddToStack(string gid, Dictionary<string, int> groupCounts, int n, ref int stacks)
+        {
+            groupCounts.TryGetValue(gid, out int count);
+
+            if (++count == 1)
+            {
+                stacks++;
+            }
+            if (count > n)
+            {
+                stacks++;
+                count = 1;
+            }
+            groupCounts[gid] = count;
         }
 
         [HarmonyPrefix]
@@ -84,7 +97,8 @@ namespace CheatInventoryStacking
             Inventory __instance,
             List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
         {
-            if (stackSize.Value > 1) {
+            if (stackSize.Value > 1)
+            {
                 List<WorldObject> toDrop = new List<WorldObject>();
 
                 bool refresh = false;
@@ -299,46 +313,202 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
         static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
         {
-            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
+            if (stackSize.Value > 1)
             {
-                if (Keyboard.current[Key.LeftShift].isPressed)
+                if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
                 {
-                    WorldObject wo = _eventTriggerCallbackData.worldObject;
-                    DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
-                    if (openedUi == DataConfig.UiType.Container)
+                    if (Keyboard.current[Key.LeftShift].isPressed)
                     {
-                        Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
-                        if (___inventory != null && otherInventory != null)
+                        WorldObject wo = _eventTriggerCallbackData.worldObject;
+                        DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                        if (openedUi == DataConfig.UiType.Container)
                         {
-                            List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), stackSize.Value);
-
-                            foreach (List<WorldObject> wos in slots)
+                            Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
+                            if (___inventory != null && otherInventory != null)
                             {
-                                if (wos.Contains(wo))
+                                List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), stackSize.Value);
+
+                                foreach (List<WorldObject> wos in slots)
                                 {
-                                    foreach (WorldObject tomove in wos)
+                                    if (wos.Contains(wo))
                                     {
-                                        if (otherInventory.AddItem(tomove))
+                                        foreach (WorldObject tomove in wos)
                                         {
-                                            ___inventory.RemoveItem(tomove);
-                                        } 
-                                        else
-                                        {
-                                            break;
+                                            if (otherInventory.AddItem(tomove))
+                                            {
+                                                ___inventory.RemoveItem(tomove);
+                                            }
+                                            else
+                                            {
+                                                break;
+                                            }
                                         }
+
+                                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Transfer " + wo.GetGroup().GetId() + " x " + wos.Count);
+                                        break;
                                     }
-
-                                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Transfer " + wo.GetGroup().GetId() + " x " + wos.Count);
-                                    break;
                                 }
-                            }
 
+                            }
                         }
+                        return false;
                     }
-                    return false;
                 }
             }
             return true;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
+        static bool Inventory_AddItemInInventory(WorldObject _worldObject)
+        {
+            expectedGroupIdToAdd = _worldObject.GetGroup().GetId();
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionMinable), nameof(ActionMinable.OnAction))]
+        static bool ActionMinable_OnAction(ActionMinable __instance)
+        {
+            if (stackSize.Value > 1)
+            {
+                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    WorldObject wo = woa.GetWorldObject();
+                    if (wo != null)
+                    {
+                        expectedGroupIdToAdd = wo.GetGroup().GetId();
+                    }
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionGrabable), nameof(ActionGrabable.OnAction))]
+        static bool ActionGrabable_OnAction(ActionGrabable __instance)
+        {
+            if (stackSize.Value > 1)
+            {
+                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    WorldObject wo = woa.GetWorldObject();
+                    if (wo != null)
+                    {
+                        expectedGroupIdToAdd = wo.GetGroup().GetId();
+                    }
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
+        static bool CraftManager_TryToCraftInInventory(GroupItem groupItem, PlayerMainController _playerController, ref bool __result)
+        {
+            if (stackSize.Value > 1)
+            {
+                // FIXME Note, there are IsFull check but ingredient count would be never zero
+                // if (ingredientsGroupInRecipe.Count < 1 && inventory.IsFull())
+                // freeCraft true could be true?
+                // if (freeCraft && inventory.IsFull())
+
+                // UICraftEquipmentInplace: make sure there is only one relevant IsFull check early on
+                if (Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.uicraftequipmentinplace"))
+                {
+                    // If we have the UICraftEquipmentInplace, it does properly check IsFull,
+                    // but for equippable types only
+                    DataConfig.EquipableType equipType = groupItem.GetEquipableType();
+                    if (equipType == DataConfig.EquipableType.OxygenTank
+                        || equipType == DataConfig.EquipableType.BackpackIncrease
+                        || equipType == DataConfig.EquipableType.EquipmentIncrease
+                        || equipType == DataConfig.EquipableType.MultiToolMineSpeed
+                        || equipType == DataConfig.EquipableType.BootsSpeed
+                        || equipType == DataConfig.EquipableType.Jetpack)
+                    {
+                        expectedGroupIdToAdd = groupItem.GetId();
+                        return true;
+                    }
+                }
+
+                // otherwise, we have to manually prefix the vanilla TryToCraftInInventory with a fullness check ourselves
+                Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
+                if (IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), groupItem.GetId()))
+                {
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f, "");
+                    __result = false;
+                    return false;
+                }
+
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionDeconstructible), "FinalyDestroy")]
+        static bool ActionDeconstructible_FinalyDestroy(ref Inventory ___playerInventory, ActionDeconstructible __instance, GameObject ___gameObjectRoot)
+        {
+            if (stackSize.Value > 1)
+            {
+                // Unfortunately, We have to rewrite it in its entirety
+                // foreach (Group group in list)
+                // {
+                //                                                <-----------------------------
+                //    if (this.playerInventory.IsFull())
+
+                if (___playerInventory == null)
+                {
+                    __instance.Start();
+                }
+                WorldObjectAssociated component = ___gameObjectRoot.GetComponent<WorldObjectAssociated>();
+                List<Group> list = new List<Group>(component.GetWorldObject().GetGroup().GetRecipe().GetIngredientsGroupInRecipe());
+                InformationsDisplayer informationsDisplayer = Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer();
+                float lifeTime = 2.5f;
+                Panel[] componentsInChildren = ___gameObjectRoot.GetComponentsInChildren<Panel>();
+                for (int i = 0; i < componentsInChildren.Length; i++)
+                {
+                    GroupConstructible panelGroupConstructible = componentsInChildren[i].GetPanelGroupConstructible();
+                    if (panelGroupConstructible != null)
+                    {
+                        foreach (Group item in panelGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe())
+                        {
+                            list.Add(item);
+                        }
+                    }
+                }
+                foreach (Group group in list)
+                {
+                    if (IsFullStacked(___playerInventory.GetInsideWorldObjects(), ___playerInventory.GetSize(), group.GetId()))
+                    {
+                        WorldObject worldObject = WorldObjectsHandler.CreateAndDropOnFloor(group, ___gameObjectRoot.transform.position + new Vector3(0f, 1f, 0f), 0f);
+                        informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject.GetGroup()), DataConfig.UiInformationsType.DropOnFloor, worldObject.GetGroup().GetImage());
+                    }
+                    else
+                    {
+                        WorldObject worldObject2 = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+                        ___playerInventory.AddItem(worldObject2);
+                        informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject2.GetGroup()), DataConfig.UiInformationsType.InInventory, worldObject2.GetGroup().GetImage());
+                    }
+                }
+                Managers.GetManager<PlayersManager>().GetActivePlayerController().GetAnimations().AnimateRecolt(false);
+                if (___gameObjectRoot.GetComponent<WorldObjectFromScene>() != null)
+                {
+                    component.GetWorldObject().SetDontSaveMe(false);
+                }
+                WorldObjectsHandler.DestroyWorldObject(component.GetWorldObject());
+                UnityEngine.Object.Destroy(___gameObjectRoot);
+
+                return false;
+            }
+            return true;
+        }
+
+
+        // There is a fullness check in MachineGenerator.TryToGenerate and and unconditional add in MachineGenerator.GenerateAnObject
+        // without knowing the item ahead, IsFull would probably let the item through and then AddItem would reject it if the wrong type
+        // I don't think MachineGenerator needs to be patched, which is great given the CheatMachineRemoteDeposit would need to interact
+        // with this mod.
     }
 }

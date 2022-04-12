@@ -9,7 +9,8 @@ using System.Collections.Generic;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.1")]
+    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -44,10 +45,10 @@ namespace UICraftEquipmentInPlace
                 List<Group> fromBackpack = new List<Group>();
                 List<Group> fromEquipment = new List<Group>();
 
+                bool inEquipment = false;
                 for (int i = ingredients.Count - 1; i >= 0; i--)
                 {
                     Group ingredient = ingredients[i];
-                    bool inEquipment = false;
                     foreach (WorldObject wo in equipment.GetInsideWorldObjects())
                     {
                         if (wo.GetGroup().GetId() == ingredient.GetId())
@@ -70,6 +71,15 @@ namespace UICraftEquipmentInPlace
                             }
                         }
                     }
+                }
+                // if we are not replacing equipment then check if there is room for the backpack
+                // CheatInventoryStacking: this should be the first invocation of IsFull so the
+                //                         prefix would have already saved the groupItem.GetId()
+                if (!inEquipment && backpack.IsFull())
+                {
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f, "");
+                    __result = false;
+                    return false;
                 }
 
                 if (ingredients.Count == 0)
