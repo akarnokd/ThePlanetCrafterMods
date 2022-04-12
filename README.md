@@ -122,6 +122,11 @@ This mod makes no attempts at remedying this shortcoming.
 # Setting type: Int32
 # Default value: 250
 Capacity = 250
+
+## Is this mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = false
 ```
 
 ## (Cheat) Machines Deposit Into Remote Containers
@@ -221,6 +226,8 @@ ZoomOutMouseButton = 5
 ## (Cheat) Inventory Stacking
 
 Items in inventories now stack. The stack count is displayed on the middle of the item.
+
+Use <kbd>Shift-Left Click</kbd> to move a particular stack of items.
 
 :warning: The game is not meant to be working with stacks of items and I might not have
 found all places where this can be bad. Backup your saves!

@@ -15,6 +15,7 @@ using BepInEx.Logging;
 namespace CheatInventoryStacking
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.1")]
+    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -124,6 +125,36 @@ namespace CheatInventoryStacking
             return AccessTools.MethodDelegate<Action<WorldObject, Group, int>>(mi, __instance);
         }
 
+        static List<List<WorldObject>> CreateInventorySlots(List<WorldObject> worldObjects, int n)
+        {
+            Dictionary<string, List<WorldObject>> currentSlot = new Dictionary<string, List<WorldObject>>();
+            List<List<WorldObject>> slots = new List<List<WorldObject>>();
+
+
+            foreach (WorldObject worldObject in worldObjects)
+            {
+                string gid = worldObject.GetGroup().GetId();
+
+                if (currentSlot.TryGetValue(gid, out List<WorldObject> slot))
+                {
+                    slot.Add(worldObject);
+                    if (slot.Count == n)
+                    {
+                        currentSlot.Remove(gid);
+                    }
+                }
+                else
+                {
+                    slot = new List<WorldObject>();
+                    slot.Add(worldObject);
+                    slots.Add(slot);
+                    currentSlot[gid] = slot;
+                }
+            }
+
+            return slots;
+        }
+
         static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
 
         [HarmonyPrefix]
@@ -177,29 +208,7 @@ namespace CheatInventoryStacking
                 Action<WorldObject, Group, int> onConsumeViaGamepadDelegate = CreateGamepadCallback("OnConsumeViaGamepad", __instance);
                 Action<WorldObject, Group, int> onDropViaGamepadDelegate = CreateGamepadCallback("OnDropViaGamepad", __instance);
 
-                Dictionary<string, InventorySlot> currentSlot = new Dictionary<string, InventorySlot>();
-                List<InventorySlot> slots = new List<InventorySlot>();
-
-                foreach (WorldObject worldObject in ___inventory.GetInsideWorldObjects())
-                {
-                    string gid = worldObject.GetGroup().GetId();
-
-                    if (currentSlot.TryGetValue(gid, out InventorySlot slot))
-                    {
-                        if (++slot.count == n)
-                        {
-                            currentSlot.Remove(gid);
-                        }
-                    }
-                    else
-                    {
-                        slot = new InventorySlot();
-                        slot.worldObject = worldObject;
-                        slot.count = 1;
-                        slots.Add(slot);
-                        currentSlot[gid] = slot;
-                    }
-                }
+                List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), n);
 
                 for (int i = 0; i < ___inventory.GetSize(); i++)
                 {
@@ -209,14 +218,14 @@ namespace CheatInventoryStacking
 
                     if (slots.Count > i)
                     {
-                        InventorySlot slot = slots[i];
-                        WorldObject worldObject = slot.worldObject;
+                        List<WorldObject> slot = slots[i];
+                        WorldObject worldObject = slot[0];
 
                         component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
 
                         RectTransform rectTransform;
 
-                        if (slot.count > 1)
+                        if (slot.Count > 1)
                         {
                             GameObject countBackground = new GameObject();
                             inventoryGO.Add(countBackground);
@@ -233,7 +242,7 @@ namespace CheatInventoryStacking
                             inventoryGO.Add(count);
                             count.transform.parent = component.transform;
                             Text text = count.AddComponent<Text>();
-                            text.text = slot.count.ToString();
+                            text.text = slot.Count.ToString();
                             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
                             text.color = new Color(1f, 1f, 1f, 1f);
                             text.fontSize = fs;
@@ -286,11 +295,50 @@ namespace CheatInventoryStacking
             }
             return true;
         }
-
-        class InventorySlot
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
+        static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
         {
-            internal WorldObject worldObject;
-            internal int count;
+            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
+            {
+                if (Keyboard.current[Key.LeftShift].isPressed)
+                {
+                    WorldObject wo = _eventTriggerCallbackData.worldObject;
+                    DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                    if (openedUi == DataConfig.UiType.Container)
+                    {
+                        Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
+                        if (___inventory != null && otherInventory != null)
+                        {
+                            List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), stackSize.Value);
+
+                            foreach (List<WorldObject> wos in slots)
+                            {
+                                if (wos.Contains(wo))
+                                {
+                                    foreach (WorldObject tomove in wos)
+                                    {
+                                        if (otherInventory.AddItem(tomove))
+                                        {
+                                            ___inventory.RemoveItem(tomove);
+                                        } 
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Transfer " + wo.GetGroup().GetId() + " x " + wos.Count);
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

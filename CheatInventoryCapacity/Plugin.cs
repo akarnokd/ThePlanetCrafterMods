@@ -10,20 +10,23 @@ using System.Reflection;
 
 namespace CheatInventoryCapacity
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorycapacity", "(Cheat) Inventory Capacity Override", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorycapacity", "(Cheat) Inventory Capacity Override", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
         /// The overridden default inventory capacity.
         /// </summary>
-        private static int capacity;
+        private static ConfigEntry<int> capacity;
+
+        private static ConfigEntry<bool> isEnabled;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            capacity = Config.Bind("General", "Capacity", 250, "The overridden default inventory capacity.").Value;
+            capacity = Config.Bind("General", "Capacity", 250, "The overridden default inventory capacity.");
+            isEnabled = Config.Bind("General", "Enabled", true, "Is this mod enabled?");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -32,9 +35,12 @@ namespace CheatInventoryCapacity
         [HarmonyPatch(typeof(Inventory), MethodType.Constructor, typeof(int), typeof(int), typeof(List<WorldObject>))]
         static void Inventory_Constructor(int _inventoryId, ref int _inventorySize, List<WorldObject> _worldObjectsInInventory)
         {
-            if (_inventorySize != 1 && _inventorySize != 3)
+            if (isEnabled.Value)
             {
-                _inventorySize = capacity;
+                if (_inventorySize != 1 && _inventorySize != 3)
+                {
+                    _inventorySize = capacity.Value;
+                }
             }
         }
 
@@ -42,9 +48,12 @@ namespace CheatInventoryCapacity
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.SetSize))]
         static void Inventory_SetSize(ref int _inventorySize)
         {
-            if (_inventorySize != 1 && _inventorySize != 3)
+            if (isEnabled.Value)
             {
-                _inventorySize = capacity;
+                if (_inventorySize != 1 && _inventorySize != 3)
+                {
+                    _inventorySize = capacity.Value;
+                }
             }
         }
     }
