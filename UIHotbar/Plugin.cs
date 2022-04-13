@@ -16,7 +16,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.1")]
     [BepInDependency("akarnokd.theplanetcraftermods.uipinrecipe", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -271,6 +271,10 @@ namespace UIHotbar
                 }
             }
             // Change highlights
+            if (wh != null && wh.GetHasUiOpen())
+            {
+                activeSlot = -1;
+            }
 
             for (int i = 0; i < slots.Count; i++)
             {
