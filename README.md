@@ -371,6 +371,25 @@ Example: `Open Container [ 5 / 30 ] Cobalt`
 
 None.
 
+## (UI) Show Grab N Mine Count
+
+When picking up items or mining ore, this mod will show a small information indicator (left side) for what you picked up
+and how many of the same item is now in your inventory.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uishowgrabnminecount.cfg`
+
+```
+[General]
+
+## Is the visual notification enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+```
+
+
 ## (UI) Show Player Inventory Counts
 
 In the bottom left part of the screen, there are some numbers showing the player's position, status and
