@@ -8,7 +8,7 @@ using BepInEx.Configuration;
 
 namespace UIShowGrabNMineCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         private static ConfigEntry<bool> isEnabled;
@@ -42,12 +42,7 @@ namespace UIShowGrabNMineCount
                     {
                         worldObject.SetDontSaveMe(false);
 
-                        ___playerSource.GetMultitool().GetMultiToolMine().Mine(false, true);
                         ___playerSource.GetPlayerBackpack().GetInventory().AddItem(worldObject);
-                        ___playerAnimations.AnimateRecolt(false);
-                        ___itemWorldDisplayer.Hide();
-                        ___firstReduceDelay = false;
-                        UnityEngine.Object.Destroy(__instance.gameObject);
 
                         if (isEnabled.Value)
                         {
@@ -55,7 +50,14 @@ namespace UIShowGrabNMineCount
                         }
                      }
                 }
+                // make sure the multitool and animations are always turned off
+                ___playerSource.GetMultitool().GetMultiToolMine().Mine(false, true);
+                ___playerAnimations.AnimateRecolt(false);
+                ___itemWorldDisplayer.Hide();
+                ___firstReduceDelay = false;
+                UnityEngine.Object.Destroy(__instance.gameObject);
             }
+
             return false;
         }
 
