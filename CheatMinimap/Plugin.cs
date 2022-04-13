@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -66,36 +66,42 @@ namespace CheatMinimap
 
         void Update()
         {
-            PropertyInfo pi = typeof(Key).GetProperty(toggleKey.Value.ToString().ToUpper());
-            Key k = Key.N;
-            if (pi != null)
+            PlayersManager pm = Managers.GetManager<PlayersManager>();
+            PlayerMainController player = pm?.GetActivePlayerController();
+            WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+            if (player != null && wh != null && !wh.GetHasUiOpen())
             {
-                k = (Key)pi.GetRawConstantValue();
-            }
+                PropertyInfo pi = typeof(Key).GetProperty(toggleKey.Value.ToString().ToUpper());
+                Key k = Key.N;
+                if (pi != null)
+                {
+                    k = (Key)pi.GetRawConstantValue();
+                }
 
-            if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
-            {
-                zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
-            }
-            if (MouseButtonForIndex(zoomOutMouseButton.Value)?.wasPressedThisFrame ?? false)
-            {
-                zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
-            }
-
-            if (Keyboard.current[k].wasPressedThisFrame)
-            {
-                if (Keyboard.current[Key.LeftShift].isPressed)
+                if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
                     zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
                 }
-                else
-                if (Keyboard.current[Key.LeftCtrl].isPressed)
+                if (MouseButtonForIndex(zoomOutMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
                     zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
                 }
-                else
+
+                if (Keyboard.current[k].wasPressedThisFrame)
                 {
-                    mapManualVisible = !mapManualVisible;
+                    if (Keyboard.current[Key.LeftShift].isPressed)
+                    {
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                    }
+                    else
+                    if (Keyboard.current[Key.LeftCtrl].isPressed)
+                    {
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                    }
+                    else
+                    {
+                        mapManualVisible = !mapManualVisible;
+                    }
                 }
             }
         }
