@@ -58,6 +58,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UISaveOnQuit", "UISaveOnQui
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatInventoryStacking", "CheatInventoryStacking\CheatInventoryStacking.csproj", "{3C36EA70-9B21-45D8-B4F1-4C3A060353D6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowGrabNMineCount", "UIShowGrabNMineCount\UIShowGrabNMineCount.csproj", "{BC1EDA7A-D821-49AA-80CD-DFA0AFEB9EFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,10 @@ Global
 		{3C36EA70-9B21-45D8-B4F1-4C3A060353D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C36EA70-9B21-45D8-B4F1-4C3A060353D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C36EA70-9B21-45D8-B4F1-4C3A060353D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC1EDA7A-D821-49AA-80CD-DFA0AFEB9EFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC1EDA7A-D821-49AA-80CD-DFA0AFEB9EFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC1EDA7A-D821-49AA-80CD-DFA0AFEB9EFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC1EDA7A-D821-49AA-80CD-DFA0AFEB9EFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
