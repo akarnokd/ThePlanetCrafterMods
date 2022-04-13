@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.5")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -57,7 +57,7 @@ namespace UICraftEquipmentInPlace
         [HarmonyPatch(typeof(PlayModeHandler), nameof(PlayModeHandler.GetFreeCraft))]
         static void PlayModeHandler_GetFreeCraft(ref bool __result, DataConfig.PlayMode ___playMode)
         {
-            logger.LogInfo("PlayModeHandler_GetFreeCraft called");
+            //logger.LogInfo("PlayModeHandler_GetFreeCraft called");
             if (crafts != null)
             {
                 __result = crafts.Value;
