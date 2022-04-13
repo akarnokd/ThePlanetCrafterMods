@@ -8,7 +8,7 @@ using BepInEx.Configuration;
 
 namespace UIShowGrabNMineCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         private static ConfigEntry<bool> isEnabled;
@@ -61,23 +61,37 @@ namespace UIShowGrabNMineCount
             return false;
         }
 
+        static WorldObject toGrab;
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionGrabable), "Grab")]
-        static bool ActionGrabable_Grab(ActionGrabable __instance, PlayerMainController ___playerSource)
+        static bool ActionGrabable_Grab(ActionGrabable __instance)
         {
             if (isEnabled.Value)
             {
+                toGrab = null;
                 WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
                 if (woa != null)
                 {
-                    WorldObject worldObject = woa.GetWorldObject();
-                    if (worldObject != null)
-                    {
-                        ShowInventoryAdded(worldObject, ___playerSource.GetPlayerBackpack().GetInventory());
-                    }
+                    toGrab = woa.GetWorldObject();
                 }
             }
             return true;
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ActionGrabable), "Grab")]
+        static void ActionGrabable_Grab_Post(PlayerMainController ___playerSource)
+        {
+            if (isEnabled.Value)
+            {
+                WorldObject worldObject = toGrab;
+                toGrab = null;
+
+                if (worldObject != null)
+                {
+                    ShowInventoryAdded(worldObject, ___playerSource.GetPlayerBackpack().GetInventory());
+                }
+            }
         }
 
         static void ShowInventoryAdded(WorldObject worldObject, Inventory inventory)
