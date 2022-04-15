@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -22,6 +22,7 @@ namespace CheatMinimap
         Texture2D marker;
 
         ConfigEntry<int> mapSize;
+        ConfigEntry<int> mapBottom;
         ConfigEntry<int> zoomLevel;
         ConfigEntry<string> toggleKey;
         ConfigEntry<int> zoomInMouseButton;
@@ -43,6 +44,7 @@ namespace CheatMinimap
             marker = LoadPNG(Path.Combine(dir, "player_marker.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
+            mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
             zoomLevel = Config.Bind("General", "ZoomLevel", 4, "The zoom level");
             toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
             zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
@@ -118,7 +120,7 @@ namespace CheatMinimap
                     int panelWidth = mapSize.Value;
 
                     float angle = player.transform.eulerAngles.y;
-                    Rect minimapRect = new Rect(0, Screen.height - panelWidth - 350, panelWidth, panelWidth);
+                    Rect minimapRect = new Rect(0, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
                     Vector2 mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
                     float zoom = zoomLevel.Value;
 

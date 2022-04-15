@@ -2,7 +2,6 @@
 using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -16,12 +15,13 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.2")]
     [BepInDependency("akarnokd.theplanetcraftermods.uipinrecipe", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
         static ConfigEntry<int> slotSize;
+        static ConfigEntry<int> slotBottom;
         static ConfigEntry<int> fontSize;
 
         static ManualLogSource logger;
@@ -35,6 +35,7 @@ namespace UIHotbar
 
             slotSize = Config.Bind("General", "SlotSize", 75, "The size of each inventory slot");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size of the slot index");
+            slotBottom = Config.Bind("General", "SlotBottom", 40, "Placement of the panels relative to the bottom of the screen.");
 
             logger = Logger;
 
@@ -116,8 +117,8 @@ namespace UIHotbar
 
                 int fs = fontSize.Value;
                 int s = slotSize.Value;
-                int x = -(slotCount * s + (slotCount - 1) * 5) / 2;
-                int y = -Screen.height / 2 + s;
+                int x = -(slotCount * s + (slotCount - 1) * 5) / 2 + s / 2;
+                int y = -Screen.height / 2 + slotBottom.Value + s / 2;
                 slots.Clear();
                 for (int i = 0; i < slotCount; i++)
                 {
@@ -470,6 +471,14 @@ namespace UIHotbar
                     }
                 }
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
+        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        {
+            bool active = !___handObjectsToHide[0].activeSelf;
+            parent?.SetActive(active);
         }
 
     }

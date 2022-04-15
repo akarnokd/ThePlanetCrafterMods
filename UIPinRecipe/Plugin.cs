@@ -15,7 +15,7 @@ using System.Reflection;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.6")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -24,6 +24,7 @@ namespace UIPinRecipe
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
         static ConfigEntry<string> clearKey;
+        static ConfigEntry<int> panelTop;
         /// <summary>
         /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
         /// </summary>
@@ -35,6 +36,7 @@ namespace UIPinRecipe
 
             fontSize = Config.Bind("General", "FontSize", 25, "The size of the font used");
             panelWidth = Config.Bind("General", "PanelWidth", 850, "The width of the recipe panel");
+            panelTop = Config.Bind("General", "PanelTop", 150, "Panel position from the top of the screen.");
             clearKey = Config.Bind("General", "ClearKey", "C", "The key to press to clear all pinned recipes");
 
             craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
@@ -244,7 +246,7 @@ namespace UIPinRecipe
                 int fs = fontSize.Value;
 
                 PinnedRecipe alreadyPinned = null;
-                int dy = Screen.height / 2 - 150;
+                int dy = Screen.height / 2 - panelTop.Value;
 
                 foreach (PinnedRecipe pr in pinnedRecipes)
                 {
@@ -266,7 +268,7 @@ namespace UIPinRecipe
                 {
                     alreadyPinned.Destroy();
 
-                    dy = Screen.height / 2 - 150;
+                    dy = Screen.height / 2 - panelTop.Value;
                     List<PinnedRecipe> copy = new List<PinnedRecipe>();
 
                     foreach (PinnedRecipe rec in pinnedRecipes)

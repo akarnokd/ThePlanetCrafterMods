@@ -229,6 +229,11 @@ Notes
 # Default value: 400
 MapSize = 400
 
+## Panel position from the bottom of the screen
+# Setting type: Int32
+# Default value: 350
+MapBottom = 350
+
 ## The zoom level
 # Setting type: Int32
 # Default value: 4
@@ -366,6 +371,11 @@ SlotSize = 75
 # Setting type: Int32
 # Default value: 20
 FontSize = 20
+
+## Placement of the panels relative to the bottom of the screen.
+# Setting type: Int32
+# Default value: 40
+SlotBottom = 40
 ```
 
 ## (UI) Inventory Move Multiple Items
@@ -485,6 +495,11 @@ FontSize = 25
 # Setting type: Int32
 # Default value: 850
 PanelWidth = 850
+
+## Panel position from the top of the screen.
+# Setting type: Int32
+# Default value: 150
+PanelTop = 150
 
 ## The key to press to clear all pinned recipes
 # Setting type: String
