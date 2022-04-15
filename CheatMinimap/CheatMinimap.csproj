@@ -69,7 +69,11 @@
     <Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <ZipDirectory
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
