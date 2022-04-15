@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.6")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -247,7 +247,7 @@ namespace CheatInventoryStacking
                     if (slots.Count > i)
                     {
                         List<WorldObject> slot = slots[i];
-                        WorldObject worldObject = slot[0];
+                        WorldObject worldObject = slot[slot.Count - 1];
 
                         component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
 
