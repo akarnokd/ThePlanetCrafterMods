@@ -353,6 +353,8 @@ to pin/unpin the recipe to the item in the particular non-empty slot.
 
 The color and numbers on the top right of the panels indicate how many of that item you can build.
 
+- If the mod [**Craft From Containers**](https://www.nexusmods.com/planetcrafter/mods/9) by aedenthorn is installed and active (toggle via <kbd>Home</kbd> by default), nearby inventories are also considered when showing how many of the selected buildings one can build.
+
 Unfortunately, multi-build is not supported and mods allowing that might not work properly with this mod. Needs further developments...
 
 ### Configuration
