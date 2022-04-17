@@ -15,8 +15,10 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.2")]
-    [BepInDependency("akarnokd.theplanetcraftermods.uipinrecipe", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.3")]
+    [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
+
     public class Plugin : BaseUnityPlugin
     {
 
@@ -27,6 +29,11 @@ namespace UIHotbar
         static ManualLogSource logger;
 
         static Action<Group> pinUnpinRecipe;
+
+        const string modCraftFromContainersGuid = "aedenthorn.CraftFromContainers";
+        const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
+        static ConfigEntry<bool> modCraftFromContainersEnabled;
+        static ConfigEntry<float> modCraftFromContainersRange;
 
         private void Awake()
         {
@@ -39,18 +46,34 @@ namespace UIHotbar
 
             logger = Logger;
 
-            if (Chainloader.PluginInfos.TryGetValue("akarnokd.theplanetcraftermods.uipinrecipe", out BepInEx.PluginInfo pi))
+            if (Chainloader.PluginInfos.TryGetValue(modUiPinRecipeGuid, out BepInEx.PluginInfo pi))
             {
-                Logger.LogInfo("Found akarnokd.theplanetcraftermods.uipinrecipe, enabling recipe pinning");
+                Logger.LogInfo("Found " + modUiPinRecipeGuid + ", enabling recipe pinning");
 
                 MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "PinUnpinGroup", new Type[] { typeof(Group) });
                 pinUnpinRecipe = AccessTools.MethodDelegate<Action<Group>>(mi, pi.Instance);
             } 
             else
             {
-                Logger.LogInfo("Not Found akarnokd.theplanetcraftermods.uipinrecipe");
+                Logger.LogInfo("Not Found " + modUiPinRecipeGuid);
             }
 
+            if (Chainloader.PluginInfos.TryGetValue(modCraftFromContainersGuid, out pi))
+            {
+                Logger.LogInfo("Found " + modCraftFromContainersGuid + ", considering nearby inventory");
+
+                // From https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CraftFromContainers/BepInExPlugin.cs
+
+                FieldInfo fi = AccessTools.Field(pi.Instance.GetType(), "modEnabled");
+                modCraftFromContainersEnabled = (ConfigEntry<bool>)fi.GetValue(pi.Instance);
+
+                fi = AccessTools.Field(pi.Instance.GetType(), "range");
+                modCraftFromContainersRange = (ConfigEntry<float>)fi.GetValue(pi.Instance);
+            }
+            else
+            {
+                Logger.LogInfo("Not Found " + modCraftFromContainersGuid);
+            }
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -315,16 +338,56 @@ namespace UIHotbar
             }
         }
 
+        static void CountNearbyInventories(float range, PlayerMainController player, Dictionary<string, int> inventoryCounts)
+        {
+            // based on logic: https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CraftFromContainers/BepInExPlugin.cs#L110
+            Vector2 playerAt = player.transform.position;
+            Inventory playerInventory = player.GetPlayerBackpack().GetInventory();
+            foreach (InventoryAssociated ia in UnityEngine.Object.FindObjectsOfType<InventoryAssociated>())
+            {
+                if (ia.name != null && !ia.name.Contains("Golden Container")) {
+                    try
+                    {
+                        Inventory inv = ia.GetInventory();
+                        if (inv != null && inv != playerInventory)
+                        {
+                            Vector2 inventoryAt = ia.transform.position;
+
+                            if (Vector2.Distance(playerAt, inventoryAt) <= range)
+                            {
+                                CountInventory(inv, inventoryCounts);
+                            }
+                        }
+                    } 
+                    catch
+                    {
+                        // some kind of invalid or destroyed inventory?
+                    }
+                }
+            }
+        }
+
+        static void CountInventory(Inventory inv, Dictionary<string, int> counts)
+        {
+            foreach (WorldObject wo in inv.GetInsideWorldObjects())
+            {
+                string gid = wo.GetGroup().GetId();
+                counts.TryGetValue(gid, out int c);
+                counts[gid] = c + 1;
+            }
+        }
+
         static int BuildableCount(PlayerMainController player, GroupConstructible gc)
         {
             // aggregate inventory
             Dictionary<string, int> inventoryCounts = new Dictionary<string, int>();
-            foreach (WorldObject wo in player.GetPlayerBackpack().GetInventory().GetInsideWorldObjects())
+            CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
+
+            if (modCraftFromContainersEnabled != null && modCraftFromContainersEnabled.Value)
             {
-                string gid = wo.GetGroup().GetId();
-                inventoryCounts.TryGetValue(gid, out int c);
-                inventoryCounts[gid] = c + 1;
+                CountNearbyInventories(modCraftFromContainersRange.Value, player, inventoryCounts);
             }
+
             List<Group> recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
             // agregate recipe
             Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
