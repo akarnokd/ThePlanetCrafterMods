@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using MijuTools;
 using System.Text;
+using System.IO;
 
 namespace ExampleModLoadSaveSupportSoft
 {
@@ -108,6 +109,38 @@ namespace ExampleModLoadSaveSupportSoft
             }
 
             logger.LogInfo(sb.ToString());
+
+            ExportLocalization();
+        }
+
+        static void ExportLocalization()
+        {
+            Localization.GetLocalizedString("");
+            FieldInfo fi = AccessTools.Field(typeof(Localization), "localizationDictionary");
+            Dictionary<string, Dictionary<string, string>> dic = (Dictionary<string, Dictionary<string, string>>)fi.GetValue(null);
+            if (dic != null)
+            {
+                logger.LogInfo("Found localizationDictionary");
+
+                Dictionary<string, string> dic2 = dic["english"];
+                if (dic2 != null)
+                {
+                    logger.LogInfo("Found english labels");
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("Key;English;Hungarian").AppendLine();
+                    foreach (KeyValuePair<string, string> kv in dic2)
+                    {
+
+                        sb.Append(kv.Key).Append(";").Append(kv.Value).Append(";");
+                        sb.AppendLine();
+                    }
+
+                    Assembly me = Assembly.GetExecutingAssembly();
+                    string dir = Path.GetDirectoryName(me.Location);
+                    File.WriteAllText(dir + "\\labels.en.csv", sb.ToString());
+                }
+            }
+
         }
     }
 }
