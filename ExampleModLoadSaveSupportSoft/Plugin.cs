@@ -10,6 +10,7 @@ using BepInEx.Logging;
 using MijuTools;
 using System.Text;
 using System.IO;
+using BepInEx.Configuration;
 
 namespace ExampleModLoadSaveSupportSoft
 {
@@ -24,10 +25,14 @@ namespace ExampleModLoadSaveSupportSoft
 
         static ManualLogSource logger;
 
+        static ConfigEntry<bool> dumpLabels;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+
+            dumpLabels = Config.Bind<bool>("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
 
             // Locate the libModLoadSaveSupport plugin
             if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, out BepInEx.PluginInfo pi))
@@ -115,32 +120,36 @@ namespace ExampleModLoadSaveSupportSoft
 
         static void ExportLocalization()
         {
-            Localization.GetLocalizedString("");
-            FieldInfo fi = AccessTools.Field(typeof(Localization), "localizationDictionary");
-            Dictionary<string, Dictionary<string, string>> dic = (Dictionary<string, Dictionary<string, string>>)fi.GetValue(null);
-            if (dic != null)
+            if (dumpLabels.Value)
             {
-                logger.LogInfo("Found localizationDictionary");
-
-                Dictionary<string, string> dic2 = dic["english"];
-                if (dic2 != null)
+                Localization.GetLocalizedString("");
+                FieldInfo fi = AccessTools.Field(typeof(Localization), "localizationDictionary");
+                Dictionary<string, Dictionary<string, string>> dic = (Dictionary<string, Dictionary<string, string>>)fi.GetValue(null);
+                if (dic != null)
                 {
-                    logger.LogInfo("Found english labels");
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("Key;English;Hungarian").AppendLine();
-                    foreach (KeyValuePair<string, string> kv in dic2)
+                    logger.LogInfo("Found localizationDictionary");
+
+                    foreach (KeyValuePair<string, Dictionary<string, string>> kvp in dic)
                     {
+                        Dictionary<string, string> dic2 = kvp.Value;
+                        if (dic2 != null)
+                        {
+                            logger.LogInfo("Found " + kvp.Key + " labels");
+                            StringBuilder sb = new StringBuilder();
+                            foreach (KeyValuePair<string, string> kv in dic2)
+                            {
 
-                        sb.Append(kv.Key).Append(";").Append(kv.Value).Append(";");
-                        sb.AppendLine();
+                                sb.Append(kv.Key).Append("=").Append(kv.Value);
+                                sb.AppendLine();
+                            }
+
+                            Assembly me = Assembly.GetExecutingAssembly();
+                            string dir = Path.GetDirectoryName(me.Location);
+                            File.WriteAllText(dir + "\\labels." + kvp.Key + ".txt", sb.ToString());
+                        }
                     }
-
-                    Assembly me = Assembly.GetExecutingAssembly();
-                    string dir = Path.GetDirectoryName(me.Location);
-                    File.WriteAllText(dir + "\\labels.en.csv", sb.ToString());
                 }
             }
-
         }
     }
 }
