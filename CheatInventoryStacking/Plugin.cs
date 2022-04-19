@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.7")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -39,6 +39,29 @@ namespace CheatInventoryStacking
             logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        // --------------------------------------------------------------------------------------------------------
+        // Support for other mods wishing to know about stacked inventory counts
+        // --------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Returns the number of stacks in the given list (inventory content).
+        /// </summary>
+        /// <param name="items">The list of items to count</param>
+        /// <returns>The number of stacks occupied by the list of items.</returns>
+        public static int GetStackCount(List<WorldObject> items)
+        {
+            Dictionary<string, int> groupCounts = new Dictionary<string, int>();
+
+            int n = stackSize.Value;
+            int stacks = 0;
+            foreach (WorldObject worldObject in items)
+            {
+                AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
+            }
+
+            return stacks;
         }
 
         // --------------------------------------------------------------------------------------------------------

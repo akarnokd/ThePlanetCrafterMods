@@ -4,17 +4,38 @@ using SpaceCraft;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
+using System;
+using System.Collections.Generic;
+using BepInEx.Bootstrap;
+using System.Reflection;
+using BepInEx.Configuration;
 
 namespace UIShowContainerInfo
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.1")]
+    [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+        /// <summary>
+        /// If the CheatInventoryStacking is installed, consider the stack counts when displaying information.
+        /// </summary>
+        static Func<List<WorldObject>, int> getStackCount;
+
+        static ConfigEntry<int> stackSize;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+
+            if (Chainloader.PluginInfos.TryGetValue(modInventoryStackingGuid, out BepInEx.PluginInfo pi))
+            {
+                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", new Type[] { typeof(List<WorldObject>) });
+                getStackCount = AccessTools.MethodDelegate<Func<List<WorldObject>, int>>(mi, null);
+
+                stackSize = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -34,22 +55,29 @@ namespace UIShowContainerInfo
             if (componentOnGameObjectOrInParent != null)
             {
                 Inventory inventory = componentOnGameObjectOrInParent.GetInventory();
-                int count = inventory.GetInsideWorldObjects().Count;
+                List<WorldObject> inv = inventory.GetInsideWorldObjects();
+                int count = inv.Count;
                 int size = inventory.GetSize();
-                text = string.Concat(new object[]
+
+                if (getStackCount != null)
                 {
-                    text,
-                    custom,
-                    "   [  ",
-                    count,
-                    "  /  ",
-                    size,
-                    "  ]  "
-                });
-                if (count >= size)
-                {
-                    text += "  --- FULL ---  ";
+                    int stacks = getStackCount(inv);
+                    int slotSize = stackSize.Value;
+                    text += custom + "  [  " + stacks + "  /  " + size + "  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
+                    if (count >= size * slotSize)
+                    {
+                        text += "  --- FULL ---  ";
+                    }
                 }
+                else
+                {
+                    text += custom + "  [  " + count + "  /  " + size + "  ]  ";
+                    if (count >= size)
+                    {
+                        text += "  --- FULL ---  ";
+                    }
+                }
+
                 if (count > 0)
                 {
                     text += inventory.GetInsideWorldObjects()[0].GetGroup().GetId();

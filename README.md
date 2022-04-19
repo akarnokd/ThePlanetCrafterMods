@@ -532,6 +532,23 @@ Automatically saves the game when clicking the "Exit to main menu" button.
 
 None.
 
+## (UI) Hungarian Translation
+
+Patches in labels and enables switching to hungarian ("Magyar") in the game's options screen.
+
+The translation contains partly my own work, partly the translations (already accepted or still pending) provided by the community on https://www.localizor.com/the-planet-crafter/translate?language=5&key=297111 . Some consistency-adjustments were made.
+
+Magyar nyelvûvé változtatja a játékot. A játék beállítások (Options) képernyõjén lévõ nyelvi opciók közûl a "Magyar" bejegyzést kell kiválasztani.
+
+A fordítás részben saját munka, részben a https://www.localizor.com/the-planet-crafter/translate?language=5&key=297111 weboldalon a közösség által
+még nem vagy már elfogadott fordításokat tartalmazza. Néhány fordítás egy picit át lett alakítva a következetesség és konzisztencia érdekében.
+
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
+
+
 ## (Lib) Support Mods with Load n Save
 
 This mod alters the loading and saving of the game by parsing/appending custom information based on
