@@ -534,7 +534,7 @@ None.
 
 ## (UI) Hungarian Translation
 
-Patches in labels and enables switching to hungarian ("Magyar") in the game's options screen.
+Patches in labels and enables switching to Hungarian ("Magyar") in the game's options screen.
 
 The translation contains partly my own work, partly the translations (already accepted or still pending) provided by the community on https://www.localizor.com/the-planet-crafter/translate?language=5&key=297111 . Some consistency-adjustments were made.
 
