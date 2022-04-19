@@ -25,6 +25,8 @@ namespace UITranslationHungarian
 
         static ConfigEntry<bool> checkMissing;
 
+        static string currentLanguage;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -55,6 +57,14 @@ namespace UITranslationHungarian
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        // There is no GetLanguage, need to save current language for later checks
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Localization), nameof(Localization.SetLangage))]
+        static void Localization_SetLanguage(string langage)
+        {
+            currentLanguage = langage;
         }
 
         [HarmonyPostfix]
@@ -89,6 +99,18 @@ namespace UITranslationHungarian
                     {
                         logger.LogWarning("Not translated\r\n" + key + "=" + english[key]);
                     }
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UnlockablesGraph), "OnEnable")]
+        static void UnlockablesGraph_OnEnable(UnlockablesGraph __instance)
+        {
+            if (languageKey == currentLanguage) {
+                if (__instance.worldUnitType == DataConfig.WorldUnitType.Terraformation)
+                {
+                    __instance.unitLabel.enableAutoSizing = true;
                 }
             }
         }
