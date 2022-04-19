@@ -63,7 +63,7 @@ namespace UIShowContainerInfo
                 {
                     int stacks = getStackCount(inv);
                     int slotSize = stackSize.Value;
-                    text += custom + "  [  " + stacks + "  /  " + size + "  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
+                    text += custom + "  [  " + stacks + "  /  " + size + "  --  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
                     if (count >= size * slotSize)
                     {
                         text += "  --- FULL ---  ";
@@ -80,7 +80,7 @@ namespace UIShowContainerInfo
 
                 if (count > 0)
                 {
-                    text += inventory.GetInsideWorldObjects()[0].GetGroup().GetId();
+                    text += Readable.GetGroupName(inventory.GetInsideWorldObjects()[0].GetGroup());
                 }
             }
             ___hudHandler.DisplayCursorText("UI_Open", 0f, text);

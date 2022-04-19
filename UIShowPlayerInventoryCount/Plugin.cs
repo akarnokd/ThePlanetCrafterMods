@@ -56,7 +56,7 @@ namespace UIShowPlayerInventoryCount
             if (getStackCount != null)
             {
                 int stack = getStackCount(inv);
-                addition = prefix + stack + " / " + max + "  (  " + cnt + "  /  " + stackSize.Value + postfix;
+                addition = prefix + stack + " / " + max + "  (  " + cnt + "  /  " + (max * stackSize.Value) + postfix;
             } 
             else
             {
