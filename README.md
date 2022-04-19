@@ -540,10 +540,10 @@ The translation contains partly my own work, partly the translations (already ac
 
 
 
-Magyar nyelvûvé változtatja a játékot. A játék beállítások (Options) képernyõjén lévõ nyelvi opciók közûl a "Magyar" bejegyzést kell kiválasztani. Sajnos néhány felirat nem változik magyarrá az elsõ nyelvváltás alkalmával. Ez egy hiba az eredeti játékban és a játék teljes újraindításával orvosolható.
+Magyar nyelvÅ±vÃ© vÃ¡ltoztatja a jÃ¡tÃ©kot. A jÃ¡tÃ©k beÃ¡llÃ­tÃ¡sok (Options) kÃ©pernyÅ‘jÃ©n lÃ©vÅ‘ nyelvi opciÃ³k kÃ¶zÅ±l a "Magyar" bejegyzÃ©st kell kivÃ¡lasztani. Sajnos nÃ©hÃ¡ny felirat nem vÃ¡ltozik magyarrÃ¡ az elsÅ‘ nyelvvÃ¡ltÃ¡s alkalmÃ¡val. Ez egy hiba az eredeti jÃ¡tÃ©kban Ã©s a jÃ¡tÃ©k teljes ÃºjraindÃ­tÃ¡sÃ¡val orvosolhatÃ³.
 
-A fordítás részben saját munka, részben a https://www.localizor.com/the-planet-crafter/translate?language=5&key=297111 weboldalon a közösség által
-még nem vagy már elfogadott fordításokat tartalmazza. Néhány fordítás egy picit át lett alakítva a következetesség és konzisztencia érdekében.
+A fordÃ­tÃ¡s rÃ©szben sajÃ¡t munka, rÃ©szben a https://www.localizor.com/the-planet-crafter/translate?language=5&key=297111 weboldalon a kÃ¶zÃ¶ssÃ©g Ã¡ltal
+mÃ©g nem vagy mÃ¡r elfogadott fordÃ­tÃ¡sokat tartalmazza. NÃ©hÃ¡ny fordÃ­tÃ¡s egy picit Ã¡t lett alakÃ­tva a kÃ¶vetkezetessÃ©g Ã©s konzisztencia Ã©rdekÃ©ben.
 
 
 ### Configuration
