@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.4")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -240,6 +240,10 @@ namespace UIHotbar
         {
             bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+
+            Dictionary<string, int> inventoryCounts = new Dictionary<string, int>();
+            CountInventory(player, inventoryCounts);
+
             if (wh != null && !wh.GetHasUiOpen())
             {
                 int k = WhichNumberKeyWasPressed();
@@ -270,7 +274,7 @@ namespace UIHotbar
                                 GroupConstructible gc = (GroupConstructible)slots[k].currentGroup;
 
                                 // activate build mode for slot k
-                                if (isFreeCraft || BuildableCount(player, gc) > 0)
+                                if (isFreeCraft || BuildableCount(inventoryCounts, gc) > 0)
                                 {
                                     Logger.LogInfo("Activating ghost for " + gc.GetId());
                                     pb.SetNewGhost(gc);
@@ -317,7 +321,7 @@ namespace UIHotbar
                 {
                     GroupConstructible gc = (GroupConstructible)slot.currentGroup;
 
-                    int buildableCount = BuildableCount(player, gc);
+                    int buildableCount = BuildableCount(inventoryCounts, gc);
 
                     Image image = slot.image.GetComponent<Image>();
                     Text text = slot.buildCount.GetComponent<Text>();
@@ -377,17 +381,18 @@ namespace UIHotbar
             }
         }
 
-        static int BuildableCount(PlayerMainController player, GroupConstructible gc)
+        static void CountInventory(PlayerMainController player, Dictionary<string, int> inventoryCounts)
         {
-            // aggregate inventory
-            Dictionary<string, int> inventoryCounts = new Dictionary<string, int>();
             CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
 
             if (modCraftFromContainersEnabled != null && modCraftFromContainersEnabled.Value)
             {
                 CountNearbyInventories(modCraftFromContainersRange.Value, player, inventoryCounts);
             }
+        }
 
+        static int BuildableCount(Dictionary<string, int> inventoryCounts, GroupConstructible gc)
+        {
             List<Group> recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
             // agregate recipe
             Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
