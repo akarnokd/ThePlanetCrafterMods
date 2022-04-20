@@ -236,6 +236,7 @@ GROUP_NAME_BlueprintT1=Tervrajz mirkocsip
 GROUP_NAME_BootsSpeed1=Sebességnövelő csizma t1
 GROUP_NAME_BootsSpeed2=Sebességnövelő csizma t2
 GROUP_NAME_BootsSpeed3=Sebességnövelő csizma t3
+GROUP_NAME_canister=Doboz
 GROUP_NAME_Chair1=Szék
 GROUP_NAME_Cobalt=Kobalt
 GROUP_NAME_ComAntenna=Kommunikációs antenna

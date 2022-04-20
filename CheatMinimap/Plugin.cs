@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.7")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -134,7 +134,7 @@ namespace CheatMinimap
             {
                 try
                 {
-                    if (ia.name.Contains("WorldContainer") || ia.name.Contains("GoldenContainer"))
+                    if (ia.name.Contains("WorldContainer") || ia.name.Contains("GoldenContainer") || ia.name.Contains("WorldCanister"))
                     {
                         chests.Add(ia);
                     }
