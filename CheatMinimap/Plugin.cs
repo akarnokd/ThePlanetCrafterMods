@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.8")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -29,9 +29,14 @@ namespace CheatMinimap
         ConfigEntry<string> toggleKey;
         ConfigEntry<int> zoomInMouseButton;
         ConfigEntry<int> zoomOutMouseButton;
+        ConfigEntry<int> autoScanForChests;
 
         static bool mapVisible = true;
         static bool mapManualVisible = true;
+        static int autoScanEnabled = 0;
+        static bool coroutineRunning = false;
+
+        static Plugin self;
 
         private void Awake()
         {
@@ -53,6 +58,9 @@ namespace CheatMinimap
             toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
             zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
+            autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
+
+            self = this;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -72,6 +80,23 @@ namespace CheatMinimap
 
         static List<GameObject> chests = new List<GameObject>();
 
+        IEnumerator AutoScan()
+        {
+            for (; ; )
+            {
+                int n = autoScanForChests.Value;
+                if (mapManualVisible && n > 0 && autoScanEnabled == 1)
+                {
+                    FindChests();
+                }
+                else
+                {
+                    n = 5;
+                }
+                yield return new WaitForSeconds(n);
+            }
+        }
+
         void Update()
         {
             PlayersManager pm = Managers.GetManager<PlayersManager>();
@@ -79,6 +104,11 @@ namespace CheatMinimap
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
             if (player != null && wh != null && !wh.GetHasUiOpen())
             {
+                if (!coroutineRunning)
+                {
+                    coroutineRunning = true;
+                    StartCoroutine(AutoScan());
+                }
                 PropertyInfo pi = typeof(Key).GetProperty(toggleKey.Value.ToString().ToUpper());
                 Key k = Key.N;
                 if (pi != null)
@@ -109,6 +139,26 @@ namespace CheatMinimap
                     else
                     if (Keyboard.current[Key.LeftAlt].isPressed)
                     {
+                        if (autoScanForChests.Value > 0)
+                        {
+                            autoScanEnabled = (autoScanEnabled + 1) % 3;
+                            if (autoScanEnabled == 0)
+                            {
+                                chests.Clear();
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Disabling Chest AutoScan");
+                            }
+                            else
+                            if (autoScanEnabled == 1)
+                            {
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Begin Chest AutoScan");
+                                FindChests();
+                            }
+                            else
+                            {
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Stop Chest AutoScan, Chests found: " + chests.Count);
+                            }
+                        } 
+                        else
                         if (chests.Count != 0)
                         {
                             chests.Clear();
@@ -144,7 +194,10 @@ namespace CheatMinimap
                     // some kind of despawn?
                 }
             }
-            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
+            if (autoScanEnabled == 0)
+            {
+                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
+            }
         }
 
         void OnGUI()
@@ -302,6 +355,8 @@ namespace CheatMinimap
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit(UiWindowPause __instance)
         {
+            self.StopAllCoroutines();
+            coroutineRunning = false;
             chests.Clear();
         }
     }

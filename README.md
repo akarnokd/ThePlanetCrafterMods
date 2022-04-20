@@ -209,7 +209,7 @@ Display a minimap on the lower left side of the screen.
 Press <kbd>N</kbd> to show/hide the minimap.
 Press <kbd>Shift+N</kbd> or <kbd>Mouse 4</kbd> to zoom in.
 Press <kbd>Ctrl+N</kbd> or <kbd>Mouse 5</kbd> to zoom out.
-Press <kbd>Alt+N</kbd> to show/hide chests.
+Press <kbd>Alt+N</kbd> to show/hide/autoscan chests.
 
 Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
@@ -254,6 +254,11 @@ ZoomInMouseButton = 4
 # Setting type: Int32
 # Default value: 5
 ZoomOutMouseButton = 5
+
+## If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N
+# Setting type: Int32
+# Default value: 5
+AutoScanForChests = 5
 ```
 
 ## (Cheat) Inventory Stacking
