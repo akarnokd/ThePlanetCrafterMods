@@ -14,7 +14,7 @@ using BepInEx.Configuration;
 
 namespace UITranslationHungarian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "hungarian";
