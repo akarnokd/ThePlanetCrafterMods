@@ -14,12 +14,14 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.6")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
         Texture2D lush;
         Texture2D marker;
+        Texture2D chest;
+        Texture2D golden;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -42,6 +44,8 @@ namespace CheatMinimap
             barren = LoadPNG(Path.Combine(dir, "map_barren.png"));
             lush = LoadPNG(Path.Combine(dir, "map_lush.png"));
             marker = LoadPNG(Path.Combine(dir, "player_marker.png"));
+            chest = LoadPNG(Path.Combine(dir, "chest.png"));
+            golden = LoadPNG(Path.Combine(dir, "chest_golden.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -65,6 +69,8 @@ namespace CheatMinimap
                 default: return null;
             }
         }
+
+        static List<GameObject> chests = new List<GameObject>();
 
         void Update()
         {
@@ -101,11 +107,44 @@ namespace CheatMinimap
                         zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
                     }
                     else
+                    if (Keyboard.current[Key.LeftAlt].isPressed)
+                    {
+                        if (chests.Count != 0)
+                        {
+                            chests.Clear();
+                        }
+                        else
+                        {
+                            FindChests();
+                        }
+                    }
+                    else
                     {
                         mapManualVisible = !mapManualVisible;
                     }
                 }
             }
+        }
+
+        void FindChests()
+        {
+            chests.Clear();
+
+            foreach (GameObject ia in UnityEngine.Object.FindObjectsOfType<GameObject>())
+            {
+                try
+                {
+                    if (ia.name.Contains("WorldContainer") || ia.name.Contains("GoldenContainer"))
+                    {
+                        chests.Add(ia);
+                    }
+                }
+                catch
+                {
+                    // some kind of despawn?
+                }
+            }
+            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
         }
 
         void OnGUI()
@@ -170,18 +209,53 @@ namespace CheatMinimap
                     }
 
                     // default zoomed-in rectangle
-                    float zx = 0;
-                    float zy = 0;
                     float zw = zoom * shrink * mapImageWidth;
                     float zh = zoom * shrink * mapImageHeight;
 
                     // center on the player
-                    zx = playerExcentricX * shrink * zoom - zw / 2 + panelWidth / 2;
-                    zy = playerExcentricY * shrink * zoom - zh / 2 + panelWidth / 2;
+                    float zx = playerExcentricX * shrink * zoom - zw / 2 + panelWidth / 2;
+                    float zy = playerExcentricY * shrink * zoom - zh / 2 + panelWidth / 2;
 
                     GUI.BeginGroup(minimapRect);
                     GUIUtility.RotateAroundPivot(-angle, mapCenter);
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
+                    float mapLeft = playerCenterX - mapWidth / 2;
+                    float mapTop = playerCenterY + mapHeight / 2;
+                    foreach (GameObject go in new List<GameObject>(chests))
+                    {
+                        
+                        try
+                        {
+                            if (go.activeSelf)
+                            {
+                                Vector3 vec = go.transform.position;
+
+                                float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
+                                float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
+
+                                Texture2D img;
+                                if (go.name.Contains("GoldenContainer"))
+                                {
+                                    img = golden;
+                                }
+                                else
+                                {
+                                    img = chest;
+                                }
+
+                                GUI.DrawTexture(new Rect(chestX - 6, chestY - 5, 12, 10), img, ScaleMode.ScaleAndCrop, true);
+                            }
+                            else
+                            {
+                                chests.Remove(go);
+                            }
+                        } 
+                        catch
+                        {
+                            chests.Remove(go);
+                        }
+
+                    }
                     GUI.EndGroup();
 
                     GUI.BeginGroup(minimapRect);
@@ -222,6 +296,13 @@ namespace CheatMinimap
         static void WorldUnitsHandler_CreateUnits(WorldUnitsHandler __instance)
         {
             worldUnitsHandler = __instance;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit(UiWindowPause __instance)
+        {
+            chests.Clear();
         }
     }
 }

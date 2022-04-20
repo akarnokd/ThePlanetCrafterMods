@@ -209,6 +209,7 @@ Display a minimap on the lower left side of the screen.
 Press <kbd>N</kbd> to show/hide the minimap.
 Press <kbd>Shift+N</kbd> or <kbd>Mouse 4</kbd> to zoom in.
 Press <kbd>Ctrl+N</kbd> or <kbd>Mouse 5</kbd> to zoom out.
+Press <kbd>Alt+N</kbd> to show/hide chests.
 
 Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
