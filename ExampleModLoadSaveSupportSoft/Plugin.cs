@@ -116,6 +116,7 @@ namespace ExampleModLoadSaveSupportSoft
             logger.LogInfo(sb.ToString());
 
             ExportLocalization();
+            InventoryLootStages();
         }
 
         static void ExportLocalization()
@@ -150,6 +151,49 @@ namespace ExampleModLoadSaveSupportSoft
                     }
                 }
             }
+        }
+
+        static void InventoryLootStages()
+        {
+            var stagesLH = Managers.GetManager<InventoryLootHandler>();
+            var stages = stagesLH.lootTerraStages;
+
+            logger.LogInfo("Found " + stages.Count + " stages");
+            stages.Sort((a, b) =>
+            {
+                float v1 = a.terraStage.GetStageStartValue();
+                float v2 = b.terraStage.GetStageStartValue();
+                return v1 < v2 ? -1 : (v1 > v2 ? 1 : 0);
+            });
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            foreach (InventoryLootStage ils in stages)
+            {
+                sb.Append(ils.terraStage.GetTerraId()).Append(" @ ").Append(ils.terraStage.GetStageStartValue()).AppendLine();
+
+                string[] titles = { "Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare" };
+                List<List<GroupData>> gs = new List<List<GroupData>>()
+                {
+                    ils.commonItems, ils.unCommonItems, ils.rareItems, ils.veryRareItems, ils.ultraRareItems
+                };
+
+                for (int i = 0; i < titles.Length; i++)
+                {
+                    sb.Append("  - ").Append(titles[i]).Append(" : ");
+                    bool next = false;
+                    foreach (GroupData g in gs[i])
+                    {
+                        if (next)
+                        {
+                            sb.Append(",");
+                        }
+                        sb.Append(g.id);
+                        next = true;
+                    }
+                    sb.AppendLine();
+                }
+            }
+            logger.LogInfo(sb.ToString());
         }
     }
 }
