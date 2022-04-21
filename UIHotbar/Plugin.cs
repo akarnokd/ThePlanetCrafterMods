@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.5")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -292,6 +292,7 @@ namespace UIHotbar
                             // cancel current ghost
                             if (pb.GetIsGhostExisting())
                             {
+                                Logger.LogInfo("Cancelling current ghost");
                                 pb.InputOnCancelAction();
                             }
                         }
@@ -349,7 +350,7 @@ namespace UIHotbar
             Inventory playerInventory = player.GetPlayerBackpack().GetInventory();
             foreach (InventoryAssociated ia in UnityEngine.Object.FindObjectsOfType<InventoryAssociated>())
             {
-                if (ia.name != null && !ia.name.Contains("Golden Container")) {
+                if (ia.name != null && !ia.name.Contains("GoldenContainer") && !ia.name.Contains("WorldContainer")) {
                     try
                     {
                         Inventory inv = ia.GetInventory();
@@ -420,9 +421,10 @@ namespace UIHotbar
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.SetNewGhost))]
-        static bool PlayerBuilder_SetNewGhost(GroupConstructible groupConstructible)
+        static bool PlayerBuilder_SetNewGhost(GroupConstructible groupConstructible, ConstructibleGhost ___ghost)
         {
             logger.LogInfo("New Ghost Set: " + groupConstructible?.GetId() ?? "null");
+            logger.LogInfo("Previous Ghost: " + (___ghost != null ? "Exists" : "Doesn't Exist"));
             if (groupConstructible != null) {
                 for (int i = 0; i < slots.Count; i++)
                 {
@@ -432,7 +434,8 @@ namespace UIHotbar
                         activeSlot = i;
                     }
                 }
-            } else
+            } 
+            else
             {
                 activeSlot = -1;
             }
@@ -453,6 +456,14 @@ namespace UIHotbar
         {
             activeSlot = -1;
             return true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnCancelAction))]
+        static void PlayerBuilder_InputOnCancelAction_Post(ref ConstructibleGhost ___ghost)
+        {
+            // workaround for Unity's fake null problem
+            ___ghost = null;
         }
 
         [HarmonyPrefix]
@@ -532,6 +543,7 @@ namespace UIHotbar
                         {
                             logger.LogInfo("Unpinning to slot " + slot);
                             hotbarSlot.currentGroup = null;
+                            image = hotbarSlot.image.GetComponent<Image>();
                             image.sprite = null;
                             image.color = new Color(0f, 0f, 0f, 0f);
                             hotbarSlot.buildCount.GetComponent<Text>().text = "";
