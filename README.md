@@ -518,14 +518,25 @@ None.
 
 ## (UI) Show Rocket Counts
 
-In the Terraformation information screen (one of the large screens), show the number of rockets used for
+On the Terraformation information screen (one of the large screens), show the number of rockets used for
 each type of terraformation effect: oxygen, heat, pressure, biomass, next to the current growth speed.
 
 Example: ` 2 x -----    6000.00 nPa/s`
 
+On the Launch Platform's crafting screen, the number of rockets are shown above each rocket type.
+
 ### Configuration
 
-None.
+`akarnokd.theplanetcraftermods.uishowrocketcount.cfg`
+
+```
+[General]
+
+## The font size of the counter text on the craft screen
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
+```
 
 ## (UI) Pin Recipe to Screen
 
