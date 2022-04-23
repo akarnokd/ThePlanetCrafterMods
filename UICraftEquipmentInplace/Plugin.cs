@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.6")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -48,7 +48,7 @@ namespace UICraftEquipmentInPlace
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItems))]
         static bool Inventory_RemoveItems(Inventory __instance)
         {
-            logger.LogInfo("Inventory_RemoveItems called");
+            //logger.LogInfo("Inventory_RemoveItems called");
             // no AdvancedMode || FreeCrafts disabled || inventory is the equipment
             return crafts == null || !crafts.Value || __instance.GetId() == 2;
         }

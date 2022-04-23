@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>UICraftEquipmentInplace</AssemblyName>
-    <Description>(UI) Craft Equipment Inplace</Description>
-    <Version>1.0.0.6</Version>
+    <AssemblyName>CheatAutoHarvest</AssemblyName>
+    <Description>(Cheat) Automatically Harvest Food n Algae</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="Exists('c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter')">
     <GameDir>c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter\</GameDir>
@@ -53,13 +53,18 @@
       <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />

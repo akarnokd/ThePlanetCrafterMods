@@ -36,7 +36,7 @@ by deleting the directory itself.
 
 | Cheats | UI/QoL | Other |
 |---|---|---|
-| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Grower Grab Vegetable Only](#ui-grower-grab-vegetable-only)<br/>[Hide Beacons in Photomode](#ui-hide-beacons-in-photomode)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen) | [Load Inventories Faster](#perf-load-inventories-faster)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save) |
+| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Grower Grab Vegetable Only](#ui-grower-grab-vegetable-only)<br/>[Hide Beacons in Photomode](#ui-hide-beacons-in-photomode)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen) | [Load Inventories Faster](#perf-load-inventories-faster)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save) |
 
 
 ## (Cheat) Asteroid Landing Position Override
@@ -82,6 +82,39 @@ Marked as cheat because it is expected the player does these manually.
 # Setting type: Int32
 # Default value: 9
 Threshold = 9
+```
+
+## (Cheat) Auto Harvest
+
+Automatically harvest grown algae or food from their machines and deposit them into designated containers.
+
+To deposit **Algae**, name any number of containers as `*Algae1Seed` (the `*` is mandatory).
+
+To deposit food, use the following naming convention:
+
+- **Eggplant** - `*Vegetable0Growable`
+- **Squash** - `*Vegetable1Growable`
+- **Beans** - `*Vegetable2Growable`
+- **Mushroom** - `*Vegetable3Growable`
+
+The naming is case insensitive.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.cheatautoharvest.cfg`
+
+```
+[General]
+
+## Enable auto harvesting for algae.
+# Setting type: Boolean
+# Default value: true
+HarvestAlgae = true
+
+## Enable auto harvesting for food.
+# Setting type: Boolean
+# Default value: true
+HarvestFood = true
 ```
 
 ## (Cheat) Photomode Hide Water

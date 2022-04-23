@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 
-namespace PerfLoadInventoriesFaster
+namespace CheatAutoConsume
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
