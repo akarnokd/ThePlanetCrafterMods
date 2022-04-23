@@ -7,20 +7,38 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
+using System;
+using BepInEx.Bootstrap;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.2")]
-    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.3")]
+    [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string cheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+        static Func<List<WorldObject>, int, string, bool> isFullStacked;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
+            if (Chainloader.PluginInfos.TryGetValue(cheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
+            {
+                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "IsFullStacked", new Type[] { typeof(List<WorldObject>), typeof(int), typeof(string) });
+                isFullStacked = AccessTools.MethodDelegate<Func<List<WorldObject>, int, string, bool>>(mi, pi.Instance);
+            }
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+        static bool IsFull(Inventory inv, WorldObject wo)
+        {
+            if (isFullStacked != null)
+            {
+                return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), wo.GetGroup().GetId());
+            }
+            return inv.IsFull();
         }
 
         [HarmonyPrefix]
@@ -37,7 +55,7 @@ namespace CheatMachineRemoteDeposit
                 if (wo2 != null && wo2.HasLinkedInventory())
                 {
                     Inventory inv2 = InventoriesHandler.GetInventoryById(wo2.GetLinkedInventoryId());
-                    if (inv2 != null && !inv2.IsFull())
+                    if (inv2 != null && !IsFull(inv2, worldObject))
                     {
                         string txt = wo2.GetText();
                         if (txt != null && txt.ToLower().Contains(gid))

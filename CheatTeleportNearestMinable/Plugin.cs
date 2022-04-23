@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace CheatTeleportNearestMinable
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -104,14 +104,13 @@ namespace CheatTeleportNearestMinable
                 bool isCtrl = Keyboard.current[Key.LeftCtrl].isPressed;
                 if (isShift || isCtrl)
                 {
-                    if (activePlayerController.GetPlayerBackpack().GetInventory().IsFull())
+                    if (!activePlayerController.GetPlayerBackpack().GetInventory().AddItem(foundwo))
                     {
                         Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 1f, "");
                     }
                     else
                     {
                         UnityEngine.Object.Destroy(foundgo);
-                        activePlayerController.GetPlayerBackpack().GetInventory().AddItem(foundwo);
                         foundwo.SetDontSaveMe(false);
                         Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, string.Concat(new object[]
                         {

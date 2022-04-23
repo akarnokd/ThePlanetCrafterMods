@@ -10,12 +10,16 @@ using BepInEx.Configuration;
 using System;
 using System.Reflection;
 using BepInEx.Logging;
+using BepInEx.Bootstrap;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.1")]
+    [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string cheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+
         static MethodInfo updateGrowing;
         static MethodInfo instantiateAtRandomPosition;
         static FieldInfo machineGrowerInventory;
@@ -27,6 +31,8 @@ namespace CheatAutoHarvest
 
         static ConfigEntry<bool> harvestAlgae;
         static ConfigEntry<bool> harvestFood;
+
+        static Func<List<WorldObject>, int, string, bool> isFullStacked;
 
         private void Awake()
         {
@@ -40,6 +46,12 @@ namespace CheatAutoHarvest
             worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
+
+            if (Chainloader.PluginInfos.TryGetValue(cheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
+            {
+                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "IsFullStacked", new Type[] { typeof(List<WorldObject>), typeof(int), typeof(string) });
+                isFullStacked = AccessTools.MethodDelegate<Func<List<WorldObject>, int, string, bool>>(mi, pi.Instance);
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -113,6 +125,10 @@ namespace CheatAutoHarvest
                                                 instantiateAtRandomPosition.Invoke(__instance, new object[] { objectToInstantiate, false });
 
                                                 restartCoroutine = true;
+                                            }
+                                            else
+                                            {
+                                                logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                                             }
                                         }
                                         else
@@ -191,6 +207,7 @@ namespace CheatAutoHarvest
                                 {
                                     if ((wo.GetPosition() - mg.spawnPoint.transform.position).magnitude < 0.2f)
                                     {
+                                        found = true;
                                         logFood("  Found MachineGrower");
                                         if (inv.AddItem(wo))
                                         {
@@ -207,7 +224,10 @@ namespace CheatAutoHarvest
                                             machineInventory.AddItem(seed);
 
                                             deposited++;
-                                            found = true;
+                                        }
+                                        else
+                                        {
+                                            logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                                         }
 
                                         break;
@@ -225,6 +245,15 @@ namespace CheatAutoHarvest
             logFood("Edible deposited: " + deposited);
         }
 
+        static bool IsFull(Inventory inv, WorldObject wo)
+        {
+            if (isFullStacked != null)
+            {
+                return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), wo.GetGroup().GetId());
+            }
+            return inv.IsFull();
+        }
+
         static bool FindInventory(WorldObject wo, out Inventory inventory)
         {
             string gid = "*" + wo.GetGroup().GetId().ToLower();
@@ -234,7 +263,7 @@ namespace CheatAutoHarvest
                 if (wo2 != null && wo2.HasLinkedInventory())
                 {
                     Inventory inv2 = InventoriesHandler.GetInventoryById(wo2.GetLinkedInventoryId());
-                    if (inv2 != null && !inv2.IsFull())
+                    if (inv2 != null && !IsFull(inv2, wo))
                     {
                         string txt = wo2.GetText();
                         if (txt != null && txt.ToLower().Contains(gid))
