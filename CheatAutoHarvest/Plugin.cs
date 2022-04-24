@@ -11,10 +11,11 @@ using System;
 using System.Reflection;
 using BepInEx.Logging;
 using BepInEx.Bootstrap;
+using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.2")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -27,7 +28,7 @@ namespace CheatAutoHarvest
 
         static ManualLogSource logger;
         static bool debugAlgae = false;
-        static bool debugFood = false;
+        static bool debugFood = true;
 
         static ConfigEntry<bool> harvestAlgae;
         static ConfigEntry<bool> harvestFood;
@@ -160,7 +161,9 @@ namespace CheatAutoHarvest
         {
             for (; ; )
             {
+                var t = Stopwatch.GetTimestamp();
                 CheckFoodGrowers();
+                logFood("Perf: " + (Stopwatch.GetTimestamp() - t) / 10000f);
                 yield return new WaitForSeconds(delay);
             }
         }
@@ -179,66 +182,63 @@ namespace CheatAutoHarvest
 
             logFood("Edible: begin search");
             int deposited = 0;
-            MachineGrower[] allMachineGrowers = null;
             Dictionary<WorldObject, GameObject> map = (Dictionary<WorldObject, GameObject>)worldObjectsDictionary.GetValue(null);
 
-            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            List<MachineGrower> allMachineGrowers = new List<MachineGrower>();
+            List<WorldObject> food = new List<WorldObject>();
+            List<InventoryAndWorldObject> inventories = new List<InventoryAndWorldObject>();
+
+            FindObjects(map, food, inventories, allMachineGrowers);
+            logFood("  Enumerated food: " + food.Count);
+            logFood("  Enumerated inventories: " + inventories.Count);
+            logFood("  Enumerated machine growers: " + allMachineGrowers.Count);
+
+            foreach (WorldObject wo in food)
             {
-                GroupItem g = wo.GetGroup() as GroupItem;
-                if (g != null && g.GetUsableType() == DataConfig.UsableType.Eatable)
+                Group g = wo.GetGroup();
+                logFood("Edible for grab: " + wo.GetId() + " of *" + g.id);
+                if (FindInventory(wo, inventories, out Inventory inv))
                 {
-                    if (map.TryGetValue(wo, out GameObject go) && go != null)
+                    logFood("  Found inventory.");
+
+                    bool found = false;
+                    // we have to find which grower wo came from so it can be reset
+                    foreach (MachineGrower mg in allMachineGrowers)
                     {
-                        ActionGrabable ag = go.GetComponent<ActionGrabable>();
-                        if (ag != null)
+                        if ((wo.GetPosition() - mg.spawnPoint.transform.position).magnitude < 0.2f)
                         {
-                            logFood("Edible for grab: " + wo.GetId() + " of *" + g.id);
-                            if (FindInventory(wo, out Inventory inv))
+                            found = true;
+                            logFood("  Found MachineGrower");
+                            if (inv.AddItem(wo))
                             {
-                                logFood("  Found inventory.");
-                                if (allMachineGrowers == null)
+                                logFood("  Adding to target inventory");
+                                if (map.TryGetValue(wo, out GameObject go) && go != null)
                                 {
-                                    allMachineGrowers = UnityEngine.Object.FindObjectsOfType<MachineGrower>();
+                                    UnityEngine.Object.Destroy(go);
                                 }
 
-                                bool found = false;
-                                // we have to find which grower wo came from so it can be reset
-                                foreach (MachineGrower mg in allMachineGrowers)
-                                {
-                                    if ((wo.GetPosition() - mg.spawnPoint.transform.position).magnitude < 0.2f)
-                                    {
-                                        found = true;
-                                        logFood("  Found MachineGrower");
-                                        if (inv.AddItem(wo))
-                                        {
-                                            logFood("  Adding to target inventory");
-                                            UnityEngine.Object.Destroy(go);
+                                // readd seed
+                                Inventory machineInventory = (Inventory)machineGrowerInventory.GetValue(mg);
 
-                                            // readd seed
-                                            Inventory machineInventory = (Inventory)machineGrowerInventory.GetValue(mg);
+                                WorldObject seed = machineInventory.GetInsideWorldObjects()[0];
 
-                                            WorldObject seed = machineInventory.GetInsideWorldObjects()[0];
+                                machineInventory.RemoveItem(seed, false);
+                                seed.SetLockInInventoryTime(0f);
+                                machineInventory.AddItem(seed);
 
-                                            machineInventory.RemoveItem(seed, false);
-                                            seed.SetLockInInventoryTime(0f);
-                                            machineInventory.AddItem(seed);
-
-                                            deposited++;
-                                        }
-                                        else
-                                        {
-                                            logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
-                                        }
-
-                                        break;
-                                    }
-                                }
-                                if (!found)
-                                {
-                                    logFood("  Could not find MachineGrower of this edible");
-                                }
+                                deposited++;
                             }
+                            else
+                            {
+                                logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
+                            }
+
+                            break;
                         }
+                    }
+                    if (!found)
+                    {
+                        logFood("  Could not find MachineGrower of this edible");
                     }
                 }
             }
@@ -252,6 +252,76 @@ namespace CheatAutoHarvest
                 return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), wo.GetGroup().GetId());
             }
             return inv.IsFull();
+        }
+
+        class InventoryAndWorldObject
+        {
+            internal Inventory inventory;
+            internal WorldObject worldObject;
+        }
+
+        static void FindObjects(Dictionary<WorldObject, GameObject> map, 
+            List<WorldObject> food, 
+            List<InventoryAndWorldObject> inventories, 
+            List<MachineGrower> growers)
+        {
+            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                GroupItem g = wo.GetGroup() as GroupItem;
+                if (g != null && g.GetUsableType() == DataConfig.UsableType.Eatable)
+                {
+                    if (map.TryGetValue(wo, out GameObject go) && go != null)
+                    {
+                        ActionGrabable ag = go.GetComponent<ActionGrabable>();
+                        if (ag != null)
+                        {
+                            food.Add(wo);
+                        }
+                    }
+                }
+                string txt = wo.GetText();
+                if (txt != null && txt.Contains("*"))
+                {
+                    if (wo.HasLinkedInventory())
+                    {
+                        Inventory inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                        if (inv != null)
+                        {
+                            InventoryAndWorldObject iwo = new InventoryAndWorldObject();
+                            iwo.inventory = inv;
+                            iwo.worldObject = wo;
+                            inventories.Add(iwo);
+                        }
+                    }
+                }
+                if (map.TryGetValue(wo, out GameObject goConstr) && goConstr != null)
+                {
+                    MachineGrower goMg = goConstr.GetComponent<MachineGrower>();
+                    if (goMg != null)
+                    {
+                        growers.Add(goMg);
+                    }
+                }
+            }
+        }
+
+        static bool FindInventory(WorldObject wo, List<InventoryAndWorldObject> inventories, out Inventory inventory)
+        {
+            string gid = "*" + wo.GetGroup().GetId().ToLower();
+            foreach (InventoryAndWorldObject inv in inventories)
+            {
+                string txt = inv.worldObject.GetText();
+                if (txt != null && txt.ToLower().Contains(gid))
+                {
+                    if (!IsFull(inv.inventory, wo))
+                    {
+                        inventory = inv.inventory;
+                        return true;
+                    }
+                }
+            }
+            inventory = null;
+            return false;
         }
 
         static bool FindInventory(WorldObject wo, out Inventory inventory)
