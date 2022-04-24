@@ -95,6 +95,13 @@ namespace UICraftEquipmentInPlace
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.CraftAnimation))]
+        static bool ActionCrafter_CraftAnimation(ActionCrafter __instance)
+        {
+            return __instance != mobileCrafterTestss;
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
         static bool CraftManager_TryToCraftInInventory(ref bool __result,
             ActionCrafter _sourceCrafter, PlayerMainController _playerController, GroupItem groupItem,
