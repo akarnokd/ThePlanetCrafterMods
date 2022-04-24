@@ -10,23 +10,29 @@ using BepInEx.Logging;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.7")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+
+        const string mobileCrafterGuid = "Mobile_crafter";
 
         static ConfigEntry<bool> crafts;
 
         static ManualLogSource logger;
+
+        /// <summary>
+        /// The ActionCrafter object the Mobile Crafter mod uses
+        /// </summary>
+        static ActionCrafter mobileCrafterTestss;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
             logger = Logger;
-
-            Harmony.CreateAndPatchAll(typeof(Plugin));
 
             if (Chainloader.PluginInfos.TryGetValue("AdvancedMode", out PluginInfo pi))
             {
@@ -38,10 +44,29 @@ namespace UICraftEquipmentInPlace
                 ovr.Value = false; // this will pass the execution along to our patch
                 fi.SetValue(null, ovr);
                 Logger.LogInfo("Disabled AdvancedMode's Free Crafting mode (" + crafts.Value + ")");
-            } else
+            } 
+            else
             {
                 Logger.LogInfo("AdvancedMode Plugin not found.");
             }
+
+            if (Chainloader.PluginInfos.TryGetValue(mobileCrafterGuid, out pi))
+            {
+                Logger.LogInfo(mobileCrafterGuid + " found, unpatching CraftManager::TryToCraftInInventory");
+
+                mobileCrafterTestss = (ActionCrafter)AccessTools.Field(pi.Instance.GetType(), "testss").GetValue(null);
+                Harmony theirHarmony = (Harmony)AccessTools.Field(pi.Instance.GetType(), "harmony").GetValue(pi.Instance);
+
+                theirHarmony.Unpatch(typeof(CraftManager).GetMethod(nameof(CraftManager.TryToCraftInInventory)), HarmonyPatchType.Prefix);
+
+                Logger.LogInfo(mobileCrafterGuid + " found, unpatching CraftManager::TryToCraftInInventory - DONE");
+            }
+            else
+            {
+                Logger.LogInfo(mobileCrafterGuid + " not found.");
+            }
+
+            Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
@@ -140,7 +165,10 @@ namespace UICraftEquipmentInPlace
 
                 if (ingredients.Count == 0 || isFreeCraft)
                 {
-                    _sourceCrafter.CraftAnimation(groupItem);
+                    if (_sourceCrafter != mobileCrafterTestss)
+                    {
+                        _sourceCrafter.CraftAnimation(groupItem);
+                    }
 
                     backpack.RemoveItems(fromBackpack, true, true);
                     equipment.RemoveItems(fromEquipment, true, true);
