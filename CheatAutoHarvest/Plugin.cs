@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.3")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -34,6 +34,8 @@ namespace CheatAutoHarvest
         static ConfigEntry<bool> harvestFood;
 
         static Func<List<WorldObject>, int, string, bool> isFullStacked;
+
+        static bool loadCompleted;
 
         private void Awake()
         {
@@ -72,6 +74,9 @@ namespace CheatAutoHarvest
             }
         }
 
+        static List<InventoryAndWorldObject> inventoriesCache;
+        static int inventoriesCacheFrame;
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineOutsideGrower), "Grow")]
         static void MachineOutsideGrower_Grow(
@@ -86,10 +91,33 @@ namespace CheatAutoHarvest
             {
                 return;
             }
-
+            if (!loadCompleted)
+            {
+                logAlgae("Algae: Game is still loading.");
+                inventoriesCache = null;
+                inventoriesCacheFrame = 0;
+                return;
+            }
+            logAlgae("Algae: Ingame?");
+            if (Managers.GetManager<PlayersManager>() == null)
+            {
+                return;
+            }
             if (___instantiatedGameObjects != null)
             {
                 bool restartCoroutine = false;
+
+                List<InventoryAndWorldObject> inventories = inventoriesCache;
+                int frame = inventoriesCacheFrame;
+                int currentFrame = Time.frameCount;
+                if (inventories == null || frame != currentFrame)
+                {
+                    inventories = new List<InventoryAndWorldObject>();
+                    FindInventories(inventories);
+                    
+                    inventoriesCache = inventories;
+                    inventoriesCacheFrame = currentFrame;
+                }
 
                 logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " < " + ___spawNumber);
                 foreach (GameObject go in new List<GameObject>(___instantiatedGameObjects))
@@ -109,7 +137,7 @@ namespace CheatAutoHarvest
                                     logAlgae("  - [" + wo.GetId() + "]  "  + wo.GetGroup().GetId() + " @ " + (progress) + "%");
                                     if (progress >= 100f)
                                     {
-                                        if (FindInventory(wo, out Inventory inv))
+                                        if (FindInventory(wo, inventories, out Inventory inv))
                                         {
                                             if (inv.AddItem(wo))
                                             {
@@ -172,6 +200,11 @@ namespace CheatAutoHarvest
         {
             if (!harvestFood.Value)
             {
+                return;
+            }
+            if (!loadCompleted)
+            {
+                logFood("Algae: Game is still loading.");
                 return;
             }
             logFood("Edible: Ingame?");
@@ -260,6 +293,27 @@ namespace CheatAutoHarvest
             internal WorldObject worldObject;
         }
 
+        static void FindInventories(List<InventoryAndWorldObject> inventories)
+        {
+            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                string txt = wo.GetText();
+                if (txt != null && txt.Contains("*"))
+                {
+                    if (wo.HasLinkedInventory())
+                    {
+                        Inventory inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                        if (inv != null)
+                        {
+                            InventoryAndWorldObject iwo = new InventoryAndWorldObject();
+                            iwo.inventory = inv;
+                            iwo.worldObject = wo;
+                            inventories.Add(iwo);
+                        }
+                    }
+                }
+            }
+        }
         static void FindObjects(Dictionary<WorldObject, GameObject> map, 
             List<WorldObject> food, 
             List<InventoryAndWorldObject> inventories, 
@@ -324,28 +378,18 @@ namespace CheatAutoHarvest
             return false;
         }
 
-        static bool FindInventory(WorldObject wo, out Inventory inventory)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start()
         {
-            string gid = "*" + wo.GetGroup().GetId().ToLower();
-            //logger.LogInfo("    Finding inventory for " + gid);
-            foreach (WorldObject wo2 in WorldObjectsHandler.GetAllWorldObjects())
-            {
-                if (wo2 != null && wo2.HasLinkedInventory())
-                {
-                    Inventory inv2 = InventoriesHandler.GetInventoryById(wo2.GetLinkedInventoryId());
-                    if (inv2 != null && !IsFull(inv2, wo))
-                    {
-                        string txt = wo2.GetText();
-                        if (txt != null && txt.ToLower().Contains(gid))
-                        {
-                            inventory = inv2;
-                            return true;
-                        }
-                    }
-                }
-            }
-            inventory = null;
-            return false;
+            loadCompleted = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            loadCompleted = false;
         }
     }
 }
