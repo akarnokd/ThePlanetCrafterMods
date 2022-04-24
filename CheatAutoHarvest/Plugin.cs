@@ -28,7 +28,7 @@ namespace CheatAutoHarvest
 
         static ManualLogSource logger;
         static bool debugAlgae = false;
-        static bool debugFood = true;
+        static bool debugFood = false;
 
         static ConfigEntry<bool> harvestAlgae;
         static ConfigEntry<bool> harvestFood;
