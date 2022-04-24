@@ -206,6 +206,8 @@ You can have as many containers as you like, but they will be filled in non-dete
 If there are no renamed containers or all renamed containers are full, the machines
 will deposit the resource into their own container, as would they without this mod.
 
+If the mod **Ore Extractor Tweaks** by *Lathrey* is present, its ore generator functionality is integrated with this mod. Specifically, if `configOnlyExtractDetectedOre` is true *and* a machine mines a common ore *and* there is no target inventory for it, the ore is not deposited anywhere.
+
 Note also that machines are slow to mine resources.
 
 
