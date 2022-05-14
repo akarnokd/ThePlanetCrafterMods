@@ -117,6 +117,7 @@ namespace ExampleModLoadSaveSupportSoft
 
             ExportLocalization();
             InventoryLootStages();
+            ProductionValues();
         }
 
         static void ExportLocalization()
@@ -192,6 +193,23 @@ namespace ExampleModLoadSaveSupportSoft
                     }
                     sb.AppendLine();
                 }
+            }
+            logger.LogInfo(sb.ToString());
+        }
+
+        static void ProductionValues()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            foreach(GroupConstructible gc in GroupsHandler.GetGroupsConstructible())
+            {
+                sb.Append(gc.GetId());
+                sb.AppendLine();
+                sb.Append("  Pressure: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Pressure)).AppendLine();
+                sb.Append("  Heat: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Heat)).AppendLine();
+                sb.Append("  Oxygen: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Oxygen)).AppendLine();
+                sb.Append("  Biomass: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Biomass)).AppendLine();
+
             }
             logger.LogInfo(sb.ToString());
         }
