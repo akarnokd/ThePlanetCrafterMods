@@ -200,7 +200,11 @@ Typical identifiers are:
 -`Cobalt`,`Silicon`,`Iron`,`ice`,
 `Magnesium`,`Titanium`,`Aluminium`,`Uranim`,
 `Iridium`,`Alloy`,`Zeolite`,`Osmium`,
-`Sulfur`
+`Sulfur`, 
+
+You can also make the water and methane extractors deposit remotely by naming containers:
+
+- `*WaterBottle1`, `*OxygenCapsule1`, `*MethanCapsule1`
 
 You can have as many containers as you like, but they will be filled in non-deterministically.
 If there are no renamed containers or all renamed containers are full, the machines
