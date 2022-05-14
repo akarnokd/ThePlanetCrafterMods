@@ -9,14 +9,17 @@ using System.Collections.Generic;
 
 namespace UISaveOnQuit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
+        static ConfigEntry<bool> modEnabled;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+
+            modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -25,7 +28,10 @@ namespace UISaveOnQuit
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit(UiWindowPause __instance)
         {
-            __instance.OnSave();
+            if (modEnabled.Value)
+            {
+                __instance.OnSave();
+            }
         }
     }
 }

@@ -604,7 +604,16 @@ Automatically saves the game when clicking the "Exit to main menu" button.
 
 ### Configuration
 
-None.
+`akarnokd.theplanetcraftermods.saveonquit.cfg`
+
+```
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+```
 
 ## (UI) Hungarian Translation
 

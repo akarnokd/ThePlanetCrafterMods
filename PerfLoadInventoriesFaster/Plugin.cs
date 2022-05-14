@@ -6,10 +6,11 @@ using TMPro;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace PerfLoadInventoriesFaster
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.perfloadinventoriesfaster", "(Perf) Load Inventories Faster", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.perfloadinventoriesfaster", "(Perf) Load Inventories Faster", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -59,6 +60,30 @@ namespace PerfLoadInventoriesFaster
             }
             InventoriesHandler.SetAllWorldInventories(list);
 
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.StringToColor))]
+        static bool DataTreatments_StringToColor(string _colorString, ref Color __result, char ___colorDelimiter)
+        {
+            if (string.IsNullOrEmpty(_colorString))
+            {
+                __result = new Color(0f, 0f, 0f, 0f);
+                return false;
+            }
+            string[] components = _colorString.Split(new char[] { ___colorDelimiter });
+            if (components.Length != 4)
+            {
+                __result = new Color(0f, 0f, 0f, 0f);
+                return false;
+            }
+            __result = new Color(
+                float.Parse(components[0].Replace(',', '.'), CultureInfo.InvariantCulture),
+                float.Parse(components[1].Replace(',', '.'), CultureInfo.InvariantCulture),
+                float.Parse(components[2].Replace(',', '.'), CultureInfo.InvariantCulture),
+                float.Parse(components[3].Replace(',', '.'), CultureInfo.InvariantCulture)
+            );
             return false;
         }
     }
