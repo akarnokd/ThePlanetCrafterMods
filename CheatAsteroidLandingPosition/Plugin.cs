@@ -10,33 +10,35 @@ using System.Reflection;
 
 namespace CheatAsteroidLandingPosition
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
         /// Relative position east-west (east is positive).
         /// </summary>
-        private static int deltaX;
+        private static ConfigEntry<int> deltaX;
         /// <summary>
         /// Relative position north-south (north is positive).
         /// </summary>
-        private static int deltaZ;
+        private static ConfigEntry<int> deltaZ;
 
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).").Value;
-            deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).").Value;
+            deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).");
+            deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(AsteroidsHandler), "SpawnAsteroid")]
-        static bool AsteroidsHandler_SpawnAsteroid(AsteroidEventData _asteroidEvent, List<Collider> ___authorizedPlaces,
-            Collider ___spawnBox, AsteroidsHandler __instance)
+        static bool AsteroidsHandler_SpawnAsteroid(AsteroidEventData _asteroidEvent, 
+            List<Collider> ___authorizedPlaces,
+            List<Collider> ___spawnBoxes, 
+            AsteroidsHandler __instance)
         {
             // Unfortunately, I have to copy out the original sources and patch inbetween some instructions
 
@@ -48,20 +50,25 @@ namespace CheatAsteroidLandingPosition
             {
                 return false;
             }
-
             Vector3 position = Managers.GetManager<PlayersManager>().GetActivePlayerController().gameObject.transform.position;
-            Vector3 vector2 = new Vector3(position.x + deltaX, position.y, position.z + deltaZ);
+            Collider collider = ___spawnBoxes[0];
+            foreach (Collider collider2 in ___spawnBoxes)
+            {
+                if (Vector3.Distance(collider2.transform.position, position) < Vector3.Distance(collider.transform.position, position))
+                {
+                    collider = collider2;
+                }
+            }
+            // Vector2 vector = UnityEngine.Random.insideUnitCircle * (float)_asteroidEvent.distanceFromPlayer;
+            Vector3 vector2 = new Vector3(position.x + /* vector.x + */ deltaX.Value, position.y, position.z /* + vector.y */ + deltaZ.Value);
             if (AsteroidsHandler_IsInAuthorizedBounds(vector2, ___authorizedPlaces))
             {
-                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(_asteroidEvent.asteroidGameObject,
-                    AsteroidsHandler_RandomPointInBounds(___spawnBox.bounds), Quaternion.identity, __instance.gameObject.transform);
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(_asteroidEvent.asteroidGameObject, AsteroidsHandler_RandomPointInBounds(collider.bounds), Quaternion.identity, __instance.gameObject.transform);
                 gameObject.transform.LookAt(vector2);
                 gameObject.GetComponent<Asteroid>().SetLinkedAsteroidEvent(_asteroidEvent);
                 _asteroidEvent.ChangeExistingAsteroidsCount(1);
                 _asteroidEvent.ChangeTotalAsteroidsCount(1);
-                return false;
             }
-
             return false;
         }
 

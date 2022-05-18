@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace UICustomInventorySortAll
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>

@@ -13,7 +13,7 @@ using BepInEx.Logging;
 
 namespace UIShowRocketCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         static FieldInfo associatedGroup;

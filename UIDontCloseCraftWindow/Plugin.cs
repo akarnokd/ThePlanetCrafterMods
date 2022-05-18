@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace UIDontCloseCraftWindow
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 

@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.4")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

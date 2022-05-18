@@ -11,10 +11,13 @@ using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
+using System.Collections;
+using TMPro;
+using UnityEngine.UI;
 
 namespace UITranslationHungarian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "hungarian";
@@ -26,6 +29,8 @@ namespace UITranslationHungarian
         static ConfigEntry<bool> checkMissing;
 
         static string currentLanguage;
+
+        static bool loadSuccess;
 
         private void Awake()
         {
@@ -57,6 +62,34 @@ namespace UITranslationHungarian
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            StartCoroutine(WaitForLocalizationLoad());
+        }
+
+        IEnumerator WaitForLocalizationLoad()
+        {
+            for (; ; )
+            {
+                yield return new WaitForSeconds(0.1f);
+                if (loadSuccess)
+                {
+                    foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsOfType<LocalizedText>(true))
+                    {
+                        ltext.UpdateTranslation();
+
+                        if (ltext.textId == "Newsletter_Button")
+                        {
+                            var rt = ltext.GetComponent<RectTransform>();
+                            if (rt != null)
+                            {
+                                rt.sizeDelta = new Vector2(rt.sizeDelta.x + 20, rt.sizeDelta.y);
+                                rt.localScale = new Vector2(rt.localScale.x * 0.85f, rt.localScale.y * 0.85f);
+                            }
+                        }
+                    }
+                    yield break;
+                }
+            }
         }
 
         // There is no GetLanguage, need to save current language for later checks
@@ -71,9 +104,11 @@ namespace UITranslationHungarian
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         static void Localization_LoadLocalization(
                 Dictionary<string, Dictionary<string, string>> ___localizationDictionary,
-                List<string> ___availableLanguages
+                List<string> ___availableLanguages,
+                bool ___hasLoadedSuccesfully
         )
         {
+            loadSuccess = ___hasLoadedSuccesfully;
             // add it to the available languages
             if (!___availableLanguages.Contains(languageKey))
             {

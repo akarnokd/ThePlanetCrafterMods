@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UIShowPlayerTooltipItemCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayertooltipitemcount", "(UI) Show Player Tooltip Item Count", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayertooltipitemcount", "(UI) Show Player Tooltip Item Count", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 

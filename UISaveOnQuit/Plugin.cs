@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace UISaveOnQuit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<bool> modEnabled;

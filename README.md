@@ -9,7 +9,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.4.008
+## Supported Game Version: 0.4.011
 
 Public releases are relatively infrequent (once per week). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -36,7 +36,7 @@ by deleting the directory itself.
 
 | Cheats | UI/QoL | Other |
 |---|---|---|
-| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Grower Grab Vegetable Only](#ui-grower-grab-vegetable-only)<br/>[Hide Beacons in Photomode](#ui-hide-beacons-in-photomode)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen) | [Load Inventories Faster](#perf-load-inventories-faster)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save) |
+| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen) | [Fix International Loading](#fix-international-loading)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save) |
 
 
 ## (Cheat) Asteroid Landing Position Override
@@ -327,11 +327,22 @@ FontSize = 25
 
 ## (Perf) Load Inventories Faster
 
+**Discontinued, now part of the vanilla game.**
+
 This speeds up loading the game when there are lots of containers or (modded) containers have a lot of items.
 
 ### Configuration
 
 None.
+
+## (Fix) International Loading
+
+The game saves the beacon color information in a localized manner that crashes the game on a different windows locale. This mod fixes this by patching the color parsing so it accepts comma and colon as decimal separator.
+
+### Configuration
+
+None.
+
 
 ## (Perf) Reduce Save Size
 
@@ -368,6 +379,8 @@ None.
 
 ## (UI) Grower Grab Vegetable Only
 
+** Discontinued. The vanilla game now grabs the vegetable only. **
+
 When looking at a grown vegetable in a Grower, hold <kbd>Shift</kbd> while clicking
 the vegetable itself to not take the seed, so it can immediately grow the next vegetable.
 
@@ -376,6 +389,8 @@ the vegetable itself to not take the seed, so it can immediately grow the next v
 None.
 
 ## (UI) Hide Beacons in Photomode
+
+** Discontinued. Fixed in the vanilla game. **
 
 When using the photomode (<kbd>F2</kbd>), this mod will hide the user placed and colored
 beacons.

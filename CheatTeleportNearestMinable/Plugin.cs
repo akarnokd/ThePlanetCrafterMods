@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace CheatTeleportNearestMinable
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>

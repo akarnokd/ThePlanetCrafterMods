@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace UIInventoryMoveMultiple
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
