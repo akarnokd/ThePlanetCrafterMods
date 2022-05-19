@@ -327,7 +327,7 @@ FontSize = 25
 
 ## (Perf) Load Inventories Faster
 
-**Discontinued, now part of the vanilla game.**
+:warning: **Discontinued, now part of the vanilla game.**
 
 This speeds up loading the game when there are lots of containers or (modded) containers have a lot of items.
 
@@ -379,7 +379,7 @@ None.
 
 ## (UI) Grower Grab Vegetable Only
 
-** Discontinued. The vanilla game now grabs the vegetable only. **
+:warning: **Discontinued. The vanilla game now grabs the vegetable only.**
 
 When looking at a grown vegetable in a Grower, hold <kbd>Shift</kbd> while clicking
 the vegetable itself to not take the seed, so it can immediately grow the next vegetable.
@@ -390,7 +390,7 @@ None.
 
 ## (UI) Hide Beacons in Photomode
 
-** Discontinued. Fixed in the vanilla game. **
+:warning: **Discontinued. Fixed in the vanilla game.**
 
 When using the photomode (<kbd>F2</kbd>), this mod will hide the user placed and colored
 beacons.
