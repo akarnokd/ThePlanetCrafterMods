@@ -11,7 +11,7 @@ using System;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -50,7 +50,9 @@ namespace CheatNearbyResourcesHighlight
             "Alloy",
             "Zeolite",
             "Osmium",
-            "Sulfur"
+            "Sulfur",
+            "PulsarQuartz",
+            "PulsarShard"
         });
 
         class GameObjectTTL

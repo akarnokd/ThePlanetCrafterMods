@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.8")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.9")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -117,7 +117,8 @@ namespace UICraftEquipmentInPlace
                 || equipType == DataConfig.EquipableType.EquipmentIncrease
                 || equipType == DataConfig.EquipableType.MultiToolMineSpeed
                 || equipType == DataConfig.EquipableType.BootsSpeed
-                || equipType == DataConfig.EquipableType.Jetpack)
+                || equipType == DataConfig.EquipableType.Jetpack
+                || equipType == DataConfig.EquipableType.MultiToolLight)
             {
                 List<Group> ingredients = new List<Group>(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
 
@@ -230,7 +231,10 @@ namespace UICraftEquipmentInPlace
                                 .GetComponent<PlayerMovable>()
                                 .SetJetpackFactor((float)groupItem.GetGroupValue() / 100f);
                         }
-
+                        else if (equipType == DataConfig.EquipableType.MultiToolLight)
+                        {
+                            _playerController.GetMultitool().SetCanUseLight(true, groupItem.GetGroupValue());
+                        }
                     }
                     else
                     {
