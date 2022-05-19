@@ -298,6 +298,11 @@ ZoomOutMouseButton = 5
 # Setting type: Int32
 # Default value: 5
 AutoScanForChests = 5
+
+## If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).
+# Setting type: Int32
+# Default value: -1
+FixedRotation = -1
 ```
 
 ## (Cheat) Inventory Stacking

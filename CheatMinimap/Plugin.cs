@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.10")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -30,6 +30,7 @@ namespace CheatMinimap
         ConfigEntry<int> zoomInMouseButton;
         ConfigEntry<int> zoomOutMouseButton;
         ConfigEntry<int> autoScanForChests;
+        ConfigEntry<int> fixedRotation;
 
         static bool mapVisible = true;
         static bool mapManualVisible = true;
@@ -59,6 +60,7 @@ namespace CheatMinimap
             zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
+            fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
 
             self = this;
 
@@ -269,8 +271,19 @@ namespace CheatMinimap
                     float zx = playerExcentricX * shrink * zoom - zw / 2 + panelWidth / 2;
                     float zy = playerExcentricY * shrink * zoom - zh / 2 + panelWidth / 2;
 
+                    int fixRot = fixedRotation.Value;
+                    float fixedAngle = fixRot;
+
                     GUI.BeginGroup(minimapRect);
-                    GUIUtility.RotateAroundPivot(-angle, mapCenter);
+
+                    if (fixRot >= 0)
+                    {
+                        GUIUtility.RotateAroundPivot(fixedAngle, mapCenter);
+                    }
+                    else
+                    {
+                        GUIUtility.RotateAroundPivot(-angle, mapCenter);
+                    }
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
