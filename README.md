@@ -447,6 +447,8 @@ When transferring items between the player backpack and any container,
 - Press <kbd>Shift+Middle Mouse</kbd> to transfer a small amount of items of the same type (default 5)
 - Press <kbd>Ctrl+Shift+Middle Mouse</kbd> to transfer a larger amount of items of the same type (default 50)
 
+:information_source: The vanilla game now supports transferring all the same type of items via <kbd>CTRL<kbd>+<kbd>Left Mouse</kbd>.
+
 ### Configuration
 
 `akarnokd.theplanetcraftermods.uiinventorymovemultiple.cfg`
