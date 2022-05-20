@@ -15,7 +15,7 @@ using System.Reflection;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.8")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -64,7 +64,7 @@ namespace UIPinRecipe
         void Update()
         {
             if (pinnedRecipes.Count != 0) {
-                PropertyInfo pi = typeof(Key).GetProperty(clearKey.Value.ToString().ToUpper());
+                FieldInfo pi = typeof(Key).GetField(clearKey.Value.ToString().ToUpper());
                 Key k = Key.C;
                 if (pi != null)
                 {
