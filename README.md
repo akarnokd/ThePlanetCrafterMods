@@ -650,6 +650,8 @@ This mod allows scrolling the teleporter targets on screen by adding up and down
 
 ### Config
 
+`akarnokd.theplanetcraftermods.uiteleporterscroll.cfg`
+
 ```
 [General]
 
