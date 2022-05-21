@@ -573,6 +573,58 @@ On the Launch Platform's crafting screen, the number of rockets are shown above 
 FontSize = 20
 ```
 
+## (UI) Show MultiTool Mode
+
+Shows the current multitool mode as text and icon on the 2D hud. Useful when running the game on lower resolution and the tool's 3D image is cut off.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uishowmultitoolmode.cfg`
+
+```
+[General]
+
+## Show the current mode as text?
+# Setting type: Boolean
+# Default value: true
+ShowText = true
+
+## Show the current mode as icon?
+# Setting type: Boolean
+# Default value: true
+ShowIcon = true
+
+## The size of the font used
+# Setting type: Int32
+# Default value: 15
+FontSize = 15
+
+## The icon size
+# Setting type: Int32
+# Default value: 100
+IconSize = 100
+
+## The width of the text background
+# Setting type: Int32
+# Default value: 200
+TextWidth = 200
+
+## How transparent the text/icon background should be.
+# Setting type: Int32
+# Default value: 80
+TransparencyPercent = 80
+
+## Position of the text from the bottom of the screen
+# Setting type: Int32
+# Default value: 30
+Bottom = 30
+
+## Position of the text from the right of the screen
+# Setting type: Int32
+# Default value: 10
+Right = 10
+```
+
 ## (UI) Pin Recipe to Screen
 
 On the various craft screens, use <kbd>Middle click</kbd> to pin or unpin a craftable recipe to the screen.
@@ -660,7 +712,6 @@ This mod allows scrolling the teleporter targets on screen by adding up and down
 # Default value: 6
 MaxTargets = 6
 ```
-
 
 ## (UI) Hungarian Translation
 
