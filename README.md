@@ -652,7 +652,6 @@ This mod allows scrolling the teleporter targets on screen by adding up and down
 
 ```
 [General]
-[General]
 
 ## Maximum number of targets to show at once.
 # Setting type: Int32
