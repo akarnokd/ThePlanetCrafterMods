@@ -644,6 +644,23 @@ Automatically saves the game when clicking the "Exit to main menu" button.
 Enabled = true
 ```
 
+## (UI) Teleporter Scroll Targets
+
+This mod allows scrolling the teleporter targets on screen by adding up and down buttons or via <kbd>Mouse scroll</kbd>. You can configure the number of targets shown at once.
+
+### Config
+
+```
+[General]
+[General]
+
+## Maximum number of targets to show at once.
+# Setting type: Int32
+# Default value: 6
+MaxTargets = 6
+```
+
+
 ## (UI) Hungarian Translation
 
 Patches in labels and enables switching to Hungarian ("Magyar") in the game's options screen. Note that some labels do not change when switching to Hungarian the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
