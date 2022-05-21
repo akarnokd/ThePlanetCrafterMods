@@ -64,18 +64,23 @@ namespace CheatInventoryStacking
             return stacks;
         }
 
-        // --------------------------------------------------------------------------------------------------------
-        // Helper Methods
-        // --------------------------------------------------------------------------------------------------------
-
-        static bool IsFullStacked(List<WorldObject> ___worldObjectsInInventory, int ___inventorySize, string gid = null)
+        /// <summary>
+        /// Checks if the given list of WorldObjects, representing an inventory,
+        /// is full or not if one tries to add the optional item indicated by
+        /// its group id.
+        /// </summary>
+        /// <param name="worldObjectsInInventory">The list of world objects already in the inventory.</param>
+        /// <param name="inventorySize">The inventory size in number of stacks.</param>
+        /// <param name="gid">The optional item group id to check if it can be added or not.</param>
+        /// <returns>True if the list is full.</returns>
+        public static bool IsFullStacked(List<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
         {
             Dictionary<string, int> groupCounts = new Dictionary<string, int>();
 
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (WorldObject worldObject in ___worldObjectsInInventory)
+            foreach (WorldObject worldObject in worldObjectsInInventory)
             {
                 AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
             }
@@ -85,8 +90,12 @@ namespace CheatInventoryStacking
                 AddToStack(gid, groupCounts, n, ref stacks);
             }
 
-            return stacks > ___inventorySize;
+            return stacks > inventorySize;
         }
+
+        // --------------------------------------------------------------------------------------------------------
+        // Helper Methods
+        // --------------------------------------------------------------------------------------------------------
 
         static void AddToStack(string gid, Dictionary<string, int> groupCounts, int n, ref int stacks)
         {
