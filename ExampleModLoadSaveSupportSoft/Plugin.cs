@@ -140,6 +140,9 @@ namespace ExampleModLoadSaveSupportSoft
                     //Logger.LogInfo("Taking photo of " + z + ":" + x);
                     var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
                     pm.SetPlayerPlacement(new Vector3(x, 500, z), q);
+                    Camera.main.orthographic = true;
+                    Camera.main.orthographicSize = step / 2;
+                    Camera.main.aspect = 1;
 
                     for (int i = 0; i < 2; i++)
                     {
