@@ -13,10 +13,11 @@ using System.IO;
 using BepInEx.Configuration;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace ExampleModLoadSaveSupportSoft
 {
-    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.2")]
+    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.3")]
     [BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -29,12 +30,15 @@ namespace ExampleModLoadSaveSupportSoft
 
         static ConfigEntry<bool> dumpLabels;
 
+        static ConfigEntry<bool> photographMap;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            dumpLabels = Config.Bind<bool>("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
+            dumpLabels = Config.Bind("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
+            photographMap = Config.Bind("General", "PhotographMap", false, "Photograph the entire map in grid pattern when pressing U");
 
             // Locate the libModLoadSaveSupport plugin
             if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, out BepInEx.PluginInfo pi))
@@ -77,53 +81,57 @@ namespace ExampleModLoadSaveSupportSoft
 
         void Update()
         {
-            PlayersManager playersManager = Managers.GetManager<PlayersManager>();
-            if (playersManager != null)
+            if (photographMap.Value)
             {
-                PlayerMainController pm = playersManager.GetActivePlayerController();
-                if (Keyboard.current[Key.U].wasPressedThisFrame)
+                PlayersManager playersManager = Managers.GetManager<PlayersManager>();
+                if (playersManager != null)
                 {
-                    if (photoroutine == null)
+                    PlayerMainController pm = playersManager.GetActivePlayerController();
+                    if (Keyboard.current[Key.U].wasPressedThisFrame)
                     {
-                        Assembly me = Assembly.GetExecutingAssembly();
-                        string dir = Path.GetDirectoryName(me.Location) + "\\map";
-
-                        if (!Directory.Exists(dir))
+                        if (photoroutine == null)
                         {
-                            Directory.CreateDirectory(dir);
+                            Assembly me = Assembly.GetExecutingAssembly();
+                            string dir = Path.GetDirectoryName(me.Location) + "\\map";
+
+                            if (!Directory.Exists(dir))
+                            {
+                                Directory.CreateDirectory(dir);
+                            }
+                            else
+                            {
+                                foreach (string f in Directory.EnumerateFiles(dir))
+                                {
+                                    string n = Path.GetFileName(f);
+                                    if (n.StartsWith("map-") && n.EndsWith(".png"))
+                                    {
+                                        File.Delete(f);
+                                    }
+                                }
+                            }
+
+                            Time.timeScale = 0f;
+                            RenderSettings.fog = false;
+                            RenderSettings.ambientSkyColor = Color.white;
+                            RenderSettings.ambientLight = Color.white;
+                            RenderSettings.sun.color = Color.white;
+                            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+
+                            photoroutine = PhotographMap(dir, pm);
                         }
                         else
                         {
-                            foreach (string f in Directory.EnumerateFiles(dir))
-                            {
-                                string n = Path.GetFileName(f);
-                                if (n.StartsWith("map-") && n.EndsWith(".png"))
-                                {
-                                    File.Delete(f);
-                                }
-                            }
+                            photoroutine = null;
                         }
-
-                        Time.timeScale = 0f;
-                        RenderSettings.fog = false;
-                        RenderSettings.ambientSkyColor = Color.white;
-                        RenderSettings.ambientLight = Color.white;
-                        RenderSettings.sun.color = Color.white;
-
-                        photoroutine = PhotographMap(dir, pm);
                     }
-                    else
+                }
+
+                if (photoroutine != null)
+                {
+                    if (!photoroutine.MoveNext())
                     {
                         photoroutine = null;
                     }
-                }
-            }
-
-            if (photoroutine != null)
-            {
-                if (!photoroutine.MoveNext())
-                {
-                    photoroutine = null;
                 }
             }
         }
@@ -133,7 +141,7 @@ namespace ExampleModLoadSaveSupportSoft
         IEnumerator PhotographMap(string dir, PlayerMainController pm)
         {
             const int step = 200;
-            for (int z = 4000; z >= -4000; z -= step)
+            for (int z = 4000; z >= -2000; z -= step)
             {
                 for (int x = 3000; x >= -2000; x -= step)
                 {
@@ -143,8 +151,10 @@ namespace ExampleModLoadSaveSupportSoft
                     Camera.main.orthographic = true;
                     Camera.main.orthographicSize = step / 2;
                     Camera.main.aspect = 1;
+                    Camera.main.farClipPlane = 1000;
+                    Camera.main.nearClipPlane = 0;
 
-                    for (int i = 0; i < 2; i++)
+                    for (int i = 0; i < 6; i++)
                     {
                         yield return 0;
                     }

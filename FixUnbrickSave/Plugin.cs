@@ -11,7 +11,7 @@ using BepInEx.Logging;
 
 namespace FixUnbrickSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -46,6 +46,28 @@ namespace FixUnbrickSave
                 return false;
             }
             return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SaveFileDisplayer), "SetData")]
+        private static void SaveFileDisplayer_SetData(ref WorldUnit _terraformationUnit)
+        {
+            bool flag = _terraformationUnit == null;
+            if (flag)
+            {
+                _terraformationUnit = new WorldUnit(0f, new List<string>
+                {
+                    "Ti",
+                    "kTi",
+                    "MTi",
+                    "GTi",
+                    "TTi",
+                    "PTi",
+                    "ETi",
+                    "ZTi",
+                    "YTi"
+                }, DataConfig.WorldUnitType.Terraformation);
+            }
         }
     }
 }

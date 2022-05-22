@@ -14,7 +14,7 @@ using UnityEngine.InputSystem.Controls;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.10")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.11")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -235,10 +235,10 @@ namespace CheatMinimap
                     float mapImageHeight = theMap.height;
 
                     // calibrated to the given map
-                    float playerCenterX = 722;
-                    float playerCenterY = 728;
-                    float mapWidth = 3232;
-                    float mapHeight = 4240;
+                    float playerCenterX = 700;
+                    float playerCenterY = 800;
+                    float mapWidth = 3400;
+                    float mapHeight = 4400;
 
                     // ^
                     // | z+
