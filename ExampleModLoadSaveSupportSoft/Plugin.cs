@@ -11,6 +11,8 @@ using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
+using UnityEngine.InputSystem;
+using System.Collections;
 
 namespace ExampleModLoadSaveSupportSoft
 {
@@ -71,6 +73,93 @@ namespace ExampleModLoadSaveSupportSoft
         {
             Logger.LogInfo("Executing OnSave");
             return "ExampleModLoadSaveSupportSoft example content";
+        }
+
+        void Update()
+        {
+            PlayersManager playersManager = Managers.GetManager<PlayersManager>();
+            if (playersManager != null)
+            {
+                PlayerMainController pm = playersManager.GetActivePlayerController();
+                if (Keyboard.current[Key.U].wasPressedThisFrame)
+                {
+                    if (photoroutine == null)
+                    {
+                        Assembly me = Assembly.GetExecutingAssembly();
+                        string dir = Path.GetDirectoryName(me.Location) + "\\map";
+
+                        if (!Directory.Exists(dir))
+                        {
+                            Directory.CreateDirectory(dir);
+                        }
+                        else
+                        {
+                            foreach (string f in Directory.EnumerateFiles(dir))
+                            {
+                                string n = Path.GetFileName(f);
+                                if (n.StartsWith("map-") && n.EndsWith(".png"))
+                                {
+                                    File.Delete(f);
+                                }
+                            }
+                        }
+
+                        Time.timeScale = 0f;
+                        RenderSettings.fog = false;
+                        RenderSettings.ambientSkyColor = Color.white;
+                        RenderSettings.ambientLight = Color.white;
+                        RenderSettings.sun.color = Color.white;
+
+                        photoroutine = PhotographMap(dir, pm);
+                    }
+                    else
+                    {
+                        photoroutine = null;
+                    }
+                }
+            }
+
+            if (photoroutine != null)
+            {
+                if (!photoroutine.MoveNext())
+                {
+                    photoroutine = null;
+                }
+            }
+        }
+
+        IEnumerator photoroutine;
+
+        IEnumerator PhotographMap(string dir, PlayerMainController pm)
+        {
+            const int step = 200;
+            for (int z = 4000; z >= -4000; z -= step)
+            {
+                for (int x = 3000; x >= -2000; x -= step)
+                {
+                    //Logger.LogInfo("Taking photo of " + z + ":" + x);
+                    var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
+                    pm.SetPlayerPlacement(new Vector3(x, 500, z), q);
+
+                    for (int i = 0; i < 2; i++)
+                    {
+                        yield return 0;
+                    }
+                    //Logger.LogInfo("Taking photo of " + z + ":" + x + " - Loaded");
+
+                    try
+                    {
+                        ScreenCapture.CaptureScreenshot(dir + "\\map_" + z + "_" + x + ".png");
+                    } 
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex);
+                    }
+                    //Logger.LogInfo("Taking photo of " + z + ":" + x + " - Done");
+                    yield return 1;
+                }
+            }
+            yield break;
         }
 
         [HarmonyPostfix]
