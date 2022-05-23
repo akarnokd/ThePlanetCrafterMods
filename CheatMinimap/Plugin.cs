@@ -11,10 +11,11 @@ using System.Reflection;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.InputSystem.Controls;
+using System;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.11")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.12")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -36,6 +37,7 @@ namespace CheatMinimap
         static bool mapManualVisible = true;
         static int autoScanEnabled = 0;
         static bool coroutineRunning = false;
+        static ConfigEntry<bool> photographMap;
 
         static Plugin self;
 
@@ -61,6 +63,7 @@ namespace CheatMinimap
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
             fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
+            photographMap = Config.Bind("General", "PhotographMap", false, "Photograph the entire map in grid pattern when pressing U");
 
             self = this;
 
@@ -176,6 +179,7 @@ namespace CheatMinimap
                     }
                 }
             }
+            UpdatePhoto();
         }
 
         void FindChests()
@@ -371,6 +375,152 @@ namespace CheatMinimap
             self.StopAllCoroutines();
             coroutineRunning = false;
             chests.Clear();
+        }
+
+
+
+        void UpdatePhoto()
+        {
+            if (photographMap.Value)
+            {
+                var healthGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseHealthChangeValuePerSec");
+                healthGauge.SetValue(null, 0.0001f);
+                var waterGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseThirstChangeValuePerSec");
+                waterGauge.SetValue(null, 0.0001f);
+                var oxygenGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseOxygenChangeValuePerSec");
+                oxygenGauge.SetValue(null, 0.0001f);
+
+                PlayersManager playersManager = Managers.GetManager<PlayersManager>();
+                if (playersManager != null)
+                {
+                    PlayerMainController pm = playersManager.GetActivePlayerController();
+                    if (Keyboard.current[Key.U].wasPressedThisFrame)
+                    {
+                        if (photoroutine == null)
+                        {
+                            Assembly me = Assembly.GetExecutingAssembly();
+                            string dir = Path.GetDirectoryName(me.Location) + "\\map";
+
+                            if (!Directory.Exists(dir))
+                            {
+                                Directory.CreateDirectory(dir);
+                            }
+                            else
+                            {
+                                foreach (string f in Directory.EnumerateFiles(dir))
+                                {
+                                    string n = Path.GetFileName(f);
+                                    if (n.StartsWith("map_") && n.EndsWith(".png"))
+                                    {
+                                        File.Delete(f);
+                                    }
+                                }
+                            }
+
+                            photoroutine = PhotographMap(dir, pm);
+                        }
+                        else
+                        {
+                            photoroutine = null;
+                        }
+                    }
+                }
+
+                if (photoroutine != null)
+                {
+                    if (!photoroutine.MoveNext())
+                    {
+                        photoroutine = null;
+                    }
+                }
+            }
+        }
+
+        static IEnumerator photoroutine;
+
+        void SetVisuals(int step, PlayerMainController pm)
+        {
+            Camera.main.orthographic = true;
+            Camera.main.orthographicSize = step;
+            Camera.main.aspect = 1;
+            Camera.main.farClipPlane = 1000;
+            Camera.main.nearClipPlane = -400;
+            Camera.main.layerCullDistances = new float[32];
+
+            RenderSettings.fog = false;
+            RenderSettings.ambientSkyColor = Color.white;
+            RenderSettings.ambientGroundColor = Color.white;
+            RenderSettings.ambientEquatorColor = Color.white;
+            RenderSettings.ambientLight = Color.white;
+            RenderSettings.sun.color = Color.white;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+
+            QualitySettings.shadows = ShadowQuality.Disable;
+
+            var pw = pm.GetComponentInChildren<PlayerView>();
+            pw.enabled = false;
+            pw.damageViewVolume.weight = 0;
+            pw.damageViewVolume.enabled = false;
+
+            foreach (Light lg in FindObjectsOfType<Light>())
+            {
+                lg.shadows = LightShadows.None;
+                lg.color = Color.white;
+                lg.range = 1000;
+            }
+        }
+
+        IEnumerator PhotographMap(string dir, PlayerMainController pm)
+        {
+            const int step = 100;
+            int[] ys = new[] { 75 };
+            for (int z = 3000; z >= -1400; z -= step)
+            {
+                for (int x = 2400; x >= -1000; x -= step)
+                {
+                    foreach (int y in ys)
+                    {
+                        var move = pm.GetPlayerMovable();
+                        move.flyMode = true;
+                        var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
+
+                        //Logger.LogInfo("Taking photo of " + z + ":" + x);
+                        Time.timeScale = 1f;
+
+                        pm.SetPlayerPlacement(new Vector3(x, y, z), q);
+                        SetVisuals(step, pm);
+
+                        yield return 0;
+
+                        SetVisuals(step, pm);
+
+                        try
+                        {
+                            ScreenCapture.CaptureScreenshot(dir + "\\map_" + z + "_" + x + "_" + y + ".png");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex);
+                        }
+                    }
+                    //Logger.LogInfo("Taking photo of " + z + ":" + x + " - Done");
+                    yield return 1;
+                }
+            }
+            yield break;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
+        static bool PlayerMovable_UpdatePlayerMovement()
+        {
+            return photoroutine == null;
+        }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerFallDamage), "Update")]
+        static bool PlayerFallDamage_Update()
+        {
+            return photoroutine == null;
         }
     }
 }
