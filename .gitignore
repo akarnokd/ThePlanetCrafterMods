@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 /akarnokd-*.zip
 /akarnokd-all
+/UserSteamLibrary.props
