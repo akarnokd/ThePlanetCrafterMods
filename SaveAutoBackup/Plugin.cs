@@ -110,7 +110,7 @@ namespace SaveAutoBackup
         {
             try
             {
-                var now = DateTimeOffset.UtcNow;
+                var now = DateTime.Now;
                 /*
                 var tz = TimeZoneInfo.Local;
                 logInfo("TimeZone.Now " + now.ToString());
