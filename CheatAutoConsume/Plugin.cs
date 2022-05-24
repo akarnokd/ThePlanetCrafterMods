@@ -2,10 +2,6 @@
 using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
-using TMPro;
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using BepInEx.Configuration;
 
 namespace CheatAutoConsume

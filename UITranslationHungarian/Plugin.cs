@@ -1,8 +1,6 @@
 ﻿using BepInEx;
 using UnityEngine;
-using BepInEx.Bootstrap;
 using System.Reflection;
-using System;
 using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
@@ -12,8 +10,6 @@ using System.Text;
 using System.IO;
 using BepInEx.Configuration;
 using System.Collections;
-using TMPro;
-using UnityEngine.UI;
 
 namespace UITranslationHungarian
 {

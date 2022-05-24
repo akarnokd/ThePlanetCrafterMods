@@ -44,11 +44,6 @@
       <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
 	  <Reference Include="Unity.Rendering">
 		  <SpecificVersion>False</SpecificVersion>
 		  <HintPath>$(GameManaged)unity.renderpipelines.core.runtime.dll</HintPath>

@@ -34,26 +34,6 @@
       <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.InputSystem">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-      <Reference Include="UnityEngine.Rendering">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>$(GameManaged)Unity.Postprocessing.Runtime.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

@@ -34,11 +34,6 @@
       <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.InputSystem">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

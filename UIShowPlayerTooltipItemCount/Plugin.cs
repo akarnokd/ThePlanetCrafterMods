@@ -1,9 +1,8 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using UnityEngine;
+using MijuTools;
 
 namespace UIShowPlayerTooltipItemCount
 {
@@ -24,7 +23,7 @@ namespace UIShowPlayerTooltipItemCount
         static void GroupInfosDisplayer_Show(Group _group, TextMeshProUGUI ___nameText)
         {
             string gname = Readable.GetGroupName(_group);
-            Inventory inventory = MijuTools.Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
+            Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
             int cnt = 0;
             foreach (WorldObject wo in inventory.GetInsideWorldObjects())
             {

@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using UnityEngine;
 using BepInEx.Bootstrap;
 using System.Reflection;
 using System;
@@ -11,9 +10,6 @@ using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
-using System.Collections;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace ExampleModLoadSaveSupportSoft
 {

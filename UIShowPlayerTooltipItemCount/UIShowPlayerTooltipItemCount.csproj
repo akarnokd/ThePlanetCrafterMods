@@ -29,25 +29,15 @@
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="com.mijugames.miju-tools">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.InputSystem">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
-      <Private>False</Private>
+	<Reference Include="com.mijugames.miju-tools">
+	    <SpecificVersion>False</SpecificVersion>
+	    <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
+	    <Private>False</Private>
+	</Reference>
+	<Reference Include="Unity.TextMeshPro">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
+        <Private>False</Private>
     </Reference>
   </ItemGroup>
 

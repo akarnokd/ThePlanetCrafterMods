@@ -1,9 +1,7 @@
 ﻿using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
-using UnityEngine;
 using MijuTools;
-using UnityEngine.InputSystem;
 using BepInEx.Configuration;
 
 namespace UIShowGrabNMineCount

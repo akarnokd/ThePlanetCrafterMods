@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using MijuTools;
-using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
 using HarmonyLib;
