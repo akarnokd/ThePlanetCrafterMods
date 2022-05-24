@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AllDLLCopyDir Condition="'$(AllDLLCopyDir)'==''>$([MSBuild]::NormalizeDirectory("$(OutputPath)", "..\..\..\.."))</AllDLLCopyDir>
+    <AllDLLCopyDir Condition="'$(AllDLLCopyDir)'==''">$([MSBuild]::NormalizeDirectory("$(OutputPath)", "..\..\..\.."))</AllDLLCopyDir>
   </PropertyGroup>
 
   <ItemGroup>
