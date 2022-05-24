@@ -214,6 +214,9 @@ If the mod **Ore Extractor Tweaks** by *Lathrey* is present, its ore generator f
 
 Note also that machines are slow to mine resources.
 
+### Configuration
+
+None.
 
 ## (Cheat) Teleport to Nearest Minable
 

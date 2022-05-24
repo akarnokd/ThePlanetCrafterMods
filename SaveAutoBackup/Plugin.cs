@@ -110,7 +110,15 @@ namespace SaveAutoBackup
         {
             try
             {
-                var now = DateTime.Now;
+                var now = DateTimeOffset.UtcNow;
+                /*
+                var tz = TimeZoneInfo.Local;
+                logInfo("TimeZone.Now " + now.ToString());
+                logInfo("TimeZone.NowInv " + now.ToString(CultureInfo.InvariantCulture));
+                logInfo("TimeZone " + tz.ToString());
+                logInfo("TimeZone.Name " + tz.StandardName);
+                logInfo("TimeZone.DaylightSaving " + tz.IsDaylightSavingTime(now));
+                */
 
                 string dateFormatStr = "yyyyMMdd_HHmmss_fff";
 
