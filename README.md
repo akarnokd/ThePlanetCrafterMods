@@ -352,6 +352,10 @@ None.
 
 The mod prevents the game from crashing in case the save contains an unplaceable object (often added by 3rd party mods).
 
+Current fixes:
+- Remove objects that can't or shouldn't be built as the game has no visual assets for them.
+- Prevent the load screen from crashing when a save is truncated (these are beyond repair).
+
 ### Configuration
 
 None.

@@ -510,6 +510,7 @@ namespace CheatMinimap
             yield break;
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
         static bool PlayerMovable_UpdatePlayerMovement()
@@ -522,5 +523,6 @@ namespace CheatMinimap
         {
             return photoroutine == null;
         }
+        */
     }
 }
