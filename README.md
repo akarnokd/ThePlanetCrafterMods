@@ -368,6 +368,59 @@ the save size. These attributes are automatically restored when the game loads.
 The save remains compatible with the vanilla game so it will still work without this mod (but will be
 full size again).
 
+## (Save) Auto Backup
+
+When saving the game, this mod will automatically make a backup copy (optionally compressed) in a specified directory.
+You can also control how many and how old backup saves to keep in this directory.
+
+Start the game once so you get the default config file `BepInEx\config\akarnokd.theplanetcraftermods.saveautobackup.cfg`.
+Open this file and set `OutputPath` to an **existing directory**. Example
+
+```
+OutputPath = c:\Temp\ThePlanetCrafterBackup\
+```
+
+Leave `OutputPath` empty to disable the backup process.
+
+Files are saved based on the name of your world plus a timestamp:
+
+- `Survival-9_backup_20220523_115024_255.json.gz`
+- `Survival-9_backup_20220523_115024_255.json`
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.saveautobackup.cfg`
+
+```
+[General]
+
+## The path where the backups will be placed if not empty. Make sure this path exists!
+# Setting type: String
+# Default value: 
+# c:\Temp\ThePlanetCrafterBackup\
+OutputPath = 
+
+## Compress the backups with GZIP?
+# Setting type: Boolean
+# Default value: true
+GZIP = true
+
+## If zero, all previous backups are retained. If positive, only that number of backups per world is kept and the old ones will be deleted
+# Setting type: Int32
+# Default value: 0
+KeepCount = 0
+
+## If zero, all previous backups are retained. If positive, backups older than this number of days will be deleted. Age is determined from the file name's timestamp part
+# Setting type: Int32
+# Default value: 0
+KeepAge = 0
+
+## If true, the backup handling is done asynchronously so the game doesn't hang during the process.
+# Setting type: Boolean
+# Default value: true
+Async = true
+```
+
 ## (UI) Customize Inventory Sort Order
 
 Specify the order of items when clicking on the sort all button in inventories.
