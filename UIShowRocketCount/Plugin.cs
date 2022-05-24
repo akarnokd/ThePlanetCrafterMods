@@ -34,53 +34,6 @@ namespace UIShowRocketCount
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
-        {
-            rocketInventory.Clear();
-
-            // Make a reverse map for the hidden container's group id to the world unit type
-            Dictionary<string, DataConfig.WorldUnitType> rocketIds = new();
-            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
-            {
-                rocketIds.Add(ids.Value, ids.Key);
-            }
-
-            // scan all constructed world objects
-            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
-            {
-                Group gr = wo.GetGroup();
-                string gid = gr.GetId();
-                // if the groupid matches, get its inventory
-                if (rocketIds.TryGetValue(gid, out var wu))
-                {
-                    rocketInventory.Add(wu, InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId()));
-                }
-            }
-
-            // find the uninstantiated hidden containers and instantiate them now
-            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
-            {
-                if (!rocketInventory.ContainsKey(ids.Key))
-                {
-                    Group groupViaId = GroupsHandler.GetGroupViaId(ids.Value);
-                    var wo = WorldObjectsHandler.CreateNewWorldObject(groupViaId, 0);
-                    wo.SetPositionAndRotation(GameConfig.spaceLocation, Quaternion.identity);
-                    WorldObjectsHandler.InstantiateWorldObject(wo, false);
-
-                    rocketInventory.Add(ids.Key, InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId()));
-                }
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit()
-        {
-            rocketInventory.Clear();
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldUnitsGenerationDisplayer), "RefreshDisplay")]
         static bool WorldUnitsGenerationDisplayer_RefreshDisplay(ref IEnumerator __result, float timeRepeat,
@@ -176,6 +129,53 @@ namespace UIShowRocketCount
                     }
                 }
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start()
+        {
+            rocketInventory.Clear();
+
+            // Make a reverse map for the hidden container's group id to the world unit type
+            Dictionary<string, DataConfig.WorldUnitType> rocketIds = new();
+            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
+            {
+                rocketIds.Add(ids.Value, ids.Key);
+            }
+
+            // scan all constructed world objects
+            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            {
+                Group gr = wo.GetGroup();
+                string gid = gr.GetId();
+                // if the groupid matches, get its inventory
+                if (rocketIds.TryGetValue(gid, out var wu))
+                {
+                    rocketInventory.Add(wu, InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId()));
+                }
+            }
+
+            // find the uninstantiated hidden containers and instantiate them now
+            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
+            {
+                if (!rocketInventory.ContainsKey(ids.Key))
+                {
+                    Group groupViaId = GroupsHandler.GetGroupViaId(ids.Value);
+                    var wo = WorldObjectsHandler.CreateNewWorldObject(groupViaId, 0);
+                    wo.SetPositionAndRotation(GameConfig.spaceLocation, Quaternion.identity);
+                    WorldObjectsHandler.InstantiateWorldObject(wo, false);
+
+                    rocketInventory.Add(ids.Key, InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId()));
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            rocketInventory.Clear();
         }
     }
 }
