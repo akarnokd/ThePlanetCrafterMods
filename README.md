@@ -371,10 +371,10 @@ full size again).
 ## (Save) Auto Backup
 
 When saving the game, this mod will automatically make a backup copy (optionally compressed) in a specified directory.
-You can also control how many and how old backup saves to keep in this directory.
+You can also control how many and how old backup saves to keep in this directory per world.
 
 Start the game once so you get the default config file `BepInEx\config\akarnokd.theplanetcraftermods.saveautobackup.cfg`.
-Open this file and set `OutputPath` to an **existing directory**. Example
+Quit, then open this file and set `OutputPath` to an **existing directory**. Example
 
 ```
 OutputPath = c:\Temp\ThePlanetCrafterBackup\
