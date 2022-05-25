@@ -9,7 +9,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.4.012
+## Supported Game Version: 0.4.014
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -356,8 +356,11 @@ None.
 The mod prevents the game from crashing in case the save contains an unplaceable object (often added by 3rd party mods).
 
 Current fixes:
-- Remove objects that can't or shouldn't be built as the game has no visual assets for them.
-- Prevent the load screen from crashing when a save is truncated (these are beyond repair).
+- None.
+
+Previous fixes
+- Remove objects that can't or shouldn't be built as the game has no visual assets for them. **Fixed in game version 0.4.014**
+- Prevent the load screen from crashing when a save is truncated (these are beyond repair). **Fixed in game version 0.4.014**
 
 ### Configuration
 
@@ -757,6 +760,8 @@ Enabled = true
 ```
 
 ## (UI) Teleporter Scroll Targets
+
+:warning: **Discontinued. The vanilla game now has a scrollbar on the teleporter screen.**
 
 This mod allows scrolling the teleporter targets on screen by adding up and down buttons or via <kbd>Mouse scroll</kbd>. You can configure the number of targets shown at once.
 
