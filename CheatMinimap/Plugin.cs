@@ -12,10 +12,11 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.InputSystem.Controls;
 using System;
+using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.12")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.13")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -241,8 +242,8 @@ namespace CheatMinimap
                     // calibrated to the given map
                     float playerCenterX = 700;
                     float playerCenterY = 800;
-                    float mapWidth = 3400;
-                    float mapHeight = 4400;
+                    float mapWidth = 4000;
+                    float mapHeight = 4000;
 
                     // ^
                     // | z+
@@ -443,7 +444,7 @@ namespace CheatMinimap
             Camera.main.orthographic = true;
             Camera.main.orthographicSize = step;
             Camera.main.aspect = 1;
-            Camera.main.farClipPlane = 1000;
+            Camera.main.farClipPlane = 700;
             Camera.main.nearClipPlane = -400;
             Camera.main.layerCullDistances = new float[32];
 
@@ -470,46 +471,86 @@ namespace CheatMinimap
             }
         }
 
+        static bool allowUnload = true;
+        static bool loaded;
+
         IEnumerator PhotographMap(string dir, PlayerMainController pm)
         {
-            const int step = 100;
-            int[] ys = new[] { 75 };
-            for (int z = 3000; z >= -1400; z -= step)
+            var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
+            var move = pm.GetPlayerMovable();
+            move.flyMode = true;
+            pm.SetPlayerPlacement(new Vector3(700, 300, 800), q);
+            SetVisuals(4000 / 2, pm);
+            foreach (ParticleSystem ps in UnityEngine.Object.FindObjectsOfType<ParticleSystem>())
             {
-                for (int x = 2400; x >= -1000; x -= step)
+                var em = ps.emission;
+                em.enabled = false;
+            }
+
+            allowUnload = false;
+            Time.timeScale = 1f;
+
+            Logger.LogInfo("Begin Sector loading");
+
+            // disable all decoys
+            var sectors = UnityEngine.Object.FindObjectsOfType<Sector>();
+            Logger.LogInfo("Sector count: " + sectors.Length);
+            foreach (Sector sector in sectors)
+            {
+                string name = sector.gameObject.name;
+                Logger.LogInfo("Sector: " + name);
+                if (/*name.StartsWith("Sector-Cave-") || */name.Contains("_Interior"))
                 {
-                    foreach (int y in ys)
+                    Logger.LogInfo("Sector: " + name + " Ignored");
+                    continue;
+                }
+                bool found = false;
+                /*
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var sc = SceneManager.GetSceneAt(i);
+                    if (sc.name == name)
                     {
-                        var move = pm.GetPlayerMovable();
-                        move.flyMode = true;
-                        var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
-
-                        //Logger.LogInfo("Taking photo of " + z + ":" + x);
-                        Time.timeScale = 1f;
-
-                        pm.SetPlayerPlacement(new Vector3(x, y, z), q);
-                        SetVisuals(step, pm);
-
-                        yield return 0;
-
-                        SetVisuals(step, pm);
-
-                        try
-                        {
-                            ScreenCapture.CaptureScreenshot(dir + "\\map_" + z + "_" + x + "_" + y + ".png");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError(ex);
-                        }
+                        found = true;
+                        break;
                     }
-                    //Logger.LogInfo("Taking photo of " + z + ":" + x + " - Done");
-                    yield return 1;
+                }
+                */
+                if (!found)
+                {
+                    Logger.LogInfo("Sector: " + name + " loading");
+                    loaded = false;
+                    SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
+
+                    while (!loaded)
+                    {
+                        yield return 0;
+                    }
+
+                    foreach (GameObject gameObject in sector.decoyGameObjects)
+                    {
+                        gameObject.SetActive(true);
+                    }
                 }
             }
+
+
+            Logger.LogInfo("Screenshot all");
+
+            int[] ys = new[] { 50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500 };
+
+            foreach (int y in ys) {
+                pm.SetPlayerPlacement(new Vector3(700, y, 800), q);
+                SetVisuals(4000 / 2, pm);
+                yield return 0;
+                ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
+                yield return 0;
+            }
+            
+            allowUnload = true;
+            Time.timeScale = 1f;
             yield break;
         }
-
         /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
@@ -523,6 +564,18 @@ namespace CheatMinimap
         {
             return photoroutine == null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Sector), nameof(Sector.UnloadSector))]
+        static bool Sector_UnloadSector()
+        {
+            return allowUnload;
+        }
         */
+
+        static void OnSceneLoaded(AsyncOperation obj)
+        {
+            loaded = true;
+        }
     }
 }
