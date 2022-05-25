@@ -140,11 +140,7 @@ namespace UIShowRocketCount
         {
             if (_worldObjectToSend.GetGroup() is GroupItem gi)
             {
-                string gid = gi.GetId();
-                if (gid.StartsWith("Rocket"))
-                {
-                    UpdateCount(gid, gi);
-                }
+                UpdateCount(gi.GetId(), gi);
             }
         }
 
