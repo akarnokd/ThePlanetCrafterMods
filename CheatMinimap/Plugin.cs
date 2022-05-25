@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.13")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.14")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
