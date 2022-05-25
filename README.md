@@ -761,7 +761,7 @@ Enabled = true
 
 ## (UI) Sort Saves
 
-Allow sorting the save file list by time or name via clicking on buttons `[ <- ]` and `[ -> ]` or with <kbd>Left arrow</kbd> and <kbd>Right arrow</kbd>.
+Allow sorting the save file list by time or name via clicking on buttons `[ <- ]` and `[ -> ]` or with <kbd>Left arrow</kbd> and <kbd>Right arrow</kbd> on the keyboard.
 
 ### Configuration
 
