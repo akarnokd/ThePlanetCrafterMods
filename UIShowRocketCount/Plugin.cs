@@ -12,7 +12,7 @@ using BepInEx.Logging;
 
 namespace UIShowRocketCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         static FieldInfo associatedGroup;
@@ -34,55 +34,11 @@ namespace UIShowRocketCount
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldUnitsGenerationDisplayer), "RefreshDisplay")]
-
         static bool WorldUnitsGenerationDisplayer_RefreshDisplay(ref IEnumerator __result, float timeRepeat,
             WorldUnitsHandler ___worldUnitsHandler, List<TextMeshProUGUI> ___textFields, List<DataConfig.WorldUnitType> ___correspondingUnit)
         {
             __result = RefreshDisplayEnumerator(timeRepeat, ___worldUnitsHandler, ___textFields, ___correspondingUnit);
             return false;
-        }
-
-        static void CountRockets(Dictionary<DataConfig.WorldUnitType, int> rockets)
-        {
-            foreach (WorldObject worldObject in WorldObjectsHandler.GetAllWorldObjects())
-            {
-                string gid = worldObject.GetGroup().GetId();
-
-                if (gid.StartsWith("RocketOxygen"))
-                {
-                    rockets.TryGetValue(DataConfig.WorldUnitType.Oxygen, out int v);
-                    rockets[DataConfig.WorldUnitType.Oxygen] = v + 1;
-                } else
-                if (gid.StartsWith("RocketHeat"))
-                {
-                    rockets.TryGetValue(DataConfig.WorldUnitType.Heat, out int v2);
-                    rockets[DataConfig.WorldUnitType.Heat] = v2 + 1;
-                } else
-                if (gid.StartsWith("RocketPressure"))
-                {
-                    rockets.TryGetValue(DataConfig.WorldUnitType.Pressure, out int v3);
-                    rockets[DataConfig.WorldUnitType.Pressure] = v3 + 1;
-                } else
-                if (gid.StartsWith("RocketBiomass"))
-                {
-                    rockets.TryGetValue(DataConfig.WorldUnitType.Biomass, out int v4);
-                    rockets[DataConfig.WorldUnitType.Biomass] = v4 + 1;
-                }
-            }
-        }
-
-        static void CountRockets(Dictionary<string, int> rockets)
-        {
-            foreach (WorldObject worldObject in WorldObjectsHandler.GetAllWorldObjects())
-            {
-                string gid = worldObject.GetGroup().GetId();
-
-                if (gid.StartsWith("Rocket"))
-                {
-                    rockets.TryGetValue(gid, out int v);
-                    rockets[gid] = v + 1;
-                }
-            }
         }
 
         static IEnumerator RefreshDisplayEnumerator(float timeRepeat, WorldUnitsHandler worldUnitsHandler, 
@@ -92,15 +48,13 @@ namespace UIShowRocketCount
             {
                 if (worldUnitsHandler != null)
                 {
-                    Dictionary<DataConfig.WorldUnitType, int> rockets = new Dictionary<DataConfig.WorldUnitType, int>();
-                    CountRockets(rockets);
                     for (int idx = 0; idx < textFields.Count; idx++)
                     {
                         WorldUnit unit = worldUnitsHandler.GetUnit(correspondingUnit[idx]);
                         if (unit != null)
                         {
                             string s = unit.GetDisplayStringForValue(unit.GetCurrentValuePersSec(), false, 0) + "/s";
-                            rockets.TryGetValue(unit.GetUnitType(), out int c);
+                            rocketCountsByUnitType.TryGetValue(unit.GetUnitType(), out int c);
                             if (c > 0)
                             {
                                 s = c + " x -----    " + s;
@@ -117,8 +71,6 @@ namespace UIShowRocketCount
         [HarmonyPatch(typeof(UiWindowCraft), "CreateGrid")]
         static void UiWindowCraft_CreateGrid(GridLayoutGroup ___grid)
         {
-            Dictionary<string, int> rockets = new Dictionary<string, int>();
-            CountRockets(rockets);
             int fs = fontSize.Value;
 
             foreach (Transform tr in ___grid.transform)
@@ -129,7 +81,7 @@ namespace UIShowRocketCount
                     Group g = associatedGroup.GetValue(ehg) as Group;
                     if (g != null)
                     {
-                        if (rockets.TryGetValue(g.GetId(), out int c)) {
+                        if (rocketCountsByGroupId.TryGetValue(g.GetId(), out int c)) {
                             if (c > 0)
                             {
                                 GameObject go = new GameObject();
@@ -156,6 +108,69 @@ namespace UIShowRocketCount
                     }
                 }
             }
+        }
+
+        static readonly Dictionary<string, int> rocketCountsByGroupId = new();
+        static readonly Dictionary<DataConfig.WorldUnitType, int> rocketCountsByUnitType = new();
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start()
+        {
+            rocketCountsByGroupId.Clear();
+            rocketCountsByUnitType.Clear();
+
+            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (wo.GetGroup() is GroupItem gi)
+                {
+                    int c;
+                    string gid = gi.GetId();
+                    if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+                    {
+                        UpdateCount(gid, gi);
+                    }
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionSendInSpace), "HandleRocketMultiplier")]
+        static void ActionSendInSpace_HandleRocketMultiplier(WorldObject _worldObjectToSend)
+        {
+            if (_worldObjectToSend.GetGroup() is GroupItem gi)
+            {
+                string gid = gi.GetId();
+                if (gid.StartsWith("Rocket"))
+                {
+                    UpdateCount(gid, gi);
+                }
+            }
+        }
+
+        static void UpdateCount(string gid, GroupItem gi)
+        {
+            int c;
+
+            rocketCountsByGroupId.TryGetValue(gid, out c);
+            rocketCountsByGroupId[gid] = c + 1;
+
+            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
+            {
+                if (gi.GetGroupUnitMultiplier(ids.Key) != 0f)
+                {
+                    rocketCountsByUnitType.TryGetValue(ids.Key, out c);
+                    rocketCountsByUnitType[ids.Key] = c + 1;
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            rocketCountsByGroupId.Clear();
+            rocketCountsByUnitType.Clear();
         }
     }
 }
