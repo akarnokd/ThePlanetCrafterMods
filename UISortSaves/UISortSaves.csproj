@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>UISortSaves</AssemblyName>
-    <Description>(UI) Sort saves on the load screen</Description>
+    <Description>(UI) Sort Saves On The Load Screen</Description>
     <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
