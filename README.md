@@ -387,6 +387,10 @@ the save size. These attributes are automatically restored when the game loads.
 The save remains compatible with the vanilla game so it will still work without this mod (but will be
 full size again).
 
+### Configuration
+
+None.
+
 ## (Save) Auto Backup
 
 When saving the game, this mod will automatically make a backup copy (optionally compressed) in a specified directory.
