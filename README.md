@@ -36,7 +36,7 @@ by deleting the directory itself.
 
 | Cheats | UI/QoL | Other |
 |---|---|---|
-| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Fix International Loading](#fix-international-loading)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Unbrick Save](#fix-unbrick-save) |
+| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Capacity Override](#cheat-inventory-capacity-override)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Fix International Loading](#fix-international-loading)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Unbrick Save](#fix-unbrick-save)<br/>[Unofficial Patches](#fix-unofficial-patches) |
 
 
 ## (Cheat) Asteroid Landing Position Override
@@ -361,6 +361,19 @@ Current fixes:
 Previous fixes
 - Remove objects that can't or shouldn't be built as the game has no visual assets for them. **Fixed in game version 0.4.014**
 - Prevent the load screen from crashing when a save is truncated (these are beyond repair). **Fixed in game version 0.4.014**
+
+### Configuration
+
+None.
+
+## (Fix) Unofficial Patches
+
+A mod that hosts the unofficial patches for the game. Eventually, these patches may end up becoming vanilla fixes.
+
+Current fixes:
+- Crafter T2 is missing a title
+- Scroll the File List screen from whereever the mouse is currently at.
+
 
 ### Configuration
 
