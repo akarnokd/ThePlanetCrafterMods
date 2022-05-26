@@ -371,7 +371,7 @@ None.
 A mod that hosts the unofficial patches for the game. Eventually, these patches may end up becoming vanilla fixes.
 
 Current fixes:
-- Crafter T2 is missing a title
+- Crafter T2 is missing a title or is not properly updated.
 - Scroll the File List screen from whereever the mouse is currently at.
 
 
