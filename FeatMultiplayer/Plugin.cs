@@ -180,8 +180,15 @@ namespace FeatMultiplayer
                         logger.LogInfo(device.ToString());
                         logger.LogInfo("Begin Get External IP");
                         // The following hangs indefinitely, not sure why
-                        var ip = await device.GetExternalIPAsync().ConfigureAwait(false);
-                        logger.LogInfo("External IP = " + ip);
+                        try
+                        {
+                            var ip = await device.GetExternalIPAsync().ConfigureAwait(false);
+                            logger.LogInfo("External IP = " + ip);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInfo(ex);
+                        }
                     });
                     
                     return "    External Address = ???";
