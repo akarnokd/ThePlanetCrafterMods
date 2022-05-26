@@ -465,6 +465,9 @@ Preference = OxygenCapsule1,WaterBottle1,astrofood
 
 When crafting an item, <kbd>Right Click</kbd> to not close the crafting window.
 
+Since vanilla **0.4.014**, there is an accessibility key (<kbd>CTRL</kbd> by default) which does the same as this mod.
+However, it does not update the tooltip currently, but this mod does fixes that.
+
 ### Configuration
 
 None.
