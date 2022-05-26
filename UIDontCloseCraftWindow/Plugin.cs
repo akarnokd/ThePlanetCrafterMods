@@ -4,10 +4,11 @@ using HarmonyLib;
 using UnityEngine.EventSystems;
 using BepInEx.Logging;
 using System.Reflection;
+using MijuTools;
 
 namespace UIDontCloseCraftWindow
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -64,7 +65,10 @@ namespace UIDontCloseCraftWindow
         {
             // In UiWindowCraft.Craft() method, the base.CloseAll() is only invoked if TryToCraftInInventory returned true
             // we pretend it "failed"
-            __result = __result && !rightMouseClicked;
+
+            PlayerMainController activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+            __result = __result && !rightMouseClicked && !activePlayerController.GetPlayerInputDispatcher().IsPressingAccessibilityKey();
             successfulCraft = !__result;
         }
     }
