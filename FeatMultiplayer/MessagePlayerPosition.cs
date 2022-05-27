@@ -53,9 +53,14 @@ namespace FeatMultiplayer
                         message.rotation.w = float.Parse(parts[7], CultureInfo.InvariantCulture);
                         return true;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Plugin.LogError(ex);
                     }
+                }
+                else
+                {
+                    Plugin.LogInfo("PlayerPosition missing data: " + parts.Length);
                 }
             }
             message = null;

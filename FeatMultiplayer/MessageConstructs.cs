@@ -76,19 +76,15 @@ namespace FeatMultiplayer
                             mwo.color = DataTreatments.StringToColor(objs[6]);
                             mwo.text = objs[7];
 
+                            mwo.panelIds = new();
                             if (objs[8].Length > 0)
                             {
                                 var pis = objs[8].Split(',');
-                                mwo.panelIds = new int[pis.Length];
                                 for (int i1 = 0; i1 < pis.Length; i1++)
                                 {
                                     string pi = pis[i1];
-                                    mwo.panelIds[i1] = int.Parse(pi);
+                                    mwo.panelIds.Add(int.Parse(pi));
                                 }
-                            }
-                            else
-                            {
-                                mwo.panelIds = new int[0];
                             }
 
                             mwo.growth = float.Parse(objs[9], CultureInfo.InvariantCulture);
@@ -99,9 +95,9 @@ namespace FeatMultiplayer
 
                     return true;
                 } 
-                catch (Exception)
+                catch (Exception ex)
                 {
-
+                    Plugin.LogError(ex);
                 }
             }
             mc = null;
@@ -119,7 +115,7 @@ namespace FeatMultiplayer
         public Quaternion rotation;
         public Color color;
         public string text;
-        public int[] panelIds;
+        public List<int> panelIds;
         public float growth;
     }
 }
