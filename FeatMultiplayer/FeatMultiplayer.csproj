@@ -12,6 +12,18 @@
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 
+  <PropertyGroup Condition="Exists('c:\Games\The Planet Crafter')">
+    <GameDir2>c:\Games\The Planet Crafter</GameDir2>
+    <GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
+    <PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('e:\Games\The Planet Crafter')">
+    <GameDir2>e:\Games\The Planet Crafter</GameDir2>
+    <GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
+    <PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
@@ -55,6 +67,13 @@
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
 
     <!-- Do not turn it into a zip yet
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />

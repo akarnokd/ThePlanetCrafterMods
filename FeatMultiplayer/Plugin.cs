@@ -48,6 +48,9 @@ namespace FeatMultiplayer
 
         static ConfigEntry<int> fontSize;
 
+        internal static Texture2D astronautFront;
+        internal static Texture2D astronautBack;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -69,8 +72,21 @@ namespace FeatMultiplayer
             clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");
             clientPassword = Config.Bind("Client", "Password", "password", "The plaintext(!) password presented to the host when joining their game.");
 
+            Assembly me = Assembly.GetExecutingAssembly();
+            string dir = Path.GetDirectoryName(me.Location);
+
+            astronautFront = LoadPNG(Path.Combine(dir, "Astronaut_Front.png"));
+            astronautBack = LoadPNG(Path.Combine(dir, "Astronaut_Back.png"));
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        static Texture2D LoadPNG(string filename)
+        {
+            Texture2D tex = new Texture2D(100, 200);
+            tex.LoadImage(File.ReadAllBytes(filename));
+
+            return tex;
         }
 
         static GameObject parent;
@@ -258,12 +274,40 @@ namespace FeatMultiplayer
 
             if (updateMode == MultiplayerMode.CoopHost)
             {
+                logger.LogInfo("Entering world as Host");
                 StartAsHost();
             }
             else if (updateMode == MultiplayerMode.CoopClient)
             {
+                logger.LogInfo("Entering world as Client");
                 StartAsClient();
             }
+            else
+            {
+                logger.LogInfo("Entering world as Solo");
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
+        static bool GaugesConsumptionHandler_GetThirstConsumptionRate(ref float __result)
+        {
+            __result = -0.0001f;
+            return false;
+        }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetOxygenConsumptionRate))]
+        static bool GaugesConsumptionHandler_GetOxygenConsumptionRate(ref float __result)
+        {
+            __result = -0.0001f;
+            return false;
+        }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetHealthConsumptionRate))]
+        static bool GaugesConsumptionHandler_GetHealthConsumptionRate(ref float __result)
+        {
+            __result = -0.0001f;
+            return false;
         }
 
         [HarmonyPrefix]
@@ -417,7 +461,6 @@ namespace FeatMultiplayer
                 // Receive and apply commands
                 while (receiveQueue.TryDequeue(out var message))
                 {
-                    logger.LogInfo(message.GetType().ToString());
                     switch (message)
                     {
                         case NotifyUserMessage num:
@@ -459,7 +502,12 @@ namespace FeatMultiplayer
                                 }
                                 break;
                             }
-                        // TODO dispatch on message type
+                        default:
+                            {
+                                logger.LogInfo(message.GetType().ToString());
+                                break;
+                            }
+                            // TODO dispatch on message type
                     }
                 }
             }
