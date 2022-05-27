@@ -16,6 +16,10 @@ using Open.Nat;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Text;
+using System.IO;
+using MijuTools;
 
 namespace FeatMultiplayer
 {
@@ -23,13 +27,16 @@ namespace FeatMultiplayer
     public class Plugin : BaseUnityPlugin
     {
 
-        static ManualLogSource logger;
+        internal static ManualLogSource logger;
 
         static ConfigEntry<int> port;
+        static ConfigEntry<int> networkFrequency;
+
         static ConfigEntry<bool> hostMode;
         static ConfigEntry<bool> useUPnP;
         static ConfigEntry<string> hostAcceptName;
         static ConfigEntry<string> hostAcceptPassword;
+
 
         // client side properties
         static ConfigEntry<string> hostAddress;
@@ -47,6 +54,7 @@ namespace FeatMultiplayer
 
             port = Config.Bind("General", "Port", 22526, "The port where the host server is running.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size used");
+            networkFrequency = Config.Bind("General", "Frequency", 20, "The frequency of checking the network for messages.");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
@@ -73,14 +81,39 @@ namespace FeatMultiplayer
         static GameObject clientNameText;
         static GameObject clientJoinButton;
 
-        static bool mainMenu;
+        static volatile string externalIP;
+
+        static readonly Color interactiveColor = new Color(1f, 0.75f, 0f, 1f);
+        static readonly Color interactiveColorHighlight = new Color(1f, 0.85f, 0.5f, 1f);
+        static readonly Color defaultColor = new Color(1f, 1f, 1f, 1f);
+
+        static volatile MultiplayerMode updateMode = MultiplayerMode.MainMenu;
+
+        static readonly ConcurrentQueue<object> sendQueue = new ConcurrentQueue<object>();
+        static readonly AutoResetEvent sendQueueBlock = new AutoResetEvent(false);
+        static readonly ConcurrentQueue<object> receiveQueue = new ConcurrentQueue<object>();
+
+        static CancellationTokenSource stopNetwork;
+
+        static float lastSync;
+
+        static volatile bool clientConnected;
+        static PlayerAvatar otherPlayer;
+
+        enum MultiplayerMode
+        {
+            MainMenu,
+            SinglePlayer,
+            CoopHost,
+            CoopClient
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
         static void Intro_Start()
         {
             logger.LogInfo("Intro_Start");
-            mainMenu = true;
+            updateMode = MultiplayerMode.MainMenu;
 
             parent = new GameObject();
             Canvas canvas = parent.AddComponent<Canvas>();
@@ -93,7 +126,7 @@ namespace FeatMultiplayer
 
             // -------------------------
 
-            hostModeCheckbox = CreateText(GetHostModeString(), fs);
+            hostModeCheckbox = CreateText(GetHostModeString(), fs, true);
 
             rectTransform = hostModeCheckbox.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
@@ -108,7 +141,7 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            upnpCheckBox = CreateText(GetUPnPString(), fs);
+            upnpCheckBox = CreateText(GetUPnPString(), fs, true);
 
             rectTransform = upnpCheckBox.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
@@ -148,7 +181,7 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            clientJoinButton = CreateText("  [ Click Here to Join Game ] ", fs);
+            clientJoinButton = CreateText("  [ Click Here to Join Game ] ", fs, true);
 
             rectTransform = clientJoinButton.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
@@ -168,35 +201,28 @@ namespace FeatMultiplayer
         static string GetExternalAddressString()
         {
             if (useUPnP.Value) {
-                try
+                Task.Run(async () =>
                 {
-                    Task.Run(async () =>
+                    try
                     {
-                        var cts = new CancellationTokenSource(10000);
-
                         var discoverer = new NatDiscoverer();
                         logger.LogInfo("Begin NAT Discovery");
-                        var device = await discoverer.DiscoverDeviceAsync(PortMapper.Upnp, cts).ConfigureAwait(false);
+                        var device = await discoverer.DiscoverDeviceAsync().ConfigureAwait(false);
                         logger.LogInfo(device.ToString());
                         logger.LogInfo("Begin Get External IP");
                         // The following hangs indefinitely, not sure why
-                        try
-                        {
-                            var ip = await device.GetExternalIPAsync().ConfigureAwait(false);
-                            logger.LogInfo("External IP = " + ip);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogInfo(ex);
-                        }
-                    });
-                    
-                    return "    External Address = ???";
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInfo(ex);
-                }
+                        var ip = await device.GetExternalIPAsync().ConfigureAwait(false);
+                        logger.LogInfo("External IP = " + ip);
+                        externalIP = ip.ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInfo(ex);
+                        externalIP = "    External Address = error";
+                    }
+                });
+
+                return "    External Address = checking";
             }
             return "    External Address = N/A";
         }
@@ -205,38 +231,499 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.SelectedSaveFile))]
         static void SaveFilesSelector_SelectedSaveFile(string _fileName)
         {
-            mainMenu = false;
             parent.SetActive(false);
+            if (hostMode.Value)
+            {
+                updateMode = MultiplayerMode.CoopHost;
+            }
+            else
+            {
+                updateMode = MultiplayerMode.SinglePlayer;
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start()
+        {
+            sendQueue.Clear();
+            receiveQueue.Clear();
+
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                StartAsHost();
+            }
+            else if (updateMode == MultiplayerMode.CoopClient)
+            {
+                StartAsClient();
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            stopNetwork?.Cancel();
+            updateMode = MultiplayerMode.MainMenu;
+            sendQueue.Clear();
+            receiveQueue.Clear();
+            otherPlayer?.Destroy();
+            otherPlayer = null;
         }
 
         void Update()
         {
-            if (mainMenu)
+            if (updateMode == MultiplayerMode.MainMenu)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                DoMainMenuUpdate();
+            }
+            if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
+            {
+                DoMultiplayerUpdate();
+            }
+            else
+            {
+                /*
+                if (Keyboard.current[Key.P].wasPressedThisFrame)
                 {
-                    var mouse = Mouse.current.position.ReadValue();
-                    if (IsWithin(hostModeCheckbox, mouse))
+                    otherPlayer?.Destroy();
+                    otherPlayer = PlayerAvatar.CreateAvatar();
+                    PlayersManager p = Managers.GetManager<PlayersManager>();
+                    if (p != null)
                     {
-                        hostMode.Value = !hostMode.Value;
-                        hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                        PlayerMainController pm = p.GetActivePlayerController();
+                        if (pm != null)
+                        {
+                            Transform player = pm.transform;
+                            otherPlayer.SetPosition(player.position, player.rotation);
+                        }
                     }
-                    if (IsWithin(upnpCheckBox, mouse))
-                    {
-                        useUPnP.Value = !useUPnP.Value;
-                        upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
+                }
+                */
+            }
+        }
 
-                        hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
-                    }
-                    if (IsWithin(clientJoinButton, mouse))
+        void DoMainMenuUpdate()
+        {
+            var mouse = Mouse.current.position.ReadValue();
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                if (IsWithin(hostModeCheckbox, mouse))
+                {
+                    hostMode.Value = !hostMode.Value;
+                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                }
+                if (IsWithin(upnpCheckBox, mouse))
+                {
+                    useUPnP.Value = !useUPnP.Value;
+                    upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
+
+                    hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
+                }
+                if (IsWithin(clientJoinButton, mouse))
+                {
+                    hostMode.Value = false;
+                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                    updateMode = MultiplayerMode.CoopClient;
+                    logger.LogInfo("TODO Join Button clicked");
+                }
+            }
+            hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
+            upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
+            clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight : interactiveColor;
+
+            var eip = externalIP;
+            if (eip != null)
+            {
+                externalIP = null;
+                hostExternalIPText.GetComponent<Text>().text = eip;
+
+            }
+        }
+
+        void DoMultiplayerUpdate()
+        {
+            var now = Time.realtimeSinceStartup;
+            if (now - lastSync >= 1f / networkFrequency.Value)
+            {
+                lastSync = now;
+                // TODO send out state messages
+                if (otherPlayer != null)
+                {
+                    SendPlayerLocation();
+                }
+
+                // Receive and apply commands
+                while (receiveQueue.TryDequeue(out var message))
+                {
+                    logger.LogInfo(message.GetType().ToString());
+                    switch (message)
                     {
-                        logger.LogInfo("TODO Join Button clicked");
+                        case NotifyUserMessage num:
+                            {
+                                NotifyUser(num.message, num.duration);
+                                break;
+                            }
+                        case MessagePlayerPosition mpp:
+                            {
+                                ReceivePlayerLocation(mpp);
+                                break;
+                            }
+                        case MessageLogin ml:
+                            {
+                                ReceiveLogin(ml);
+                                break;
+                            }
+                        case string s: {
+                                if (s == "Welcome")
+                                {
+                                    otherPlayer?.Destroy();
+                                    otherPlayer = PlayerAvatar.CreateAvatar();
+                                }
+                                else if (s == "Disconnected")
+                                {
+                                    logger.LogInfo("Client disconnected");
+                                    otherPlayer?.Destroy();
+                                    clientConnected = false;
+                                }
+                                break;
+                            }
+                        // TODO dispatch on message type
                     }
                 }
             }
         }
 
-        static GameObject CreateText(string txt, int fs)
+        void SendPlayerLocation()
+        {
+            PlayersManager p = Managers.GetManager<PlayersManager>();
+            if (p != null)
+            {
+                PlayerMainController pm = p.GetActivePlayerController();
+                if (pm != null)
+                {
+                    Transform player = pm.transform;
+                    MessagePlayerPosition mpp = new MessagePlayerPosition
+                    {
+                        position = player.position,
+                        rotation = player.rotation
+                    };
+                    sendQueue.Enqueue(mpp);
+                    sendQueueBlock.Set();
+                }
+            }
+        }
+
+        static void ReceivePlayerLocation(MessagePlayerPosition mpp)
+        {
+            otherPlayer?.SetPosition(mpp.position, mpp.rotation);
+        }
+
+        static void ReceiveLogin(MessageLogin ml)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                string[] users = hostAcceptName.Value.Split(',');
+                string[] passwords = hostAcceptPassword.Value.Split(',');
+
+                for (int i = 0; i < Math.Min(users.Length, passwords.Length); i++)
+                {
+                    if (users[i] == ml.user && passwords[i] == ml.password)
+                    {
+                        logger.LogInfo("User login success: " + ml.user);
+                        NotifyUser("User joined: " + ml.user);
+                        otherPlayer?.Destroy();
+                        otherPlayer = PlayerAvatar.CreateAvatar();
+                        sendQueue.Enqueue("Welcome\n");
+                        sendQueueBlock.Set();
+                        SyncFullState();
+                        return;
+                    }
+                }
+
+                logger.LogInfo("User login failed: " + ml.user);
+                sendQueue.Enqueue(EAccessDenied);
+                sendQueueBlock.Set();
+            }
+        }
+
+        static void SyncFullState()
+        {
+            // TODO implement
+        }
+        
+        static void StartAsHost()
+        {
+            stopNetwork = new CancellationTokenSource();
+            Task.Factory.StartNew(HostAcceptor, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        static void StartAsClient()
+        {
+            stopNetwork = new CancellationTokenSource();
+            Task.Run(() =>
+            {
+                logger.LogInfo("Client connecting to " + hostAddress.Value + ":" + port.Value);
+                try
+                {
+                    TcpClient client = new TcpClient(hostAddress.Value, port.Value);
+                    stopNetwork.Token.Register(() =>
+                    {
+                        client.Close();
+                    });
+                    Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+                    sendQueue.Enqueue(new MessageLogin
+                    {
+                        user = clientName.Value,
+                        password = clientPassword.Value
+                    });
+                    sendQueueBlock.Set();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex);
+                    NotifyUserFromBackground("Error: could not connect to Host");
+                }
+            });
+        }
+
+        static void NotifyUser(string message, float duration = 5f)
+        {
+            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", duration, message);
+        }
+
+        static void NotifyUserFromBackground(string message, float duration = 5f)
+        {
+            var msg = new NotifyUserMessage
+            {
+                message = message,
+                duration = duration
+            };
+            receiveQueue.Enqueue(msg);
+        }
+
+        static void HostAcceptor()
+        {
+            logger.LogInfo("Starting HostAcceptor on port " + port.Value);
+            try
+            {
+                TcpListener listener = new TcpListener(IPAddress.Any, port.Value);
+                listener.Start();
+                stopNetwork.Token.Register(() =>
+                {
+                    listener.Stop();
+                });
+                try
+                {
+                    while (!stopNetwork.IsCancellationRequested)
+                    {
+                        var client = listener.AcceptTcpClient();
+                        ManageClient(client);
+                    }
+                }
+                finally
+                {
+                    listener.Stop();
+                    logger.LogInfo("Stopping HostAcceptor on port " + port.Value);
+                }
+            } catch (Exception ex)
+            {
+                if (!stopNetwork.IsCancellationRequested)
+                {
+                    logger.LogError(ex);
+                }
+            }
+        }
+
+        static void ManageClient(TcpClient client)
+        {
+            if (clientConnected)
+            {
+                logger.LogInfo("A client already connected");
+                try {
+                    try
+                    {
+                        var stream = client.GetStream();
+                        try
+                        {
+                            stream.Write(ENoClientSlotBytes);
+                            stream.Flush();
+                        }
+                        finally
+                        {
+                            stream.Close();
+                        }
+                    }
+                    finally
+                    {
+                        client.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex);
+                }
+            } 
+            else
+            {
+                logger.LogInfo("New Client from " + client.Client.RemoteEndPoint);
+                clientConnected = true;
+                Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
+        }
+
+        static void SenderLoop(object clientObj)
+        {
+            logger.LogInfo("SenderLoop begin");
+            var client = (TcpClient)clientObj;
+            try
+            {
+                try
+                {
+                    var stream = client.GetStream();
+                    try
+                    {
+                        logger.LogInfo("SenderLoop loop");
+                        while (!stopNetwork.IsCancellationRequested)
+                        {
+                            if (sendQueue.TryDequeue(out var message))
+                            {
+                                switch (message)
+                                {
+                                    case string s:
+                                        {
+                                            stream.Write(s);
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case byte[] b:
+                                        {
+                                            stream.Write(b);
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case MessageStringProvider msp:
+                                        {
+                                            stream.Write(msp.GetString());
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case MessageBytesProvider msp:
+                                        {
+                                            stream.Write(msp.GetBytes());
+                                            stream.Flush();
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                sendQueueBlock.WaitOne(1000);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream.Close();
+                    }
+                }
+                finally
+                {
+                    client.Close();
+                }
+                logger.LogInfo("SenderLoop stop");
+            } catch (Exception ex)
+            {
+                logger.LogError(ex);
+            }
+            receiveQueue.Enqueue("Disconnected");
+        }
+
+        static void ReceiveLoop(object clientObj)
+        {
+            logger.LogInfo("ReceiverLoop start");
+            var client = (TcpClient)clientObj;
+            try
+            {
+                try
+                {
+                    var stream = client.GetStream();
+                    var reader = new StreamReader(stream, Encoding.UTF8);
+                    try
+                    {
+                        logger.LogInfo("ReceiverLoop loop");
+                        while (!stopNetwork.IsCancellationRequested)
+                        {
+                            var message = reader.ReadLine();
+                            if (message != null)
+                            {
+                                ParseMessage(message);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream.Close();
+                    }
+                }
+                finally
+                {
+                    client.Close();
+                }
+                logger.LogInfo("ReceiverLoop stop");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex);
+            }
+            receiveQueue.Enqueue("Disconnected");
+        }
+
+        static void ParseMessage(string message)
+        {
+            if (MessagePlayerPosition.TryParse(message, out var mpp))
+            {
+                receiveQueue.Enqueue(mpp);
+            } 
+            else
+            if (MessageLogin.TryParse(message, out var ml))
+            {
+                logger.LogInfo("Login attempt: " + ml.user);
+                receiveQueue.Enqueue(ml);
+            }
+            else
+            if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
+            {
+                NotifyUserFromBackground("Host full");
+            }
+            else
+            if (message == "EAccessDenied" && updateMode == MultiplayerMode.CoopClient)
+            {
+                NotifyUserFromBackground("Host access denied (check user and password settings)");
+            }
+            else
+            if (message == "Welcome" && updateMode == MultiplayerMode.CoopClient)
+            {
+                receiveQueue.Enqueue("Welcome");
+            }
+            else
+            {
+                logger.LogInfo("Unknown message?\r\n" + message);
+            }
+            // TODO other messages
+        }
+
+        static readonly byte[] ENoClientSlotBytes = Encoding.UTF8.GetBytes("ENoClientSlot\n");
+        static readonly byte[] EAccessDenied = Encoding.UTF8.GetBytes("EAccessDenied\n");
+
+        static GameObject CreateText(string txt, int fs, bool highlight = false)
         {
             var result = new GameObject();
             result.transform.parent = parent.transform;
@@ -244,7 +731,7 @@ namespace FeatMultiplayer
             Text text = result.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             text.text = txt;
-            text.color = new Color(1f, 1f, 1f, 1f);
+            text.color = highlight ? interactiveColor : defaultColor;
             text.fontSize = (int)fs;
             text.resizeTextForBestFit = false;
             text.verticalOverflow = VerticalWrapMode.Overflow;
