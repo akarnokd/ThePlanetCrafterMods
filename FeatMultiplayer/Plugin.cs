@@ -21,6 +21,7 @@ using System.Text;
 using System.IO;
 using MijuTools;
 using UnityEngine.SceneManagement;
+using System.Globalization;
 
 namespace FeatMultiplayer
 {
@@ -32,6 +33,7 @@ namespace FeatMultiplayer
 
         static ConfigEntry<int> port;
         static ConfigEntry<int> networkFrequency;
+        static ConfigEntry<int> fullSyncDelay;
 
         static ConfigEntry<bool> hostMode;
         static ConfigEntry<bool> useUPnP;
@@ -56,6 +58,7 @@ namespace FeatMultiplayer
             port = Config.Bind("General", "Port", 22526, "The port where the host server is running.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size used");
             networkFrequency = Config.Bind("General", "Frequency", 20, "The frequency of checking the network for messages.");
+            fullSyncDelay = Config.Bind("General", "SyncDelay", 3000, "Delay between full sync from the host to the client, in milliseconds");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
@@ -96,12 +99,13 @@ namespace FeatMultiplayer
 
         static CancellationTokenSource stopNetwork;
 
-        static float lastSync;
+        static float lastNeworkSync;
+        static float lastHostSync;
 
         static volatile bool clientConnected;
         static PlayerAvatar otherPlayer;
 
-        string multiplayerFilename = "Survival-9999999.json";
+        static string multiplayerFilename = "Survival-9999999.json";
 
         enum MultiplayerMode
         {
@@ -262,10 +266,34 @@ namespace FeatMultiplayer
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionMinable), "FinishMining")]
+        static void ActionMinable_FinishMining(ActionMinable __instance,
+            PlayerMainController ___playerSource, float ___timeMineStarted, float ___timeMineStoped)
+        {
+            if (___timeMineStarted - ___timeMineStoped > ___playerSource.GetMultitool().GetMultiToolMine().GetMineTime())
+            {
+                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    WorldObject worldObject = woa.GetWorldObject();
+                    if (worldObject != null)
+                    {
+                        sendQueue.Enqueue("Mined|" + worldObject.GetId());
+                        sendQueueBlock.Set();
+                    }
+                }
+            }
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                File.Delete(Application.persistentDataPath + "/" + multiplayerFilename);
+            }
             stopNetwork?.Cancel();
             updateMode = MultiplayerMode.MainMenu;
             sendQueue.Clear();
@@ -367,9 +395,19 @@ namespace FeatMultiplayer
         void DoMultiplayerUpdate()
         {
             var now = Time.realtimeSinceStartup;
-            if (now - lastSync >= 1f / networkFrequency.Value)
+
+            if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
             {
-                lastSync = now;
+                if (now - lastHostSync >= fullSyncDelay.Value / 1000f)
+                {
+                    lastHostSync = now;
+                    SendFullState();
+                }
+            }
+
+            if (now - lastNeworkSync >= 1f / networkFrequency.Value)
+            {
+                lastNeworkSync = now;
                 // TODO send out state messages
                 if (otherPlayer != null)
                 {
@@ -395,6 +433,16 @@ namespace FeatMultiplayer
                         case MessageLogin ml:
                             {
                                 ReceiveLogin(ml);
+                                break;
+                            }
+                        case MessageConstructs mc:
+                            {
+                                ReceiveMessageConstructs(mc);
+                                break;
+                            }
+                        case MessageMinables mm:
+                            {
+                                ReceiveMessageMinables(mm);
                                 break;
                             }
                         case string s: {
@@ -459,7 +507,8 @@ namespace FeatMultiplayer
                         otherPlayer = PlayerAvatar.CreateAvatar();
                         sendQueue.Enqueue("Welcome\n");
                         sendQueueBlock.Set();
-                        SyncFullState();
+                        lastHostSync = Time.realtimeSinceStartup;
+                        SendFullState();
                         return;
                     }
                 }
@@ -470,11 +519,46 @@ namespace FeatMultiplayer
             }
         }
 
-        static void SyncFullState()
+        static void SendFullState()
         {
-            // TODO implement
+            logger.LogInfo("Begin syncing the entire game state to the client");
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Constructs");
+            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            {
+                sb.Append("|");
+                MessageConstructs.AppendWorldObject(sb, wo);
+            }
+            sb.Append('\n');
+            sendQueue.Enqueue(sb.ToString());
+
+            sb = new StringBuilder();
+            sb.Append("Minables");
+            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !wo.GetIsPlaced())
+                {
+                    sb.Append('|');
+                    sb.Append(wo.GetId());
+                }
+            }
+            sb.Append('\n');
+
+            sendQueue.Enqueue(sb.ToString());
+            sendQueueBlock.Set();
         }
-        
+
+        static void ReceiveMessageConstructs(MessageConstructs mc)
+        {
+            logger.LogInfo("Received all constructs");
+        }
+
+        static void ReceiveMessageMinables(MessageMinables mm)
+        {
+            logger.LogInfo("Received all minables");
+        }
+
+
         static void StartAsHost()
         {
             stopNetwork = new CancellationTokenSource();
@@ -720,6 +804,11 @@ namespace FeatMultiplayer
             {
                 logger.LogInfo("Login attempt: " + ml.user);
                 receiveQueue.Enqueue(ml);
+            }
+            else
+            if (MessageConstructs.TryParse(message, out var mc))
+            {
+                receiveQueue.Enqueue(mc);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
