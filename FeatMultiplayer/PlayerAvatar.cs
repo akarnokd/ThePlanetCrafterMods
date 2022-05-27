@@ -4,7 +4,6 @@ namespace FeatMultiplayer
 {
     internal class PlayerAvatar
     {
-        internal string id;
         internal GameObject avatar;
 
         internal void Destroy()
@@ -16,7 +15,7 @@ namespace FeatMultiplayer
         {
             if (avatar != null)
             {
-                avatar.transform.position = new Vector3(position.x, position.y + 2, position.z);
+                avatar.transform.position = new Vector3(position.x, position.y + 1, position.z);
                 avatar.transform.rotation = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
             }
         }
@@ -30,7 +29,7 @@ namespace FeatMultiplayer
             result.avatar = GameObject.CreatePrimitive(PrimitiveType.Cube);
 
             // TODO this doesn't work
-            result.avatar.transform.GetComponent<Renderer>().material.SetColor("_Color", avatarDefaultColor);
+            result.avatar.GetComponent<Renderer>().material.SetColor("_Color", avatarDefaultColor);
 
             result.avatar.transform.localScale = new Vector3(0.75f, 2f, 0.25f);
 

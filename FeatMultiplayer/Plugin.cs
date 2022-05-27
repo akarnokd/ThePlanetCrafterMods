@@ -20,6 +20,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.IO;
 using MijuTools;
+using UnityEngine.SceneManagement;
 
 namespace FeatMultiplayer
 {
@@ -99,6 +100,8 @@ namespace FeatMultiplayer
 
         static volatile bool clientConnected;
         static PlayerAvatar otherPlayer;
+
+        string multiplayerFilename = "Survival-9999999.json";
 
         enum MultiplayerMode
         {
@@ -325,7 +328,8 @@ namespace FeatMultiplayer
                     hostMode.Value = false;
                     hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
                     updateMode = MultiplayerMode.CoopClient;
-                    logger.LogInfo("TODO Join Button clicked");
+
+                    CreateMultiplayerSaveAndEnter();
                 }
             }
             hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
@@ -339,6 +343,25 @@ namespace FeatMultiplayer
                 hostExternalIPText.GetComponent<Text>().text = eip;
 
             }
+        }
+
+        void CreateMultiplayerSaveAndEnter()
+        {
+            File.Delete(Application.persistentDataPath + "/" + multiplayerFilename);
+
+            Managers.GetManager<StaticDataHandler>().LoadStaticData();
+            JSONExport.CreateNewSaveFile(multiplayerFilename, DataConfig.GameSettingMode.Chill, DataConfig.GameSettingStartLocation.Standard);
+
+            Managers.GetManager<SavedDataHandler>().SetSaveFileName(multiplayerFilename);
+            SceneManager.LoadScene("OpenWorldTest");
+
+            logger.LogInfo("Find SaveFilesSelector");
+            var selector = UnityEngine.Object.FindObjectOfType<SaveFilesSelector>();
+            selector.gameObject.SetActive(false);
+
+            logger.LogInfo("Find ShowLoading");
+            var mi = AccessTools.Method(typeof(SavedDataHandler), "ShowLoading", new Type[] { typeof(bool) });
+            mi.Invoke(selector, new object[] { true });
         }
 
         void DoMultiplayerUpdate()
