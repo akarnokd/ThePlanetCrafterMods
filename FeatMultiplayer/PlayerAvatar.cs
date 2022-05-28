@@ -27,7 +27,7 @@ namespace FeatMultiplayer
 
         //static readonly Color avatarDefaultColor = new Color(1f, 0.75f, 0, 1f);
 
-        internal static PlayerAvatar CreateAvatar()
+        internal static PlayerAvatar CreateAvatar(Color color)
         {
             PlayerAvatar result = new PlayerAvatar();
 
@@ -47,6 +47,7 @@ namespace FeatMultiplayer
 
             sr = result.avatarFront.AddComponent<SpriteRenderer>();
             sr.sprite = Sprite.Create(Plugin.astronautFront, new Rect(0, 0, Plugin.astronautFront.width, Plugin.astronautFront.height), new Vector2(0.5f, 0.5f));
+            sr.color = color;
 
             // ----------
 
@@ -57,6 +58,7 @@ namespace FeatMultiplayer
             result.avatarBack.transform.localPosition = new Vector3(0, 0, -0.51f);
 
             sr.sprite = Sprite.Create(Plugin.astronautBack, new Rect(0, 0, Plugin.astronautFront.width, Plugin.astronautFront.height), new Vector2(0.5f, 0.5f));
+            sr.color = color;
 
 
             return result;

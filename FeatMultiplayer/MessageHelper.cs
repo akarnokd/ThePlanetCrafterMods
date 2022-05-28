@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FeatMultiplayer
 {
@@ -17,6 +19,38 @@ namespace FeatMultiplayer
             }
             parameters = null;
             return false;
+        }
+
+        internal static string ColorToString(Color color)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(color.r.ToString(CultureInfo.InvariantCulture));
+            sb.Append(',');
+            sb.Append(color.g.ToString(CultureInfo.InvariantCulture));
+            sb.Append(',');
+            sb.Append(color.b.ToString(CultureInfo.InvariantCulture));
+            sb.Append(',');
+            sb.Append(color.a.ToString(CultureInfo.InvariantCulture));
+            return sb.ToString();
+        }
+
+        internal static Color StringToColor(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return new Color(0, 0, 0, 0);
+            }
+            string[] parts = s.Split(',');
+            if (parts.Length != 4)
+            {
+                return new Color(0, 0, 0, 0);
+            }
+            return new Color(
+                float.Parse(parts[0], CultureInfo.InvariantCulture),
+                float.Parse(parts[1], CultureInfo.InvariantCulture),
+                float.Parse(parts[2], CultureInfo.InvariantCulture),
+                float.Parse(parts[3], CultureInfo.InvariantCulture)
+            );
         }
     }
 }

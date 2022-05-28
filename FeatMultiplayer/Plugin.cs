@@ -40,25 +40,22 @@ namespace FeatMultiplayer
         static ConfigEntry<bool> useUPnP;
         static ConfigEntry<string> hostAcceptName;
         static ConfigEntry<string> hostAcceptPassword;
+        static ConfigEntry<string> hostColor;
 
 
         // client side properties
         static ConfigEntry<string> hostAddress;
         static ConfigEntry<string> clientName;
         static ConfigEntry<string> clientPassword;
+        static ConfigEntry<string> clientColor;
 
         static ConfigEntry<int> fontSize;
 
         internal static Texture2D astronautFront;
         internal static Texture2D astronautBack;
 
-        static int shadowInventoryWorldId = 50;
-        static int shadowInventoryId;
-        static int shadowEquipmentWorldId = 51;
-        static int shadowEquipmentId;
 
         static readonly object logLock = new object();
-        static FieldInfo worldObjectsHandlerWorldObjectToGameObject;
 
         private void Awake()
         {
@@ -76,10 +73,12 @@ namespace FeatMultiplayer
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
             hostAcceptName = Config.Bind("Host", "Name", "Buddy,Dude", "Comma separated list of client names the host will accept.");
             hostAcceptPassword = Config.Bind("Host", "Password", "password,wordpass", "Comma separated list of the plaintext(!) passwords accepted by the host, in pair with the Host/Name list.");
+            hostColor = Config.Bind("Host", "Color", "1,1,1,1", "The color of the host avatar as comma-separated RGBA floats");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
             clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");
             clientPassword = Config.Bind("Client", "Password", "password", "The plaintext(!) password presented to the host when joining their game.");
+            clientColor = Config.Bind("Client", "Color", "0.75,0.75,1,1", "The color of the client avatar as comma-separated RGBA floats");
 
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
@@ -90,7 +89,7 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Client.log");
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
-            worldObjectsHandlerWorldObjectToGameObject = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -101,17 +100,6 @@ namespace FeatMultiplayer
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
-        }
-
-        static bool TryGetGameObject(WorldObject wo, out GameObject go)
-        {
-            var dict = (Dictionary<WorldObject, GameObject>)worldObjectsHandlerWorldObjectToGameObject.GetValue(null);
-            return dict.TryGetValue(wo, out go);
-        }
-        static bool TryRemoveGameObject(WorldObject wo)
-        {
-            var dict = (Dictionary<WorldObject, GameObject>)worldObjectsHandlerWorldObjectToGameObject.GetValue(null);
-            return dict.Remove(wo);
         }
 
         static GameObject parent;
@@ -130,6 +118,8 @@ namespace FeatMultiplayer
 
         static readonly Color interactiveColor = new Color(1f, 0.75f, 0f, 1f);
         static readonly Color interactiveColorHighlight = new Color(1f, 0.85f, 0.5f, 1f);
+        static readonly Color interactiveColor2 = new Color(0.75f, 1, 0f, 1f);
+        static readonly Color interactiveColorHighlight2 = new Color(0.85f, 1, 0.5f, 1f);
         static readonly Color defaultColor = new Color(1f, 1f, 1f, 1f);
 
         static volatile MultiplayerMode updateMode = MultiplayerMode.MainMenu;
@@ -154,7 +144,26 @@ namespace FeatMultiplayer
 
         static bool initialInventoryOnce;
 
+        /// <summary>
+        /// The vanilla game uses linear lookup for its <code>WorldObjectsHandler.GetWorldObjectViaId()</code>
+        /// which is slow for big worlds. This is a shadow map of all world objects by their id
+        /// and is maintained by patching the relevant methods that manipulated the underlying list
+        /// of <code>WorldObjectsHandler.allWorldObjects</code>.
+        /// </summary>
         static readonly Dictionary<int, WorldObject> worldObjectById = new Dictionary<int, WorldObject>();
+
+        static int shadowInventoryWorldId = 50;
+        static int shadowInventoryId;
+        static int shadowEquipmentWorldId = 51;
+        static int shadowEquipmentId;
+
+        /// <summary>
+        /// The map from WorldObjects to GameObjects.
+        /// Obtained via reflection from the private field <code>WorldObjectsHandler.worldObjects</code>.
+        /// <code>WorldObjectsHandler.GetGameObjectViaWorldObject</code> crashes if
+        /// the WorldObject is not in the map. We need the dictionary to run TryGetValue/ContainsKey on it.
+        /// </summary>
+        static Dictionary<WorldObject, GameObject> gameObjectByWorldObject;
 
         enum MultiplayerMode
         {
@@ -176,12 +185,22 @@ namespace FeatMultiplayer
             Canvas canvas = parent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             int fs = fontSize.Value;
-            int dx = -50;
-            int dy = -Screen.height / 2 + 8 * (fs + 10) + 10;
+            int dx = Screen.width / 2 - 200;
+            int dy = Screen.height / 2 - 4 * (fs + 10) + 10;
 
             RectTransform rectTransform;
 
             // -------------------------
+
+            var background = new GameObject();
+            background.transform.parent = parent.transform;
+
+            var img = background.AddComponent<Image>();
+            img.color = new Color(0f, 0f, 0f, 0.95f);
+
+            rectTransform = img.GetComponent<RectTransform>();
+            rectTransform.localPosition = new Vector2(dx - 5, dy - 4 * (fs + 10) + 5);
+            rectTransform.sizeDelta = new Vector2(300, 8 * (fs + 10) + 10);
 
             hostModeCheckbox = CreateText(GetHostModeString(), fs, true);
 
@@ -283,6 +302,45 @@ namespace FeatMultiplayer
             }
             return "    External Address = N/A";
         }
+
+        void DoMainMenuUpdate()
+        {
+            var mouse = Mouse.current.position.ReadValue();
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                if (IsWithin(hostModeCheckbox, mouse))
+                {
+                    hostMode.Value = !hostMode.Value;
+                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                }
+                if (IsWithin(upnpCheckBox, mouse))
+                {
+                    useUPnP.Value = !useUPnP.Value;
+                    upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
+
+                    hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
+                }
+                if (IsWithin(clientJoinButton, mouse))
+                {
+                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                    updateMode = MultiplayerMode.CoopClient;
+                    clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
+                    CreateMultiplayerSaveAndEnter();
+                }
+            }
+            hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
+            upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
+            clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+
+            var eip = externalIP;
+            if (eip != null)
+            {
+                externalIP = null;
+                hostExternalIPText.GetComponent<Text>().text = eip;
+
+            }
+        }
+
         #region - "Multiplayer Menu"
         static GameObject CreateText(string txt, int fs, bool highlight = false)
         {
@@ -328,6 +386,22 @@ namespace FeatMultiplayer
         #endregion -Start Menu-
 
         #region - Setup TCP -
+
+        static void NotifyUser(string message, float duration = 5f)
+        {
+            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", duration, message);
+        }
+
+        static void NotifyUserFromBackground(string message, float duration = 5f)
+        {
+            var msg = new NotifyUserMessage
+            {
+                message = message,
+                duration = duration
+            };
+            receiveQueue.Enqueue(msg);
+        }
+
         static void StartAsHost()
         {
             stopNetwork = new CancellationTokenSource();
@@ -521,7 +595,7 @@ namespace FeatMultiplayer
                 try
                 {
                     var stream = client.GetStream();
-                    var reader = new StreamReader(stream, Encoding.UTF8);
+                    var reader = new StreamReader(stream, Encoding.UTF8, true, 64 * 1024);
                     try
                     {
                         LogInfo("ReceiverLoop loop");
@@ -659,6 +733,14 @@ namespace FeatMultiplayer
                 }
             }
         }
+        static bool TryGetGameObject(WorldObject wo, out GameObject go)
+        {
+            return gameObjectByWorldObject.TryGetValue(wo, out go);
+        }
+        static bool TryRemoveGameObject(WorldObject wo)
+        {
+            return gameObjectByWorldObject.Remove(wo);
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
@@ -667,6 +749,7 @@ namespace FeatMultiplayer
             __result = -0.0001f;
             return false;
         }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetOxygenConsumptionRate))]
         static bool GaugesConsumptionHandler_GetOxygenConsumptionRate(ref float __result)
@@ -1132,45 +1215,6 @@ namespace FeatMultiplayer
             }
         }
 
-        void DoMainMenuUpdate()
-        {
-            var mouse = Mouse.current.position.ReadValue();
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                if (IsWithin(hostModeCheckbox, mouse))
-                {
-                    hostMode.Value = !hostMode.Value;
-                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                }
-                if (IsWithin(upnpCheckBox, mouse))
-                {
-                    useUPnP.Value = !useUPnP.Value;
-                    upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
-
-                    hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
-                }
-                if (IsWithin(clientJoinButton, mouse))
-                {
-                    hostMode.Value = false;
-                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                    updateMode = MultiplayerMode.CoopClient;
-
-                    CreateMultiplayerSaveAndEnter();
-                }
-            }
-            hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
-            upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
-            clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight : interactiveColor;
-
-            var eip = externalIP;
-            if (eip != null)
-            {
-                externalIP = null;
-                hostExternalIPText.GetComponent<Text>().text = eip;
-
-            }
-        }
-
         void CreateMultiplayerSaveAndEnter()
         {
             File.Delete(Application.persistentDataPath + "/" + multiplayerFilename);
@@ -1238,104 +1282,7 @@ namespace FeatMultiplayer
                 {
                     try
                     {
-                        switch (message)
-                        {
-                            case NotifyUserMessage num:
-                                {
-                                    NotifyUser(num.message, num.duration);
-                                    break;
-                                }
-                            case MessagePlayerPosition mpp:
-                                {
-                                    ReceivePlayerLocation(mpp);
-                                    break;
-                                }
-                            case MessageLogin ml:
-                                {
-                                    ReceiveLogin(ml);
-                                    break;
-                                }
-                            case MessageAllObjects mc:
-                                {
-                                    ReceiveMessageAllObjects(mc);
-                                    break;
-                                }
-                            case MessageMined mm1:
-                                {
-                                    ReceiveMessageMined(mm1);
-                                    break;
-                                }
-                            case MessageInventoryAdded mia:
-                                {
-                                    ReceiveMessageInventoryAdded(mia);
-                                    break;
-                                }
-                            case MessageInventoryRemoved mir:
-                                {
-                                    ReceiveMessageInventoryRemoved(mir);
-                                    break;
-                                }
-                            case MessageInventories minv:
-                                {
-                                    ReceiveMessageInventories(minv);
-                                    break;
-                                }
-                            case MessagePlaceConstructible mpc:
-                                {
-                                    ReceiveMessagePlaceConstructible(mpc);
-                                    break;
-                                }
-                            case MessageUpdateWorldObject mc1:
-                                {
-                                    ReceiveMessageUpdateWorldObject(mc1);
-                                    break;
-                                }
-                            case MessagePanelChanged mpc1:
-                                {
-                                    ReceiveMessagePanelChanged(mpc1);
-                                    break;
-                                }
-                            case MessageSetTransform mst:
-                                {
-                                    ReceiveMessageSetTransform(mst);
-                                    break;
-                                }
-                            case MessageDropWorldObject mdwo:
-                                {
-                                    ReceiveMessageDropWorldObject(mdwo);
-                                    break;
-                                }
-                            case string s:
-                                {
-                                    if (s == "Welcome")
-                                    {
-                                        otherPlayer?.Destroy();
-                                        otherPlayer = PlayerAvatar.CreateAvatar();
-                                        NotifyUserFromBackground("Joined the host.");
-                                    }
-                                    else if (s == "Disconnected")
-                                    {
-                                        LogInfo("Client disconnected");
-                                        otherPlayer?.Destroy();
-                                        clientConnected = false;
-                                        if (updateMode == MultiplayerMode.CoopHost)
-                                        {
-                                            NotifyUserFromBackground("Client disconnected");
-                                        }
-                                        else
-                                        {
-                                            NotifyUserFromBackground("Host disconnected");
-                                        }
-                                    }
-                                    break;
-                                }
-                            default:
-                                {
-                                    LogInfo(message.GetType().ToString());
-                                    break;
-                                }
-                                // TODO dispatch on message type
-                        }
+                        DispatchMessage(message);
                     } catch (Exception ex)
                     {
                         LogError(ex);
@@ -1383,7 +1330,16 @@ namespace FeatMultiplayer
                         LogInfo("User login success: " + ml.user);
                         NotifyUser("User joined: " + ml.user);
                         otherPlayer?.Destroy();
-                        otherPlayer = PlayerAvatar.CreateAvatar();
+                        Color color = Color.white;
+                        try
+                        {
+                            color = MessageHelper.StringToColor(clientColor.Value);
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        otherPlayer = PlayerAvatar.CreateAvatar(color);
                         PrepareHiddenChests();
                         sendQueue.Enqueue("Welcome\n");
                         sendQueueBlock.Set();
@@ -1503,6 +1459,30 @@ namespace FeatMultiplayer
         static void SendFullState()
         {
             //LogInfo("Begin syncing the entire game state to the client");
+
+            // =========================================================
+
+            MessageUnlocks mu = new MessageUnlocks();
+            List<Group> grs = GroupsHandler.GetUnlockedGroups();
+            mu.groupIds = new List<string>(grs.Count + 1);
+            foreach (Group g in grs) {
+                mu.groupIds.Add(g.GetId());
+            }
+            sendQueue.Enqueue(mu);
+
+            // =========================================================
+
+            MessageTerraformState mts = new MessageTerraformState();
+
+            WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
+            mts.oxygen = wuh.GetUnit(DataConfig.WorldUnitType.Oxygen).GetValue();
+            mts.heat = wuh.GetUnit(DataConfig.WorldUnitType.Heat).GetValue();
+            mts.pressure = wuh.GetUnit(DataConfig.WorldUnitType.Pressure).GetValue();
+            mts.biomass = wuh.GetUnit(DataConfig.WorldUnitType.Biomass).GetValue();
+
+            sendQueue.Enqueue(mts);
+            // =========================================================
+
             StringBuilder sb = new StringBuilder();
             sb.Append("AllObjects");
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
@@ -1960,19 +1940,35 @@ namespace FeatMultiplayer
             }
         }
 
-        static void NotifyUser(string message, float duration = 5f)
+        static void ReceiveMessageUnlocks(MessageUnlocks mu)
         {
-            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", duration, message);
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                List<Group> grs = new List<Group>();
+                foreach (string gid in mu.groupIds)
+                {
+                    Group gr = GroupsHandler.GetGroupViaId(gid);
+                    if (gr != null)
+                    {
+                        grs.Add(gr);
+                    }
+                    else
+                    {
+                        LogWarning("ReceiveMessageUnlocks: Unknown groupId " + gid);
+                    }
+                }
+                GroupsHandler.SetUnlockedGroups(grs);
+            }
         }
 
-        static void NotifyUserFromBackground(string message, float duration = 5f)
+        static void ReceiveTerraformState(MessageTerraformState mts)
         {
-            var msg = new NotifyUserMessage
+            if (updateMode == MultiplayerMode.CoopClient)
             {
-                message = message,
-                duration = duration
-            };
-            receiveQueue.Enqueue(msg);
+                WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
+                wuh.StopAllCoroutines();
+                wuh.CreateAndSetUnits(mts.ToJsonableWorldState());
+            }
         }
 
         static void ParseMessage(string message)
@@ -2039,6 +2035,16 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mdwo);
             }
             else
+            if (MessageUnlocks.TryParse(message, out var mu))
+            {
+                receiveQueue.Enqueue(mu);
+            }
+            else
+            if (MessageTerraformState.TryParse(message, out var mts))
+            {
+                receiveQueue.Enqueue(mts);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -2058,6 +2064,127 @@ namespace FeatMultiplayer
                 LogInfo("Unknown message?\r\n" + message);
             }
             // TODO other messages
+        }
+
+        void DispatchMessage(object message)
+        {
+            switch (message)
+            {
+                case NotifyUserMessage num:
+                    {
+                        NotifyUser(num.message, num.duration);
+                        break;
+                    }
+                case MessagePlayerPosition mpp:
+                    {
+                        ReceivePlayerLocation(mpp);
+                        break;
+                    }
+                case MessageLogin ml:
+                    {
+                        ReceiveLogin(ml);
+                        break;
+                    }
+                case MessageAllObjects mc:
+                    {
+                        ReceiveMessageAllObjects(mc);
+                        break;
+                    }
+                case MessageMined mm1:
+                    {
+                        ReceiveMessageMined(mm1);
+                        break;
+                    }
+                case MessageInventoryAdded mia:
+                    {
+                        ReceiveMessageInventoryAdded(mia);
+                        break;
+                    }
+                case MessageInventoryRemoved mir:
+                    {
+                        ReceiveMessageInventoryRemoved(mir);
+                        break;
+                    }
+                case MessageInventories minv:
+                    {
+                        ReceiveMessageInventories(minv);
+                        break;
+                    }
+                case MessagePlaceConstructible mpc:
+                    {
+                        ReceiveMessagePlaceConstructible(mpc);
+                        break;
+                    }
+                case MessageUpdateWorldObject mc1:
+                    {
+                        ReceiveMessageUpdateWorldObject(mc1);
+                        break;
+                    }
+                case MessagePanelChanged mpc1:
+                    {
+                        ReceiveMessagePanelChanged(mpc1);
+                        break;
+                    }
+                case MessageSetTransform mst:
+                    {
+                        ReceiveMessageSetTransform(mst);
+                        break;
+                    }
+                case MessageDropWorldObject mdwo:
+                    {
+                        ReceiveMessageDropWorldObject(mdwo);
+                        break;
+                    }
+                case MessageUnlocks mu:
+                    {
+                        ReceiveMessageUnlocks(mu);
+                        break;
+                    }
+                case MessageTerraformState mts:
+                    {
+                        ReceiveTerraformState(mts);
+                        break;
+                    }
+                case string s:
+                    {
+                        if (s == "Welcome")
+                        {
+                            otherPlayer?.Destroy();
+                            Color color = Color.white;
+                            try
+                            {
+                                color = MessageHelper.StringToColor(hostColor.Value);
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                            otherPlayer = PlayerAvatar.CreateAvatar(color);
+                            NotifyUserFromBackground("Joined the host.");
+                        }
+                        else if (s == "Disconnected")
+                        {
+                            LogInfo("Client disconnected");
+                            otherPlayer?.Destroy();
+                            clientConnected = false;
+                            if (updateMode == MultiplayerMode.CoopHost)
+                            {
+                                NotifyUserFromBackground("Client disconnected");
+                            }
+                            else
+                            {
+                                NotifyUserFromBackground("Host disconnected");
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        LogInfo(message.GetType().ToString());
+                        break;
+                    }
+                    // TODO dispatch on message type
+            }
         }
 
         #region - Logging -

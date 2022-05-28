@@ -37,7 +37,7 @@ namespace FeatMultiplayer
                 }
                 mwo.position = DataTreatments.StringToVector3(objs[offset + 4]);
                 mwo.rotation = DataTreatments.StringToQuaternion(objs[offset + 5]);
-                mwo.color = DataTreatments.StringToColor(objs[offset + 6]);
+                mwo.color = MessageHelper.StringToColor(objs[offset + 6]);
                 mwo.text = objs[offset + 7];
 
                 mwo.panelIds = new();
