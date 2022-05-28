@@ -57,6 +57,8 @@ namespace FeatMultiplayer
         static int shadowEquipmentId;
 
         static readonly object logLock = new object();
+        static FieldInfo worldObjectsHandlerWorldObjectToGameObject;
+        static MethodInfo worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject;
 
         private void Awake()
         {
@@ -88,6 +90,9 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Client.log");
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
+            worldObjectsHandlerWorldObjectToGameObject = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject = AccessTools.Method(typeof(WorldObjectsHandler), "SetPanelsForNewlyInstantiatedWorldObject");
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -97,6 +102,17 @@ namespace FeatMultiplayer
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
+        }
+
+        static bool TryGetGameObject(WorldObject wo, out GameObject go)
+        {
+            var dict = (Dictionary<WorldObject, GameObject>)worldObjectsHandlerWorldObjectToGameObject.GetValue(null);
+            return dict.TryGetValue(wo, out go);
+        }
+        static bool TryRemoveGameObject(WorldObject wo)
+        {
+            var dict = (Dictionary<WorldObject, GameObject>)worldObjectsHandlerWorldObjectToGameObject.GetValue(null);
+            return dict.Remove(wo);
         }
 
         static GameObject parent;
@@ -134,6 +150,8 @@ namespace FeatMultiplayer
         static string multiplayerFilename = "Survival-9999999";
 
         static bool suppressInventoryChange;
+
+        static volatile bool networkConnected;
 
         enum MultiplayerMode
         {
@@ -262,9 +280,282 @@ namespace FeatMultiplayer
             }
             return "    External Address = N/A";
         }
+        #region - "Multiplayer Menu"
+        static GameObject CreateText(string txt, int fs, bool highlight = false)
+        {
+            var result = new GameObject();
+            result.transform.parent = parent.transform;
+
+            Text text = result.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.text = txt;
+            text.color = highlight ? interactiveColor : defaultColor;
+            text.fontSize = (int)fs;
+            text.resizeTextForBestFit = false;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.raycastTarget = true;
+
+            return result;
+        }
+
+        static bool IsWithin(GameObject go, Vector2 mouse)
+        {
+            RectTransform rect = go.GetComponent<Text>().GetComponent<RectTransform>();
+
+            var lp = rect.localPosition;
+            lp.x += Screen.width / 2 - rect.sizeDelta.x / 2;
+            lp.y += Screen.height / 2 - rect.sizeDelta.y / 2;
+
+            return mouse.x >= lp.x && mouse.y >= lp.y
+                && mouse.x <= lp.x + rect.sizeDelta.x && mouse.y <= lp.y + rect.sizeDelta.y;
+        }
+
+        public static bool IsIPv4(IPAddress ipa) => ipa.AddressFamily == AddressFamily.InterNetwork;
+
+        public static IPAddress GetMainIPv4() => NetworkInterface.GetAllNetworkInterfaces()
+            .Select((ni) => ni.GetIPProperties())
+            .Where((ip) => ip.GatewayAddresses.Where((ga) => IsIPv4(ga.Address)).Count() > 0)
+            .FirstOrDefault()?.UnicastAddresses?
+            .Where((ua) => IsIPv4(ua.Address))?.FirstOrDefault()?.Address;
+
+        #endregion - "Multiplayer Menu"
 
         #endregion -Start Menu-
 
+        #region - Setup TCP -
+        static void StartAsHost()
+        {
+            stopNetwork = new CancellationTokenSource();
+            Task.Factory.StartNew(HostAcceptor, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        static void StartAsClient()
+        {
+            stopNetwork = new CancellationTokenSource();
+            Task.Run(() =>
+            {
+                LogInfo("Client connecting to " + hostAddress.Value + ":" + port.Value);
+                try
+                {
+                    TcpClient client = new TcpClient(hostAddress.Value, port.Value);
+                    networkConnected = true;
+                    stopNetwork.Token.Register(() =>
+                    {
+                        networkConnected = false;
+                        client.Close();
+                    });
+                    Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+                    sendQueue.Enqueue(new MessageLogin
+                    {
+                        user = clientName.Value,
+                        password = clientPassword.Value
+                    });
+                    sendQueueBlock.Set();
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                    NotifyUserFromBackground("Error: could not connect to Host");
+                }
+            });
+        }
+
+        static void HostAcceptor()
+        {
+            LogInfo("Starting HostAcceptor on port " + port.Value);
+            try
+            {
+                TcpListener listener = new TcpListener(IPAddress.Any, port.Value);
+                listener.Start();
+                stopNetwork.Token.Register(() =>
+                {
+                    networkConnected = false;
+                    listener.Stop();
+                });
+                try
+                {
+                    while (!stopNetwork.IsCancellationRequested)
+                    {
+                        var client = listener.AcceptTcpClient();
+                        ManageClient(client);
+                    }
+                }
+                finally
+                {
+                    listener.Stop();
+                    LogInfo("Stopping HostAcceptor on port " + port.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!stopNetwork.IsCancellationRequested)
+                {
+                    LogError(ex);
+                }
+            }
+        }
+
+        static void ManageClient(TcpClient client)
+        {
+            if (clientConnected)
+            {
+                LogInfo("A client already connected");
+                try
+                {
+                    try
+                    {
+                        var stream = client.GetStream();
+                        try
+                        {
+                            stream.Write(ENoClientSlotBytes);
+                            stream.Flush();
+                        }
+                        finally
+                        {
+                            stream.Close();
+                        }
+                    }
+                    finally
+                    {
+                        client.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
+            }
+            else
+            {
+                LogInfo("New Client from " + client.Client.RemoteEndPoint);
+                clientConnected = true;
+                Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
+        }
+
+        static void SenderLoop(object clientObj)
+        {
+            LogInfo("SenderLoop begin");
+            var client = (TcpClient)clientObj;
+            try
+            {
+                try
+                {
+                    var stream = client.GetStream();
+                    try
+                    {
+                        LogInfo("SenderLoop loop");
+                        while (!stopNetwork.IsCancellationRequested)
+                        {
+                            if (sendQueue.TryDequeue(out var message))
+                            {
+                                switch (message)
+                                {
+                                    case string s:
+                                        {
+                                            stream.Write(s);
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case byte[] b:
+                                        {
+                                            stream.Write(b);
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case MessageStringProvider msp:
+                                        {
+                                            stream.Write(msp.GetString());
+                                            stream.Flush();
+                                            break;
+                                        }
+                                    case MessageBytesProvider msp:
+                                        {
+                                            stream.Write(msp.GetBytes());
+                                            stream.Flush();
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                sendQueueBlock.WaitOne(1000);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream.Close();
+                    }
+                }
+                finally
+                {
+                    client.Close();
+                }
+                LogInfo("SenderLoop stop");
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+            receiveQueue.Enqueue("Disconnected");
+            networkConnected = false;
+        }
+
+        static void ReceiveLoop(object clientObj)
+        {
+            LogInfo("ReceiverLoop start");
+            var client = (TcpClient)clientObj;
+            try
+            {
+                try
+                {
+                    var stream = client.GetStream();
+                    var reader = new StreamReader(stream, Encoding.UTF8);
+                    try
+                    {
+                        LogInfo("ReceiverLoop loop");
+                        while (!stopNetwork.IsCancellationRequested)
+                        {
+                            var message = reader.ReadLine();
+                            if (message != null)
+                            {
+                                ParseMessage(message);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream.Close();
+                    }
+                }
+                finally
+                {
+                    client.Close();
+                }
+                LogInfo("ReceiverLoop stop");
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+            receiveQueue.Enqueue("Disconnected");
+            networkConnected = false;
+        }
+
+        static readonly byte[] ENoClientSlotBytes = Encoding.UTF8.GetBytes("ENoClientSlot\n");
+        static readonly byte[] EAccessDenied = Encoding.UTF8.GetBytes("EAccessDenied\n");
+
+        #endregion -Setup TCP-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.SelectedSaveFile))]
         static void SaveFilesSelector_SelectedSaveFile(string _fileName)
@@ -488,6 +779,66 @@ namespace FeatMultiplayer
             return true;
         }
 
+        static bool cancelBuildAfterPlace;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ConstructibleGhost), nameof(ConstructibleGhost.Place))]
+        static bool ConstructibleGhost_Place(ConstructibleGhost __instance, 
+            ref GameObject __result, GroupConstructible ___groupConstructible)
+        {
+            cancelBuildAfterPlace = false;
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                bool positioningStatus = __instance.gameObject.GetComponent<GhostPlacementChecker>().GetPositioningStatus();
+                if (positioningStatus)
+                {
+                    ConstraintSamePanel component = __instance.gameObject.GetComponent<ConstraintSamePanel>();
+                    if (component != null)
+                    {
+                        // TODO here, panels are updated
+                    }
+                    else
+                    {
+                        var mpc = new MessagePlaceConstructible()
+                        {
+                            groupId = ___groupConstructible.GetId(), 
+                            position = __instance.gameObject.transform.position, 
+                            rotation = __instance.gameObject.transform.rotation
+                        };
+                        sendQueue.Enqueue(mpc);
+                        sendQueueBlock.Set();
+                    }
+                    __result = null;
+                    cancelBuildAfterPlace = true;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
+        static void PlayerBuilder_InputOnAction(PlayerBuilder __instance, 
+            bool _isPressingAccessibilityKey, ref ConstructibleGhost ___ghost)
+        {
+            if (cancelBuildAfterPlace && !_isPressingAccessibilityKey)
+            {
+                __instance.InputOnCancelAction();
+                ___ghost = null;
+                cancelBuildAfterPlace = false;
+            }
+        }
+
+        void OnApplicationQuit()
+        {
+            LogInfo("Application quit");
+            stopNetwork?.Cancel();
+            for (int i = 0; i < 20 && networkConnected; i++)
+            {
+                Thread.Sleep(100);
+            }
+        }
+
         void Update()
         {
             if (updateMode == MultiplayerMode.MainMenu)
@@ -565,7 +916,20 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "/" + multiplayerFilename);
 
             Managers.GetManager<StaticDataHandler>().LoadStaticData();
-            JSONExport.CreateNewSaveFile(multiplayerFilename, DataConfig.GameSettingMode.Chill, DataConfig.GameSettingStartLocation.Standard);
+
+            // avoid random positioning
+            List<PositionAndRotation> backupStartingPositions = new();
+            backupStartingPositions.AddRange(GameConfig.positionsForEscapePod);
+            try
+            {
+                GameConfig.positionsForEscapePod.RemoveRange(1, GameConfig.positionsForEscapePod.Count - 1);
+                JSONExport.CreateNewSaveFile(multiplayerFilename, DataConfig.GameSettingMode.Chill, DataConfig.GameSettingStartLocation.Standard);
+            }
+            finally
+            {
+                GameConfig.positionsForEscapePod.Clear();
+                GameConfig.positionsForEscapePod.AddRange(backupStartingPositions);
+            }
 
             Managers.GetManager<SavedDataHandler>().SetSaveFileName(multiplayerFilename);
             SceneManager.LoadScene("OpenWorldTest");
@@ -584,6 +948,7 @@ namespace FeatMultiplayer
             {
                 LogInfo("SaveFilesSelector not found");
             }
+
         }
 
         void DoMultiplayerUpdate()
@@ -611,68 +976,86 @@ namespace FeatMultiplayer
                 // Receive and apply commands
                 while (receiveQueue.TryDequeue(out var message))
                 {
-                    switch (message)
+                    try
                     {
-                        case NotifyUserMessage num:
-                            {
-                                NotifyUser(num.message, num.duration);
-                                break;
-                            }
-                        case MessagePlayerPosition mpp:
-                            {
-                                ReceivePlayerLocation(mpp);
-                                break;
-                            }
-                        case MessageLogin ml:
-                            {
-                                ReceiveLogin(ml);
-                                break;
-                            }
-                        case MessageConstructs mc:
-                            {
-                                ReceiveMessageConstructs(mc);
-                                break;
-                            }
-                        case MessageMined mm1:
-                            {
-                                ReceiveMessageMined(mm1);
-                                break;
-                            }
-                        case MessageInventoryAdded mia:
-                            {
-                                ReceiveMessageInventoryAdded(mia);
-                                break;
-                            }
-                        case MessageInventoryRemoved mir:
-                            {
-                                ReceiveMessageInventoryRemoved(mir);
-                                break;
-                            }
-                        case MessageInventories minv:
-                            {
-                                ReceiveMessageInventories(minv);
-                                break;
-                            }
-                        case string s: {
-                                if (s == "Welcome")
+                        switch (message)
+                        {
+                            case NotifyUserMessage num:
                                 {
-                                    otherPlayer?.Destroy();
-                                    otherPlayer = PlayerAvatar.CreateAvatar();
+                                    NotifyUser(num.message, num.duration);
+                                    break;
                                 }
-                                else if (s == "Disconnected")
+                            case MessagePlayerPosition mpp:
                                 {
-                                    LogInfo("Client disconnected");
-                                    otherPlayer?.Destroy();
-                                    clientConnected = false;
+                                    ReceivePlayerLocation(mpp);
+                                    break;
                                 }
-                                break;
-                            }
-                        default:
-                            {
-                                LogInfo(message.GetType().ToString());
-                                break;
-                            }
-                            // TODO dispatch on message type
+                            case MessageLogin ml:
+                                {
+                                    ReceiveLogin(ml);
+                                    break;
+                                }
+                            case MessageAllObjects mc:
+                                {
+                                    ReceiveMessageAllObjects(mc);
+                                    break;
+                                }
+                            case MessageMined mm1:
+                                {
+                                    ReceiveMessageMined(mm1);
+                                    break;
+                                }
+                            case MessageInventoryAdded mia:
+                                {
+                                    ReceiveMessageInventoryAdded(mia);
+                                    break;
+                                }
+                            case MessageInventoryRemoved mir:
+                                {
+                                    ReceiveMessageInventoryRemoved(mir);
+                                    break;
+                                }
+                            case MessageInventories minv:
+                                {
+                                    ReceiveMessageInventories(minv);
+                                    break;
+                                }
+                            case MessagePlaceConstructible mpc:
+                                {
+                                    ReceiveMessagePlaceConstructible(mpc);
+                                    break;
+                                }
+                            case MessageConstructed mc1:
+                                {
+                                    ReceiveMessageConstructed(mc1);
+                                    break;
+                                }
+                            case string s:
+                                {
+                                    if (s == "Welcome")
+                                    {
+                                        otherPlayer?.Destroy();
+                                        otherPlayer = PlayerAvatar.CreateAvatar();
+                                        NotifyUserFromBackground("Joined the host.");
+                                    }
+                                    else if (s == "Disconnected")
+                                    {
+                                        LogInfo("Client disconnected");
+                                        otherPlayer?.Destroy();
+                                        clientConnected = false;
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    LogInfo(message.GetType().ToString());
+                                    break;
+                                }
+                                // TODO dispatch on message type
+                        }
+                    } catch (Exception ex)
+                    {
+                        LogError(ex);
                     }
                 }
             }
@@ -836,7 +1219,7 @@ namespace FeatMultiplayer
         {
             LogInfo("Begin syncing the entire game state to the client");
             StringBuilder sb = new StringBuilder();
-            sb.Append("Constructs");
+            sb.Append("AllObjects");
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
             {
                 if (!wo.GetDontSaveMe())
@@ -845,7 +1228,7 @@ namespace FeatMultiplayer
                     if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
                     {
                         sb.Append("|");
-                        MessageConstructs.AppendWorldObject(sb, wo);
+                        MessageAllObjects.AppendWorldObject(sb, wo);
                     }
                 }
             }
@@ -869,11 +1252,110 @@ namespace FeatMultiplayer
             sendQueueBlock.Set();
         }
 
-        static void ReceiveMessageConstructs(MessageConstructs mc)
+        static void UpdateWorldObject(MessageWorldObject mwo, Dictionary<int, WorldObject> localConstructs)
+        {
+            if (localConstructs == null || !localConstructs.TryGetValue(mwo.id, out var wo))
+            {
+                Group gr = GroupsHandler.GetGroupViaId(mwo.groupId);
+                wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
+                LogInfo("UpdateWorldObject: Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
+            }
+            bool wasPlaced = wo.GetIsPlaced();
+            wo.SetPositionAndRotation(mwo.position, mwo.rotation);
+            bool doPlace = wo.GetIsPlaced();
+            wo.SetColor(mwo.color);
+            wo.SetText(mwo.text);
+            wo.SetGrowth(mwo.growth);
+
+            List<int> beforePanelIds = wo.GetPanelsId();
+            bool doUpdatePanels = (beforePanelIds == null && mwo.panelIds.Count != 0) || (beforePanelIds != null && !beforePanelIds.SequenceEqual(mwo.panelIds));
+            wo.SetPanelsId(mwo.panelIds);
+            wo.SetDontSaveMe(false);
+
+            List<Group> groups = new List<Group>();
+            foreach (var gid in mwo.groupIds)
+            {
+                groups.Add(GroupsHandler.GetGroupViaId(gid));
+            }
+            wo.SetLinkedGroups(groups);
+
+            if (mwo.inventoryId > 0)
+            {
+                wo.SetLinkedInventoryId(mwo.inventoryId);
+                Inventory inv = InventoriesHandler.GetInventoryById(mwo.inventoryId);
+                if (inv == null)
+                {
+                    InventoriesHandler.CreateNewInventory(100, mwo.inventoryId);
+                }
+            }
+            else
+            {
+                wo.SetLinkedInventoryId(0);
+                // FIXME delete inventory?
+            }
+
+            if (!wasPlaced && doPlace)
+            {
+                WorldObjectsHandler.InstantiateWorldObject(wo, true);
+                LogInfo("UpdateWorldObject: Placing GameObject for WorldObject " + DebugWorldObject(wo));
+            }
+            else
+            if (wasPlaced && !doPlace)
+            {
+                if (TryGetGameObject(wo, out var go))
+                {
+                    LogInfo("UpdateWorldObject: WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
+                    UnityEngine.Object.Destroy(go);
+                    TryRemoveGameObject(wo);
+                }
+                /*
+                else
+                {
+                    LogInfo("WorldObject " + wo.GetId() + " has no associated GameObject");
+                }
+                */
+            }
+            if (doUpdatePanels)
+            {
+                LogInfo("UpdateWorldObject: Updating panels on " + wo.GetId());
+                if (TryGetGameObject(wo, out var go))
+                {
+                    //worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject.Invoke(null, new object[] { wo, go });
+                    var panelIds = wo.GetPanelsId();
+                    if (panelIds != null && panelIds.Count > 0)
+                    {
+                        Panel[] componentsInChildren = go.GetComponentsInChildren<Panel>();
+                        int num = 0;
+                        foreach (Panel panel in componentsInChildren)
+                        {
+                            try
+                            {
+                                DataConfig.BuildPanelSubType subPanelType = (DataConfig.BuildPanelSubType)panelIds[num];
+                                panel.ChangePanel(subPanelType);
+                                num++;
+                            }
+                            catch (Exception ex)
+                            {
+                                LogError(ex);
+                            }
+                        }
+                        LogInfo("UpdateWorldObject: Updating panels on " + wo.GetId() + " success");
+                    } else
+                    {
+                        LogInfo("UpdateWorldObject: Updating panels: No panel details on " + wo.GetId());
+                    }
+                } else
+                {
+                    LogInfo("UpdateWorldObject: Updating panels: Game object not found of " + wo.GetId());
+                }
+            }
+        }
+
+        static void ReceiveMessageAllObjects(MessageAllObjects mc)
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                LogInfo("Received all constructs");
+                LogInfo("Received all constructs: " + mc.worldObjects.Count);
                 Dictionary<int, WorldObject> localConstructs = new Dictionary<int, WorldObject>();
                 HashSet<int> toDelete = new HashSet<int>();
                 foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
@@ -888,61 +1370,56 @@ namespace FeatMultiplayer
 
                 foreach (MessageWorldObject mwo in mc.worldObjects)
                 {
+                    //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
                     toDelete.Remove(mwo.id);
 
-                    bool doPlace = false;
-                    if (!localConstructs.TryGetValue(mwo.id, out var wo))
-                    {
-                        Group gr = GroupsHandler.GetGroupViaId(mwo.groupId);
-                        wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
-                        LogInfo("Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
-                    } 
-                    wo.SetPositionAndRotation(mwo.position, mwo.rotation);
-                    doPlace = wo.GetIsPlaced();
-                    wo.SetColor(mwo.color);
-                    wo.SetText(mwo.text);
-                    wo.SetGrowth(mwo.growth);
-                    wo.SetPanelsId(mwo.panelIds);
-                    wo.SetDontSaveMe(false);
-
-                    List<Group> groups = new List<Group>();
-                    foreach (var gid in mwo.groupIds)
-                    {
-                        groups.Add(GroupsHandler.GetGroupViaId(gid));
-                    }
-                    wo.SetLinkedGroups(groups);
-
-                    if (mwo.inventoryId > 0)
-                    {
-                        wo.SetLinkedInventoryId(mwo.inventoryId);
-                        Inventory inv = InventoriesHandler.GetInventoryById(mwo.inventoryId);
-                        if (inv == null)
-                        {
-                            InventoriesHandler.CreateNewInventory(100, mwo.inventoryId);
-                        }
-                    }
-                    else
-                    {
-                        wo.SetLinkedInventoryId(0);
-                        // FIXME delete inventory?
-                    }
-
-                    if (doPlace)
-                    {
-                        WorldObjectsHandler.InstantiateWorldObject(wo, true);
-                    }
-                    else
-                    {
-                        var go = WorldObjectsHandler.GetGameObjectViaWorldObject(wo);
-                        UnityEngine.Object.Destroy(go);
-                    }
+                    UpdateWorldObject(mwo, localConstructs);
                 }
 
                 foreach (int id in toDelete)
                 {
-                    WorldObjectsHandler.DestroyWorldObject(localConstructs[id]);
+                    //LogInfo("WorldObject " + id + " destroyed: " + DebugWorldObject(id));
+                    if (localConstructs.TryGetValue(id, out var wo))
+                    {
+                        if (TryGetGameObject(wo, out var go))
+                        {
+                            LogInfo("WorldObject " + id + " GameObject destroyed: no longer exists");
+                            UnityEngine.Object.Destroy(go);
+                            TryRemoveGameObject(wo);
+                        }
+                        WorldObjectsHandler.DestroyWorldObject(wo);
+                    }
                 }
             }
+        }
+
+        static string DebugWorldObject(int id)
+        {
+            var wo = WorldObjectsHandler.GetWorldObjectViaId(id);
+            if (wo == null)
+            {
+                return "null";
+            }
+            return DebugWorldObject(wo);
+        }
+
+        static string DebugWorldObject(WorldObject wo)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{ id=").Append(wo.GetId())
+            .Append(", groupId=");
+            if (wo.GetGroup() != null)
+            {
+                sb.Append(wo.GetGroup().GetId());
+            }
+            else
+            {
+                sb.Append("null");
+            }
+            sb.Append(", position=").Append(wo.GetPosition());
+
+            sb.Append(" }");
+            return sb.ToString();
         }
 
         static void ReceiveMessageInventories(MessageInventories minv)
@@ -1020,7 +1497,7 @@ namespace FeatMultiplayer
                         if (wo.GetId() == mm.id)
                         {
 
-                            UnityEngine.Object.Destroy(am);
+                            UnityEngine.Object.Destroy(am.gameObject);
                             return;
                         }
                     }
@@ -1028,6 +1505,30 @@ namespace FeatMultiplayer
             }
 
             LogInfo("OtherPlayer mined " + mm.id + " but not found???");
+        }
+
+        static void ReceiveMessagePlaceConstructible(MessagePlaceConstructible mpc)
+        {
+            GroupConstructible gc = GroupsHandler.GetGroupViaId(mpc.groupId) as GroupConstructible;
+            if (gc != null)
+            {
+                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(gc, WorldObjectsIdHandler.GetNewWorldObjectIdForDb());
+                worldObject.SetPositionAndRotation(mpc.position, mpc.rotation);
+                WorldObjectsHandler.InstantiateWorldObject(worldObject, _fromDb: false);
+
+                StringBuilder sb = new StringBuilder();
+                sb.Append("Constructed|");
+                MessageAllObjects.AppendWorldObject(sb, worldObject);
+                sb.Append("\r");
+
+                sendQueue.Enqueue(sb.ToString());
+                sendQueueBlock.Set();
+            }
+        }
+
+        static void ReceiveMessageConstructed(MessageConstructed mc)
+        {
+            UpdateWorldObject(mc.worldObject, null);
         }
 
         static void NotifyUser(string message, float duration = 5f)
@@ -1045,232 +1546,6 @@ namespace FeatMultiplayer
             receiveQueue.Enqueue(msg);
         }
 
-
-        #region -Setup TCP-
-        static void StartAsHost()
-        {
-            stopNetwork = new CancellationTokenSource();
-            Task.Factory.StartNew(HostAcceptor, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-        }
-
-        static void StartAsClient()
-        {
-            stopNetwork = new CancellationTokenSource();
-            Task.Run(() =>
-            {
-                LogInfo("Client connecting to " + hostAddress.Value + ":" + port.Value);
-                try
-                {
-                    TcpClient client = new TcpClient(hostAddress.Value, port.Value);
-                    stopNetwork.Token.Register(() =>
-                    {
-                        client.Close();
-                    });
-                    Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                    Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-                    sendQueue.Enqueue(new MessageLogin
-                    {
-                        user = clientName.Value,
-                        password = clientPassword.Value
-                    });
-                    sendQueueBlock.Set();
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                    NotifyUserFromBackground("Error: could not connect to Host");
-                }
-            });
-        }
-
-        static void HostAcceptor()
-        {
-            LogInfo("Starting HostAcceptor on port " + port.Value);
-            try
-            {
-                TcpListener listener = new TcpListener(IPAddress.Any, port.Value);
-                listener.Start();
-                stopNetwork.Token.Register(() =>
-                {
-                    listener.Stop();
-                });
-                try
-                {
-                    while (!stopNetwork.IsCancellationRequested)
-                    {
-                        var client = listener.AcceptTcpClient();
-                        ManageClient(client);
-                    }
-                }
-                finally
-                {
-                    listener.Stop();
-                    LogInfo("Stopping HostAcceptor on port " + port.Value);
-                }
-            } catch (Exception ex)
-            {
-                if (!stopNetwork.IsCancellationRequested)
-                {
-                    LogError(ex);
-                }
-            }
-        }
-
-        static void ManageClient(TcpClient client)
-        {
-            if (clientConnected)
-            {
-                LogInfo("A client already connected");
-                try {
-                    try
-                    {
-                        var stream = client.GetStream();
-                        try
-                        {
-                            stream.Write(ENoClientSlotBytes);
-                            stream.Flush();
-                        }
-                        finally
-                        {
-                            stream.Close();
-                        }
-                    }
-                    finally
-                    {
-                        client.Close();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                }
-            } 
-            else
-            {
-                LogInfo("New Client from " + client.Client.RemoteEndPoint);
-                clientConnected = true;
-                Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-            }
-        }
-
-        static void SenderLoop(object clientObj)
-        {
-            LogInfo("SenderLoop begin");
-            var client = (TcpClient)clientObj;
-            try
-            {
-                try
-                {
-                    var stream = client.GetStream();
-                    try
-                    {
-                        LogInfo("SenderLoop loop");
-                        while (!stopNetwork.IsCancellationRequested)
-                        {
-                            if (sendQueue.TryDequeue(out var message))
-                            {
-                                switch (message)
-                                {
-                                    case string s:
-                                        {
-                                            stream.Write(s);
-                                            stream.Flush();
-                                            break;
-                                        }
-                                    case byte[] b:
-                                        {
-                                            stream.Write(b);
-                                            stream.Flush();
-                                            break;
-                                        }
-                                    case MessageStringProvider msp:
-                                        {
-                                            stream.Write(msp.GetString());
-                                            stream.Flush();
-                                            break;
-                                        }
-                                    case MessageBytesProvider msp:
-                                        {
-                                            stream.Write(msp.GetBytes());
-                                            stream.Flush();
-                                            break;
-                                        }
-                                }
-                            }
-                            else
-                            {
-                                sendQueueBlock.WaitOne(1000);
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        stream.Close();
-                    }
-                }
-                finally
-                {
-                    client.Close();
-                }
-                LogInfo("SenderLoop stop");
-            } catch (Exception ex)
-            {
-                LogError(ex);
-            }
-            receiveQueue.Enqueue("Disconnected");
-        }
-
-        static void ReceiveLoop(object clientObj)
-        {
-            LogInfo("ReceiverLoop start");
-            var client = (TcpClient)clientObj;
-            try
-            {
-                try
-                {
-                    var stream = client.GetStream();
-                    var reader = new StreamReader(stream, Encoding.UTF8);
-                    try
-                    {
-                        LogInfo("ReceiverLoop loop");
-                        while (!stopNetwork.IsCancellationRequested)
-                        {
-                            var message = reader.ReadLine();
-                            if (message != null)
-                            {
-                                ParseMessage(message);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        stream.Close();
-                    }
-                }
-                finally
-                {
-                    client.Close();
-                }
-                LogInfo("ReceiverLoop stop");
-            }
-            catch (Exception ex)
-            {
-                LogError(ex);
-            }
-            receiveQueue.Enqueue("Disconnected");
-        }
-
-        static readonly byte[] ENoClientSlotBytes = Encoding.UTF8.GetBytes("ENoClientSlot\n");
-        static readonly byte[] EAccessDenied = Encoding.UTF8.GetBytes("EAccessDenied\n");
-
-        #endregion -Setup TCP-
-
         static void ParseMessage(string message)
         {
             if (MessagePlayerPosition.TryParse(message, out var mpp))
@@ -1284,8 +1559,9 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(ml);
             }
             else
-            if (MessageConstructs.TryParse(message, out var mc))
+            if (MessageAllObjects.TryParse(message, out var mc))
             {
+                LogInfo(message);
                 receiveQueue.Enqueue(mc);
             }
             else
@@ -1309,6 +1585,16 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(minv);
             }
             else
+            if (MessagePlaceConstructible.TryParse(message, out var mpc))
+            {
+                receiveQueue.Enqueue(mpc);
+            }
+            else
+            if (MessageConstructed.TryParse(message, out var mc1))
+            {
+                receiveQueue.Enqueue(mc1);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -1330,48 +1616,7 @@ namespace FeatMultiplayer
             // TODO other messages
         }
 
-        #region -Multiplayer Menu-
-        static GameObject CreateText(string txt, int fs, bool highlight = false)
-        {
-            var result = new GameObject();
-            result.transform.parent = parent.transform;
-
-            Text text = result.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            text.text = txt;
-            text.color = highlight ? interactiveColor : defaultColor;
-            text.fontSize = (int)fs;
-            text.resizeTextForBestFit = false;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.alignment = TextAnchor.MiddleLeft;
-            text.raycastTarget = true;
-
-            return result;
-        }
-
-        static bool IsWithin(GameObject go, Vector2 mouse)
-        {
-            RectTransform rect = go.GetComponent<Text>().GetComponent<RectTransform>();
-
-            var lp = rect.localPosition;
-            lp.x += Screen.width / 2 - rect.sizeDelta.x / 2;
-            lp.y += Screen.height / 2 - rect.sizeDelta.y / 2;
-
-            return mouse.x >= lp.x && mouse.y >= lp.y
-                && mouse.x <= lp.x + rect.sizeDelta.x && mouse.y <= lp.y + rect.sizeDelta.y;
-        }
-
-        public static bool IsIPv4(IPAddress ipa) => ipa.AddressFamily == AddressFamily.InterNetwork;
-
-        public static IPAddress GetMainIPv4() => NetworkInterface.GetAllNetworkInterfaces()
-            .Select((ni) => ni.GetIPProperties())
-            .Where((ip) => ip.GatewayAddresses.Where((ga) => IsIPv4(ga.Address)).Count() > 0)
-            .FirstOrDefault()?.UnicastAddresses?
-            .Where((ua) => IsIPv4(ua.Address))?.FirstOrDefault()?.Address;
-
-        #endregion -Multiplayer Menu-
-
+        #region - Logging -
         internal static void LogInfo(object message)
         {
             if (updateMode == MultiplayerMode.CoopClient)
@@ -1439,5 +1684,7 @@ namespace FeatMultiplayer
                 theLogger.LogInfo(message);
             }
         }
+
+        #endregion - Logging -
     }
 }
