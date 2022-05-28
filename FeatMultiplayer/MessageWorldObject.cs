@@ -53,6 +53,10 @@ namespace FeatMultiplayer
 
                 mwo.growth = float.Parse(objs[offset + 9], CultureInfo.InvariantCulture);
                 return true;
+            } 
+            else
+            {
+                Plugin.LogWarning("Invalid MessageWorldObject: " + objs.Length + " | " + offset);
             }
             mwo = null;
             return false;

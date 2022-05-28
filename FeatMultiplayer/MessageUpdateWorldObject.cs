@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageConstructed
+    internal class MessageUpdateWorldObject
     {
         internal MessageWorldObject worldObject;
-        public static bool TryParse(string str, out MessageConstructed mc)
+        public static bool TryParse(string str, out MessageUpdateWorldObject mc)
         {
-            if (MessageHelper.TryParseMessage("Constructed|", str, out var parameters))
+            if (MessageHelper.TryParseMessage("UpdateWorldObject|", str, out var parameters))
             {
                 try
                 {
-                    mc = new MessageConstructed();
+                    mc = new MessageUpdateWorldObject();
                     return MessageWorldObject.TryParse(parameters, 1, out mc.worldObject);
                 }
                 catch (Exception ex)

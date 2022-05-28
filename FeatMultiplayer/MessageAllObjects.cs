@@ -11,33 +11,34 @@ namespace FeatMultiplayer
     internal class MessageAllObjects
     {
         internal List<MessageWorldObject> worldObjects = new();
-        internal static void AppendWorldObject(StringBuilder sb, WorldObject wo)
+        internal static void AppendWorldObject(StringBuilder sb, char separator, WorldObject wo)
         {
             sb.Append(wo.GetId());  // 0
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(wo.GetGroup().GetId());  // 1
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(wo.GetLinkedInventoryId());  // 2
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(GroupsHandler.GetGroupsStringIds(wo.GetLinkedGroups())); // 3
-            sb.Append(';');
+            sb.Append(separator);
             if (wo.GetIsPlaced())
             {
                 sb.Append(DataTreatments.Vector3ToString(wo.GetPosition())); // 4
-                sb.Append(';');
+                sb.Append(separator);
                 sb.Append(DataTreatments.QuaternionToString(wo.GetRotation())); // 5
-                sb.Append(';');
+                sb.Append(separator);
             }
             else
             {
-                sb.Append(";;");
+                sb.Append(separator);
+                sb.Append(separator);
             }
             sb.Append(DataTreatments.ColorToString(wo.GetColor())); // 6
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(wo.GetText()); // 7
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(DataTreatments.IntListToString(wo.GetPanelsId())); // 8
-            sb.Append(';');
+            sb.Append(separator);
             sb.Append(wo.GetGrowth().ToString(CultureInfo.InvariantCulture)); // 9
         }
         public static bool TryParse(string str, out MessageAllObjects mc)
@@ -65,7 +66,7 @@ namespace FeatMultiplayer
                 } 
                 catch (Exception ex)
                 {
-                    Plugin.LogError(ex);
+                    Plugin.LogError(str +"\r\n\r\n" + ex);
                 }
             }
             mc = null;

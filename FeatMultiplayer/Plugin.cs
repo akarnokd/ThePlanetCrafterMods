@@ -22,6 +22,7 @@ using System.IO;
 using MijuTools;
 using UnityEngine.SceneManagement;
 using System.Globalization;
+using System.Collections;
 
 namespace FeatMultiplayer
 {
@@ -58,7 +59,6 @@ namespace FeatMultiplayer
 
         static readonly object logLock = new object();
         static FieldInfo worldObjectsHandlerWorldObjectToGameObject;
-        static MethodInfo worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject;
 
         private void Awake()
         {
@@ -91,7 +91,6 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
             worldObjectsHandlerWorldObjectToGameObject = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
-            worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject = AccessTools.Method(typeof(WorldObjectsHandler), "SetPanelsForNewlyInstantiatedWorldObject");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -152,6 +151,10 @@ namespace FeatMultiplayer
         static bool suppressInventoryChange;
 
         static volatile bool networkConnected;
+
+        static bool initialInventoryOnce;
+
+        static readonly Dictionary<int, WorldObject> worldObjectById = new Dictionary<int, WorldObject>();
 
         enum MultiplayerMode
         {
@@ -594,6 +597,67 @@ namespace FeatMultiplayer
             }
         }
 
+        static void SetupInitialInventory()
+        {
+            LogInfo("SetupInitialInventory");
+            PlayersManager p = Managers.GetManager<PlayersManager>();
+            var pc = p.GetActivePlayerController();
+            var inv = pc.GetPlayerBackpack().GetInventory();
+            Dictionary<string, int> itemsToAdd = new Dictionary<string, int>()
+            {
+                {
+                    "MultiBuild",
+                    1
+                },
+                {
+                    "MultiDeconstruct",
+                    1
+                },
+                {
+                    "MultiToolLight",
+                    1
+                },
+                {
+                    "Iron",
+                    10
+                },
+                {
+                    "Magnesium",
+                    10
+                },
+                {
+                    "Silicon",
+                    10
+                },
+                {
+                    "Titanium",
+                    10
+                },
+                {
+                    "Cobalt",
+                    10
+                },
+            };
+
+            foreach (var kv in itemsToAdd)
+            {
+                var gr = GroupsHandler.GetGroupViaId(kv.Key);
+                if (gr != null)
+                {
+                    for (int i = 0; i < kv.Value; i++)
+                    {
+                        var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
+                        inv.AddItem(wo);
+                        SendWorldObject(wo);
+                    }
+                }
+                else
+                {
+                    LogWarning("SetupInitialInventory: Unknown groupId " + kv.Key);
+                }
+            }
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
         static bool GaugesConsumptionHandler_GetThirstConsumptionRate(ref float __result)
@@ -629,6 +693,7 @@ namespace FeatMultiplayer
                     WorldObject worldObject = woa.GetWorldObject();
                     if (worldObject != null)
                     {
+                        LogInfo("Mined: " + worldObject.GetId() + " at " + worldObject.GetPosition());
                         sendQueue.Enqueue("Mined|" + worldObject.GetId() + "\n");
                         sendQueueBlock.Set();
                     }
@@ -650,7 +715,50 @@ namespace FeatMultiplayer
             receiveQueue.Clear();
             otherPlayer?.Destroy();
             otherPlayer = null;
+            worldObjectById.Clear();
         }
+
+        #region - Patch WorldObjectsHandler -
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
+        static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
+        {
+            worldObjectById[_worldObject.GetId()] = _worldObject;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject))]
+        static void WorldObjectsHandler_DestroyWorldObject(WorldObject _worldObject)
+        {
+            var id = _worldObject.GetId();
+            if (worldObjectById.ContainsKey(id) && 
+                !WorldObjectsIdHandler.IsWorldObjectFromScene(id))
+            {
+                worldObjectById.Remove(id);
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.GetWorldObjectViaId))]
+        static bool WorldObjectsHandler_GetWorldObjectViaId(int _id, ref WorldObject __result)
+        {
+            worldObjectById.TryGetValue(_id, out __result);
+            return false;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.SetAllWorldObjects))]
+        static void WorldObjectsHandler_SetAllWorldObjects(List<WorldObject> _allWorldObjects)
+        {
+            worldObjectById.Clear();
+            foreach (WorldObject wo in _allWorldObjects)
+            {
+                worldObjectById[wo.GetId()] = wo;
+            }
+        }
+
+        #endregion - Patch WorldObjectsHandler -
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldObjectsIdHandler), nameof(WorldObjectsIdHandler.GetNewWorldObjectIdForDb))]
@@ -795,7 +903,35 @@ namespace FeatMultiplayer
                     ConstraintSamePanel component = __instance.gameObject.GetComponent<ConstraintSamePanel>();
                     if (component != null)
                     {
-                        // TODO here, panels are updated
+                        var aimPanel = component.GetAimedAtPanel();
+                        var newPanelType = component.GetAssociatedSubPanelType();
+                        var assoc = aimPanel.GetWorldObjectAssociated();
+
+                        int idx = 0;
+                        var panels = assoc.gameObject.GetComponentsInChildren<Panel>();
+                        foreach (Panel panel in panels)
+                        {
+                            if (panel == aimPanel)
+                            {
+
+                                MessagePanelChanged pc = new MessagePanelChanged()
+                                {
+                                    itemId = assoc.GetWorldObject().GetId(),
+                                    panelId = idx,
+                                    panelType = (int)newPanelType
+                                };
+                                PlayBuildGhost();
+                                LogInfo("Place: Change Panel " + pc.itemId + ", " + idx + ", " + newPanelType);
+                                sendQueue.Enqueue(pc);
+                                sendQueueBlock.Set();
+                                break;
+                            }
+                            idx++;
+                        }
+                        if (idx == panels.Length)
+                        {
+                            LogWarning("Place: Panel not found");
+                        }
                     }
                     else
                     {
@@ -805,6 +941,8 @@ namespace FeatMultiplayer
                             position = __instance.gameObject.transform.position, 
                             rotation = __instance.gameObject.transform.rotation
                         };
+                        PlayBuildGhost();
+                        LogInfo("Place: Construct " + mpc.groupId + "; " + mpc.position + "; " + mpc.rotation);
                         sendQueue.Enqueue(mpc);
                         sendQueueBlock.Set();
                     }
@@ -814,6 +952,50 @@ namespace FeatMultiplayer
                 }
             }
             return true;
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ConstructibleGhost), nameof(ConstructibleGhost.Place))]
+        static void ConstructibleGhost_Place_Post(ConstructibleGhost __instance,
+            GameObject __result, GroupConstructible ___groupConstructible)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (__result != null)
+                {
+                    var woa = __result.GetComponent<WorldObjectAssociated>();
+                    if (woa != null)
+                    {
+                        var wo = woa.GetWorldObject();
+                        if (wo != null)
+                        {
+                            SendWorldObject(wo);
+                        }
+                    }
+                }
+            }
+        }
+
+        static void PlayBuildGhost()
+        {
+            PlayersManager p = Managers.GetManager<PlayersManager>();
+            if (p != null)
+            {
+                PlayerMainController pm = p.GetActivePlayerController();
+                if (pm != null)
+                {
+                    pm.GetPlayerAudio().PlayBuildGhost();
+
+                    var anims = pm.GetAnimations();
+                    anims.AnimateConstruct(true);
+                    anims.StartCoroutine(StopConstructAnim(anims));
+                }
+            }
+        }
+
+        static IEnumerator StopConstructAnim(PlayerAnimations pa)
+        {
+            yield return new WaitForSeconds(0.5f);
+            pa.AnimateConstruct(false);
         }
 
         [HarmonyPostfix]
@@ -1025,9 +1207,14 @@ namespace FeatMultiplayer
                                     ReceiveMessagePlaceConstructible(mpc);
                                     break;
                                 }
-                            case MessageConstructed mc1:
+                            case MessageUpdateWorldObject mc1:
                                 {
-                                    ReceiveMessageConstructed(mc1);
+                                    ReceiveMessageUpdateWorldObject(mc1);
+                                    break;
+                                }
+                            case MessagePanelChanged mpc1:
+                                {
+                                    ReceiveMessagePanelChanged(mpc1);
                                     break;
                                 }
                             case string s:
@@ -1043,6 +1230,14 @@ namespace FeatMultiplayer
                                         LogInfo("Client disconnected");
                                         otherPlayer?.Destroy();
                                         clientConnected = false;
+                                        if (updateMode == MultiplayerMode.CoopHost)
+                                        {
+                                            NotifyUserFromBackground("Client disconnected");
+                                        }
+                                        else
+                                        {
+                                            NotifyUserFromBackground("Host disconnected");
+                                        }
                                     }
                                     break;
                                 }
@@ -1217,7 +1412,7 @@ namespace FeatMultiplayer
 
         static void SendFullState()
         {
-            LogInfo("Begin syncing the entire game state to the client");
+            //LogInfo("Begin syncing the entire game state to the client");
             StringBuilder sb = new StringBuilder();
             sb.Append("AllObjects");
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
@@ -1228,7 +1423,8 @@ namespace FeatMultiplayer
                     if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
                     {
                         sb.Append("|");
-                        MessageAllObjects.AppendWorldObject(sb, wo);
+                        MessageAllObjects.AppendWorldObject(sb, ';', wo);
+                        //LogInfo("FullSync> " + DebugWorldObject(wo));
                     }
                 }
             }
@@ -1252,13 +1448,15 @@ namespace FeatMultiplayer
             sendQueueBlock.Set();
         }
 
-        static void UpdateWorldObject(MessageWorldObject mwo, Dictionary<int, WorldObject> localConstructs)
+        static void UpdateWorldObject(MessageWorldObject mwo)
         {
-            if (localConstructs == null || !localConstructs.TryGetValue(mwo.id, out var wo))
+            bool isNew = false;
+            if (!worldObjectById.TryGetValue(mwo.id, out var wo))
             {
                 Group gr = GroupsHandler.GetGroupViaId(mwo.groupId);
                 wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
                 LogInfo("UpdateWorldObject: Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
+                isNew = true;
             }
             bool wasPlaced = wo.GetIsPlaced();
             wo.SetPositionAndRotation(mwo.position, mwo.rotation);
@@ -1318,36 +1516,77 @@ namespace FeatMultiplayer
             if (doUpdatePanels)
             {
                 LogInfo("UpdateWorldObject: Updating panels on " + wo.GetId());
-                if (TryGetGameObject(wo, out var go))
+                UpdatePanelsOn(wo);
+            }
+            // remove already mined objects
+            if (isNew && WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !doPlace)
+            {
+                DeleteActionMinableForId(wo.GetId());
+            }
+        }
+
+        static bool DeleteActionMinableForId(int id)
+        {
+            foreach (ActionMinable am in UnityEngine.Object.FindObjectsOfType<ActionMinable>())
+            {
+                var woa = am.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
                 {
-                    //worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject.Invoke(null, new object[] { wo, go });
-                    var panelIds = wo.GetPanelsId();
-                    if (panelIds != null && panelIds.Count > 0)
+                    var wo1 = woa.GetWorldObject();
+                    if (wo1 != null)
                     {
-                        Panel[] componentsInChildren = go.GetComponentsInChildren<Panel>();
-                        int num = 0;
-                        foreach (Panel panel in componentsInChildren)
+                        if (wo1.GetId() == id)
+                        {
+
+                            LogWarning("DeleteActionMinableForId: ActionMinable deleted: " + id);
+                            UnityEngine.Object.Destroy(am.gameObject);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+
+            LogInfo("DeleteActionMinableForId: ActionMinable or WorldObjectAssociated found for " + id);
+            return false;
+        }
+
+        static void UpdatePanelsOn(WorldObject wo)
+        {
+            if (TryGetGameObject(wo, out var go))
+            {
+                //worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject.Invoke(null, new object[] { wo, go });
+                var panelIds = wo.GetPanelsId();
+                if (panelIds != null && panelIds.Count > 0)
+                {
+                    Panel[] componentsInChildren = go.GetComponentsInChildren<Panel>();
+                    int num = 0;
+                    foreach (Panel panel in componentsInChildren)
+                    {
+                        if (num < panelIds.Count)
                         {
                             try
                             {
                                 DataConfig.BuildPanelSubType subPanelType = (DataConfig.BuildPanelSubType)panelIds[num];
                                 panel.ChangePanel(subPanelType);
-                                num++;
                             }
                             catch (Exception ex)
                             {
                                 LogError(ex);
                             }
                         }
-                        LogInfo("UpdateWorldObject: Updating panels on " + wo.GetId() + " success");
-                    } else
-                    {
-                        LogInfo("UpdateWorldObject: Updating panels: No panel details on " + wo.GetId());
+                        num++;
                     }
-                } else
-                {
-                    LogInfo("UpdateWorldObject: Updating panels: Game object not found of " + wo.GetId());
+                    LogInfo("UpdatePanelsOn: Updating panels on " + wo.GetId() + " success | " + panelIds);
                 }
+                else
+                {
+                    LogInfo("UpdatePanelsOn: Updating panels: No panel details on " + wo.GetId());
+                }
+            }
+            else
+            {
+                LogInfo("UpdatePanelsOn: Updating panels: Game object not found of " + wo.GetId());
             }
         }
 
@@ -1355,31 +1594,26 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                LogInfo("Received all constructs: " + mc.worldObjects.Count);
-                Dictionary<int, WorldObject> localConstructs = new Dictionary<int, WorldObject>();
+                // LogInfo("Received all constructs: " + mc.worldObjects.Count);
                 HashSet<int> toDelete = new HashSet<int>();
-                foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+
+                foreach (var kv in worldObjectById)
                 {
-                    int id = wo.GetId();
-                    if (!localConstructs.ContainsKey(id))
-                    {
-                        localConstructs[id] = wo;
-                        toDelete.Add(id);
-                    }
-                }
+                    toDelete.Add(kv.Key);
+                }                
 
                 foreach (MessageWorldObject mwo in mc.worldObjects)
                 {
                     //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
                     toDelete.Remove(mwo.id);
 
-                    UpdateWorldObject(mwo, localConstructs);
+                    UpdateWorldObject(mwo);
                 }
 
                 foreach (int id in toDelete)
                 {
                     //LogInfo("WorldObject " + id + " destroyed: " + DebugWorldObject(id));
-                    if (localConstructs.TryGetValue(id, out var wo))
+                    if (worldObjectById.TryGetValue(id, out var wo))
                     {
                         if (TryGetGameObject(wo, out var go))
                         {
@@ -1389,6 +1623,12 @@ namespace FeatMultiplayer
                         }
                         WorldObjectsHandler.DestroyWorldObject(wo);
                     }
+                }
+
+                if (!initialInventoryOnce)
+                {
+                    initialInventoryOnce = true;
+                    SetupInitialInventory();
                 }
             }
         }
@@ -1484,27 +1724,28 @@ namespace FeatMultiplayer
 
         static void ReceiveMessageMined(MessageMined mm)
         {
-            LogInfo("OtherPlayer mined " + mm.id);
+            LogInfo("ReceiveMessageMined: OtherPlayer mined " + mm.id);
 
-            foreach (ActionMinable am in UnityEngine.Object.FindObjectsOfType<ActionMinable>())
+            WorldObject wo1 = WorldObjectsHandler.GetWorldObjectViaId(mm.id);
+            if (wo1 != null && wo1.GetIsPlaced())
             {
-                var woa = am.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
-                {
-                    var wo = woa.GetWorldObject();
-                    if (wo != null)
-                    {
-                        if (wo.GetId() == mm.id)
-                        {
+                LogInfo("ReceiveMessageMined: Hiding WorldObject " + mm.id);
+                wo1.ResetPositionAndRotation();
+                wo1.SetDontSaveMe(false);
 
-                            UnityEngine.Object.Destroy(am.gameObject);
-                            return;
-                        }
-                    }
+                if (TryGetGameObject(wo1, out var go))
+                {
+                    TryRemoveGameObject(wo1);
+                    UnityEngine.Object.Destroy(go);
                 }
+                else
+                {
+                    LogWarning("ReceiveMessageMined: GameObject not found");
+                }
+                return;
             }
 
-            LogInfo("OtherPlayer mined " + mm.id + " but not found???");
+            DeleteActionMinableForId(mm.id);
         }
 
         static void ReceiveMessagePlaceConstructible(MessagePlaceConstructible mpc)
@@ -1512,23 +1753,69 @@ namespace FeatMultiplayer
             GroupConstructible gc = GroupsHandler.GetGroupViaId(mpc.groupId) as GroupConstructible;
             if (gc != null)
             {
+                LogInfo("ReceiveMessagePlaceConstructible: " + mpc.groupId + ", " + mpc.position + ", " + mpc.rotation);
                 WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(gc, WorldObjectsIdHandler.GetNewWorldObjectIdForDb());
                 worldObject.SetPositionAndRotation(mpc.position, mpc.rotation);
                 WorldObjectsHandler.InstantiateWorldObject(worldObject, _fromDb: false);
 
-                StringBuilder sb = new StringBuilder();
-                sb.Append("Constructed|");
-                MessageAllObjects.AppendWorldObject(sb, worldObject);
-                sb.Append("\r");
-
-                sendQueue.Enqueue(sb.ToString());
-                sendQueueBlock.Set();
+                SendWorldObject(worldObject);
+            }
+            else
+            {
+                LogInfo("ReceiveMessagePlaceConstructible: Unknown constructible " + mpc.groupId + ", " + mpc.position + ", " + mpc.rotation);
             }
         }
 
-        static void ReceiveMessageConstructed(MessageConstructed mc)
+        static void SendWorldObject(WorldObject worldObject)
         {
-            UpdateWorldObject(mc.worldObject, null);
+            StringBuilder sb = new StringBuilder();
+            sb.Append("UpdateWorldObject|");
+            MessageAllObjects.AppendWorldObject(sb, '|', worldObject);
+
+            LogInfo("Sending> " + sb.ToString());
+
+            sb.Append("\r");
+            sendQueue.Enqueue(sb.ToString());
+            sendQueueBlock.Set();
+        }
+
+        static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
+        {
+            LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
+            UpdateWorldObject(mc.worldObject);
+        }
+
+        static void ReceiveMessagePanelChanged(MessagePanelChanged mpc)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mpc.itemId);
+            if (wo != null)
+            {
+                if (TryGetGameObject(wo, out GameObject go))
+                {
+                    LogWarning("ReceiveMessagePanelChanged: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                    var panelIds = wo.GetPanelsId();
+                    if (panelIds == null)
+                    {
+                        panelIds = new List<int>();
+                    }
+                    while (panelIds.Count <= mpc.panelId)
+                    {
+                        panelIds.Add(0);
+                    }
+                    panelIds[mpc.panelId] = mpc.panelType;
+                    wo.SetPanelsId(panelIds);
+                    UpdatePanelsOn(wo);
+
+                    SendWorldObject(wo);
+                } else
+                {
+                    LogWarning("ReceiveMessagePanelChanged: GameObject not found for: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                }
+            }
+            else
+            {
+                LogWarning("ReceiveMessagePanelChanged: Unknown item: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+            }
         }
 
         static void NotifyUser(string message, float duration = 5f)
@@ -1561,7 +1848,7 @@ namespace FeatMultiplayer
             else
             if (MessageAllObjects.TryParse(message, out var mc))
             {
-                LogInfo(message);
+                //LogInfo(message);
                 receiveQueue.Enqueue(mc);
             }
             else
@@ -1590,9 +1877,14 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mpc);
             }
             else
-            if (MessageConstructed.TryParse(message, out var mc1))
+            if (MessageUpdateWorldObject.TryParse(message, out var mc1))
             {
                 receiveQueue.Enqueue(mc1);
+            }
+            else
+            if (MessagePanelChanged.TryParse(message, out var mpc1))
+            {
+                receiveQueue.Enqueue(mpc1);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
