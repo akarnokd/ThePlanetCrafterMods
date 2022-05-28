@@ -336,6 +336,7 @@ namespace FeatMultiplayer
 
         static void StartAsClient()
         {
+            NotifyUser("Connecting to Host...");
             stopNetwork = new CancellationTokenSource();
             Task.Run(() =>
             {
@@ -343,6 +344,7 @@ namespace FeatMultiplayer
                 try
                 {
                     TcpClient client = new TcpClient(hostAddress.Value, port.Value);
+                    NotifyUser("Connecting to Host...Success");
                     networkConnected = true;
                     stopNetwork.Token.Register(() =>
                     {
@@ -693,7 +695,7 @@ namespace FeatMultiplayer
                     WorldObject worldObject = woa.GetWorldObject();
                     if (worldObject != null)
                     {
-                        LogInfo("Mined: " + worldObject.GetId() + " at " + worldObject.GetPosition());
+                        LogInfo("Mined: " + worldObject.GetId() + " of " + worldObject.GetGroup().GetId() + " at " + worldObject.GetPosition());
                         sendQueue.Enqueue("Mined|" + worldObject.GetId() + "\n");
                         sendQueueBlock.Set();
                     }
@@ -756,6 +758,76 @@ namespace FeatMultiplayer
             {
                 worldObjectById[wo.GetId()] = wo;
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DropOnFloor))]
+        static void WorldObjectsHandler_DropOnFloor(WorldObject _worldObject, 
+            Vector3 _position, float _dropSize = 0f)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                LogInfo("Dropping: " + DebugWorldObject(_worldObject));
+                SendWorldObject(_worldObject);
+                if (TryGetGameObject(_worldObject, out var go))
+                {
+                    go.GetComponent<WorldObjectAssociated>()
+                    .StartCoroutine(WorldObjectsHandler_DropOnFloor_Tracker(_worldObject));
+                }
+            }
+            else
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                // Let the host animate it
+                if (TryGetGameObject(_worldObject, out var go)) {
+                    UnityEngine.Object.Destroy(go);
+                    _worldObject.ResetPositionAndRotation();
+                }
+
+                LogInfo("Dropping: " + DebugWorldObject(_worldObject));
+                MessageDropWorldObject msg = new MessageDropWorldObject()
+                {
+                    id = _worldObject.GetId(),
+                    position = _position,
+                    dropSize = _dropSize
+                };
+                sendQueue.Enqueue(msg);
+                sendQueueBlock.Set();
+            }
+        }
+
+        static IEnumerator WorldObjectsHandler_DropOnFloor_Tracker(WorldObject _worldObject)
+        {
+            float delay = 0.5f / networkFrequency.Value; // sample twice the network frequency
+            int maxLoop = (int)(26 / delay);
+            for (int i = 0; i < maxLoop; i++)
+            {
+                if (TryGetGameObject(_worldObject, out var go))
+                {
+                    if (go != null && _worldObject.GetIsPlaced())
+                    {
+                        var messageSetTransform = new MessageSetTransform()
+                        {
+                            id = _worldObject.GetId(),
+                            position = go.transform.position,
+                            rotation = go.transform.rotation,
+                            mode = MessageSetTransform.Mode.GameObjectOnly
+                        };
+                        sendQueue.Enqueue(messageSetTransform);
+                        sendQueueBlock.Set();
+                    }
+                    else
+                    {
+                        yield break;
+                    }
+                }
+                else
+                {
+                    yield break;
+                }
+                yield return new WaitForSeconds(delay);
+            }
+
         }
 
         #endregion - Patch WorldObjectsHandler -
@@ -963,14 +1035,20 @@ namespace FeatMultiplayer
                 if (__result != null)
                 {
                     var woa = __result.GetComponent<WorldObjectAssociated>();
+                    if (woa == null)
+                    {
+                        woa = __result.GetComponentInParent<WorldObjectAssociated>();
+                    }
                     if (woa != null)
                     {
                         var wo = woa.GetWorldObject();
                         if (wo != null)
                         {
                             SendWorldObject(wo);
+                            return;
                         }
                     }
+                    LogWarning("Place: WorldObjectAssociated not found");
                 }
             }
         }
@@ -1217,6 +1295,16 @@ namespace FeatMultiplayer
                                     ReceiveMessagePanelChanged(mpc1);
                                     break;
                                 }
+                            case MessageSetTransform mst:
+                                {
+                                    ReceiveMessageSetTransform(mst);
+                                    break;
+                                }
+                            case MessageDropWorldObject mdwo:
+                                {
+                                    ReceiveMessageDropWorldObject(mdwo);
+                                    break;
+                                }
                             case string s:
                                 {
                                     if (s == "Welcome")
@@ -1359,6 +1447,7 @@ namespace FeatMultiplayer
                 try
                 {
                     inv.AddItem(wo);
+                    LogInfo("ReceiveMessageInventoryAdded: " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
                 } 
                 finally
                 {
@@ -1367,7 +1456,7 @@ namespace FeatMultiplayer
             }
             else
             {
-                LogWarning("Unknown inventory added: " + mia.GetString());
+                LogInfo("ReceiveMessageInventoryAdded: Uknown inventory " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
             }
         }
 
@@ -1393,6 +1482,7 @@ namespace FeatMultiplayer
                     try
                     {
                         inv.RemoveItem(wo, mia.destroy);
+                        LogInfo("ReceiveMessageInventoryRemoved: " + mia.inventoryId + " <= " + mia.itemId + ", " + wo.GetGroup().GetId());
                     }
                     finally
                     {
@@ -1401,12 +1491,12 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    LogWarning("Unknown item removed: " + mia.GetString());
+                    LogWarning("ReceiveMessageInventoryRemoved: Unknown item " + mia.inventoryId + " <= " + mia.itemId);
                 }
             }
             else
             {
-                LogWarning("Unknown inventory removed: " + mia.GetString());
+                LogWarning("ReceiveMessageInventoryRemoved: Unknown inventory " + mia.inventoryId + " <= " + mia.itemId);
             }
         }
 
@@ -1491,11 +1581,12 @@ namespace FeatMultiplayer
                 wo.SetLinkedInventoryId(0);
                 // FIXME delete inventory?
             }
-
+            bool dontUpdatePosition = false;
             if (!wasPlaced && doPlace)
             {
                 WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 LogInfo("UpdateWorldObject: Placing GameObject for WorldObject " + DebugWorldObject(wo));
+                dontUpdatePosition = true;
             }
             else
             if (wasPlaced && !doPlace)
@@ -1512,6 +1603,18 @@ namespace FeatMultiplayer
                     LogInfo("WorldObject " + wo.GetId() + " has no associated GameObject");
                 }
                 */
+            }
+            if (doPlace && !dontUpdatePosition)
+            {
+                if (TryGetGameObject(wo, out var go))
+                {
+                    if (go != null)
+                    {
+                        LogInfo("UpdateWorldObject: " + wo.GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                        go.transform.position = mwo.position;
+                        go.transform.rotation = mwo.rotation;
+                    }
+                }
             }
             if (doUpdatePanels)
             {
@@ -1538,7 +1641,7 @@ namespace FeatMultiplayer
                         if (wo1.GetId() == id)
                         {
 
-                            LogWarning("DeleteActionMinableForId: ActionMinable deleted: " + id);
+                            LogInfo("DeleteActionMinableForId: ActionMinable deleted: " + id);
                             UnityEngine.Object.Destroy(am.gameObject);
                             return true;
                         }
@@ -1547,7 +1650,7 @@ namespace FeatMultiplayer
             }
 
 
-            LogInfo("DeleteActionMinableForId: ActionMinable or WorldObjectAssociated found for " + id);
+            LogWarning("DeleteActionMinableForId: ActionMinable or WorldObjectAssociated found for " + id);
             return false;
         }
 
@@ -1668,15 +1771,6 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopClient)
             {
                 LogInfo("Received all inventories");
-                Dictionary<int, WorldObject> localConstructs = new Dictionary<int, WorldObject>();
-                foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
-                {
-                    int id = wo.GetId();
-                    if (!localConstructs.ContainsKey(id))
-                    {
-                        localConstructs[id] = wo;
-                    }
-                }
 
                 HashSet<int> toDelete = new HashSet<int>();
                 Dictionary<int, Inventory> localInventories = new Dictionary<int, Inventory>();
@@ -1698,18 +1792,21 @@ namespace FeatMultiplayer
                         localInventories.TryGetValue(wi.id, out var inv);
                         if (inv == null)
                         {
+                            LogInfo("ReceiveMessageInventories: Creating new inventory " + wi.id + " of size " + wi.size);
                             inv = InventoriesHandler.CreateNewInventory(wi.size, wi.id);
                         } 
                         else 
                         {
                             inv.SetSize(wi.size);
                         }
-                        inv.GetInsideWorldObjects().Clear();
+
+                        List<WorldObject> worldObjects = inv.GetInsideWorldObjects();
+                        worldObjects.Clear();
                         foreach (int id in wi.itemIds)
                         {
-                            if (localConstructs.TryGetValue(id, out var wo))
+                            if (worldObjectById.TryGetValue(id, out var wo))
                             {
-                                inv.GetInsideWorldObjects().Add(wo);
+                                worldObjects.Add(wo);
                             }
                         }
                     }
@@ -1717,6 +1814,17 @@ namespace FeatMultiplayer
                 finally
                 {
                     suppressInventoryChange = false;
+                }
+
+                List<Inventory> inventories = InventoriesHandler.GetAllInventories();
+                for (int i = inventories.Count - 1; i >= 0; i--)
+                {
+                    Inventory inv = inventories[i];
+                    if (toDelete.Contains(inv.GetId()))
+                    {
+                        LogInfo("ReceiveMessageInventories: Removing inventory " + inv.GetId());
+                        inventories.RemoveAt(i);
+                    }
                 }
             }
             */
@@ -1818,6 +1926,40 @@ namespace FeatMultiplayer
             }
         }
 
+        static void ReceiveMessageSetTransform(MessageSetTransform st)
+        {
+            if (worldObjectById.TryGetValue(st.id, out var wo))
+            {
+                if (st.mode != MessageSetTransform.Mode.GameObjectOnly)
+                {
+                    wo.SetPositionAndRotation(st.position, st.rotation);
+                }
+                if (st.mode != MessageSetTransform.Mode.WorldObjectOnly 
+                    && TryGetGameObject(wo, out var go) && go != null)
+                {
+                    go.transform.position = st.position;
+                    go.transform.rotation = st.rotation;
+                }
+            }
+        }
+
+        static void ReceiveMessageDropWorldObject(MessageDropWorldObject mdwo)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (worldObjectById.TryGetValue(mdwo.id, out var wo))
+                {
+                    WorldObjectsHandler.DropOnFloor(wo, mdwo.position, mdwo.dropSize);
+                    SendWorldObject(wo);
+                    if (TryGetGameObject(wo, out var go))
+                    {
+                        go.GetComponent<WorldObjectAssociated>()
+                            .StartCoroutine(WorldObjectsHandler_DropOnFloor_Tracker(wo));
+                    }
+                }
+            }
+        }
+
         static void NotifyUser(string message, float duration = 5f)
         {
             Managers.GetManager<BaseHudHandler>().DisplayCursorText("", duration, message);
@@ -1885,6 +2027,16 @@ namespace FeatMultiplayer
             if (MessagePanelChanged.TryParse(message, out var mpc1))
             {
                 receiveQueue.Enqueue(mpc1);
+            }
+            else
+            if (MessageSetTransform.TryParse(message, out var mst))
+            {
+                receiveQueue.Enqueue(mst);
+            }
+            else
+            if (MessageDropWorldObject.TryParse(message, out var mdwo))
+            {
+                receiveQueue.Enqueue(mdwo);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)

@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.7")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -346,7 +346,7 @@ namespace UIHotbar
         static void CountNearbyInventories(float range, PlayerMainController player, Dictionary<string, int> inventoryCounts)
         {
             // based on logic: https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CraftFromContainers/BepInExPlugin.cs#L110
-            Vector2 playerAt = player.transform.position;
+            Vector3 playerAt = player.transform.position;
             Inventory playerInventory = player.GetPlayerBackpack().GetInventory();
             foreach (InventoryAssociated ia in UnityEngine.Object.FindObjectsOfType<InventoryAssociated>())
             {
@@ -356,9 +356,9 @@ namespace UIHotbar
                         Inventory inv = ia.GetInventory();
                         if (inv != null && inv != playerInventory)
                         {
-                            Vector2 inventoryAt = ia.transform.position;
+                            Vector3 inventoryAt = ia.transform.position;
 
-                            if (Vector2.Distance(playerAt, inventoryAt) <= range)
+                            if (Vector3.Distance(playerAt, inventoryAt) <= range)
                             {
                                 CountInventory(inv, inventoryCounts);
                             }
