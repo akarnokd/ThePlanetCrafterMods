@@ -761,7 +761,7 @@ namespace FeatMultiplayer
                     10
                 },
                 {
-                    "Aluminium",
+                    "BlueprintT1",
                     10
                 },
                 {
@@ -1353,6 +1353,45 @@ namespace FeatMultiplayer
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowBlueprints), nameof(UiWindowBlueprints.DecodeBlueprint))]
+        static bool UiWindowBlueprints_DecodeBlueprint(UiWindowBlueprints __instance, Group ___groupChip)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __instance.containerNeverUnlocked.SetActive(false);
+                __instance.containerList.SetActive(false);
+                if (updateMode == MultiplayerMode.CoopClient)
+                {
+                    Send(new MessageMicrochipUnlock());
+                    Signal();
+                }
+                else
+                {
+                    var unlocked = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
+                    if (unlocked != null)
+                    {
+                        Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
+                        GetPlayerMainController().GetPlayerBackpack().GetInventory()
+                            .RemoveItems(new List<Group> { ___groupChip }, true, true);
+
+                        Send(new MessageMicrochipUnlock()
+                        {
+                            groupId = unlocked.GetId()
+                        });
+                        Signal();
+                    }
+                    else
+                    {
+                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_warn_no_more_chip_to_unlock", 3f, "");
+                    }
+                }
+                __instance.CloseAll();
+                return false;
+            }
+            return true;
+        }
+
         void OnApplicationQuit()
         {
             LogInfo("Application quit");
@@ -1536,7 +1575,7 @@ namespace FeatMultiplayer
                 wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("GROUP_DESC_Container2"), id);
                 wo.SetPositionAndRotation(new Vector3(-500, -500, -450), Quaternion.identity);
                 WorldObjectsHandler.InstantiateWorldObject(wo, false);
-                var inv = InventoriesHandler.CreateNewInventory(1000, 0);
+                Inventory inv = InventoriesHandler.CreateNewInventory(1000, 0);
                 int invId = inv.GetId();
                 inventoryId = invId;
                 wo.SetLinkedInventoryId(invId);
@@ -2498,6 +2537,49 @@ namespace FeatMultiplayer
             }
         }
 
+        static void ReceiveMessageMicrochipUnlock(MessageMicrochipUnlock mmu)
+        {
+            // Signal back the client immediately
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                var gr = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
+                if (gr != null)
+                {
+                    mmu.groupId = gr.GetId();
+                    var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                    var microGroup = GroupsHandler.GetGroupViaId("BlueprintT1");
+                    inv.RemoveItems(new List<Group>() { microGroup }, true, false);
+                }
+                else
+                {
+                    mmu.groupId = "";
+                }
+                Send(mmu);
+                Signal();
+            } 
+            else
+            {
+                if (mmu.groupId != "")
+                {
+                    var unlocked = GroupsHandler.GetGroupViaId(mmu.groupId);
+                    if (unlocked != null)
+                    {
+                        LogInfo("ReceiveMessageMicrochipUnlock: Unlock " + mmu.groupId);
+                        GroupsHandler.UnlockGroupGlobally(unlocked);
+                        Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
+                    }
+                    else
+                    {
+                        LogError("ReceiveMessageMicrochipUnlock: Unknown group " + mmu.groupId);
+                    }
+                } 
+                else
+                {
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_warn_no_more_chip_to_unlock", 3f, "");
+                }
+            }
+        }
+
         static void ReceiveWelcome()
         {
             otherPlayer?.Destroy();
@@ -2614,6 +2696,11 @@ namespace FeatMultiplayer
             if (MessageUpdateColor.TryParse(message, out var muc1))
             {
                 receiveQueue.Enqueue(muc1);
+            }
+            else
+            if (MessageMicrochipUnlock.TryParse(message, out var mmu))
+            {
+                receiveQueue.Enqueue(mmu);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -2751,6 +2838,11 @@ namespace FeatMultiplayer
                 case MessageUpdateColor muc:
                     {
                         ReceiveMessageUpdateColor(muc);
+                        break;
+                    }
+                case MessageMicrochipUnlock mmu:
+                    {
+                        ReceiveMessageMicrochipUnlock(mmu);
                         break;
                     }
                 case string s:
