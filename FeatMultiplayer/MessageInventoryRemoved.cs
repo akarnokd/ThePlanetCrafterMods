@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageInventoryRemoved
+    internal class MessageInventoryRemoved : MessageStringProvider
     {
         internal int inventoryId;
         internal int itemId;
@@ -14,7 +14,7 @@ namespace FeatMultiplayer
 
         internal static bool TryParse(string str, out MessageInventoryRemoved mir)
         {
-            if (MessageHelper.TryParseMessage("InventoryRemove|", str, out var parameters))
+            if (MessageHelper.TryParseMessage("InventoryRemoved|", str, out var parameters))
             {
                 if (parameters.Length == 4)
                 {
@@ -31,6 +31,10 @@ namespace FeatMultiplayer
 
                     }
                 }
+                else
+                {
+                    Plugin.LogError("InventoryRemoved.Length = " + parameters.Length);
+                }
             }
             mir = null;
             return false;
@@ -38,7 +42,7 @@ namespace FeatMultiplayer
 
         public string GetString()
         {
-            return "InventoryAdd|" + inventoryId + "|" + itemId + "\n";
+            return "InventoryRemoved|" + inventoryId + "|" + itemId + "|" + (destroy ? 1 : 0) + "\n";
         }
     }
 }

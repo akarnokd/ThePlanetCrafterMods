@@ -64,22 +64,35 @@
 	  </Reference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <Destination1>$(PluginsFolder)\akarnokd - $(Description)</Destination1>
+    <Destination2>$(PluginsFolder2)\akarnokd - $(Description)</Destination2>
+    <ForZip>$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)</ForZip>
+    <ForZipAll>$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)</ForZipAll>
+  </PropertyGroup>
+  
   <Target Name="CopyDLLs" AfterTargets="Build">
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back_Host.png" DestinationFolder="$(Destination1)" />
 
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(PluginsFolder2)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
 
     <!-- Do not turn it into a zip yet
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
+
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
+    
     <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"

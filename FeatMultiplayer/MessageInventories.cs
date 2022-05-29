@@ -11,18 +11,9 @@ namespace FeatMultiplayer
     {
         internal List<WorldInventory> inventories = new List<WorldInventory> ();
 
-        internal static void Append(StringBuilder sb, Inventory inv, int shadowInventoryId, int shadowEquipmentId)
+        internal static void Append(StringBuilder sb, Inventory inv, int asId)
         {
-            int id = inv.GetId();
-            if (id == shadowInventoryId)
-            {
-                id = 1;
-            }
-            else if (id == shadowEquipmentId)
-            {
-                id = 2;
-            }
-            sb.Append(id);
+            sb.Append(asId);
             sb.Append(';');
             sb.Append(inv.GetSize());
             foreach (WorldObject wo in inv.GetInsideWorldObjects())
