@@ -90,6 +90,9 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
             gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
+            worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
+            worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
+            worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -172,6 +175,10 @@ namespace FeatMultiplayer
             CoopHost,
             CoopClient
         }
+
+        static FieldInfo worldUnitCurrentTotalValue;
+        static FieldInfo worldUnitsPositioningWorldUnitsHandler;
+        static FieldInfo worldUnitsPositioningHasMadeFirstInit;
 
         #region -Start Menu-
         [HarmonyPostfix]
@@ -1966,8 +1973,44 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopClient)
             {
                 WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
-                wuh.StopAllCoroutines();
-                wuh.CreateAndSetUnits(mts.ToJsonableWorldState());
+                foreach (WorldUnit wu in wuh.GetAllWorldUnits())
+                {
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Oxygen)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.oxygen);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Heat)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.heat);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Pressure)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.pressure);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.biomass);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Terraformation)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.oxygen + mts.heat + mts.pressure + mts.biomass);
+                    }
+                }
+
+                List<GameObject> allWaterVolumes = Managers.GetManager<WaterHandler>().GetAllWaterVolumes();
+                //LogInfo("allWaterVolumes.Count = " + allWaterVolumes.Count);
+                foreach (GameObject go in allWaterVolumes)
+                {
+                    var wup = go.GetComponent<WorldUnitPositioning>();
+
+                    //LogInfo("WorldUnitPositioning-Before: " + wup.transform.position);
+
+                    worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
+                    worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
+                    wup.UpdateEvolutionPositioning();
+
+                    //LogInfo("WorldUnitPositioning-After: " + wup.transform.position);
+                }
             }
         }
 

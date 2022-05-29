@@ -44,11 +44,6 @@ namespace FeatMultiplayer
             return false;
         }
 
-        internal JsonableWorldState ToJsonableWorldState()
-        {
-            return new JsonableWorldState(oxygen, heat, pressure, biomass);
-        }
-
         public string GetString()
         {
             return "TerraformState|" 
