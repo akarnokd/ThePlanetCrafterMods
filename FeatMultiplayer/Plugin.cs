@@ -1197,7 +1197,8 @@ namespace FeatMultiplayer
                                 {
                                     itemId = assoc.GetWorldObject().GetId(),
                                     panelId = idx,
-                                    panelType = (int)newPanelType
+                                    panelType = (int)newPanelType,
+                                    panelGroupId = ___groupConstructible.GetId()
                                 };
                                 PlayBuildGhost();
                                 LogInfo("Place: Change Panel " + pc.itemId + ", " + idx + ", " + newPanelType);
@@ -2331,10 +2332,29 @@ namespace FeatMultiplayer
                 WorldObjectsHandler.InstantiateWorldObject(worldObject, _fromDb: false);
 
                 SendWorldObject(worldObject);
+
+                ClientConsumeRecipe(gc);
             }
             else
             {
                 LogInfo("ReceiveMessagePlaceConstructible: Unknown constructible " + mpc.groupId + ", " + mpc.position + ", " + mpc.rotation);
+            }
+        }
+
+        static void ClientConsumeRecipe(GroupConstructible gc)
+        {
+            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+
+            var toRemove = new List<Group>() { gc };
+            if (inv.ContainsItems(toRemove))
+            {
+                inv.RemoveItems(toRemove, true, false);
+            }
+            else
+            {
+                toRemove.Clear();
+                toRemove.AddRange(gc.GetRecipe().GetIngredientsGroupInRecipe());
+                inv.RemoveItems(toRemove, true, false);
             }
         }
 
@@ -2377,6 +2397,9 @@ namespace FeatMultiplayer
                     panelIds[mpc.panelId] = mpc.panelType;
                     wo.SetPanelsId(panelIds);
                     UpdatePanelsOn(wo);
+
+                    GroupConstructible gc = (GroupConstructible)GroupsHandler.GetGroupViaId(mpc.panelGroupId);
+                    ClientConsumeRecipe(gc);
 
                     SendWorldObject(wo);
                 } else
