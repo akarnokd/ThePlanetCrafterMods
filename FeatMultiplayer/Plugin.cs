@@ -761,6 +761,10 @@ namespace FeatMultiplayer
                     10
                 },
                 {
+                    "Aluminium",
+                    10
+                },
+                {
                     "OxygenCapsule1",
                     10
                 }
@@ -1298,6 +1302,57 @@ namespace FeatMultiplayer
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(DoorsHandler), "Start")]
+        static void DoorsHandler_Start(DoorsHandler __instance, Door ___door1, Door ___door2)
+        {
+            __instance.StartCoroutine(DoorsReaction(___door1, ___door2));
+        }
+
+        static IEnumerator DoorsReaction(Door door1, Door door2)
+        {
+            bool entered = false;
+            var d1 = door1.transform.position;
+            var d2 = door2.transform.position;
+            var d3 = d1 + (d2 - d1) / 2;
+            for (; ; )
+            {
+                if (otherPlayer != null)
+                {
+                    var pos = otherPlayer.avatar.transform.position;
+
+
+                    var distance = 2f;
+
+                    if (Vector3.Distance(pos, d3) <= distance)
+                    {
+                        if (!entered)
+                        {
+                            entered = true;
+                            door1.OpenDoor();
+                            door2.OpenDoor();
+                        }
+                    }
+                    else
+                    if (entered)
+                    {
+                        entered = false;
+                        door1.CloseDoor();
+                        door2.CloseDoor();
+                    }
+                } else
+                {
+                    if (entered)
+                    {
+                        entered = false;
+                        door1.CloseDoor();
+                        door2.CloseDoor();
+                    }
+                }
+                yield return new WaitForSeconds(0.05f);
+            }
+        }
+
         void OnApplicationQuit()
         {
             LogInfo("Application quit");
@@ -1445,8 +1500,8 @@ namespace FeatMultiplayer
                         {
 
                         }
-                        otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         PrepareHiddenChests();
+                        otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         Send("Welcome\n");
                         Signal();
                         lastHostSync = Time.realtimeSinceStartup;
