@@ -23,6 +23,8 @@ using MijuTools;
 using UnityEngine.SceneManagement;
 using System.Globalization;
 using System.Collections;
+using TMPro;
+using HSVPicker;
 
 namespace FeatMultiplayer
 {
@@ -95,11 +97,7 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Client.log");
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
-            gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
-            worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
-            worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
-            worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
-            playerMultitoolCanUseLight = AccessTools.Field(typeof(PlayerMultitool), "canUseLight");
+            InitFieldAccessors();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -135,7 +133,7 @@ namespace FeatMultiplayer
         static volatile MultiplayerMode updateMode = MultiplayerMode.MainMenu;
 
         static readonly ConcurrentQueue<object> _sendQueue = new ConcurrentQueue<object>();
-        static readonly AutoResetEvent sendQueueBlock = new AutoResetEvent(false);
+        static readonly AutoResetEvent _sendQueueBlock = new AutoResetEvent(false);
         static readonly ConcurrentQueue<object> receiveQueue = new ConcurrentQueue<object>();
 
         static CancellationTokenSource stopNetwork;
@@ -151,8 +149,6 @@ namespace FeatMultiplayer
         static bool suppressInventoryChange;
 
         static volatile bool networkConnected;
-
-        static bool initialInventoryOnce;
 
         /// <summary>
         /// The vanilla game uses linear lookup for its <code>WorldObjectsHandler.GetWorldObjectViaId()</code>
@@ -187,6 +183,19 @@ namespace FeatMultiplayer
         static FieldInfo worldUnitsPositioningWorldUnitsHandler;
         static FieldInfo worldUnitsPositioningHasMadeFirstInit;
         static FieldInfo playerMultitoolCanUseLight;
+        static FieldInfo worldObjectTextWorldObject;
+        static FieldInfo worldObjectColorWorldObject;
+
+        static void InitFieldAccessors()
+        {
+            gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
+            worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
+            worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
+            worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
+            playerMultitoolCanUseLight = AccessTools.Field(typeof(PlayerMultitool), "canUseLight");
+            worldObjectTextWorldObject = AccessTools.Field(typeof(WorldObjectText), "worldObject");
+            worldObjectColorWorldObject = AccessTools.Field(typeof(WorldObjectColor), "worldObject");
+        }
 
         #region -Start Menu-
         [HarmonyPostfix]
@@ -425,6 +434,10 @@ namespace FeatMultiplayer
                 _sendQueue.Enqueue(message);
             }
         }
+        static void Signal()
+        {
+            _sendQueueBlock.Set();
+        }
         static void StartAsHost()
         {
             stopNetwork = new CancellationTokenSource();
@@ -456,7 +469,7 @@ namespace FeatMultiplayer
                         user = clientName.Value,
                         password = clientPassword.Value
                     });
-                    sendQueueBlock.Set();
+                    Signal();
                 }
                 catch (Exception ex)
                 {
@@ -593,7 +606,7 @@ namespace FeatMultiplayer
                             }
                             else
                             {
-                                sendQueueBlock.WaitOne(1000);
+                                _sendQueueBlock.WaitOne(1000);
                             }
                         }
                     }
@@ -826,7 +839,7 @@ namespace FeatMultiplayer
                     {
                         LogInfo("Mined: " + worldObject.GetId() + " of " + worldObject.GetGroup().GetId() + " at " + worldObject.GetPosition());
                         Send("Mined|" + worldObject.GetId() + "\n");
-                        sendQueueBlock.Set();
+                        Signal();
                     }
                 }
             }
@@ -847,6 +860,57 @@ namespace FeatMultiplayer
             _sendQueue.Clear();
             receiveQueue.Clear();
             worldObjectById.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowTextInput), nameof(UiWindowTextInput.OnChangeText))]
+        static bool UiWindowTextInput_OnChangeText(TMP_InputField ___inputField, WorldObjectText ___worldObjectText)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                WorldObject wo = (WorldObject)worldObjectTextWorldObject.GetValue(___worldObjectText);
+                var mut = new MessageUpdateText()
+                {
+                    id = wo.GetId(),
+                    text = ___inputField.text
+                };
+                Send(mut);
+                Signal();
+                // Do not change the client but wait for the server update
+                return updateMode != MultiplayerMode.CoopClient;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowColorPicker), nameof(UiWindowColorPicker.SetColorWorldObject))]
+        static bool UiWindowColorPicker_SetColorWorldObject(ColorPicker ___colorPicker, 
+            WorldObjectColor _worldObjectColor)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                ___colorPicker.onValueChanged.RemoveAllListeners();
+                ___colorPicker.onValueChanged.AddListener(color =>
+                {
+                    color.a = 1f;
+                    // Do not change the client but wait for the server update
+                    if (updateMode != MultiplayerMode.CoopClient)
+                    {
+                        _worldObjectColor.SetColor(color);
+                    }
+
+                    WorldObject wo = (WorldObject)worldObjectColorWorldObject.GetValue(_worldObjectColor);
+                    var mut = new MessageUpdateColor()
+                    {
+                        id = wo.GetId(),
+                        color = color
+                    };
+                    Send(mut);
+                    Signal();
+                });
+                return false;
+            }
+            return true;
         }
 
         #region - Patch WorldObjectsHandler -
@@ -921,7 +985,7 @@ namespace FeatMultiplayer
                     dropSize = _dropSize
                 };
                 Send(msg);
-                sendQueueBlock.Set();
+                Signal();
             }
         }
 
@@ -943,7 +1007,7 @@ namespace FeatMultiplayer
                             mode = MessageSetTransform.Mode.GameObjectOnly
                         };
                         Send(messageSetTransform);
-                        sendQueueBlock.Set();
+                        Signal();
                     }
                     else
                     {
@@ -1016,7 +1080,7 @@ namespace FeatMultiplayer
                 };
                 LogInfo("InventorAddItem: " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
                 Send(mia);
-                sendQueueBlock.Set();
+                Signal();
 
                 // remove from the client's inventory so that only the Host can add it back
                 if (updateMode == MultiplayerMode.CoopClient)
@@ -1065,7 +1129,7 @@ namespace FeatMultiplayer
                 };
                 LogInfo("InventoryRemoveItemPre: " + ___inventoryId + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
                 Send(mir);
-                sendQueueBlock.Set();
+                Signal();
                 return false;
             }
             return true;
@@ -1094,7 +1158,7 @@ namespace FeatMultiplayer
                 };
                 LogInfo("InventoryRemoveItemPost: " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
                 Send(mir);
-                sendQueueBlock.Set();
+                Signal();
             }
         }
 
@@ -1134,7 +1198,7 @@ namespace FeatMultiplayer
                                 PlayBuildGhost();
                                 LogInfo("Place: Change Panel " + pc.itemId + ", " + idx + ", " + newPanelType);
                                 Send(pc);
-                                sendQueueBlock.Set();
+                                Signal();
                                 break;
                             }
                             idx++;
@@ -1155,7 +1219,7 @@ namespace FeatMultiplayer
                         PlayBuildGhost();
                         LogInfo("Place: Construct " + mpc.groupId + "; " + mpc.position + "; " + mpc.rotation);
                         Send(mpc);
-                        sendQueueBlock.Set();
+                        Signal();
                     }
                     __result = null;
                     cancelBuildAfterPlace = true;
@@ -1349,7 +1413,7 @@ namespace FeatMultiplayer
                     rotation = player.rotation
                 };
                 Send(mpp);
-                sendQueueBlock.Set();
+                Signal();
             }
         }
 
@@ -1384,7 +1448,7 @@ namespace FeatMultiplayer
                         otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         PrepareHiddenChests();
                         Send("Welcome\n");
-                        sendQueueBlock.Set();
+                        Signal();
                         lastHostSync = Time.realtimeSinceStartup;
                         SendFullState();
                         return;
@@ -1393,18 +1457,21 @@ namespace FeatMultiplayer
 
                 LogInfo("User login failed: " + ml.user);
                 _sendQueue.Enqueue(EAccessDenied);
-                sendQueueBlock.Set();
+                Signal();
             }
         }
 
         static void PrepareHiddenChests()
         {
             // The other player's shadow inventory
-            PrepareHiddenChest(shadowInventoryWorldId, ref shadowInventoryId);
-            PrepareHiddenChest(shadowEquipmentWorldId, ref shadowEquipmentId);
+            if (TryPrepareHiddenChest(shadowInventoryWorldId, ref shadowInventoryId))
+            {
+                SetupInitialInventory();
+            }
+            TryPrepareHiddenChest(shadowEquipmentWorldId, ref shadowEquipmentId);
         }
 
-        static void PrepareHiddenChest(int id, ref int inventoryId)
+        static bool TryPrepareHiddenChest(int id, ref int inventoryId)
         {
             WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
             if (wo == null)
@@ -1418,7 +1485,9 @@ namespace FeatMultiplayer
                 int invId = inv.GetId();
                 inventoryId = invId;
                 wo.SetLinkedInventoryId(invId);
+                return true;
             }
+            return false;
         }
 
         static void ReceiveMessageInventoryAdded(MessageInventoryAdded mia)
@@ -1637,13 +1706,7 @@ namespace FeatMultiplayer
 
             // -----------------------------------------------------
 
-            if (!initialInventoryOnce)
-            {
-                initialInventoryOnce = true;
-                SetupInitialInventory();
-            }
-
-            sendQueueBlock.Set();
+            Signal();
         }
 
         static void UpdateWorldObject(MessageWorldObject mwo)
@@ -1659,6 +1722,9 @@ namespace FeatMultiplayer
             bool wasPlaced = wo.GetIsPlaced();
             var oldPosition = wo.GetPosition();
             var oldRotation = wo.GetRotation();
+            var oldColor = wo.GetColor();
+            var oldText = wo.GetText();
+
             wo.SetPositionAndRotation(mwo.position, mwo.rotation);
             bool doPlace = wo.GetIsPlaced();
             wo.SetColor(mwo.color);
@@ -1692,6 +1758,9 @@ namespace FeatMultiplayer
             {
                 wo.SetLinkedInventoryId(0);
             }
+
+            bool hasGameObject = TryGetGameObject(wo, out var go) && go != null;
+
             bool dontUpdatePosition = false;
             if (!wasPlaced && doPlace)
             {
@@ -1702,7 +1771,7 @@ namespace FeatMultiplayer
             else
             if (wasPlaced && !doPlace)
             {
-                if (TryGetGameObject(wo, out var go))
+                if (hasGameObject)
                 {
                     LogInfo("UpdateWorldObject: WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
                     UnityEngine.Object.Destroy(go);
@@ -1717,9 +1786,9 @@ namespace FeatMultiplayer
             }
             if (doPlace && !dontUpdatePosition)
             {
-                if (oldPosition != mwo.position || oldRotation != mwo.rotation)
+                if (IsChanged(oldPosition, mwo.position) || IsChanged(oldRotation, mwo.rotation))
                 {
-                    if (TryGetGameObject(wo, out var go))
+                    if (hasGameObject)
                     {
                         if (go != null)
                         {
@@ -1735,11 +1804,52 @@ namespace FeatMultiplayer
                 LogInfo("UpdateWorldObject: Panels " + wo.GetId() + ", " + wo.GetGroup().GetId());
                 UpdatePanelsOn(wo);
             }
+            if (!string.Equals(oldText, mwo.text) && hasGameObject)
+            {
+                var wot = go.GetComponentInChildren<WorldObjectText>();
+                if (wot != null)
+                {
+                    wot.SetText(mwo.text);
+                }
+            }
+            if (!IsChanged(oldColor, mwo.color) && hasGameObject)
+            {
+                var woc = go.GetComponentInChildren<WorldObjectColor>();
+                if (woc != null)
+                {
+                    woc.SetColor(mwo.color);
+                }
+            }
             // remove already mined objects
             if (isNew && WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !doPlace)
             {
                 DeleteActionMinableForId(wo.GetId());
             }
+        }
+
+        static float epsilon = 0.001f;
+
+        static bool IsChanged(Vector3 vec1, Vector3 vec2)
+        {
+            var v3 = vec1 - vec2;
+            return Mathf.Abs(v3.x) > epsilon
+                || Mathf.Abs(v3.y) > epsilon
+                || Mathf.Abs(v3.z) > epsilon;
+        }
+
+        static bool IsChanged(Quaternion q1, Quaternion q2)
+        {
+            return Mathf.Abs(q1.x - q2.x) > epsilon
+                || Mathf.Abs(q1.y - q2.y) > epsilon
+                || Mathf.Abs(q1.z - q2.z) > epsilon
+                || Mathf.Abs(q1.w - q2.w) > epsilon;
+        }
+        static bool IsChanged(Color q1, Color q2)
+        {
+            return Mathf.Abs(q1.r - q2.r) > epsilon
+                || Mathf.Abs(q1.g - q2.g) > epsilon
+                || Mathf.Abs(q1.b - q2.b) > epsilon
+                || Mathf.Abs(q1.a - q2.a) > epsilon;
         }
 
         static bool DeleteActionMinableForId(int id)
@@ -1772,7 +1882,6 @@ namespace FeatMultiplayer
         {
             if (TryGetGameObject(wo, out var go))
             {
-                //worldObjectsHandlerSetPanelsForNewlyInstantiatedWorldObject.Invoke(null, new object[] { wo, go });
                 var panelIds = wo.GetPanelsId();
                 if (panelIds != null && panelIds.Count > 0)
                 {
@@ -2145,7 +2254,7 @@ namespace FeatMultiplayer
 
             sb.Append("\r");
             Send(sb.ToString());
-            sendQueueBlock.Set();
+            Signal();
         }
 
         static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
@@ -2169,7 +2278,7 @@ namespace FeatMultiplayer
                     }
                     while (panelIds.Count <= mpc.panelId)
                     {
-                        panelIds.Add(0);
+                        panelIds.Add(1);
                     }
                     panelIds[mpc.panelId] = mpc.panelType;
                     wo.SetPanelsId(panelIds);
@@ -2288,6 +2397,52 @@ namespace FeatMultiplayer
             }
         }
 
+        static void ReceiveMessageUpdateText(MessageUpdateText mut) 
+        { 
+            if (worldObjectById.TryGetValue(mut.id, out var wo))
+            {
+                wo.SetText(mut.text);
+                if (TryGetGameObject(wo, out var go) && go != null)
+                {
+                    var wot = go.GetComponentInChildren<WorldObjectText>();
+                    if (wot != null)
+                    {
+                        wot.SetText(mut.text);
+                        
+                        // Signal back the client immediately
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            Send(mut);
+                            Signal();
+                        }
+                    }
+                }
+            }
+        }
+
+        static void ReceiveMessageUpdateColor(MessageUpdateColor muc)
+        {
+            if (worldObjectById.TryGetValue(muc.id, out var wo))
+            {
+                wo.SetColor(muc.color);
+                if (TryGetGameObject(wo, out var go) && go != null)
+                {
+                    var woc = go.GetComponentInChildren<WorldObjectColor>();
+                    if (woc != null)
+                    {
+                        woc.SetColor(muc.color);
+
+                        // Signal back the client immediately
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            Send(muc);
+                            Signal();
+                        }
+                    }
+                }
+            }
+        }
+
         static void ReceiveWelcome()
         {
             otherPlayer?.Destroy();
@@ -2394,6 +2549,16 @@ namespace FeatMultiplayer
             if (MessageTerraformState.TryParse(message, out var mts))
             {
                 receiveQueue.Enqueue(mts);
+            }
+            else
+            if (MessageUpdateText.TryParse(message, out var mut1))
+            {
+                receiveQueue.Enqueue(mut1);
+            }
+            else
+            if (MessageUpdateColor.TryParse(message, out var muc1))
+            {
+                receiveQueue.Enqueue(muc1);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -2521,6 +2686,16 @@ namespace FeatMultiplayer
                 case MessageTerraformState mts:
                     {
                         ReceiveTerraformState(mts);
+                        break;
+                    }
+                case MessageUpdateText mut1:
+                    {
+                        ReceiveMessageUpdateText(mut1);
+                        break;
+                    }
+                case MessageUpdateColor muc:
+                    {
+                        ReceiveMessageUpdateColor(muc);
                         break;
                     }
                 case string s:

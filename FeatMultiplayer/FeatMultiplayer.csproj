@@ -62,6 +62,11 @@
 		  <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
 		  <Private>False</Private>
 	  </Reference>
+    <Reference Include="Unity.HSVPicker">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(GameManaged)HSVPicker.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>
