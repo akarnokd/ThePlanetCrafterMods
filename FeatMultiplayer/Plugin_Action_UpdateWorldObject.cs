@@ -100,6 +100,7 @@ namespace FeatMultiplayer
                 }
             }
         }
+
         static void SendWorldObject(WorldObject worldObject, bool makeGrabable)
         {
             StringBuilder sb = new StringBuilder();

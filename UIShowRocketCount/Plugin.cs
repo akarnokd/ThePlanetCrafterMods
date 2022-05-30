@@ -124,7 +124,6 @@ namespace UIShowRocketCount
             {
                 if (wo.GetGroup() is GroupItem gi)
                 {
-                    int c;
                     string gid = gi.GetId();
                     if (gid.StartsWith("Rocket") && gid != "RocketReactor")
                     {

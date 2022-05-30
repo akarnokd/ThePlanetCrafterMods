@@ -1,9 +1,4 @@
 ﻿using BepInEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
@@ -118,6 +113,16 @@ namespace FeatMultiplayer
             if (MessageGrab.TryParse(message, out var mg))
             {
                 receiveQueue.Enqueue(mg);
+            }
+            else
+            if (MessageCraft.TryParse(message, out var mc2))
+            {
+                receiveQueue.Enqueue(mc2);
+            }
+            else
+            if (MessageCraftWorld.TryParse(message, out var mcw))
+            {
+                receiveQueue.Enqueue(mcw);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -270,6 +275,16 @@ namespace FeatMultiplayer
                 case MessageGrab mg:
                     {
                         ReceiveMessageGrab(mg);
+                        break;
+                    }
+                case MessageCraft mc2:
+                    {
+                        ReceiveMessageCraft(mc2);
+                        break;
+                    }
+                case MessageCraftWorld mcw:
+                    {
+                        ReceiveMessageCraftWorld(mcw);
                         break;
                     }
                 case string s:

@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.6")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -25,6 +25,11 @@ namespace CheatMachineRemoteDeposit
         static ManualLogSource logger;
 
         static bool debugMode;
+
+        /// <summary>
+        /// Set this function to override the last phase of generating and depositing the actual ore.
+        /// </summary>
+        public static Func<Inventory, string, bool> overrideDeposit;
 
         private void Awake()
         {
@@ -134,15 +139,18 @@ namespace CheatMachineRemoteDeposit
 
             if (inventoryFound || !dropIfNoTarget)
             {
-                // instantiate and add the ore to the target inventory
-                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(oreId), 0);
-                if (!inventory.AddItem(worldObject))
+                if (overrideDeposit == null || !overrideDeposit.Invoke(inventory, oreId))
                 {
-                    WorldObjectsHandler.DestroyWorldObject(worldObject);
-                }
-                else
-                {
-                    log("  Added to inventory");
+                    // instantiate and add the ore to the target inventory
+                    WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(oreId), 0);
+                    if (!inventory.AddItem(worldObject))
+                    {
+                        WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    }
+                    else
+                    {
+                        log("  Added to inventory");
+                    }
                 }
             }
             return false;

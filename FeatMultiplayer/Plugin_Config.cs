@@ -79,6 +79,8 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
             InitFieldAccessors();
+            
+            TryInstallMachineModOverrides();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

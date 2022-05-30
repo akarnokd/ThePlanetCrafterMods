@@ -14,11 +14,12 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoharvest", "(Cheat) Automatically Harvest Food n Algae", "1.0.0.4")]
-    [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.5")]
+    [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string cheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+        const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+        const string modCheatAutoHarvest = "akarnokd.theplanetcraftermods.cheatautoharvest";
 
         static MethodInfo updateGrowing;
         static MethodInfo instantiateAtRandomPosition;
@@ -36,6 +37,11 @@ namespace CheatAutoHarvest
 
         static bool loadCompleted;
 
+        /// <summary>
+        /// Set this callback and make it return false to prevent this mod from working.
+        /// </summary>
+        public static Func<bool> canExecute;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -49,7 +55,7 @@ namespace CheatAutoHarvest
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
 
-            if (Chainloader.PluginInfos.TryGetValue(cheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
+            if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
                 MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "IsFullStacked", new Type[] { typeof(List<WorldObject>), typeof(int), typeof(string) });
                 isFullStacked = AccessTools.MethodDelegate<Func<List<WorldObject>, int, string, bool>>(mi, pi.Instance);
@@ -86,7 +92,7 @@ namespace CheatAutoHarvest
             float ___updateInterval,
             int ___spawNumber)
         {
-            if (!harvestAlgae.Value)
+            if (!harvestAlgae.Value || (canExecute != null && !canExecute.Invoke()))
             {
                 return;
             }
@@ -197,7 +203,7 @@ namespace CheatAutoHarvest
 
         void CheckFoodGrowers()
         {
-            if (!harvestFood.Value)
+            if (!harvestFood.Value || (canExecute != null && !canExecute.Invoke()))
             {
                 return;
             }
