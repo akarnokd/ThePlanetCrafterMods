@@ -146,6 +146,10 @@ namespace FeatMultiplayer
 
         static string multiplayerFilename = "Survival-9999999";
 
+        /// <summary>
+        /// If true, operations affecting the inventory won't send out messages,
+        /// avoiding message ping-pong between the parties.
+        /// </summary>
         static bool suppressInventoryChange;
 
         static volatile bool networkConnected;
@@ -684,6 +688,7 @@ namespace FeatMultiplayer
         static readonly byte[] EAccessDenied = Encoding.UTF8.GetBytes("EAccessDenied\n");
 
         #endregion -Setup TCP-
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.SelectedSaveFile))]
         static void SaveFilesSelector_SelectedSaveFile(string _fileName)
@@ -714,6 +719,8 @@ namespace FeatMultiplayer
             else if (updateMode == MultiplayerMode.CoopClient)
             {
                 LogInfo("Entering world as Client");
+                // we don't need the savefile
+                File.Delete(Application.persistentDataPath + "/" + multiplayerFilename + ".json");
                 StartAsClient();
             }
             else
@@ -726,7 +733,7 @@ namespace FeatMultiplayer
         {
             LogInfo("SetupInitialInventory");
             var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
-            Dictionary<string, int> itemsToAdd = new Dictionary<string, int>()
+            Dictionary<string, int> itemsToAdd = new()
             {
                 {
                     "MultiBuild",
@@ -805,6 +812,8 @@ namespace FeatMultiplayer
             return gameObjectByWorldObject.Remove(wo);
         }
 
+        #region - Disable Consumption -
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
         static bool GaugesConsumptionHandler_GetThirstConsumptionRate(ref float __result)
@@ -827,6 +836,8 @@ namespace FeatMultiplayer
             __result = -0.0001f;
             return false;
         }
+
+        #endregion - Disable Consumption -
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionMinable), "FinishMining")]
@@ -853,11 +864,8 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                File.Delete(Application.persistentDataPath + "/" + multiplayerFilename + ".json");
-            }
             stopNetwork?.Cancel();
+            Signal();
             updateMode = MultiplayerMode.MainMenu;
             otherPlayer?.Destroy();
             otherPlayer = null;
@@ -1166,6 +1174,21 @@ namespace FeatMultiplayer
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.AutoSort))]
+        static void Inventory_AutoSort(int ___inventoryId)
+        {
+            if (!suppressInventoryChange)
+            {
+                var msi = new MessageSortInventory()
+                {
+                    inventoryId = ___inventoryId
+                };
+                Send(msi);
+                Signal();
+            }
+        }
+
         static bool cancelBuildAfterPlace;
 
         [HarmonyPrefix]
@@ -1397,6 +1420,7 @@ namespace FeatMultiplayer
         {
             LogInfo("Application quit");
             stopNetwork?.Cancel();
+            Signal();
             for (int i = 0; i < 20 && networkConnected; i++)
             {
                 Thread.Sleep(100);
@@ -2603,6 +2627,31 @@ namespace FeatMultiplayer
             }
         }
 
+        static void ReceiveMessageSortInventory(MessageSortInventory msi)
+        {
+            int targetId = msi.inventoryId;
+            if (targetId != 2)
+            {
+                // retarget shadow inventory
+                if (targetId == 1 && updateMode == MultiplayerMode.CoopHost)
+                {
+                    targetId = shadowInventoryId;
+                }
+                Inventory inv = InventoriesHandler.GetInventoryById(targetId);
+                if (inv != null) {
+                    suppressInventoryChange = true;
+                    try
+                    {
+                        inv.AutoSort();
+                    }
+                    finally
+                    {
+                        suppressInventoryChange = false;
+                    }
+                }
+            }
+        }
+
         static void ReceiveWelcome()
         {
             otherPlayer?.Destroy();
@@ -2724,6 +2773,11 @@ namespace FeatMultiplayer
             if (MessageMicrochipUnlock.TryParse(message, out var mmu))
             {
                 receiveQueue.Enqueue(mmu);
+            }
+            else
+            if (MessageSortInventory.TryParse(message, out var msi))
+            {
+                receiveQueue.Enqueue(msi);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -2866,6 +2920,11 @@ namespace FeatMultiplayer
                 case MessageMicrochipUnlock mmu:
                     {
                         ReceiveMessageMicrochipUnlock(mmu);
+                        break;
+                    }
+                case MessageSortInventory msi:
+                    {
+                        ReceiveMessageSortInventory(msi);
                         break;
                     }
                 case string s:
