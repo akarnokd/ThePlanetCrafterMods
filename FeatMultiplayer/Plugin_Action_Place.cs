@@ -189,5 +189,42 @@ namespace FeatMultiplayer
                 LogInfo("ReceiveMessagePlaceConstructible: Unknown constructible " + mpc.groupId + ", " + mpc.position + ", " + mpc.rotation);
             }
         }
+
+        static void ReceiveMessagePanelChanged(MessagePanelChanged mpc)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mpc.itemId);
+            if (wo != null)
+            {
+                if (TryGetGameObject(wo, out GameObject go))
+                {
+                    LogInfo("ReceiveMessagePanelChanged: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                    var panelIds = wo.GetPanelsId();
+                    if (panelIds == null)
+                    {
+                        panelIds = new List<int>();
+                    }
+                    while (panelIds.Count <= mpc.panelId)
+                    {
+                        panelIds.Add(1);
+                    }
+                    panelIds[mpc.panelId] = mpc.panelType;
+                    wo.SetPanelsId(panelIds);
+                    UpdatePanelsOn(wo);
+
+                    GroupConstructible gc = (GroupConstructible)GroupsHandler.GetGroupViaId(mpc.panelGroupId);
+                    ClientConsumeRecipe(gc);
+
+                    SendWorldObject(wo, false);
+                }
+                else
+                {
+                    LogWarning("ReceiveMessagePanelChanged: GameObject not found for: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                }
+            }
+            else
+            {
+                LogWarning("ReceiveMessagePanelChanged: Unknown item: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+            }
+        }
     }
 }
