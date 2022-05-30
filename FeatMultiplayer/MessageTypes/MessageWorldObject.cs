@@ -17,10 +17,11 @@ namespace FeatMultiplayer
         public string text;
         public List<int> panelIds;
         public float growth;
+        public bool makeGrabable;
 
         internal static bool TryParse(string[] objs, int offset, out MessageWorldObject mwo)
         {
-            if (objs.Length - offset == 10)
+            if (objs.Length - offset == 11)
             {
                 mwo = new MessageWorldObject();
 
@@ -52,6 +53,7 @@ namespace FeatMultiplayer
                 }
 
                 mwo.growth = float.Parse(objs[offset + 9], CultureInfo.InvariantCulture);
+                mwo.makeGrabable = "1" == objs[offset + 10];
                 return true;
             } 
             else

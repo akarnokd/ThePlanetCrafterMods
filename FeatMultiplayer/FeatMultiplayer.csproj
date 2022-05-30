@@ -79,17 +79,17 @@
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination1)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(Destination1)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(Destination1)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back_Host.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination1)" />
 
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front.png" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back.png" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(SourceDir)Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
 
     <!-- Do not turn it into a zip yet
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />

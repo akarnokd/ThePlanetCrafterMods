@@ -11,7 +11,7 @@ namespace FeatMultiplayer
     internal class MessageAllObjects
     {
         internal List<MessageWorldObject> worldObjects = new();
-        internal static void AppendWorldObject(StringBuilder sb, char separator, WorldObject wo)
+        internal static void AppendWorldObject(StringBuilder sb, char separator, WorldObject wo, bool makeGrabable)
         {
             sb.Append(wo.GetId());  // 0
             sb.Append(separator);
@@ -40,6 +40,8 @@ namespace FeatMultiplayer
             sb.Append(DataTreatments.IntListToString(wo.GetPanelsId())); // 8
             sb.Append(separator);
             sb.Append(wo.GetGrowth().ToString(CultureInfo.InvariantCulture)); // 9
+            sb.Append(separator);
+            sb.Append(makeGrabable ? 1 : 0);
         }
         public static bool TryParse(string str, out MessageAllObjects mc)
         {

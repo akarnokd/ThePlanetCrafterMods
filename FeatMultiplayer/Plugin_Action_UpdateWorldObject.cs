@@ -1,0 +1,388 @@
+﻿using BepInEx;
+using SpaceCraft;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace FeatMultiplayer
+{
+    public partial class Plugin : BaseUnityPlugin
+    {
+        static float epsilon = 0.001f;
+
+        static bool IsChanged(Vector3 vec1, Vector3 vec2)
+        {
+            var v3 = vec1 - vec2;
+            return Mathf.Abs(v3.x) > epsilon
+                || Mathf.Abs(v3.y) > epsilon
+                || Mathf.Abs(v3.z) > epsilon;
+        }
+
+        static bool IsChanged(Quaternion q1, Quaternion q2)
+        {
+            return Mathf.Abs(q1.x - q2.x) > epsilon
+                || Mathf.Abs(q1.y - q2.y) > epsilon
+                || Mathf.Abs(q1.z - q2.z) > epsilon
+                || Mathf.Abs(q1.w - q2.w) > epsilon;
+        }
+        static bool IsChanged(Color q1, Color q2)
+        {
+            return Mathf.Abs(q1.r - q2.r) > epsilon
+                || Mathf.Abs(q1.g - q2.g) > epsilon
+                || Mathf.Abs(q1.b - q2.b) > epsilon
+                || Mathf.Abs(q1.a - q2.a) > epsilon;
+        }
+
+        static string DebugWorldObject(int id)
+        {
+            var wo = WorldObjectsHandler.GetWorldObjectViaId(id);
+            if (wo == null)
+            {
+                return "null";
+            }
+            return DebugWorldObject(wo);
+        }
+
+        static string DebugWorldObject(WorldObject wo)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{ id=").Append(wo.GetId())
+            .Append(", groupId=");
+            if (wo.GetGroup() != null)
+            {
+                sb.Append(wo.GetGroup().GetId());
+            }
+            else
+            {
+                sb.Append("null");
+            }
+            sb.Append(", position=").Append(wo.GetPosition());
+            sb.Append(" }");
+            return sb.ToString();
+        }
+
+        static void ReceiveMessageAllObjects(MessageAllObjects mc)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                // LogInfo("Received all constructs: " + mc.worldObjects.Count);
+                HashSet<int> toDelete = new HashSet<int>();
+
+                foreach (var kv in worldObjectById)
+                {
+                    toDelete.Add(kv.Key);
+                }
+
+                foreach (MessageWorldObject mwo in mc.worldObjects)
+                {
+                    //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
+                    toDelete.Remove(mwo.id);
+
+                    UpdateWorldObject(mwo);
+                }
+
+                foreach (int id in toDelete)
+                {
+                    //LogInfo("WorldObject " + id + " destroyed: " + DebugWorldObject(id));
+                    if (worldObjectById.TryGetValue(id, out var wo))
+                    {
+                        if (TryGetGameObject(wo, out var go))
+                        {
+                            LogInfo("WorldObject " + id + " GameObject destroyed: no longer exists");
+                            UnityEngine.Object.Destroy(go);
+                            TryRemoveGameObject(wo);
+                        }
+                        WorldObjectsHandler.DestroyWorldObject(wo);
+                    }
+                }
+            }
+        }
+        static void SendWorldObject(WorldObject worldObject, bool makeGrabable)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("UpdateWorldObject|");
+            MessageAllObjects.AppendWorldObject(sb, '|', worldObject, makeGrabable);
+
+            LogInfo("Sending> " + sb.ToString());
+
+            sb.Append("\r");
+            Send(sb.ToString());
+            Signal();
+        }
+
+        static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
+        {
+            LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
+            UpdateWorldObject(mc.worldObject);
+        }
+
+        static bool DeleteActionMinableForId(int id)
+        {
+            foreach (ActionMinable am in UnityEngine.Object.FindObjectsOfType<ActionMinable>())
+            {
+                var woa = am.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    var wo1 = woa.GetWorldObject();
+                    if (wo1 != null)
+                    {
+                        if (wo1.GetId() == id)
+                        {
+
+                            LogInfo("DeleteActionMinableForId: ActionMinable deleted: " + id);
+                            UnityEngine.Object.Destroy(am.gameObject);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+
+            LogWarning("DeleteActionMinableForId: ActionMinable or WorldObjectAssociated found for " + id);
+            return false;
+        }
+
+        static void UpdatePanelsOn(WorldObject wo)
+        {
+            if (TryGetGameObject(wo, out var go))
+            {
+                var panelIds = wo.GetPanelsId();
+                if (panelIds != null && panelIds.Count > 0)
+                {
+                    Panel[] componentsInChildren = go.GetComponentsInChildren<Panel>();
+                    int num = 0;
+                    foreach (Panel panel in componentsInChildren)
+                    {
+                        if (num < panelIds.Count)
+                        {
+                            try
+                            {
+                                DataConfig.BuildPanelSubType subPanelType = (DataConfig.BuildPanelSubType)panelIds[num];
+                                panel.ChangePanel(subPanelType);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogError(ex);
+                            }
+                        }
+                        num++;
+                    }
+                    LogInfo("UpdatePanelsOn: Updating panels on " + wo.GetId() + " success | " + panelIds);
+                }
+                else
+                {
+                    LogInfo("UpdatePanelsOn: Updating panels: No panel details on " + wo.GetId());
+                }
+            }
+            else
+            {
+                LogInfo("UpdatePanelsOn: Updating panels: Game object not found of " + wo.GetId());
+            }
+        }
+        static void ReceiveMessagePanelChanged(MessagePanelChanged mpc)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mpc.itemId);
+            if (wo != null)
+            {
+                if (TryGetGameObject(wo, out GameObject go))
+                {
+                    LogWarning("ReceiveMessagePanelChanged: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                    var panelIds = wo.GetPanelsId();
+                    if (panelIds == null)
+                    {
+                        panelIds = new List<int>();
+                    }
+                    while (panelIds.Count <= mpc.panelId)
+                    {
+                        panelIds.Add(1);
+                    }
+                    panelIds[mpc.panelId] = mpc.panelType;
+                    wo.SetPanelsId(panelIds);
+                    UpdatePanelsOn(wo);
+
+                    GroupConstructible gc = (GroupConstructible)GroupsHandler.GetGroupViaId(mpc.panelGroupId);
+                    ClientConsumeRecipe(gc);
+
+                    SendWorldObject(wo, false);
+                }
+                else
+                {
+                    LogWarning("ReceiveMessagePanelChanged: GameObject not found for: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+                }
+            }
+            else
+            {
+                LogWarning("ReceiveMessagePanelChanged: Unknown item: " + mpc.itemId + ", " + mpc.panelId + ", " + mpc.panelType);
+            }
+        }
+
+        static void ReceiveMessageSetTransform(MessageSetTransform st)
+        {
+            if (worldObjectById.TryGetValue(st.id, out var wo))
+            {
+                if (st.mode != MessageSetTransform.Mode.GameObjectOnly)
+                {
+                    wo.SetPositionAndRotation(st.position, st.rotation);
+                }
+                if (st.mode != MessageSetTransform.Mode.WorldObjectOnly
+                    && TryGetGameObject(wo, out var go) && go != null)
+                {
+                    go.transform.position = st.position;
+                    go.transform.rotation = st.rotation;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fully updates the state of the world object represented by the message.
+        /// 
+        /// This includes creating the WorldObject itself, creating the GameObject to
+        /// place it in the world, changing text, color, panel setup, positioning.
+        /// 
+        /// In addition, a mockup inventory is also created if the message has a non-zero inventory id.
+        /// We'd expect an inventory sync to correctly fill in that inventory.
+        /// </summary>
+        /// <param name="mwo">The message to use for creating/updating a WorldObject.</param>
+        static void UpdateWorldObject(MessageWorldObject mwo)
+        {
+            bool isNew = false;
+            if (!worldObjectById.TryGetValue(mwo.id, out var wo))
+            {
+                Group gr = GroupsHandler.GetGroupViaId(mwo.groupId);
+                wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
+                LogInfo("UpdateWorldObject: Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
+                isNew = true;
+            }
+            bool wasPlaced = wo.GetIsPlaced();
+            var oldPosition = wo.GetPosition();
+            var oldRotation = wo.GetRotation();
+            var oldColor = wo.GetColor();
+            var oldText = wo.GetText();
+
+            wo.SetPositionAndRotation(mwo.position, mwo.rotation);
+            bool doPlace = wo.GetIsPlaced();
+            wo.SetColor(mwo.color);
+            wo.SetText(mwo.text);
+            wo.SetGrowth(mwo.growth);
+
+            List<int> beforePanelIds = wo.GetPanelsId();
+            bool doUpdatePanels = (beforePanelIds == null && mwo.panelIds.Count != 0)
+                || (beforePanelIds != null && !beforePanelIds.SequenceEqual(mwo.panelIds));
+            wo.SetPanelsId(mwo.panelIds);
+            wo.SetDontSaveMe(false);
+
+            List<Group> groups = new List<Group>();
+            foreach (var gid in mwo.groupIds)
+            {
+                groups.Add(GroupsHandler.GetGroupViaId(gid));
+            }
+            wo.SetLinkedGroups(groups);
+
+            if (mwo.inventoryId > 0)
+            {
+                wo.SetLinkedInventoryId(mwo.inventoryId);
+                Inventory inv = InventoriesHandler.GetInventoryById(mwo.inventoryId);
+                if (inv == null)
+                {
+                    LogInfo("Creating default inventory " + mwo.inventoryId
+                        + " of WorldObject " + DebugWorldObject(wo));
+                    InventoriesHandler.CreateNewInventory(1, mwo.inventoryId);
+                }
+            }
+            else
+            {
+                wo.SetLinkedInventoryId(0);
+            }
+
+            bool hasGameObject = TryGetGameObject(wo, out var go) && go != null;
+
+            bool dontUpdatePosition = false;
+            if (!wasPlaced && doPlace)
+            {
+                go = WorldObjectsHandler.InstantiateWorldObject(wo, true);
+                hasGameObject = true;
+                LogInfo("UpdateWorldObject: Placing GameObject for WorldObject " + DebugWorldObject(wo));
+                dontUpdatePosition = true;
+            }
+            else
+            if (wasPlaced && !doPlace)
+            {
+                if (hasGameObject)
+                {
+                    LogInfo("UpdateWorldObject: WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
+                    UnityEngine.Object.Destroy(go);
+                    TryRemoveGameObject(wo);
+                }
+                /*
+                else
+                {
+                    LogInfo("WorldObject " + wo.GetId() + " has no associated GameObject");
+                }
+                */
+            }
+            if (doPlace && !dontUpdatePosition)
+            {
+                if (IsChanged(oldPosition, mwo.position) || IsChanged(oldRotation, mwo.rotation))
+                {
+                    if (hasGameObject)
+                    {
+                        if (go != null)
+                        {
+                            LogInfo("UpdateWorldObject: Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                            go.transform.position = mwo.position;
+                            go.transform.rotation = mwo.rotation;
+                        }
+                    }
+                }
+            }
+            if (doUpdatePanels)
+            {
+                LogInfo("UpdateWorldObject: Panels " + wo.GetId() + ", " + wo.GetGroup().GetId());
+                UpdatePanelsOn(wo);
+            }
+            if (!string.Equals(oldText, mwo.text) && hasGameObject)
+            {
+                var wot = go.GetComponentInChildren<WorldObjectText>();
+                if (wot != null)
+                {
+                    wot.SetText(mwo.text);
+                }
+            }
+            if (!IsChanged(oldColor, mwo.color) && hasGameObject)
+            {
+                var woc = go.GetComponentInChildren<WorldObjectColor>();
+                if (woc != null)
+                {
+                    woc.SetColor(mwo.color);
+                }
+            }
+
+            if (mwo.makeGrabable)
+            {
+                if (hasGameObject)
+                {
+                    UnityEngine.Object.Destroy(go.GetComponent<ActionMinable>());
+                    var grabComponent = go.GetComponent<ActionGrabable>();
+                    if (grabComponent == null)
+                    {
+                        go.AddComponent<ActionGrabable>();
+                        LogInfo("UpdateWorldObject: Add ActionGrabable to " + DebugWorldObject(wo));
+                    }
+                }
+                else
+                {
+                    LogInfo("UpdateWorldObject: makeGrabable no GameObject for " + DebugWorldObject(wo));
+                }
+            }
+
+            // remove already mined objects
+            if (isNew && WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !doPlace)
+            {
+                DeleteActionMinableForId(wo.GetId());
+            }
+        }
+    }
+}

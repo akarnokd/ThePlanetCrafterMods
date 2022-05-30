@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageMined
+    internal class MessageMined : MessageStringProvider
     {
         internal int id;
 
@@ -30,6 +30,11 @@ namespace FeatMultiplayer
             }
             mm = null;
             return false;
+        }
+
+        public string GetString()
+        {
+            return "Mined|" + id + "\n";
         }
     }
 }
