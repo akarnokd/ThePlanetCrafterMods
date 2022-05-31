@@ -394,81 +394,7 @@ namespace FeatMultiplayer
                             //LogInfo("ReceiveMessageInventories: Updating inventory " + wi.id + ", " + wi.size + ", " + wi.itemIds.Count);
                         }
 
-                        List<WorldObject> worldObjects = inv.GetInsideWorldObjects();
-
-                        // see if there was an inventory composition change
-                        HashSet<int> currentIds = new HashSet<int>();
-                        foreach (WorldObject obj in worldObjects)
-                        {
-                            currentIds.Add(obj.GetId());
-                        }
-                        bool changed;
-                        if (currentIds.Count == wi.itemIds.Count)
-                        {
-                            foreach (int id in wi.itemIds)
-                            {
-                                currentIds.Remove(id);
-                            }
-                            changed = currentIds.Count != 0;
-                        }
-                        else
-                        {
-                            changed = true;
-                        }
-
-                        if (changed)
-                        {
-                            worldObjects.Clear();
-                            foreach (int id in wi.itemIds)
-                            {
-                                if (worldObjectById.TryGetValue(id, out var wo))
-                                {
-                                    worldObjects.Add(wo);
-                                }
-                            }
-                            if (wi.id == 2)
-                            {
-                                var _playerController = GetPlayerMainController();
-                                // Reset some equipment stats:
-                                var mt = _playerController.GetMultitool();
-
-                                // Apply equipment stats
-                                HashSet<DataConfig.EquipableType> equipTypes = new HashSet<DataConfig.EquipableType>();
-                                foreach (WorldObject wo in worldObjects)
-                                {
-                                    TryApplyEquipment(wo, _playerController, equipTypes);
-                                }
-
-                                // unequip
-                                if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolBuild))
-                                {
-                                    if (mt.HasEnabledState(DataConfig.MultiToolState.Build))
-                                    {
-                                        mt.RemoveEnabledState(DataConfig.MultiToolState.Build);
-                                    }
-                                }
-                                if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolDeconstruct))
-                                {
-                                    if (mt.HasEnabledState(DataConfig.MultiToolState.Deconstruct))
-                                    {
-                                        mt.RemoveEnabledState(DataConfig.MultiToolState.Deconstruct);
-                                    }
-                                }
-                                if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolLight))
-                                {
-                                    if ((bool)playerMultitoolCanUseLight.GetValue(mt))
-                                    {
-                                        mt.SetCanUseLight(false, 1);
-                                    }
-                                }
-                                if (!equipTypes.Contains(DataConfig.EquipableType.CompassHUD))
-                                {
-                                    var cc = Managers.GetManager<CanvasCompass>();
-                                    cc.SetStatus(false);
-                                }
-                            }
-                            inv.RefreshDisplayerContent();
-                        }
+                        SyncInventory(inv, wi);
                     }
                 }
                 finally
@@ -488,6 +414,81 @@ namespace FeatMultiplayer
                 }
 
                 //LogInfo("Received all inventories - Done");
+            }
+        }
+
+        static void SyncInventory(Inventory inv, WorldInventory wi)
+        {
+            List<WorldObject> worldObjects = inv.GetInsideWorldObjects();
+
+            // see if there was an inventory composition change
+            HashSet<int> currentIds = new HashSet<int>();
+            foreach (WorldObject obj in worldObjects)
+            {
+                currentIds.Add(obj.GetId());
+            }
+            HashSet<int> newIds = new HashSet<int>();
+            foreach (int id in wi.itemIds)
+            {
+                newIds.Add(id);
+            }
+
+            bool changed = false;
+            bool once = true;
+            for (int i = worldObjects.Count - 1; i >= 0; i--)
+            {
+                var woi = worldObjects[i];
+                int id = woi.GetId();
+                if (!newIds.Contains(id))
+                {
+                    worldObjects.RemoveAt(i);
+                    inv.inventoryContentModified?.Invoke(woi, false);
+                    currentIds.Remove(id);
+                    if (once)
+                    {
+                        once = false;
+                        LogInfo("ReceiveMessageInventories: " + inv.GetId() + " changed");
+                    }
+                    LogInfo("ReceiveMessageInventories:   Removed " + DebugWorldObject(woi));
+                    changed = true;
+                }
+            }
+            foreach (int id in wi.itemIds)
+            {
+                if (!currentIds.Contains(id))
+                {
+                    if (worldObjectById.TryGetValue(id, out var wo))
+                    {
+                        worldObjects.Add(wo);
+                        inv.inventoryContentModified?.Invoke(wo, true);
+                        if (once)
+                        {
+                            once = false;
+                            LogInfo("ReceiveMessageInventories: " + inv.GetId() + " changed");
+                        }
+                        LogInfo("ReceiveMessageInventories:   Added " + DebugWorldObject(wo));
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed)
+            {
+                if (wi.id == 2)
+                {
+                    var _playerController = GetPlayerMainController();
+                    // Reset some equipment stats:
+
+                    // Apply equipment stats
+                    HashSet<DataConfig.EquipableType> equipTypes = new HashSet<DataConfig.EquipableType>();
+                    foreach (WorldObject wo in worldObjects)
+                    {
+                        TryApplyEquipment(wo, _playerController, equipTypes);
+                    }
+
+                    UnapplyEquipment(equipTypes, _playerController);
+                }
+                inv.RefreshDisplayerContent();
             }
         }
 
@@ -577,6 +578,79 @@ namespace FeatMultiplayer
                         }
                 }
             }
+        }
+
+        static void UnapplyEquipment(HashSet<DataConfig.EquipableType> equipTypes, PlayerMainController player)
+        {
+            var mt = player.GetMultitool();
+            // unequip
+            if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolBuild))
+            {
+                if (mt.HasEnabledState(DataConfig.MultiToolState.Build))
+                {
+                    mt.RemoveEnabledState(DataConfig.MultiToolState.Build);
+                }
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolDeconstruct))
+            {
+                if (mt.HasEnabledState(DataConfig.MultiToolState.Deconstruct))
+                {
+                    mt.RemoveEnabledState(DataConfig.MultiToolState.Deconstruct);
+                }
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolLight))
+            {
+                if ((bool)playerMultitoolCanUseLight.GetValue(mt))
+                {
+                    mt.SetCanUseLight(false, 1);
+                }
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.CompassHUD))
+            {
+                var cc = Managers.GetManager<CanvasCompass>();
+                cc.SetStatus(false);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.OxygenTank))
+            {
+                player.GetPlayerGaugesHandler()
+                                .UpdateGaugesDependingOnEquipment(
+                                    player.GetPlayerEquipment()
+                                    .GetInventory()
+                                );
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.BootsSpeed))
+            {
+                player.GetPlayerMovable()
+                                .SetMoveSpeedChangePercentage(0f);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.Jetpack))
+            {
+                player.GetPlayerMovable()
+                                .SetJetpackFactor(0f);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolMineSpeed))
+            {
+                player.GetMultitool()
+                                .GetMultiToolMine()
+                                .SetMineTimeReducer(0);
+            }
+            // FIXME backpack and equipment mod unequipping
+            /*
+            float dropDistance = 0.7f;
+            if (!equipTypes.Contains(DataConfig.EquipableType.BackpackIncrease))
+            {
+                Inventory inv = player.GetPlayerBackpack().GetInventory();
+                inv.SetSize(12);
+                var point = player.GetAimController().GetAimRay().GetPoint(dropDistance);
+                
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.EquipmentIncrease))
+            {
+                Inventory inv = player.GetPlayerBackpack().GetInventory();
+                inv.SetSize(4);
+                var point = player.GetAimController().GetAimRay().GetPoint(dropDistance);
+            }
+            */
         }
 
         static void ReceiveMessageSortInventory(MessageSortInventory msi)

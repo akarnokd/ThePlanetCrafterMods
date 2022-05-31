@@ -37,7 +37,7 @@ namespace FeatMultiplayer
                         otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         Send("Welcome\n");
                         Signal();
-                        lastHostSync = Time.realtimeSinceStartup;
+                        lastFullSync = Time.realtimeSinceStartup;
                         SendFullState();
                         return;
                     }

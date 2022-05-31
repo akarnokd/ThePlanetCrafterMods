@@ -58,6 +58,7 @@ namespace FeatMultiplayer
                         ___totalCraft++;
                         __result = true;
 
+                        LogInfo("SendMessageCraft: " + groupItem.GetId());
                         Send(new MessageCraft() { groupId = groupItem.GetId() });
                         Signal();
                     }
@@ -168,9 +169,9 @@ namespace FeatMultiplayer
                         {
                             suppressInventoryChange = false;
                         }
-
                         if (added)
                         {
+                            LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = true");
                             SendWorldObject(wo, false);
                             Send(new MessageInventoryAdded()
                             {
@@ -184,7 +185,12 @@ namespace FeatMultiplayer
                         else
                         {
                             WorldObjectsHandler.DestroyWorldObject(wo);
+                            LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = inventory full");
                         }
+                    }
+                    else
+                    {
+                        LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = missing ingredients");
                     }
                 } 
                 else
@@ -215,9 +221,14 @@ namespace FeatMultiplayer
                         var go = WorldObjectsHandler.InstantiateWorldObject(wo, false);
                         go.AddComponent<ShowMeAfterDelay>().SetDelay(mcw.craftTime);
 
+                        LogInfo("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = true");
                         // FIXME this won't animate properly on the client
                         SendWorldObject(wo, false);
                         Signal();
+                    }
+                    else
+                    {
+                        LogInfo("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = false, reason = missing ingredients");
                     }
                 }
                 else

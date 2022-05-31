@@ -6,6 +6,7 @@ using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -193,13 +194,14 @@ namespace FeatMultiplayer
         {
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
-                __result = MachineGrower_UpdateSize(__instance, ___worldObjectGrower, ___updateSizeInterval, ___inventory);
+                LogInfo("MachineGrower_UpdateSize: " + DebugWorldObject(___worldObjectGrower) + ", ___inventory = " + ___inventory.GetId());
+                __result = MachineGrower_UpdateSize_Override(__instance, ___worldObjectGrower, ___updateSizeInterval, ___inventory);
                 return false;
             }
             return true;
         }
 
-        static IEnumerator MachineGrower_UpdateSize(
+        static IEnumerator MachineGrower_UpdateSize_Override(
             MachineGrower instance,
             WorldObject growerMachine, 
             float updateSizeInterval,
@@ -217,7 +219,7 @@ namespace FeatMultiplayer
                         if (growth < 100f)
                         {
                             float scale = Mathf.Max(0f, Math.Min(1f, growth / 100f));
-                            goMockup.transform.localScale += new Vector3(scale, scale, scale);
+                            goMockup.transform.localScale = new Vector3(scale, scale, scale);
                         }
                         else
                         {
@@ -240,11 +242,15 @@ namespace FeatMultiplayer
                         {
                             float scale = instance.growSpeed * updateSizeInterval;
                             goMockup.transform.localScale += new Vector3(scale, scale, scale);
+                            growth = Mathf.RoundToInt(goMockup.transform.localScale.x * 100f);
+                            growerMachine.SetGrowth(growth);
+
                             Send(new MessageUpdateGrowth()
                             {
                                 machineId = growerMachine.GetId(),
                                 growth = growth
                             });
+                            Signal();
                         }
                         else
                         {
@@ -379,6 +385,8 @@ namespace FeatMultiplayer
             {
                 if (worldObjectById.TryGetValue(mug.machineId, out var machineWo))
                 {
+                    LogInfo("ReceiveMessageUpdateGrowth: machine = " + mug.machineId + ", growth = " 
+                        + mug.growth.ToString(CultureInfo.InvariantCulture) + ", vegetable = " + mug.vegetableId);
                     machineWo.SetGrowth(mug.growth);
                     if (mug.growth >= 100f)
                     {

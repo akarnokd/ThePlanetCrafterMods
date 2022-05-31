@@ -41,7 +41,11 @@ namespace FeatMultiplayer
         /// <summary>
         /// Last time when the full state has been synced.
         /// </summary>
-        static float lastHostSync;
+        static float lastFullSync;
+        /// <summary>
+        /// Time when the last small sync happened.
+        /// </summary>
+        static float lastSmallSync;
 
         /// <summary>
         /// The player's avatar, also doubles as the other player presence indicator.
@@ -94,10 +98,21 @@ namespace FeatMultiplayer
 
             if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
             {
-                if (now - lastHostSync >= fullSyncDelay.Value / 1000f)
+                try
                 {
-                    lastHostSync = now;
-                    SendFullState();
+                    if (now - lastFullSync >= fullSyncDelay.Value / 1000f)
+                    {
+                        lastFullSync = now;
+                        SendFullState();
+                    }
+                    if (now - lastSmallSync >= smallSyncDelay.Value / 1000f)
+                    {
+                        lastSmallSync = now;
+                        SendPeriodicState();
+                    }
+                } catch (Exception ex)
+                {
+                    LogError(ex);
                 }
             }
 

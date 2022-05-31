@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using HarmonyLib;
 using MijuTools;
 using SpaceCraft;
 using System;
@@ -12,6 +13,30 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+
+        /// <summary>
+        /// The vanilla game uses WorldUnit::Compute to periodically add to
+        /// the total value, based on the delta time and the speed of change
+        /// for the unit.
+        /// 
+        /// On the host, we let it happen.
+        /// 
+        /// On the client, we don't let it happen as it is force-synced from the host.
+        /// </summary>
+        /// <param name="__instance">The unit so we still can call SetCurrentLabelIndex.</param>
+        /// <returns>False if on the client, true otherwise</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldUnit), nameof(WorldUnit.Compute))]
+        static bool Compute(WorldUnit __instance)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                __instance.SetCurrentLabelIndex();
+                return false;
+            }
+            return true;
+        }
+
         static void ReceiveTerraformState(MessageTerraformState mts)
         {
             if (updateMode == MultiplayerMode.CoopClient)

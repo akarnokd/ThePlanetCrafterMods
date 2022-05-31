@@ -2,6 +2,7 @@
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace FeatMultiplayer
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("{ id=").Append(wo.GetId())
-            .Append(", groupId=");
+            .Append(", groupId = ");
             if (wo.GetGroup() != null)
             {
                 sb.Append(wo.GetGroup().GetId());
@@ -59,7 +60,18 @@ namespace FeatMultiplayer
             {
                 sb.Append("null");
             }
-            sb.Append(", position=").Append(wo.GetPosition());
+            if (wo.GetIsPlaced())
+            {
+                sb.Append(", position = ").Append(wo.GetPosition());
+            }
+            if (wo.GetLinkedInventoryId() > 0)
+            {
+                sb.Append(", inventory = ").Append(wo.GetLinkedInventoryId());
+            }
+            if (wo.GetGrowth() > 0f)
+            {
+                sb.Append(", growth = ").Append(wo.GetGrowth().ToString(CultureInfo.InvariantCulture));
+            }
             sb.Append(" }");
             return sb.ToString();
         }
@@ -252,7 +264,7 @@ namespace FeatMultiplayer
                 Inventory inv = InventoriesHandler.GetInventoryById(mwo.inventoryId);
                 if (inv == null)
                 {
-                    LogInfo("Creating default inventory " + mwo.inventoryId
+                    LogInfo("UpdateWorldObject:   Creating default inventory " + mwo.inventoryId
                         + " of WorldObject " + DebugWorldObject(wo));
                     InventoriesHandler.CreateNewInventory(1, mwo.inventoryId);
                 }
@@ -269,7 +281,7 @@ namespace FeatMultiplayer
             {
                 go = WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 hasGameObject = true;
-                LogInfo("UpdateWorldObject: Placing GameObject for WorldObject " + DebugWorldObject(wo));
+                LogInfo("UpdateWorldObject:   Placing GameObject for WorldObject " + DebugWorldObject(wo));
                 dontUpdatePosition = true;
             }
             else
@@ -277,7 +289,7 @@ namespace FeatMultiplayer
             {
                 if (hasGameObject)
                 {
-                    LogInfo("UpdateWorldObject: WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
+                    LogInfo("UpdateWorldObject:   WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
                     UnityEngine.Object.Destroy(go);
                     TryRemoveGameObject(wo);
                 }
@@ -296,7 +308,7 @@ namespace FeatMultiplayer
                     {
                         if (go != null)
                         {
-                            LogInfo("UpdateWorldObject: Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                            LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
                             go.transform.position = mwo.position;
                             go.transform.rotation = mwo.rotation;
                         }
@@ -305,7 +317,7 @@ namespace FeatMultiplayer
             }
             if (doUpdatePanels)
             {
-                LogInfo("UpdateWorldObject: Panels " + wo.GetId() + ", " + wo.GetGroup().GetId());
+                LogInfo("UpdateWorldObject:   Panels " + wo.GetId() + ", " + wo.GetGroup().GetId());
                 UpdatePanelsOn(wo);
             }
             if (!string.Equals(oldText, mwo.text) && hasGameObject)
@@ -334,12 +346,12 @@ namespace FeatMultiplayer
                     if (grabComponent == null)
                     {
                         go.AddComponent<ActionGrabable>();
-                        LogInfo("UpdateWorldObject: Add ActionGrabable to " + DebugWorldObject(wo));
+                        LogInfo("UpdateWorldObject:   Add ActionGrabable to " + DebugWorldObject(wo));
                     }
                 }
                 else
                 {
-                    LogInfo("UpdateWorldObject: makeGrabable no GameObject for " + DebugWorldObject(wo));
+                    LogInfo("UpdateWorldObject:   makeGrabable no GameObject for " + DebugWorldObject(wo));
                 }
             }
 
