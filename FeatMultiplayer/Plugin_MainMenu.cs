@@ -27,6 +27,7 @@ namespace FeatMultiplayer
         static GameObject hostLocalIPText;
         static GameObject upnpCheckBox;
         static GameObject hostExternalIPText;
+        static GameObject hostExternalMappingText;
 
         static GameObject clientModeText;
         static GameObject clientTargetAddressText;
@@ -34,6 +35,7 @@ namespace FeatMultiplayer
         static GameObject clientJoinButton;
 
         static volatile string externalIP;
+        static volatile string externalMap;
 
         static readonly Color interactiveColor = new Color(1f, 0.75f, 0f, 1f);
         static readonly Color interactiveColorHighlight = new Color(1f, 0.85f, 0.5f, 1f);
@@ -48,12 +50,14 @@ namespace FeatMultiplayer
             LogInfo("Intro_Start");
             updateMode = MultiplayerMode.MainMenu;
 
+            int rows = 9;
+
             parent = new GameObject();
             Canvas canvas = parent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             int fs = fontSize.Value;
             int dx = Screen.width / 2 - 200;
-            int dy = Screen.height / 2 - 4 * (fs + 10) + 10;
+            float dy = Screen.height / 2 - rows / 2f * (fs + 10) + 10;
             int dw = 300;
             int backgroundX = Screen.width / 2 - (200 + dw / 2) / 2 - 10;
 
@@ -68,8 +72,8 @@ namespace FeatMultiplayer
             img.color = new Color(0f, 0f, 0f, 0.95f);
 
             rectTransform = img.GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(backgroundX, dy - 4 * (fs + 10) + 10);
-            rectTransform.sizeDelta = new Vector2(350, 8 * (fs + 10) + 20);
+            rectTransform.localPosition = new Vector2(backgroundX, dy - rows / 2f * (fs + 10) + 10);
+            rectTransform.sizeDelta = new Vector2(350, rows * (fs + 10) + 20);
 
             hostModeCheckbox = CreateText(GetHostModeString(), fs, true);
 
@@ -97,6 +101,14 @@ namespace FeatMultiplayer
             hostExternalIPText = CreateText(GetExternalAddressString(), fs);
 
             rectTransform = hostExternalIPText.GetComponent<Text>().GetComponent<RectTransform>();
+            rectTransform.localPosition = new Vector2(dx, dy);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
+
+            dy -= fs + 10;
+
+            hostExternalMappingText = CreateText(GetExternalMappingString(), fs);
+
+            rectTransform = hostExternalMappingText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
@@ -147,6 +159,8 @@ namespace FeatMultiplayer
         {
             if (useUPnP.Value)
             {
+                var portNum = port.Value;
+
                 Task.Run(async () =>
                 {
                     try
@@ -159,7 +173,22 @@ namespace FeatMultiplayer
                         // The following hangs indefinitely, not sure why
                         var ip = await device.GetExternalIPAsync().ConfigureAwait(false);
                         LogInfo("External IP = " + ip);
-                        externalIP = ip.ToString();
+                        externalIP = "    External Address = " + ip.ToString();
+
+                        try
+                        {
+                            var mapping = await device.GetSpecificMappingAsync(Protocol.Tcp, portNum).ConfigureAwait(false);
+                            LogInfo("Current Mapping = " + mapping);
+
+                            await device.CreatePortMapAsync(new Mapping(Protocol.Tcp, portNum, portNum, "The Planet Crafter Multiplayer")).ConfigureAwait(false);
+                            externalMap = "    External Mapping = ok";
+                        }
+                        catch (Exception ex)
+                        {
+                            LogInfo(ex);
+                            externalMap = "    External Mapping = error";
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -171,6 +200,15 @@ namespace FeatMultiplayer
                 return "    External Address = checking";
             }
             return "    External Address = N/A";
+        }
+
+        static string GetExternalMappingString()
+        {
+            if (useUPnP.Value)
+            {
+                return "    External Mapping = checking";
+            }
+            return "    External Mapping = N/A";
         }
 
         void DoMainMenuUpdate()
@@ -189,6 +227,7 @@ namespace FeatMultiplayer
                     upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
 
                     hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
+                    hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
                 }
                 if (IsWithin(clientJoinButton, mouse))
                 {
@@ -207,7 +246,12 @@ namespace FeatMultiplayer
             {
                 externalIP = null;
                 hostExternalIPText.GetComponent<Text>().text = eip;
-
+            }
+            var emp = externalMap;
+            if (emp != null)
+            {
+                externalMap = null;
+                hostExternalMappingText.GetComponent<Text>().text = emp;
             }
         }
 
