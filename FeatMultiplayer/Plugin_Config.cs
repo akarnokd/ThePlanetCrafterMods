@@ -80,7 +80,7 @@ namespace FeatMultiplayer
 
             InitFieldAccessors();
             
-            TryInstallMachineModOverrides();
+            TryInstallMachineOverrides();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

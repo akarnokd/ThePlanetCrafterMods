@@ -125,6 +125,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mcw);
             }
             else
+            if (MessageUpdateGrowth.TryParse(message, out var mug))
+            {
+                receiveQueue.Enqueue(mug);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -285,6 +290,11 @@ namespace FeatMultiplayer
                 case MessageCraftWorld mcw:
                     {
                         ReceiveMessageCraftWorld(mcw);
+                        break;
+                    }
+                case MessageUpdateGrowth mug:
+                    {
+                        ReceiveMessageUpdateGrowth(mug);
                         break;
                     }
                 case string s:

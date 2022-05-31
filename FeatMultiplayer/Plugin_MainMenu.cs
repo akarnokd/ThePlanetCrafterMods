@@ -54,6 +54,8 @@ namespace FeatMultiplayer
             int fs = fontSize.Value;
             int dx = Screen.width / 2 - 200;
             int dy = Screen.height / 2 - 4 * (fs + 10) + 10;
+            int dw = 300;
+            int backgroundX = Screen.width / 2 - (200 + dw / 2) / 2 - 5;
 
             RectTransform rectTransform;
 
@@ -66,21 +68,21 @@ namespace FeatMultiplayer
             img.color = new Color(0f, 0f, 0f, 0.95f);
 
             rectTransform = img.GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(dx - 5, dy - 4 * (fs + 10) + 5);
-            rectTransform.sizeDelta = new Vector2(300, 8 * (fs + 10) + 10);
+            rectTransform.localPosition = new Vector2(backgroundX, dy - 4 * (fs + 10) + 5);
+            rectTransform.sizeDelta = new Vector2(350, 8 * (fs + 10) + 10);
 
             hostModeCheckbox = CreateText(GetHostModeString(), fs, true);
 
             rectTransform = hostModeCheckbox.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
             hostLocalIPText = CreateText("    Local Address = " + GetMainIPv4() + ":" + port.Value, fs);
             rectTransform = hostLocalIPText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
@@ -88,7 +90,7 @@ namespace FeatMultiplayer
 
             rectTransform = upnpCheckBox.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
@@ -96,7 +98,7 @@ namespace FeatMultiplayer
 
             rectTransform = hostExternalIPText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 20;
 
@@ -104,7 +106,7 @@ namespace FeatMultiplayer
 
             rectTransform = clientModeText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
@@ -112,7 +114,7 @@ namespace FeatMultiplayer
 
             rectTransform = clientTargetAddressText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
@@ -120,7 +122,7 @@ namespace FeatMultiplayer
 
             rectTransform = clientNameText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
             dy -= fs + 10;
 
@@ -128,7 +130,7 @@ namespace FeatMultiplayer
 
             rectTransform = clientJoinButton.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(300, fs + 5);
+            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
         }
 
         static string GetHostModeString()
