@@ -64,7 +64,7 @@
       <ForZipAll>$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)</ForZipAll>
     </PropertyGroup>
 
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination1)" />
@@ -78,15 +78,21 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
 
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZipAll)" />
+    <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZipAll)" />
+
+    <!-- Do not add it to the akarnokd-all.zip yet
+
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZip)" />
-
-    <!-- Do not turn it into a zip yet
-
    
     -->
     <ZipDirectory

@@ -157,6 +157,11 @@ namespace FeatMultiplayer
             {
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
+                    if (message is NotifyUserMessage num)
+                    {
+                        NotifyUser(num.message, num.duration);
+                    }
+                    else
                     if (message is MessageLogin ml)
                     {
                         ReceiveLogin(ml);
@@ -169,6 +174,11 @@ namespace FeatMultiplayer
                 else
                 if (updateMode == MultiplayerMode.CoopClient)
                 {
+                    if (message is NotifyUserMessage num)
+                    {
+                        NotifyUser(num.message, num.duration);
+                    } 
+                    else
                     if (message is string s)
                     {
                         DispatchMessageString(s);

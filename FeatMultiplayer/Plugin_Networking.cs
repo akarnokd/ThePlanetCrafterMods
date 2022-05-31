@@ -52,7 +52,7 @@ namespace FeatMultiplayer
                 try
                 {
                     TcpClient client = new TcpClient(hostAddress.Value, port.Value);
-                    NotifyUser("Connecting to Host...Success");
+                    NotifyUserFromBackground("Connecting to Host...Success");
                     networkConnected = true;
                     stopNetwork.Token.Register(() =>
                     {
