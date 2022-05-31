@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace FeatMultiplayer
 {
@@ -676,6 +677,99 @@ namespace FeatMultiplayer
                         suppressInventoryChange = false;
                     }
                 }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoryAssociated), nameof(InventoryAssociated.GetInventory))]
+        static bool InventoryAssociated_GetInventory(InventoryAssociated __instance,
+            ref Inventory ___inventory,
+            ref Inventory __result
+        )
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                if (___inventory == null)
+                {
+                    InventoryFromScene component = __instance.GetComponent<InventoryFromScene>();
+                    if (component != null)
+                    {
+                        int iid = component.GetInventoryGeneratedId();
+                        Inventory inventoryById = InventoriesHandler.GetInventoryById(iid);
+                        if (inventoryById != null)
+                        {
+                            __instance.SetInventory(inventoryById);
+                            __result = ___inventory;
+                        }
+                        else
+                        {
+                            Inventory inventory = InventoriesHandler.CreateNewInventory(component.GetSize(), iid);
+                            __instance.SetInventory(inventory);
+                            __result = ___inventory;
+                            var scene = SceneManager.GetActiveScene();
+                            Send(new MessageInventorySpawn() { inventoryId = iid, sceneName = scene.name });
+                            Signal();
+                        }
+                    }
+                }
+
+                return false;
+            }
+            return true;
+        }
+
+        static void FindInventoryInScene(int iid, string sceneName)
+        {
+            foreach (var sceneInventory in UnityEngine.Object.FindObjectsOfType<InventoryFromScene>())
+            {
+                if (sceneInventory.GetInventoryGeneratedId() == iid)
+                {
+                    Inventory inventoryById = InventoriesHandler.GetInventoryById(iid);
+                    if (inventoryById == null)
+                    {
+                        List<Group> generatedGroups = sceneInventory.GetGeneratedGroups();
+                        LogInfo("ReceiveMessageInventorySpawn: InventoryFromScene generated = " + iid + ", Count = " + generatedGroups.Count);
+                        Inventory inventory = InventoriesHandler.CreateNewInventory(sceneInventory.GetSize(), iid);
+                        foreach (Group group in generatedGroups)
+                        {
+                            WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+                            inventory.AddItem(worldObject);
+                        }
+                    }
+                    else
+                    {
+                        LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene already instantiated = " + iid);
+                    }
+                    return;
+                }
+            }
+            LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene not found: " + iid + ", Scene = " + sceneName + ", (sector not loaded?)");
+        }
+
+        static void ReceiveMessageInventorySpawn(MessageInventorySpawn mis)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                int iid = mis.inventoryId;
+                var scene = SceneManager.GetSceneByName(mis.sceneName);
+                if (scene.IsValid())
+                {
+                    if (scene.isLoaded)
+                    {
+                        FindInventoryInScene(iid, mis.sceneName);
+                    }
+                    else
+                    {
+                        LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid);
+                        var asyncOp = SceneManager.LoadSceneAsync(mis.sceneName, LoadSceneMode.Additive);
+                        asyncOp.completed += (op) =>
+                        {
+                            LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid + " completed");
+                            FindInventoryInScene(iid, mis.sceneName);
+                        };
+                    }
+                }
+                
             }
         }
     }
