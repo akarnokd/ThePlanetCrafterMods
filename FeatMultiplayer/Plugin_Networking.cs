@@ -79,10 +79,25 @@ namespace FeatMultiplayer
 
         static void HostAcceptor()
         {
-            LogInfo("Starting HostAcceptor on port " + port.Value);
+            var hostIp = hostServiceAddress.Value;
+            IPAddress hostIPAddress = IPAddress.Any;
+            if (hostIp == "default")
+            {
+                hostIPAddress = GetMainIPv4();
+            }
+            else
+            if (hostIp == "defaultv6")
+            {
+                hostIPAddress = GetMainIPv6();
+            }
+            else
+            {
+                hostIPAddress = IPAddress.Parse(hostIp);
+            }
+            LogInfo("Starting HostAcceptor on " + hostIp + ":" + port.Value + " (" + hostIPAddress + ")");
             try
             {
-                TcpListener listener = new TcpListener(IPAddress.Any, port.Value);
+                TcpListener listener = new TcpListener(hostIPAddress, port.Value);
                 listener.Start();
                 stopNetwork.Token.Register(() =>
                 {

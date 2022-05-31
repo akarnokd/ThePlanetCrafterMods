@@ -23,6 +23,7 @@ namespace FeatMultiplayer
 
         static ConfigEntry<bool> hostMode;
         static ConfigEntry<bool> useUPnP;
+        static ConfigEntry<string> hostServiceAddress;
         static ConfigEntry<string> hostAcceptName;
         static ConfigEntry<string> hostAcceptPassword;
         static ConfigEntry<string> hostColor;
@@ -62,6 +63,7 @@ namespace FeatMultiplayer
             hostAcceptName = Config.Bind("Host", "Name", "Buddy,Dude", "Comma separated list of client names the host will accept.");
             hostAcceptPassword = Config.Bind("Host", "Password", "password,wordpass", "Comma separated list of the plaintext(!) passwords accepted by the host, in pair with the Host/Name list.");
             hostColor = Config.Bind("Host", "Color", "1,1,1,1", "The color of the host avatar as comma-separated RGBA floats");
+            hostServiceAddress = Config.Bind("Host", "ServiceAddress", "default", "The local IP address the host would listen, '' for auto address, 'default' for first IPv4 local address, 'defaultv6' for first IPv6 local address");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
             clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");

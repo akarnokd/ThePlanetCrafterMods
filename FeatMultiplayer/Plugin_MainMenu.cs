@@ -88,6 +88,8 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            LogInfo(GetMainIPv6());
+
             dy -= fs + 10;
 
             upnpCheckBox = CreateText(GetUPnPString(), fs, true);
@@ -288,11 +290,19 @@ namespace FeatMultiplayer
 
         static bool IsIPv4(IPAddress ipa) => ipa.AddressFamily == AddressFamily.InterNetwork;
 
+        static bool IsIPv6(IPAddress ipa) => ipa.AddressFamily == AddressFamily.InterNetworkV6;
+
         static IPAddress GetMainIPv4() => NetworkInterface.GetAllNetworkInterfaces()
             .Select((ni) => ni.GetIPProperties())
             .Where((ip) => ip.GatewayAddresses.Where((ga) => IsIPv4(ga.Address)).Count() > 0)
             .FirstOrDefault()?.UnicastAddresses?
             .Where((ua) => IsIPv4(ua.Address))?.FirstOrDefault()?.Address;
+
+        static IPAddress GetMainIPv6() => NetworkInterface.GetAllNetworkInterfaces()
+            .Select((ni) => ni.GetIPProperties())
+            .Where((ip) => ip.GatewayAddresses.Where((ga) => IsIPv6(ga.Address)).Count() > 0)
+            .FirstOrDefault()?.UnicastAddresses?
+            .Where((ua) => IsIPv6(ua.Address))?.FirstOrDefault()?.Address;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.SelectedSaveFile))]
