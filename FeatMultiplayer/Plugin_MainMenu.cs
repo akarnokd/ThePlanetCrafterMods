@@ -55,7 +55,7 @@ namespace FeatMultiplayer
             int dx = Screen.width / 2 - 200;
             int dy = Screen.height / 2 - 4 * (fs + 10) + 10;
             int dw = 300;
-            int backgroundX = Screen.width / 2 - (200 + dw / 2) / 2 - 5;
+            int backgroundX = Screen.width / 2 - (200 + dw / 2) / 2 - 10;
 
             RectTransform rectTransform;
 
@@ -68,8 +68,8 @@ namespace FeatMultiplayer
             img.color = new Color(0f, 0f, 0f, 0.95f);
 
             rectTransform = img.GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(backgroundX, dy - 4 * (fs + 10) + 5);
-            rectTransform.sizeDelta = new Vector2(350, 8 * (fs + 10) + 10);
+            rectTransform.localPosition = new Vector2(backgroundX, dy - 4 * (fs + 10) + 10);
+            rectTransform.sizeDelta = new Vector2(350, 8 * (fs + 10) + 20);
 
             hostModeCheckbox = CreateText(GetHostModeString(), fs, true);
 

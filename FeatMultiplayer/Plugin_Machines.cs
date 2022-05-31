@@ -217,7 +217,7 @@ namespace FeatMultiplayer
                         if (growth < 100f)
                         {
                             float scale = Mathf.Max(0f, Math.Min(1f, growth / 100f));
-                            goMockup.transform.localPosition += new Vector3(scale, scale, scale);
+                            goMockup.transform.localScale += new Vector3(scale, scale, scale);
                         }
                         else
                         {
@@ -239,7 +239,7 @@ namespace FeatMultiplayer
                         if (growth < 100f)
                         {
                             float scale = instance.growSpeed * updateSizeInterval;
-                            goMockup.transform.localPosition += new Vector3(scale, scale, scale);
+                            goMockup.transform.localScale += new Vector3(scale, scale, scale);
                             Send(new MessageUpdateGrowth()
                             {
                                 machineId = growerMachine.GetId(),
