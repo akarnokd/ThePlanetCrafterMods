@@ -24,6 +24,7 @@ namespace FeatMultiplayer
 
         static FieldInfo machineGrowerInstantiatedGameObject;
         static FieldInfo machineGrowerInventory;
+        static MethodInfo machineGrowerOnVegetableGrabed;
 
         /// <summary>
         /// If the mod <c>akarnokd.theplanetcraftermods.cheatmachineremotedeposit</c>
@@ -62,6 +63,7 @@ namespace FeatMultiplayer
 
             machineGrowerInstantiatedGameObject = AccessTools.Field(typeof(MachineGrower), "instantiatedGameObject");
             machineGrowerInventory = AccessTools.Field(typeof(MachineGrower), "inventory");
+            machineGrowerOnVegetableGrabed = AccessTools.Method(typeof(MachineGrower), "OnVegetableGrabed", new Type[] { typeof(WorldObject) });
         }
 
         /// <summary>
@@ -321,7 +323,8 @@ namespace FeatMultiplayer
         /// On the Host, we need to override the ActionGrabable.grabEvent so it goes to
         /// MachineGrower_OnVegetableGrabed_Host.
         /// 
-        /// On the client, we do nothing as the server will send down the state information.
+        /// On the client and in single-player, we use a faster search for the nearby vegetable
+        /// and update the grabEvent to point to the default OnVegetableGrabed
         /// </summary>
         /// <param name="___inventory">The inventory to figure out what the vegetable's GroupItem</param>
         /// <returns>True in singleplayer, false in multiplayer.</returns>
@@ -329,7 +332,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(MachineGrower), "HandleAlreadyGrownObject")]
         static bool MachineGrower_HandleAlreadyGrownObject(MachineGrower __instance, Inventory ___inventory, GameObject ___spawnPoint)
         {
-            if (updateMode == MultiplayerMode.CoopHost)
+            if (updateMode != MultiplayerMode.CoopClient)
             {
                 var entries = ___inventory.GetInsideWorldObjects();
                 var seedWo = entries[0];
@@ -344,10 +347,20 @@ namespace FeatMultiplayer
                  
                 if (vegetableWo != null && TryGetGameObject(vegetableWo, out var vegetableGo))
                 {
+                    Grabed newGrabEvent = null;
+                    if (updateMode == MultiplayerMode.CoopHost)
+                    {
+                        newGrabEvent = new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(__instance, wo));
+                    }
+                    else
+                    {
+                        newGrabEvent = new Grabed((wo) => machineGrowerOnVegetableGrabed.Invoke(__instance, new object[] { wo }));
+                    }
+
                     ActionGrabable ag = vegetableGo.GetComponent<ActionGrabable>();
                     if (ag != null)
                     {
-                        ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(__instance, wo)));
+                        ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, newGrabEvent);
                     }
 
                     GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(__instance);
@@ -356,15 +369,8 @@ namespace FeatMultiplayer
 
                     seedWo.SetLockInInventoryTime(Time.time + 0.01f);
                 }
-
-                return false;
             }
-            else
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                return false;
-            }
-            return true;
+            return false;
         }
 
         static void ReceiveMessageUpdateGrowth(MessageUpdateGrowth mug)

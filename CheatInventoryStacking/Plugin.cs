@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.8")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.9")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -578,7 +578,9 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
         static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, List<GroupData> ___groupDatas)
         {
-            if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit"))
+            if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit")
+                && !Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.featmultiplayer")
+            )
             {
                 WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(
                     GroupsHandler.GetGroupViaId(

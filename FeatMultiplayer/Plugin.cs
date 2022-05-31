@@ -1,43 +1,19 @@
 ﻿using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
 using UnityEngine;
-using System.Collections.Generic;
-using BepInEx.Logging;
-using UnityEngine.UI;
-using UnityEngine.InputSystem;
-using System.Reflection;
-using BepInEx.Configuration;
-using System.Net;
-using System.Net.Sockets;
-using System.Net.NetworkInformation;
-using System.Linq;
-using Open.Nat;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
-using System.Text;
-using System.IO;
-using MijuTools;
-using UnityEngine.SceneManagement;
-using System.Globalization;
-using System.Collections;
-using TMPro;
-using HSVPicker;
 
 namespace FeatMultiplayer
 {
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin("akarnokd.theplanetcraftermods.featmultiplayer", "(Feat) Multiplayer", "0.1.0.0")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.0")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public partial class Plugin : BaseUnityPlugin
     {
-
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
         const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
         const string modCheatMachineRemoteDepositGuid = "akarnokd.theplanetcraftermods.cheatmachineremotedeposit";
         const string modCheatAutoHarvestGuid = "akarnokd.theplanetcraftermods.cheatautoharvest";

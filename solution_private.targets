@@ -1,14 +1,34 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup Condition="Exists('c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter')">
-    <GameDir>c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter\</GameDir>
-    <GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
-    <PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
-  </PropertyGroup>
-  <PropertyGroup Condition="Exists('e:\Steam\steamapps\common\The Planet Crafter')">
-    <GameDir>e:\Steam\steamapps\common\The Planet Crafter\</GameDir>
-    <GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
-    <PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
-  </PropertyGroup>
+	<!-- Steam Deployments -->
+	<PropertyGroup Condition="Exists('c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter')">
+		<GameDir>c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter\</GameDir>
+		<GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
+		<PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
+	</PropertyGroup>
+	<PropertyGroup Condition="Exists('e:\Steam\steamapps\common\The Planet Crafter')">
+		<GameDir>e:\Steam\steamapps\common\The Planet Crafter\</GameDir>
+		<GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
+		<PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
+	</PropertyGroup>
+
+	<!-- Standalone Deployments -->
+	<PropertyGroup Condition="Exists('c:\Games\The Planet Crafter')">
+		<GameDir2>c:\Games\The Planet Crafter</GameDir2>
+		<GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
+		<PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="Exists('e:\Games\The Planet Crafter')">
+		<GameDir2>e:\Games\The Planet Crafter</GameDir2>
+		<GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
+		<PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
+	</PropertyGroup>
+	
+	<!-- Deployment target directories -->
+	<PropertyGroup>
+		<Destination1>$(PluginsFolder)\akarnokd - $(Description)</Destination1>
+		<Destination2>$(PluginsFolder2)\akarnokd - $(Description)</Destination2>
+	</PropertyGroup>
 
 </Project>

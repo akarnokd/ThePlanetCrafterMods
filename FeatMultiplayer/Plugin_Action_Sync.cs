@@ -50,7 +50,7 @@ namespace FeatMultiplayer
                     if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
                     {
                         sb.Append("|");
-                        MessageAllObjects.AppendWorldObject(sb, ';', wo, false);
+                        MessageWorldObject.AppendWorldObject(sb, ';', wo, false);
                         //LogInfo("FullSync> " + DebugWorldObject(wo));
                     }
                 }
