@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using SpaceCraft;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -77,7 +78,7 @@ namespace FeatMultiplayer
             File.Delete(Application.persistentDataPath + "\\Player_Client.log");
             File.Delete(Application.persistentDataPath + "\\Player_Host.log");
 
-            InitFieldAccessors();
+            InitReflectiveAccessors();
             
             TryInstallMachineOverrides();
 
@@ -98,8 +99,9 @@ namespace FeatMultiplayer
         static FieldInfo playerMultitoolCanUseLight;
         static FieldInfo worldObjectTextWorldObject;
         static FieldInfo worldObjectColorWorldObject;
+        static MethodInfo sectorSceneLoaded;
 
-        static void InitFieldAccessors()
+        static void InitReflectiveAccessors()
         {
             gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -108,6 +110,8 @@ namespace FeatMultiplayer
             playerMultitoolCanUseLight = AccessTools.Field(typeof(PlayerMultitool), "canUseLight");
             worldObjectTextWorldObject = AccessTools.Field(typeof(WorldObjectText), "worldObject");
             worldObjectColorWorldObject = AccessTools.Field(typeof(WorldObjectColor), "worldObject");
+
+            sectorSceneLoaded = AccessTools.Method(typeof(Sector), "SceneLoaded", new Type[] { typeof(AsyncOperation) });
         }
 
     }

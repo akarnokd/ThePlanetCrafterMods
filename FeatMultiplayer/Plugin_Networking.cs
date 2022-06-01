@@ -154,7 +154,10 @@ namespace FeatMultiplayer
                 }
                 catch (Exception ex)
                 {
-                    LogError(ex);
+                    if (!stopNetwork.IsCancellationRequested)
+                    {
+                        LogError(ex);
+                    }
                 }
             }
             else

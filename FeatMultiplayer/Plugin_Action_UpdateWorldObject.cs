@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace FeatMultiplayer
 {
@@ -88,13 +89,15 @@ namespace FeatMultiplayer
                     toDelete.Add(kv.Key);
                 }
 
+                HashSet<int> unplaceSceneObjects = new();
                 foreach (MessageWorldObject mwo in mc.worldObjects)
                 {
                     //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
                     toDelete.Remove(mwo.id);
 
-                    UpdateWorldObject(mwo);
+                    UpdateWorldObject(mwo, unplaceSceneObjects);
                 }
+                DeleteActionMinableForIds(unplaceSceneObjects);
 
                 foreach (int id in toDelete)
                 {
@@ -129,33 +132,94 @@ namespace FeatMultiplayer
         static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
         {
             LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
-            UpdateWorldObject(mc.worldObject);
+            UpdateWorldObject(mc.worldObject, null);
         }
 
         static bool DeleteActionMinableForId(int id)
         {
-            foreach (ActionMinable am in UnityEngine.Object.FindObjectsOfType<ActionMinable>())
-            {
-                var woa = am.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
-                {
-                    var wo1 = woa.GetWorldObject();
-                    if (wo1 != null)
-                    {
-                        if (wo1.GetId() == id)
-                        {
 
-                            LogInfo("DeleteActionMinableForId: ActionMinable deleted: " + id);
-                            UnityEngine.Object.Destroy(am.gameObject);
-                            return true;
-                        }
+            foreach (GameObject sceneGo in FindObjectsOfType<GameObject>())
+            {
+                var uid = sceneGo.GetComponentInChildren<WorldUniqueId>();
+                if (uid != null && uid.GetWorldUniqueId() == id)
+                {
+                    UnityEngine.Object.Destroy(sceneGo);
+                    if (worldObjectById.TryGetValue(id, out var wo))
+                    {
+                        TryRemoveGameObject(wo);
                     }
+                    LogInfo("UpdateWorldObject:   GameObject deleted via WorldUniqueId " + id);
+                    return true;
+                }
+            }
+            foreach (ActionMinable am in FindObjectsOfType<ActionMinable>()) {
+                var woa = am.GetComponent<WorldObjectAssociated>();
+                if (woa != null && woa.GetWorldObject().GetId() == id)
+                {
+                    UnityEngine.Object.Destroy(am.gameObject);
+                    if (worldObjectById.TryGetValue(id, out var wo))
+                    {
+                        TryRemoveGameObject(wo);
+                    }
+                    LogInfo("UpdateWorldObject:   GameObject deleted via ActionMinable " + id);
+                    return true;
                 }
             }
 
-
-            LogWarning("DeleteActionMinableForId: ActionMinable or WorldObjectAssociated found for " + id);
+            LogWarning("UpdateWorldObject:   WorldUniqueId, ActionMinable not found " + id);
             return false;
+        }
+
+        static void DeleteActionMinableForIds(HashSet<int> ids)
+        {
+
+            if (ids.Count != 0)
+            {
+                foreach (GameObject sceneGo in FindObjectsOfType<GameObject>())
+                {
+                    var uid = sceneGo.GetComponentInChildren<WorldUniqueId>();
+                    if (uid != null)
+                    {
+                        int id = uid.GetWorldUniqueId();
+                        if (ids.Contains(uid.GetWorldUniqueId()))
+                        {
+                            ids.Remove(id);
+                            UnityEngine.Object.Destroy(sceneGo);
+                            if (worldObjectById.TryGetValue(id, out var wo))
+                            {
+                                TryRemoveGameObject(wo);
+                            }
+                            LogInfo("UpdateWorldObject:   GameObject deleted via WorldUniqueId " + id);
+                        }
+                    }
+                }
+                if (ids.Count != 0)
+                {
+                    foreach (ActionMinable am in FindObjectsOfType<ActionMinable>())
+                    {
+                        var woa = am.GetComponent<WorldObjectAssociated>();
+                        if (woa != null)
+                        {
+                            int id = woa.GetWorldObject().GetId();
+                            if (ids.Contains(id))
+                            {
+                                ids.Remove(id);
+                                UnityEngine.Object.Destroy(am.gameObject);
+                                if (worldObjectById.TryGetValue(id, out var wo))
+                                {
+                                    TryRemoveGameObject(wo);
+                                }
+                                LogInfo("UpdateWorldObject:   GameObject deleted via ActionMinable " + id);
+                            }
+                        }
+                    }
+                }
+
+                if (ids.Count != 0)
+                {
+                    LogWarning("UpdateWorldObject:   WorldUniqueId, ActionMinable not found " + string.Join(", ", ids));
+                }
+            }
         }
 
         static void UpdatePanelsOn(WorldObject wo)
@@ -183,16 +247,16 @@ namespace FeatMultiplayer
                         }
                         num++;
                     }
-                    LogInfo("UpdatePanelsOn: Updating panels on " + wo.GetId() + " success | " + panelIds);
+                    LogInfo("UpdateWorldObject:   Updating panels on " + wo.GetId() + " success | " + string.Join(", ", panelIds));
                 }
                 else
                 {
-                    LogInfo("UpdatePanelsOn: Updating panels: No panel details on " + wo.GetId());
+                    LogInfo("UpdateWorldObject:   Updating panels: No panel details " + DebugWorldObject(wo));
                 }
             }
             else
             {
-                LogInfo("UpdatePanelsOn: Updating panels: Game object not found of " + wo.GetId());
+                LogInfo("UpdateWorldObject:   Updating panels: Game object not found of " + DebugWorldObject(wo));
             }
         }
 
@@ -223,7 +287,8 @@ namespace FeatMultiplayer
         /// We'd expect an inventory sync to correctly fill in that inventory.
         /// </summary>
         /// <param name="mwo">The message to use for creating/updating a WorldObject.</param>
-        static void UpdateWorldObject(MessageWorldObject mwo)
+        /// <param name="unplaceSceneObjects">Set of identifiers to unplace while loading into a world</param>
+        static void UpdateWorldObject(MessageWorldObject mwo, HashSet<int> unplaceSceneObjects)
         {
             bool isNew = false;
             if (!worldObjectById.TryGetValue(mwo.id, out var wo))
@@ -358,7 +423,14 @@ namespace FeatMultiplayer
             // remove already mined objects
             if (isNew && WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !doPlace)
             {
-                DeleteActionMinableForId(wo.GetId());
+                if (unplaceSceneObjects != null)
+                {
+                    unplaceSceneObjects.Add(wo.GetId());
+                }
+                else
+                {
+                    DeleteActionMinableForId(wo.GetId());
+                }
             }
         }
     }

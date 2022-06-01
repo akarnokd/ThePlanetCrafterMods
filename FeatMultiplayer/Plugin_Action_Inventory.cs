@@ -3,6 +3,7 @@ using HarmonyLib;
 using MijuTools;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -708,10 +709,19 @@ namespace FeatMultiplayer
                             __instance.SetInventory(inventory);
                             __result = ___inventory;
                             var scene = SceneManager.GetActiveScene();
-                            Send(new MessageInventorySpawn() { inventoryId = iid, sceneName = scene.name });
+                            LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
+                            Send(new MessageInventorySpawn() { inventoryId = iid });
                             Signal();
                         }
                     }
+                    else
+                    {
+                        LogInfo("InventoryAssociated_GetInventory: No InventoryFromScene?!");
+                    }
+                }
+                else
+                {
+                    __result = ___inventory;
                 }
 
                 return false;
@@ -719,38 +729,114 @@ namespace FeatMultiplayer
             return true;
         }
 
-        static void FindInventoryInScene(int iid, string sceneName, Scene scene)
+        static void FindAndGenerateInventoryFromScene(int iid)
         {
-            foreach (var sceneGo in scene.GetRootGameObjects())
+            foreach (var sceneGo in FindObjectsOfType<GameObject>())
             {
-                var sceneInventory = sceneGo.GetComponent<InventoryFromScene>();
-                if (sceneInventory != null && sceneInventory.GetInventoryGeneratedId() == iid)
+                var sceneInventory = sceneGo.GetComponentInChildren<InventoryFromScene>();
+                if (sceneInventory != null)
                 {
-                    Inventory inventoryById = InventoriesHandler.GetInventoryById(iid);
-                    if (inventoryById == null)
+                    int sid = sceneInventory.GetInventoryGeneratedId();
+                    //LogInfo("ReceiveMessageInventorySpawn: Found " + sid);
+                    if (sid == iid)
                     {
-                        List<Group> generatedGroups = sceneInventory.GetGeneratedGroups();
-                        LogInfo("ReceiveMessageInventorySpawn: InventoryFromScene generated = " + iid + ", Count = " + generatedGroups.Count);
-                        Inventory inventory = InventoriesHandler.CreateNewInventory(sceneInventory.GetSize(), iid);
-
-                        Send(new MessageInventorySize() { inventoryId = iid, size = sceneInventory.GetSize() });
-                        Signal();
-
-                        foreach (Group group in generatedGroups)
+                        Inventory inventoryById = InventoriesHandler.GetInventoryById(iid);
+                        if (inventoryById == null)
                         {
-                            WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
-                            SendWorldObject(worldObject, false);
-                            inventory.AddItem(worldObject);
+                            List<Group> generatedGroups = sceneInventory.GetGeneratedGroups();
+                            LogInfo("ReceiveMessageInventorySpawn: InventoryFromScene generated = " + iid + ", Count = " + generatedGroups.Count);
+                            Inventory inventory = InventoriesHandler.CreateNewInventory(sceneInventory.GetSize(), iid);
+
+                            Send(new MessageInventorySize() { inventoryId = iid, size = sceneInventory.GetSize() });
+                            Signal();
+
+                            foreach (Group group in generatedGroups)
+                            {
+                                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+                                SendWorldObject(worldObject, false);
+                                inventory.AddItem(worldObject);
+                            }
                         }
+                        else
+                        {
+                            LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene already instantiated = " + iid);
+                        }
+                        return;
                     }
-                    else
-                    {
-                        LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene already instantiated = " + iid);
-                    }
-                    return;
                 }
             }
-            LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene not found: " + iid + ", Scene = " + sceneName + ", (sector not loaded?)");
+            LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene not found: " + iid + ", (sector not loaded?)");
+        }
+
+        /// <summary>
+        /// The vanilla game uses SectorEnter::Start to set up a collision box around load boundaries (sectors).
+        /// 
+        /// On the host, we track the other player and load in the respective sector.
+        /// 
+        /// On the client, we don't care where the host is?!
+        /// </summary>
+        /// <param name="__instance">The parent SectorEnter to register a coroutine tracker on.</param>
+        /// <param name="___collider">The collision box object around the sector</param>
+        /// <param name="___sector">The sector itself so we know what scene to load via <see cref="SceneManager.LoadSceneAsync(int, LoadSceneMode)"/></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SectorEnter), "Start")]
+        static void SectorEnter_Start(SectorEnter __instance, Collider ___collider, Sector ___sector)
+        {
+            __instance.StartCoroutine(SectorEnter_TrackOtherPlayer(___collider, ___sector));
+        }
+
+        /// <summary>
+        /// How often to check the collisions with the other player.
+        /// </summary>
+        static float sectorTrackDelay = 0.5f;
+        /// <summary>
+        /// If the player triggered a scene load, defer the spawns.
+        /// </summary>
+        static bool sceneLoadingForSpawn;
+        /// <summary>
+        /// What inventory generation requests are pending due to scene loading.
+        /// </summary>
+        static HashSet<int> sceneSpawnRequest = new();
+
+        static IEnumerator SectorEnter_TrackOtherPlayer(Collider ___collider, Sector ___sector)
+        {
+            for (; ; )
+            {
+                if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
+                {
+                    if (___collider.bounds.Contains(otherPlayer.avatar.transform.position))
+                    {
+                        string name = ___sector.gameObject.name;
+                        Scene scene = SceneManager.GetSceneByName(name);
+                        if (!scene.IsValid())
+                        {
+                            sceneLoadingForSpawn = true;
+                            LogInfo("SectorEnter_TrackOtherPlayer: Loading Scene " + name);
+                            var aop = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
+                            aop.completed += (op) => OnSceneLoadedForSpawn(op, ___sector, name);
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(sectorTrackDelay);
+            }
+        }
+
+        static void OnSceneLoadedForSpawn(AsyncOperation op, Sector ___sector, string name)
+        {
+            try
+            {
+                sectorSceneLoaded.Invoke(___sector, new object[] { op });    
+            } 
+            finally
+            {
+                sceneLoadingForSpawn = false;
+            }
+            LogInfo("SectorEnter_TrackOtherPlayer: Loading Scene " + name + " done");
+            foreach (int spawnId in sceneSpawnRequest)
+            {
+                FindAndGenerateInventoryFromScene(spawnId);
+            }
+            sceneSpawnRequest.Clear();
         }
 
         static void ReceiveMessageInventorySpawn(MessageInventorySpawn mis)
@@ -758,22 +844,17 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 int iid = mis.inventoryId;
-                var scene = SceneManager.GetSceneByName(mis.sceneName);
-                if (scene.IsValid())
+
+                if (sceneLoadingForSpawn)
                 {
-                    FindInventoryInScene(iid, mis.sceneName, scene);
+                    LogInfo("ReceiveMessageInventorySpawn: Scene loading in progress, resubmit request");
+                    //receiveQueue.Enqueue(mis);
+                    sceneSpawnRequest.Add(mis.inventoryId);
                 }
                 else
                 {
-                    LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid);
-                    var asyncOp = SceneManager.LoadSceneAsync(mis.sceneName, LoadSceneMode.Additive);
-                    asyncOp.completed += (op) =>
-                    {
-                        LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid + " completed");
-                        FindInventoryInScene(iid, mis.sceneName, scene);
-                    };
+                    FindAndGenerateInventoryFromScene(iid);
                 }
-
             }
         }
 
@@ -784,10 +865,12 @@ namespace FeatMultiplayer
                 Inventory inv = InventoriesHandler.GetInventoryById(mis.inventoryId);
                 if (inv == null)
                 {
+                    LogInfo("ReceiveMessageInventorySize: Create new inventory " + mis.inventoryId + ", size = " + mis.size);
                     InventoriesHandler.CreateNewInventory(mis.size, mis.inventoryId);
                 }
                 else
                 {
+                    LogInfo("ReceiveMessageInventorySize: Update " + mis.inventoryId + ", size = " + inv.GetSize() + " -> " + mis.size);
                     inv.SetSize(mis.size);
                 }
             }

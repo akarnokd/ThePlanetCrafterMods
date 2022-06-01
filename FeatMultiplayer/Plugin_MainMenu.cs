@@ -196,6 +196,7 @@ namespace FeatMultiplayer
                     {
                         LogInfo(ex);
                         externalIP = "    External Address = error";
+                        externalMap = "    External Mapping = error";
                     }
                 });
 

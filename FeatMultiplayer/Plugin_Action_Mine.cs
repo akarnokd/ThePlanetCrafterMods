@@ -64,8 +64,6 @@ namespace FeatMultiplayer
                 }
                 return;
             }
-
-            DeleteActionMinableForId(mm.id);
         }
     }
 }

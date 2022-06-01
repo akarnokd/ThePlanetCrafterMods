@@ -385,8 +385,11 @@ namespace FeatMultiplayer
             {
                 if (worldObjectById.TryGetValue(mug.machineId, out var machineWo))
                 {
+                    /*
                     LogInfo("ReceiveMessageUpdateGrowth: machine = " + mug.machineId + ", growth = " 
-                        + mug.growth.ToString(CultureInfo.InvariantCulture) + ", vegetable = " + mug.vegetableId);
+                        + mug.growth.ToString(CultureInfo.InvariantCulture) + (mug.vegetableId > 0 ? ", vegetable = " + mug.vegetableId : ""));
+                    */
+
                     machineWo.SetGrowth(mug.growth);
                     if (mug.growth >= 100f)
                     {
