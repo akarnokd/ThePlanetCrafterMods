@@ -135,6 +135,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mis);
             }
             else
+            if (MessageInventorySize.TryParse(message, out var mis2))
+            {
+                receiveQueue.Enqueue(mis2);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -315,6 +320,11 @@ namespace FeatMultiplayer
                 case MessageInventorySpawn mis:
                     {
                         ReceiveMessageInventorySpawn(mis);
+                        break;
+                    }
+                case MessageInventorySize mis2:
+                    {
+                        ReceiveMessageInventorySize(mis2);
                         break;
                     }
                 case string s:

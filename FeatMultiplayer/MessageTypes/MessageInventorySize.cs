@@ -6,24 +6,20 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    /// <summary>
-    /// Sent by the client to ask the host to generate inventory for a pre-placed chest or
-    /// other object with <see cref="SpaceCraft.InventoryFromScene"/>.
-    /// </summary>
-    internal class MessageInventorySpawn : MessageStringProvider
+    internal class MessageInventorySize : MessageStringProvider
     {
         internal int inventoryId;
-        internal string sceneName;
+        internal int size;
 
-        internal static bool TryParse(string str, out MessageInventorySpawn mis)
+        internal static bool TryParse(string str, out MessageInventorySize mis)
         {
-            if (MessageHelper.TryParseMessage("InventorySpawn|", str, 3, out var parameters))
+            if (MessageHelper.TryParseMessage("InventorySize|", str, 3, out var parameters))
             {
                 try
                 {
                     mis = new();
                     mis.inventoryId = int.Parse(parameters[1]);
-                    mis.sceneName = parameters[2];
+                    mis.size = int.Parse(parameters[2]);
                     return true;
                 }
                 catch (Exception ex)
@@ -37,7 +33,7 @@ namespace FeatMultiplayer
 
         public string GetString()
         {
-            return "InventorySpawn|" + inventoryId + "|" + sceneName + "\n";
+            return "InventorySize|" + inventoryId + "|" + size + "\n";
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace FeatMultiplayer
@@ -718,11 +719,12 @@ namespace FeatMultiplayer
             return true;
         }
 
-        static void FindInventoryInScene(int iid, string sceneName)
+        static void FindInventoryInScene(int iid, string sceneName, Scene scene)
         {
-            foreach (var sceneInventory in UnityEngine.Object.FindObjectsOfType<InventoryFromScene>())
+            foreach (var sceneGo in scene.GetRootGameObjects())
             {
-                if (sceneInventory.GetInventoryGeneratedId() == iid)
+                var sceneInventory = sceneGo.GetComponent<InventoryFromScene>();
+                if (sceneInventory != null && sceneInventory.GetInventoryGeneratedId() == iid)
                 {
                     Inventory inventoryById = InventoriesHandler.GetInventoryById(iid);
                     if (inventoryById == null)
@@ -730,9 +732,14 @@ namespace FeatMultiplayer
                         List<Group> generatedGroups = sceneInventory.GetGeneratedGroups();
                         LogInfo("ReceiveMessageInventorySpawn: InventoryFromScene generated = " + iid + ", Count = " + generatedGroups.Count);
                         Inventory inventory = InventoriesHandler.CreateNewInventory(sceneInventory.GetSize(), iid);
+
+                        Send(new MessageInventorySize() { inventoryId = iid, size = sceneInventory.GetSize() });
+                        Signal();
+
                         foreach (Group group in generatedGroups)
                         {
                             WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+                            SendWorldObject(worldObject, false);
                             inventory.AddItem(worldObject);
                         }
                     }
@@ -754,23 +761,36 @@ namespace FeatMultiplayer
                 var scene = SceneManager.GetSceneByName(mis.sceneName);
                 if (scene.IsValid())
                 {
-                    if (scene.isLoaded)
-                    {
-                        FindInventoryInScene(iid, mis.sceneName);
-                    }
-                    else
-                    {
-                        LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid);
-                        var asyncOp = SceneManager.LoadSceneAsync(mis.sceneName, LoadSceneMode.Additive);
-                        asyncOp.completed += (op) =>
-                        {
-                            LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid + " completed");
-                            FindInventoryInScene(iid, mis.sceneName);
-                        };
-                    }
+                    FindInventoryInScene(iid, mis.sceneName, scene);
                 }
-                
+                else
+                {
+                    LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid);
+                    var asyncOp = SceneManager.LoadSceneAsync(mis.sceneName, LoadSceneMode.Additive);
+                    asyncOp.completed += (op) =>
+                    {
+                        LogInfo("ReceiveMessageInventorySpawn: Load scene " + mis.sceneName + " for inventoryId = " + iid + " completed");
+                        FindInventoryInScene(iid, mis.sceneName, scene);
+                    };
+                }
+
             }
         }
+
+        static void ReceiveMessageInventorySize(MessageInventorySize mis)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                Inventory inv = InventoriesHandler.GetInventoryById(mis.inventoryId);
+                if (inv == null)
+                {
+                    InventoriesHandler.CreateNewInventory(mis.size, mis.inventoryId);
+                }
+                else
+                {
+                    inv.SetSize(mis.size);
+                }
+            }
+        } 
     }
 }

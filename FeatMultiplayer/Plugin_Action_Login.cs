@@ -33,7 +33,7 @@ namespace FeatMultiplayer
                         {
 
                         }
-                        PrepareHiddenChests();
+                        PrepareShadowInventories();
                         otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         Send("Welcome\n");
                         Signal();

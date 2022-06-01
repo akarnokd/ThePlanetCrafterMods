@@ -21,36 +21,48 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
         static bool GaugesConsumptionHandler_GetThirstConsumptionRate(ref float __result)
         {
-            __result = -0.0001f;
-            return false;
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __result = -0.0001f;
+                return false;
+            }
+            return true;
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetOxygenConsumptionRate))]
         static bool GaugesConsumptionHandler_GetOxygenConsumptionRate(ref float __result)
         {
-            __result = -0.0001f;
-            return false;
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __result = -0.0001f;
+                return false;
+            }
+            return true;
         }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetHealthConsumptionRate))]
         static bool GaugesConsumptionHandler_GetHealthConsumptionRate(ref float __result)
         {
-            __result = -0.0001f;
-            return false;
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __result = -0.0001f;
+                return false;
+            }
+            return true;
         }
 
-        static void PrepareHiddenChests()
+        static void PrepareShadowInventories()
         {
             // The other player's shadow inventory
-            if (TryPrepareHiddenChest(shadowInventoryWorldId, ref shadowInventoryId))
+            if (TryPrepareShadowInventory(shadowInventoryWorldId, ref shadowInventoryId))
             {
                 SetupInitialInventory();
             }
-            TryPrepareHiddenChest(shadowEquipmentWorldId, ref shadowEquipmentId);
+            TryPrepareShadowInventory(shadowEquipmentWorldId, ref shadowEquipmentId);
         }
 
-        static bool TryPrepareHiddenChest(int id, ref int inventoryId)
+        static bool TryPrepareShadowInventory(int id, ref int inventoryId)
         {
             WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
             if (wo == null)
