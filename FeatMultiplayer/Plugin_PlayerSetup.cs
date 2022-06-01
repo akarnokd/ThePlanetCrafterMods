@@ -79,12 +79,16 @@ namespace FeatMultiplayer
                 wo.SetDontSaveMe(false);
                 return true;
             }
+            else
+            {
+                inventoryId = wo.GetLinkedInventoryId();
+            }
             return false;
         }
 
-        static void AddToShadowInventory(Dictionary<string, int> itemsToAdd)
+        static void AddToInventory(int iid, Dictionary<string, int> itemsToAdd)
         {
-            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+            var inv = InventoriesHandler.GetInventoryById(iid);
             foreach (var kv in itemsToAdd)
             {
                 var gr = GroupsHandler.GetGroupViaId(kv.Key);
@@ -106,7 +110,7 @@ namespace FeatMultiplayer
         static void SetupInitialInventory()
         {
             LogInfo("SetupInitialInventory");
-            AddToShadowInventory(new()
+            AddToInventory(shadowInventoryId, new()
             {
                 { "MultiBuild", 1 },
                 { "MultiDeconstruct", 1 },
@@ -120,6 +124,22 @@ namespace FeatMultiplayer
                 { "OxygenCapsule1", 10 },
                 { "WaterBottle1", 10 },
                 { "astrofood", 10 }
+            });
+        }
+
+        static void SetupHostInventory()
+        {
+            LogInfo("SetupHostInventory");
+            AddToInventory(1, new()
+            {
+                { "Aluminium", 50 },
+                { "Alloy", 50 },
+                { "Uranim", 50 },
+                { "Iridium", 50 },
+                { "Osmium", 50 },
+                { "Zeolite", 50 },
+                { "PulsarQuartz", 50 },
+                { "RocketReactor", 50 },
             });
         }
     }

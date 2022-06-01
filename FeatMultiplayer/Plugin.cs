@@ -90,6 +90,10 @@ namespace FeatMultiplayer
                     var apc = GetPlayerMainController();
                     apc.SetPlayerPlacement(otherPlayer.avatar.transform.position, apc.transform.rotation);
                 }
+                if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.iKey.wasPressedThisFrame)
+                {
+                    SetupHostInventory();
+                }
             }
             else
             {

@@ -245,7 +245,7 @@ namespace FeatMultiplayer
                         var _playerController = GetPlayerMainController();
                         _playerController.GetPlayerEquipment()
                             .AddItemInEquipment(wo);
-                        LogError("ReceiveMessageInventoryAdded: Add Equipment " + mia.itemId + ", " + mia.groupId);
+                        LogInfo("ReceiveMessageInventoryAdded: Add Equipment " + mia.itemId + ", " + mia.groupId);
 
                         _playerController.GetPlayerEquipment()
                             .GetInventory()

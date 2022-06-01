@@ -100,6 +100,7 @@ namespace FeatMultiplayer
         static FieldInfo worldObjectTextWorldObject;
         static FieldInfo worldObjectColorWorldObject;
         static MethodInfo sectorSceneLoaded;
+        static MethodInfo actionSendInSpaceHandleRocketMultiplier;
 
         static void InitReflectiveAccessors()
         {
@@ -112,6 +113,8 @@ namespace FeatMultiplayer
             worldObjectColorWorldObject = AccessTools.Field(typeof(WorldObjectColor), "worldObject");
 
             sectorSceneLoaded = AccessTools.Method(typeof(Sector), "SceneLoaded", new Type[] { typeof(AsyncOperation) });
+
+            actionSendInSpaceHandleRocketMultiplier = AccessTools.Method(typeof(ActionSendInSpace), "HandleRocketMultiplier", new Type[] { typeof(WorldObject) });
         }
 
     }
