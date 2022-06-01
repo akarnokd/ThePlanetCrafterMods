@@ -85,13 +85,21 @@ namespace FeatMultiplayer
         /// <returns>True in singleplayer and if the mod is installed so it can run, false otherwise.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(List<Group> ___groupDatas, Inventory ___inventory)
+        static bool MachineGenerator_GenerateAnObject(List<GroupData> ___groupDatas, Inventory ___inventory)
         {
             if (!modMachineRemoteDeposit)
             {
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
+                    /*
+                    LogInfo("MachineGenerator_GenerateAnObject: ___groupDatas.Count = " + ___groupDatas.Count);
+                    foreach (GroupData gr in ___groupDatas)
+                    {
+                        LogInfo("MachineGenerator_GenerateAnObject:   " + gr.id);
+                    }
+                    */
                     string oreId = ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+                    LogInfo("MachineGenerator_GenerateAnObject: Generated " + oreId);
                     GenerateAnObjectAndDepositInto(___inventory, oreId);
                     return false;
                 }
