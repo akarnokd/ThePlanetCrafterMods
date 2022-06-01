@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using UnityEngine;
 using System;
+using UnityEngine.InputSystem;
 
 namespace FeatMultiplayer
 {
@@ -82,10 +83,16 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
             {
                 DoMultiplayerUpdate();
+                /* */
+                if (otherPlayer != null && Keyboard.current.tKey.wasPressedThisFrame)
+                {
+                    LogInfo("Teleporting to the other player");
+                    var apc = GetPlayerMainController();
+                    apc.SetPlayerPlacement(otherPlayer.avatar.transform.position, apc.transform.rotation);
+                }
             }
             else
             {
-                /* */
             }
         }
 

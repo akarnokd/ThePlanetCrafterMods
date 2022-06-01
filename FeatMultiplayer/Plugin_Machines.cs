@@ -242,6 +242,10 @@ namespace FeatMultiplayer
                                     entries[0].SetLockInInventoryTime(Time.time + 0.01f);
                                 }
                             }
+                            else
+                            {
+                                goMockup.transform.localScale = new Vector3(1, 1, 1);
+                            }
                         }
                     }
                     else
