@@ -289,6 +289,16 @@ namespace FeatMultiplayer
                                     entries[0].SetLockInInventoryTime(Time.time + 0.01f);
                                 }
                             }
+                            else
+                            {
+                                Send(new MessageUpdateGrowth()
+                                {
+                                    machineId = growerMachine.GetId(),
+                                    growth = 100f,
+                                    vegetableId = -1 // nothing to spawn when fully grown
+                                });
+                                Signal();
+                            }
                         }
                     }
                 }
@@ -391,7 +401,7 @@ namespace FeatMultiplayer
                     */
 
                     machineWo.SetGrowth(mug.growth);
-                    if (mug.growth >= 100f)
+                    if (mug.growth >= 100f && mug.vegetableId != -1)
                     {
                         if (worldObjectById.TryGetValue(mug.vegetableId, out var vegetableWo))
                         {
