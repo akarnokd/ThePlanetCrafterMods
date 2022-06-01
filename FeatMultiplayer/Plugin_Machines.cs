@@ -228,6 +228,16 @@ namespace FeatMultiplayer
                         {
                             float scale = Mathf.Max(0f, Math.Min(1f, growth / 100f));
                             goMockup.transform.localScale = new Vector3(scale, scale, scale);
+
+                            if (instance.spawnWorldObjectWhenFullyGrow)
+                            {
+                                // make sure to have the seed unlocked
+                                var entries = inventory.GetInsideWorldObjects();
+                                if (entries.Count != 0)
+                                {
+                                    entries[0].SetLockInInventoryTime(0f);
+                                }
+                            }
                         }
                         else
                         {
@@ -238,7 +248,8 @@ namespace FeatMultiplayer
                                 machineGrowerInstantiatedGameObject.SetValue(instance, null);
 
                                 var entries = inventory.GetInsideWorldObjects();
-                                if (entries.Count != 0) {
+                                if (entries.Count != 0) 
+                                {
                                     entries[0].SetLockInInventoryTime(Time.time + 0.01f);
                                 }
                             }
@@ -332,9 +343,14 @@ namespace FeatMultiplayer
                 GetPlayerMainController(); // not sure why
                 seedWo.SetLockInInventoryTime(0f);
                 inventory.AddItem(seedWo);
-                Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer()
-                    .AddInformation(2.5f, Readable.GetGroupName(seedWo.GetGroup()), 
-                        DataConfig.UiInformationsType.InInventory, seedWo.GetGroup().GetImage());
+
+                // no need to display the information if the client grabbed it
+                if (!clientGrabCallback)
+                {
+                    Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer()
+                        .AddInformation(2.5f, Readable.GetGroupName(seedWo.GetGroup()),
+                            DataConfig.UiInformationsType.InInventory, seedWo.GetGroup().GetImage());
+                }
                 return;
             }
             WorldObjectsHandler.DestroyWorldObject(seedWo);

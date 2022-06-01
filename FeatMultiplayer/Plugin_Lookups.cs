@@ -60,6 +60,12 @@ namespace FeatMultiplayer
         static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
         {
             worldObjectById[_worldObject.GetId()] = _worldObject;
+            /*
+            if (_worldObject.GetGroup() == null)
+            {
+                LogError("WorldObject.group is null for " + _worldObject.GetId() + "\r\n" + Environment.StackTrace);
+            }
+            */
         }
 
         /// <summary>

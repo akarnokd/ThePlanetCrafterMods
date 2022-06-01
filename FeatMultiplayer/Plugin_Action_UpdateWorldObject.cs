@@ -294,9 +294,17 @@ namespace FeatMultiplayer
             if (!worldObjectById.TryGetValue(mwo.id, out var wo))
             {
                 Group gr = GroupsHandler.GetGroupViaId(mwo.groupId);
-                wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
-                LogInfo("UpdateWorldObject: Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
-                isNew = true;
+                if (gr != null)
+                {
+                    wo = WorldObjectsHandler.CreateNewWorldObject(gr, mwo.id);
+                    LogInfo("UpdateWorldObject: Creating new WorldObject " + mwo.id + " - " + mwo.groupId);
+                    isNew = true;
+                }
+                else
+                {
+                    LogError("UpdateWorldObject:   Unknown group = " + mwo.groupId + " for " + mwo.id);
+                    return;
+                }
             }
             bool wasPlaced = wo.GetIsPlaced();
             var oldPosition = wo.GetPosition();

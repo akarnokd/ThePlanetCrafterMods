@@ -48,6 +48,11 @@ namespace FeatMultiplayer
             return true;
         }
 
+        /// <summary>
+        /// If true, the event handler caller was the client.
+        /// </summary>
+        static bool clientGrabCallback;
+
         static void ReceiveMessageGrab(MessageGrab mg)
         {
             LogInfo("ReceiveMessageGrab: " + mg.id);
@@ -64,12 +69,28 @@ namespace FeatMultiplayer
                             wo.SetDontSaveMe(false);
                             if (TryGetGameObject(wo, out var go))
                             {
+                                var ag = go.GetComponent<ActionGrabable>();
+                                Grabed g = ag?.grabedEvent;
+
                                 UnityEngine.Object.Destroy(go);
                                 TryRemoveGameObject(wo);
 
                                 LogInfo("ReceiveMessageGrab: Client.Grab " + mg.id);
                                 Send(mg);
                                 Signal();
+
+                                if (g != null)
+                                {
+                                    clientGrabCallback = true;
+                                    try
+                                    {
+                                        g.Invoke(wo);
+                                    }
+                                    finally
+                                    {
+                                        clientGrabCallback = false;
+                                    }
+                                }
                             }
                         }
                     }
@@ -81,20 +102,18 @@ namespace FeatMultiplayer
                 {
                     if (TryGetGameObject(wo, out var go))
                     {
-                        var ag = go.GetComponent<ActionGrabable>();
-                        Grabed g = ag?.grabedEvent;
-
                         Managers.GetManager<DisplayersHandler>().GetItemWorldDislpayer().Hide();
+
                         UnityEngine.Object.Destroy(go);
                         TryRemoveGameObject(wo);
 
                         GetPlayerMainController().GetPlayerAudio().PlayGrab();
-                        if (g != null)
-                        {
-                            g.Invoke(wo);
-                        }
 
                         LogInfo("ReceiveMessageGrab: Grabbed " + DebugWorldObject(wo));
+
+                        Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer()
+                        .AddInformation(2.5f, Readable.GetGroupName(wo.GetGroup()),
+                            DataConfig.UiInformationsType.InInventory, wo.GetGroup().GetImage());
                     }
                     else
                     {

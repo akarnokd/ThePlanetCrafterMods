@@ -69,13 +69,14 @@ namespace FeatMultiplayer
             {
                 LogInfo("Creating special inventory " + id);
 
-                wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("GROUP_DESC_Container2"), id);
+                wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), id);
                 wo.SetPositionAndRotation(new Vector3(-500, -500, -450), Quaternion.identity);
-                WorldObjectsHandler.InstantiateWorldObject(wo, false);
+                WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 Inventory inv = InventoriesHandler.CreateNewInventory(1000, 0);
                 int invId = inv.GetId();
                 inventoryId = invId;
                 wo.SetLinkedInventoryId(invId);
+                wo.SetDontSaveMe(false);
                 return true;
             }
             return false;
