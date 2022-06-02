@@ -75,9 +75,6 @@ namespace FeatMultiplayer
             astronautFrontHost = LoadPNG(Path.Combine(dir, "Astronaut_Front_Host.png"));
             astronautBackHost = LoadPNG(Path.Combine(dir, "Astronaut_Back_Host.png"));
 
-            File.Delete(Application.persistentDataPath + "\\Player_Client.log");
-            File.Delete(Application.persistentDataPath + "\\Player_Host.log");
-
             InitReflectiveAccessors();
             
             TryInstallMachineOverrides();

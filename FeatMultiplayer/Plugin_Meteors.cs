@@ -3,6 +3,7 @@ using HarmonyLib;
 using MijuTools;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -215,14 +216,274 @@ namespace FeatMultiplayer
             return updateMode == MultiplayerMode.SinglePlayer;
         }
 
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(AsteroidsImpactHandler), "CreateDebris")]
-        static void AsteroidImpactHandler_CreateDebris()
-        {
+        static float debrisUpdateDelay = 0.05f;
 
+        /// <summary>
+        /// Tracks the location of the debris resource object, updates
+        /// its associated world object and the client about its position.
+        /// </summary>
+        internal class DebrisResourceTracker : MonoBehaviour
+        {
+            internal float timeToLive;
+            internal WorldObject worldObject;
+
+            internal void StartTracking()
+            {
+                StartCoroutine(Tracker());
+            }
+
+            IEnumerator Tracker()
+            {
+                float until = Time.time + timeToLive;
+                for (; ; )
+                {
+                    if (until > Time.time)
+                    {
+                        worldObject.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
+                        Send(new MessageSetTransform()
+                        {
+                            id = worldObject.GetId(),
+                            mode = MessageSetTransform.Mode.Both,
+                            position = worldObject.GetPosition(),
+                            rotation = worldObject.GetRotation()
+                        });
+                        Signal();
+                        yield return new WaitForSeconds(debrisUpdateDelay);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (worldObject.GetIsPlaced())
+                {
+                    WorldObjectsHandler.DestroyWorldObject(worldObject);
+                }
+                Destroy(gameObject);
+            }
         }
-        */
+
+        /// <summary>
+        /// Destroys the associated debris game object, then re-enables
+        /// the rigid body on the other known game objects, so they can
+        /// fall down from the sky.
+        /// 
+        /// Not strictly necessary for multiplayer, but wanted to do it
+        /// anyway as it looks awkward when they pile up in the air.
+        /// </summary>
+        internal class DebrisDespawnManager : MonoBehaviour
+        {
+            internal List<GameObject> reenableRigidBody;
+
+            internal void BeginWait(float ttl)
+            {
+                StartCoroutine(WaitTracker(ttl));
+            }
+            IEnumerator WaitTracker(float ttl)
+            {
+                yield return new WaitForSeconds(ttl);
+                Destroy(gameObject);
+
+                for (int i = reenableRigidBody.Count - 1; i >= 0; i--)
+                {
+                    GameObject go = reenableRigidBody[i];
+                    if (go != null)
+                    {
+                        Rigidbody rigidbody = go.GetComponent<Rigidbody>();
+                        if (rigidbody == null)
+                        {
+                            rigidbody = go.AddComponent<Rigidbody>();
+                            rigidbody.mass = 200f;
+                            rigidbody.drag = 0.5f;
+                        }
+
+                        // add 20 seconds more to the destruction of the rigid body
+                        Destroy(go.GetComponent<ComponentDestroyAfterDelay>());
+                        go.AddComponent<ComponentDestroyAfterDelay>().DestroyAfterDelay(20f, rigidbody);
+                    }
+                    else
+                    {
+                        reenableRigidBody.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// The game uses AsteroidImpactHandler::CreateDebris to create the rocks and
+        /// resources after the impact. It also it limits the total number of rocks
+        /// displayed.
+        /// 
+        /// On the host, we have to rewrite it to intercept the creation of the resources
+        /// and sync it to the client as basic resources with no physics, just tracking the
+        /// position changes from the server. Similar to how dropped items get tracked.
+        /// 
+        /// On the client, we don't spawn the resources, only the debris and rely on the
+        /// position tracking of host-created resources via their world objects.
+        /// </summary>
+        /// <param name="_impactPosition">Where the asteroid impacted.</param>
+        /// <param name="_container">The parent game object to store the created objects</param>
+        /// <param name="_asteroid">the configuration of the asteroid</param>
+        /// <param name="___ignoredLayerMasks">What layers to ignore when raycasting for the actual point on the ground where the resource is thrown up.</param>
+        /// <param name="___debrisPool">Pool of currently visible rocks.</param>
+        /// <param name="___maxTotalDebris">How many rocks should be displayed.</param>
+        /// <param name="___spawnedResourcesDestroyMultiplier">How long the resource object should live.</param>
+        /// <returns>False in multiplayer, true in singleplayer.</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(AsteroidsImpactHandler), "CreateDebris")]
+        static bool AsteroidImpactHandler_CreateDebris(
+            Vector3 _impactPosition, GameObject _container, Asteroid _asteroid,
+            LayerMask ___ignoredLayerMasks,
+            List<GameObject> ___debrisPool,
+            int ___maxTotalDebris,
+            int ___spawnedResourcesDestroyMultiplier
+        )
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                List<GameObject> reenableRigidBody = new List<GameObject>();
+
+                var ip = _impactPosition;
+                float num = 0.1f;
+                float num2 = 0.1f;
+                float num3 = 0.025f;
+                int num4 = 5;
+                float num5 = 1f;
+                for (int i = 0; i < _asteroid.GetDebrisNumber(); i++)
+                {
+                    float d = _asteroid.GetDebrisSize() - num3 * (float)i;
+                    float num6 = -1f;
+                    Vector2 vector = UnityEngine.Random.insideUnitCircle * num;
+                    Vector3 vector2 = new Vector3(ip.x + vector.x, ip.y, ip.z + vector.y);
+                    Vector3 origin = new Vector3(vector2.x, vector2.y + 15f, vector2.z);
+                    Vector3 direction = Vector3.up * -1f;
+                    RaycastHit raycastHit;
+                    if (Physics.Raycast(new Ray(origin, direction), out raycastHit, 5000f, ___ignoredLayerMasks))
+                    {
+                        float numberOfResourceInDebris = _asteroid.GetNumberOfResourceInDebris();
+                        bool flag = _asteroid.GetAssociatedGroups() != null && _asteroid.GetAssociatedGroups().Count > 0 && i > num4;
+                        GameObject debrisGo = null;
+                        if ((float)(i - num4) <= numberOfResourceInDebris && flag)
+                        {
+                            d = 1f;
+
+                            // Create resources only on the host
+                            if (updateMode == MultiplayerMode.CoopHost)
+                            {
+                                var groupItem = _asteroid.GetAssociatedGroups()[UnityEngine.Random.Range(0, _asteroid.GetAssociatedGroups().Count)];
+                                GameObject resourceTemplateGo = groupItem.GetAssociatedGameObject();
+                                debrisGo = UnityEngine.Object.Instantiate<GameObject>(resourceTemplateGo);
+                                CapsuleCollider componentInChildren = debrisGo.GetComponentInChildren<CapsuleCollider>();
+                                if (componentInChildren != null)
+                                {
+                                    componentInChildren.radius *= 0.75f;
+                                }
+
+                                // Create the world object for it now
+                                var wo = WorldObjectsHandler.CreateNewWorldObject(groupItem);
+                                // debris is not saveable by default
+                                // wo.SetDontSaveMe(true);
+
+                                WorldObjectAssociated woa = debrisGo.GetComponent<WorldObjectAssociated>();
+                                if (woa == null)
+                                {
+                                    woa = debrisGo.AddComponent<WorldObjectAssociated>();
+                                }
+
+                                woa.SetWorldObject(wo);
+                                gameObjectByWorldObject[wo] = debrisGo;
+
+                                SendWorldObject(wo, false);
+
+                                // setup the position tracker
+                                var dt = debrisGo.AddComponent<DebrisResourceTracker>();
+                                dt.timeToLive = _asteroid.GetDebrisDestroyTime() * (float)___spawnedResourcesDestroyMultiplier;
+                                dt.worldObject = wo;
+                                dt.StartTracking();
+                            }
+                        }
+                        else
+                        {
+                            GameObject gameObject = _asteroid.GetDebrisObjects()[UnityEngine.Random.Range(0, _asteroid.GetDebrisObjects().Count)];
+                            debrisGo = CreateOrGetDebris(gameObject, ___debrisPool, ___maxTotalDebris);
+                            float ttl = UnityEngine.Random.Range(_asteroid.GetDebrisDestroyTime() / 2f, _asteroid.GetDebrisDestroyTime() * 2f);
+
+                            var ddm = debrisGo.AddComponent<DebrisDespawnManager>();
+                            ddm.reenableRigidBody = reenableRigidBody;
+                            ddm.BeginWait(ttl);
+                        }
+
+                        if (debrisGo != null)
+                        {
+                            reenableRigidBody.Add(debrisGo);
+
+                            debrisGo.transform.parent = _container.transform;
+                            debrisGo.transform.position = raycastHit.point + Vector3.up * 0.2f;
+                            Rigidbody rigidbody = debrisGo.GetComponent<Rigidbody>();
+                            if (rigidbody == null)
+                            {
+                                rigidbody = debrisGo.AddComponent<Rigidbody>();
+                            }
+                            rigidbody.mass = 200f;
+                            if (i < num4)
+                            {
+                                d = _asteroid.GetDebrisSize() * 2f;
+                                num6 = 1f;
+                                rigidbody.drag = 1f;
+                                debrisGo.transform.position = vector2;
+                            }
+                            else
+                            {
+                                rigidbody.drag = 0.5f;
+                                rigidbody.AddForce(raycastHit.normal * 1500f, ForceMode.Impulse);
+                            }
+                            // destroy the rigid body after some time
+                            var destroyDelay = debrisGo.GetComponent<ComponentDestroyAfterDelay>();
+                            if (destroyDelay == null)
+                            {
+                                destroyDelay = debrisGo.AddComponent<ComponentDestroyAfterDelay>();
+                            }
+                            destroyDelay.DestroyAfterDelay(20f, rigidbody);
+
+                            debrisGo.transform.position = new Vector3(debrisGo.transform.position.x, debrisGo.transform.position.y - num6, debrisGo.transform.position.z);
+                            float z = UnityEngine.Random.value * 360f;
+                            Quaternion lhs = Quaternion.Euler(0f, 0f, z);
+                            Quaternion rotation = Quaternion.LookRotation(raycastHit.normal) * (lhs * Quaternion.Euler(90f, 0f, 0f));
+                            debrisGo.transform.rotation = rotation;
+                            debrisGo.transform.localScale *= d;
+                            if (debrisGo.transform.localScale.x < num5)
+                            {
+                                debrisGo.transform.localScale = new Vector3(num5, num5, num5);
+                            }
+                        }
+                    }
+                    num += num2;
+                }
+                return false;
+            }
+            return true;
+        }
+
+        private static GameObject CreateOrGetDebris(GameObject _toSpawnGameObject,
+            List<GameObject> ___debrisPool,
+            int ___maxTotalDebris
+        )
+        {
+            if (___debrisPool.Count > ___maxTotalDebris)
+            {
+                GameObject gameObject = ___debrisPool[0];
+                ___debrisPool.RemoveAt(0);
+                if (gameObject != null)
+                {
+                    ___debrisPool.Add(gameObject);
+                    gameObject.transform.localScale = Vector3.one;
+                    return gameObject;
+                }
+            }
+            GameObject gameObject2 = UnityEngine.Object.Instantiate<GameObject>(_toSpawnGameObject);
+            ___debrisPool.Add(gameObject2);
+            return gameObject2;
+        }
 
         static void ReceiveMessageAsteroidSpawn(MessageAsteroidSpawn mas)
         {

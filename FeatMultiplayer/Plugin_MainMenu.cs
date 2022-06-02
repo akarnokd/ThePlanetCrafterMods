@@ -236,6 +236,7 @@ namespace FeatMultiplayer
                 {
                     hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
                     updateMode = MultiplayerMode.CoopClient;
+                    File.Delete(Application.persistentDataPath + "\\Player_Client.log");
                     clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
                     CreateMultiplayerSaveAndEnter();
                 }
@@ -313,6 +314,7 @@ namespace FeatMultiplayer
             if (hostMode.Value)
             {
                 updateMode = MultiplayerMode.CoopHost;
+                File.Delete(Application.persistentDataPath + "\\Player_Host.log");
             }
             else
             {
