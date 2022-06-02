@@ -239,15 +239,18 @@ namespace FeatMultiplayer
                 {
                     if (until > Time.time)
                     {
-                        worldObject.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
-                        Send(new MessageSetTransform()
+                        if (worldObject.GetIsPlaced())
                         {
-                            id = worldObject.GetId(),
-                            mode = MessageSetTransform.Mode.Both,
-                            position = worldObject.GetPosition(),
-                            rotation = worldObject.GetRotation()
-                        });
-                        Signal();
+                            worldObject.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
+                            Send(new MessageSetTransform()
+                            {
+                                id = worldObject.GetId(),
+                                mode = MessageSetTransform.Mode.Both,
+                                position = worldObject.GetPosition(),
+                                rotation = worldObject.GetRotation()
+                            });
+                            Signal();
+                        }
                         yield return new WaitForSeconds(debrisUpdateDelay);
                     }
                     else
