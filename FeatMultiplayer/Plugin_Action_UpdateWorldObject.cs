@@ -372,19 +372,17 @@ namespace FeatMultiplayer
                     LogInfo("WorldObject " + wo.GetId() + " has no associated GameObject");
                 }
                 */
+                rocketsInFlight.Remove(mwo.id);
             }
-            if (doPlace && !dontUpdatePosition)
+            if (doPlace && !dontUpdatePosition && hasGameObject)
             {
                 if (IsChanged(oldPosition, mwo.position) || IsChanged(oldRotation, mwo.rotation))
                 {
-                    if (hasGameObject)
+                    if (!rocketsInFlight.Contains(mwo.id))
                     {
-                        if (go != null)
-                        {
-                            LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
-                            go.transform.position = mwo.position;
-                            go.transform.rotation = mwo.rotation;
-                        }
+                        LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                        go.transform.position = mwo.position;
+                        go.transform.rotation = mwo.rotation;
                     }
                 }
             }

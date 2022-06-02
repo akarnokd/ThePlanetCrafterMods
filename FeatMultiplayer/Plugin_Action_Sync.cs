@@ -34,6 +34,7 @@ namespace FeatMultiplayer
 
             StringBuilder sb = new StringBuilder();
             sb.Append("AllObjects");
+            int count = 0;
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
             {
                 if (!wo.GetDontSaveMe())
@@ -44,8 +45,13 @@ namespace FeatMultiplayer
                         sb.Append("|");
                         MessageWorldObject.AppendWorldObject(sb, ';', wo, false);
                         //LogInfo("FullSync> " + DebugWorldObject(wo));
+                        count++;
                     }
                 }
+            }
+            if (count == 0)
+            {
+                sb.Append("|");
             }
             sb.Append('\n');
             _sendQueue.Enqueue(sb.ToString());

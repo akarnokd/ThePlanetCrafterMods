@@ -128,7 +128,7 @@ namespace FeatMultiplayer
         /// After launching a rocket, hide the WorldObject after this amount of time and
         /// notify the client.
         /// </summary>
-        static float hideRocketDelay = 41f;
+        static float hideRocketDelay = 38f;
         static float updateWorldObjectPositionDelay = 0.5f;
 
         static IEnumerator RocketLaunchTracker(WorldObject rocketWo, MachineRocket rocket)
@@ -146,7 +146,6 @@ namespace FeatMultiplayer
                     break;
                 }
             }
-
             LogInfo("RocketLaunchTracker:   Orbit reached: " + DebugWorldObject(rocketWo));
             rocketWo.ResetPositionAndRotation();
             SendWorldObject(rocketWo, false);
@@ -184,6 +183,12 @@ namespace FeatMultiplayer
 
         static float rocketShakeDistance = 100f;
 
+        /// <summary>
+        /// Set of rocket ids that are in flight and updates to its
+        /// position should be ignored.
+        /// </summary>
+        static readonly HashSet<int> rocketsInFlight = new();
+
         static void ReceiveMessageLaunch(MessageLaunch ml)
         {
             if (worldObjectById.TryGetValue(ml.rocketId, out var rocketWo))
@@ -214,6 +219,10 @@ namespace FeatMultiplayer
                         HandleRocketMultiplier(rocketWo);
 
                         machineRocket.StartCoroutine(RocketLaunchTracker(rocketWo, machineRocket));
+                    }
+                    else
+                    {
+                        rocketsInFlight.Add(rocketWo.GetId());
                     }
                 }
                 else
