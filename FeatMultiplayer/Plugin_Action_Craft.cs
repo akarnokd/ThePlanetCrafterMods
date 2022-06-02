@@ -118,7 +118,8 @@ namespace FeatMultiplayer
                             position = _sourceCrafter.GetSpawnPosition(),
                             craftTime = _sourceCrafter.GetCraftTime()
                         });
-                    } 
+                        Signal();
+                    }
                     else
                     {
                         var wo = WorldObjectsHandler.CreateNewWorldObject(groupItem, 0);
@@ -131,7 +132,6 @@ namespace FeatMultiplayer
                         // FIXME this won't animate on the client
                         SendWorldObject(wo, false);
                     }
-                    Signal();
                 }
                 else
                 {

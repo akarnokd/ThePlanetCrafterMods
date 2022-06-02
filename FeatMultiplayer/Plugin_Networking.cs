@@ -239,7 +239,7 @@ namespace FeatMultiplayer
             }
             catch (Exception ex)
             {
-                if (!stopNetwork.IsCancellationRequested)
+                if (!stopNetwork.IsCancellationRequested && !(ex is ObjectDisposedException))
                 {
                     LogError(ex);
                 }
@@ -287,7 +287,7 @@ namespace FeatMultiplayer
             }
             catch (Exception ex)
             {
-                if (!stopNetwork.IsCancellationRequested)
+                if (!stopNetwork.IsCancellationRequested && !(ex is ObjectDisposedException))
                 {
                     LogError(ex);
                 }

@@ -13,7 +13,7 @@ namespace FeatMultiplayer
     {
         static void NotifyUser(string message, float duration = 5f)
         {
-            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", duration, message);
+            Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", duration, message);
         }
 
         static void NotifyUserFromBackground(string message, float duration = 5f)

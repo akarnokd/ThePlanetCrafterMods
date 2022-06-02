@@ -145,6 +145,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(ml2);
             }
             else
+            if (MessageAsteroidSpawn.TryParse(message, out var mas))
+            {
+                receiveQueue.Enqueue(mas);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -335,6 +340,11 @@ namespace FeatMultiplayer
                 case MessageLaunch ml:
                     {
                         ReceiveMessageLaunch(ml);
+                        break;
+                    }
+                case MessageAsteroidSpawn mas:
+                    {
+                        ReceiveMessageAsteroidSpawn(mas);
                         break;
                     }
                 case string s:

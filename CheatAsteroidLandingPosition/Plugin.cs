@@ -5,20 +5,28 @@ using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Reflection;
+using BepInEx.Bootstrap;
+using System;
 
 namespace CheatAsteroidLandingPosition
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.2")]
+    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+
         /// <summary>
         /// Relative position east-west (east is positive).
         /// </summary>
-        private static ConfigEntry<int> deltaX;
+        static ConfigEntry<int> deltaX;
         /// <summary>
         /// Relative position north-south (north is positive).
         /// </summary>
-        private static ConfigEntry<int> deltaZ;
+        static ConfigEntry<int> deltaZ;
+
+        static MethodInfo multiplayerCurrentMode;
 
         private void Awake()
         {
@@ -27,6 +35,16 @@ namespace CheatAsteroidLandingPosition
 
             deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).");
             deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
+
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
+            {
+                multiplayerCurrentMode = AccessTools.Method(pi.Instance.GetType(), "GetMultiplayerMode");
+
+                Func<AsteroidEventData, Vector3, Vector3> positionOverride = (ae, position) => 
+                    new Vector3(position.x + /* vector.x + */ deltaX.Value, position.y, position.z /* + vector.y */ + deltaZ.Value);
+
+                AccessTools.Field(pi.Instance.GetType(), "asteroidLandingOverride").SetValue(null, positionOverride);
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -38,6 +56,12 @@ namespace CheatAsteroidLandingPosition
             List<Collider> ___spawnBoxes, 
             AsteroidsHandler __instance)
         {
+            // in multiplayer mode, simply do nothing
+            if (multiplayerCurrentMode != null && ((string)multiplayerCurrentMode.Invoke(null, new object[0]) != "SinglePlayer"))
+            {
+                return false;
+            }
+
             // Unfortunately, I have to copy out the original sources and patch inbetween some instructions
 
             if (_asteroidEvent.GetExistingAsteroidsCount() >= _asteroidEvent.GetMaxAsteroidsSimultaneous())
