@@ -216,46 +216,49 @@ namespace FeatMultiplayer
 
         void DoMainMenuUpdate()
         {
-            var mouse = Mouse.current.position.ReadValue();
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (parent != null)
             {
-                if (IsWithin(hostModeCheckbox, mouse))
+                var mouse = Mouse.current.position.ReadValue();
+                if (Mouse.current.leftButton.wasPressedThisFrame)
                 {
-                    hostMode.Value = !hostMode.Value;
-                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                }
-                if (IsWithin(upnpCheckBox, mouse))
-                {
-                    useUPnP.Value = !useUPnP.Value;
-                    upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
+                    if (IsWithin(hostModeCheckbox, mouse))
+                    {
+                        hostMode.Value = !hostMode.Value;
+                        hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                    }
+                    if (IsWithin(upnpCheckBox, mouse))
+                    {
+                        useUPnP.Value = !useUPnP.Value;
+                        upnpCheckBox.GetComponent<Text>().text = GetUPnPString();
 
-                    hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
-                    hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
+                        hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
+                        hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
+                    }
+                    if (IsWithin(clientJoinButton, mouse))
+                    {
+                        hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                        updateMode = MultiplayerMode.CoopClient;
+                        File.Delete(Application.persistentDataPath + "\\Player_Client.log");
+                        clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
+                        CreateMultiplayerSaveAndEnter();
+                    }
                 }
-                if (IsWithin(clientJoinButton, mouse))
-                {
-                    hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                    updateMode = MultiplayerMode.CoopClient;
-                    File.Delete(Application.persistentDataPath + "\\Player_Client.log");
-                    clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
-                    CreateMultiplayerSaveAndEnter();
-                }
-            }
-            hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
-            upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
-            clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+                hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
+                upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
+                clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight2 : interactiveColor2;
 
-            var eip = externalIP;
-            if (eip != null)
-            {
-                externalIP = null;
-                hostExternalIPText.GetComponent<Text>().text = eip;
-            }
-            var emp = externalMap;
-            if (emp != null)
-            {
-                externalMap = null;
-                hostExternalMappingText.GetComponent<Text>().text = emp;
+                var eip = externalIP;
+                if (eip != null)
+                {
+                    externalIP = null;
+                    hostExternalIPText.GetComponent<Text>().text = eip;
+                }
+                var emp = externalMap;
+                if (emp != null)
+                {
+                    externalMap = null;
+                    hostExternalMappingText.GetComponent<Text>().text = emp;
+                }
             }
         }
 
