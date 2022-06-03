@@ -45,16 +45,17 @@ namespace FeatMultiplayer
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start()
+        static void Intro_Start(Intro __instance)
         {
             LogInfo("Intro_Start");
             updateMode = MultiplayerMode.MainMenu;
 
             int rows = 9;
 
-            parent = new GameObject();
+            parent = new GameObject("MultiplayerMenu");
             Canvas canvas = parent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
             int fs = fontSize.Value;
             int dx = Screen.width / 2 - 200;
             float dy = Screen.height / 2 - rows / 2f * (fs + 10) + 10;
@@ -65,7 +66,7 @@ namespace FeatMultiplayer
 
             // -------------------------
 
-            var background = new GameObject();
+            var background = new GameObject("MultiplayerMenu_Background");
             background.transform.parent = parent.transform;
 
             var img = background.AddComponent<Image>();
@@ -264,7 +265,7 @@ namespace FeatMultiplayer
 
         static GameObject CreateText(string txt, int fs, bool highlight = false)
         {
-            var result = new GameObject();
+            var result = new GameObject("MultiplayerMenu_Text");
             result.transform.parent = parent.transform;
 
             Text text = result.AddComponent<Text>();

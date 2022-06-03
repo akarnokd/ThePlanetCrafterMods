@@ -42,7 +42,6 @@ namespace MiscPluginUpdateChecker
                     var pluginEntry = new PluginEntry();
                     pluginEntry.guid = xe.AttributeWithName("guid");
                     pluginEntry.description = xe.AttributeWithName("description");
-                    pluginEntry.link = xe.AttributeWithName("link");
 
                     var xv = xe.ElementWithName("version");
                     var v = xv.AttributeWithName("value");
@@ -50,6 +49,7 @@ namespace MiscPluginUpdateChecker
                         pluginEntry.explicitVersion = Version.Parse(v);
                     }
                     pluginEntry.discoverUrl = xv.AttributeWithName("discover");
+                    pluginEntry.link = xv.AttributeWithName("link");
 
                     var dm = xv.AttributeWithName("method");
                     pluginEntry.discoverMethod = dm switch

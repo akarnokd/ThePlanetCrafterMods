@@ -18,11 +18,13 @@
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2020.3.26" IncludeAssets="compile" />
   </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2">
+          <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
+  </ItemGroup>
+    
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <SpecificVersion>False</SpecificVersion>
@@ -49,14 +51,27 @@
           <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
           <Private>False</Private>
       </Reference>
+      <Reference Include="Game.System.Xml.Linq">
+          <SpecificVersion>False</SpecificVersion>
+          <HintPath>$(GameManaged)System.Xml.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+      <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(Destination1)" />
+      
+      <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
+      <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(Destination2)" />
+      
+      <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+
+      <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+
+      <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />

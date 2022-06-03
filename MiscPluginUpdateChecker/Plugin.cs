@@ -17,6 +17,7 @@ using UnityEngine.InputSystem;
 namespace MiscPluginUpdateChecker
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.miscpluginupdatechecker", "(Misc) Plugin Update Checker", "1.0.0.0")]
+    [BepInDependency("akarnokd.theplanetcraftermods.featmultiplayer", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         static ManualLogSource logger;
@@ -25,7 +26,6 @@ namespace MiscPluginUpdateChecker
         static ConfigEntry<string> versionInfoRepository;
         static ConfigEntry<bool> bypassCache;
         static ConfigEntry<int> fontSize;
-        static ConfigEntry<int> panelWidth;
 
         private void Awake()
         {
@@ -44,11 +44,13 @@ namespace MiscPluginUpdateChecker
 
         static CancellationTokenSource cancelDownload;
         static volatile List<PluginVersionDiff> pluginInfos;
+        static GameObject startObject;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start()
+        static void Intro_Start(Intro __instance)
         {
+            startObject = __instance.gameObject;
             if (isEnabled.Value)
             {
                 pluginInfos = null;
@@ -66,15 +68,26 @@ namespace MiscPluginUpdateChecker
             }
         }
 
-        static void Update()
+        void Update()
         {
             if (!cancelDownload.IsCancellationRequested)
             {
                 var pis = pluginInfos;
-                if (pis != null)
+                if (pis != null && parent == null)
                 {
                     DisplayPluginDiffs(pis);
                 }
+            }
+            if (parent != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                Destroy(parent);
+                parent = null;
+                pluginInfos = null;
+                foreach (GameObject go in toHide)
+                {
+                    go.SetActive(true);
+                }
+                toHide.Clear();
             }
             if (parent != null && pluginInfos != null)
             {
@@ -87,7 +100,7 @@ namespace MiscPluginUpdateChecker
                         diff.gameObject.GetComponent<Text>().color = new Color(0.3f, 0.3f, 1f);
                         if (Mouse.current.leftButton.wasPressedThisFrame)
                         {
-                            Application.OpenURL(diff.remote.link);
+                            //Application.OpenURL(diff.remote.link);
                         }
                     }
                     else
@@ -96,12 +109,12 @@ namespace MiscPluginUpdateChecker
                     }
                 }
                 var sy = Mouse.current.scroll.ReadValue();
-                if (sy.y < 0 && scrollUp != null)
+                if (sy.y > 0 && scrollIndex > 0)
                 {
                     scrollIndex = Math.Max(0, scrollIndex - 1);
                     RenderDiffList(pluginInfos);
                 }
-                if (sy.y > 0 && scrollDown != null)
+                if (sy.y < 0 && scrollDown != null)
                 {
                     scrollIndex++;
                     RenderDiffList(pluginInfos);
@@ -115,6 +128,168 @@ namespace MiscPluginUpdateChecker
             pluginInfos = null;
             scrollEntries.Clear();
             scrollIndex = 0;
+        }
+
+        static GameObject parent;
+        static GameObject scrollUp;
+        static GameObject scrollDown;
+        static int scrollIndex;
+        static readonly List<PluginVersionDiff> scrollEntries = new();
+        static readonly List<GameObject> toHide = new();
+
+        static void DisplayPluginDiffs(List<PluginVersionDiff> diffs)
+        {
+            parent = new GameObject("PluginVersionDiff");
+            Canvas canvas = parent.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            scrollIndex = 0;
+            RenderDiffList(diffs);
+
+            if (diffs.Count != 0)
+            {
+                toHide.Clear();
+                foreach (GameObject go in FindObjectsOfType<GameObject>())
+                {
+                    if (go != parent && go.GetComponentInChildren<Canvas>() && go.activeSelf)
+                    {
+                        toHide.Add(go);
+                        go.SetActive(false);
+                    }
+                }
+            }
+        }
+
+        static GameObject CreateText(int x, int y, int w, string text, Color color, int fontSize)
+        {
+            var go = new GameObject("PluginVersionDiffText");
+            go.transform.SetParent(parent.transform);
+
+            var txt = go.AddComponent<Text>();
+            txt.text = text;
+            txt.color = color;
+            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.fontSize = fontSize;
+            txt.resizeTextForBestFit = false;
+            txt.verticalOverflow = VerticalWrapMode.Truncate;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.alignment = TextAnchor.MiddleCenter;
+
+            var rect = txt.GetComponent<RectTransform>();
+            rect.localPosition = new Vector2(x, y);
+            rect.sizeDelta = new Vector2(w, fontSize + 5);
+
+            return go;
+        }
+
+        static void RenderDiffList(List<PluginVersionDiff> list)
+        {
+            foreach (Transform child in parent.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            int fs = fontSize.Value;
+
+
+            int w = Screen.width * 3 / 4;
+            int maxh = Screen.height * 3 / 4;
+
+            int contentHeight = (list.Count * 3 + 2) * (fs + 5) + (fs + 10) + fs;
+
+            int h = Screen.height * 3 / 4;
+            if (contentHeight < h)
+            {
+                h = contentHeight;
+            }
+            int x = 0;
+            int y = h / 2;
+            int miny = -h / 2 + 4 * (fs + 5);
+
+            scrollEntries.Clear();
+
+            if (list.Count == 0)
+            {
+                Destroy(scrollUp);
+                Destroy(scrollDown);
+                scrollIndex = 0;
+
+                CreateText(0, -Screen.height / 2 + fs * 2, w, "Plugins are up-to-date", new Color(1, 1, 1), fs);
+                return;
+            }
+
+            var background = new GameObject("PluginVersionDiffBackground");
+            background.transform.parent = parent.transform;
+
+            var img = background.AddComponent<Image>();
+            img.color = new Color(0, 0, 0, 0.95f);
+            var rect = img.GetComponent<RectTransform>();
+            rect.localPosition = new Vector2(0, 0);
+            rect.sizeDelta = new Vector2(w, h);
+
+            y -= fs;
+
+            CreateText(x, y, w, "Some plugins are out of date (ESC to close)", new Color(1, 0.75f, 0), fs + 5);
+            
+            y -= fs + 10;
+
+            int index = scrollIndex;
+            scrollUp = CreateText(x, y, w, "/\\", new Color(1, 0.75f, 0), fs);
+            scrollUp.SetActive(index > 0);
+
+            y -= fs + 5;
+
+            int i = index;
+            for (; i < list.Count; i++)
+            {
+                var de = list[i];
+
+                var goGuid = CreateText(x, y, w, "--> " + de.local.guid + " <--", new Color(1, 1, 1), fs);
+                scrollEntries.Add(new()
+                {
+                    local = de.local,
+                    remote = de.remote,
+                    gameObject = goGuid
+                });
+
+                y -= fs + 5;
+                CreateText(x, y, w, de.local.description, new Color(0.8f, 0.8f, 0.8f), fs);
+                y -= fs + 5;
+                CreateText(x, y, w, de.local.explicitVersion + " -> " + de.remote.version, new Color(0.5f, 1, 0.5f), fs);
+                y -= fs + 5;
+
+                if (y < miny)
+                {
+                    break;
+                }
+            }
+
+            if (i < list.Count - 1)
+            {
+                scrollDown = CreateText(x, y, w, "\\/", new Color(1, 0.75f, 0), fs);
+            }
+            else
+            {
+                scrollDown = null;
+            }
+        }
+
+        static bool IsWithin(GameObject go, Vector2 mouse)
+        {
+            RectTransform rect = go.GetComponent<Text>().GetComponent<RectTransform>();
+
+            var lp = rect.localPosition;
+            lp.x += Screen.width / 2 - rect.sizeDelta.x / 2;
+            lp.y += Screen.height / 2 - rect.sizeDelta.y / 2;
+
+            return mouse.x >= lp.x && mouse.y >= lp.y
+                && mouse.x <= lp.x + rect.sizeDelta.x && mouse.y <= lp.y + rect.sizeDelta.y;
+        }
+
+        class PluginVersionDiff
+        {
+            internal PluginEntry local;
+            internal PluginEntry remote;
+            internal GameObject gameObject;
         }
 
         static Dictionary<string, PluginEntry> GetLocalPlugins()
@@ -153,14 +328,16 @@ namespace MiscPluginUpdateChecker
                     {
                         if (remote.CompareToVersion(local.explicitVersion) > 0)
                         {
-                            diffs.Add(new PluginVersionDiff()
+                            var pd = new PluginVersionDiff()
                             {
                                 local = local,
                                 remote = remote
-                            });
+                            };
+                            diffs.Add(pd);
                         }
                     }
                 }
+                logger.LogInfo("Plugin differences found: " + diffs.Count);
                 pluginInfos = diffs;
             }
             catch (Exception ex)
@@ -170,141 +347,6 @@ namespace MiscPluginUpdateChecker
                     logger.LogError(ex);
                 }
             }
-        }
-
-        static GameObject parent;
-        static GameObject scrollUp;
-        static GameObject scrollDown;
-        static int scrollIndex;
-        static readonly List<PluginVersionDiff> scrollEntries = new();
-
-        static void DisplayPluginDiffs(List<PluginVersionDiff> diffs)
-        {
-            parent = new GameObject();
-            Canvas canvas = parent.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-            scrollIndex = 0;
-            RenderDiffList(diffs);
-        }
-
-        static GameObject CreateText(int x, int y, int w, string text, Color color, int fontSize)
-        {
-            var go = new GameObject();
-            go.transform.parent = parent.transform;
-
-            var txt = go.AddComponent<Text>();
-            txt.text = text;
-            txt.color = color;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            txt.fontSize = fontSize;
-            txt.resizeTextForBestFit = false;
-            txt.verticalOverflow = VerticalWrapMode.Truncate;
-            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-            txt.alignment = TextAnchor.UpperLeft;
-
-            var rect = txt.GetComponent<RectTransform>();
-            rect.localPosition = new Vector3(x, y, 0);
-            rect.sizeDelta = new Vector2(fontSize + 5, w);
-
-            return go;
-        }
-
-        static void RenderDiffList(List<PluginVersionDiff> list)
-        {
-            foreach (Transform child in parent.transform)
-            {
-                Destroy(child.gameObject);
-            }
-
-            int w = Screen.width * 3 / 4;
-            int h = Screen.height * 3 / 4;
-            int x = 0;
-            int y = h / 2;
-            int fs = fontSize.Value;
-            int miny = -h + fs + 30;
-
-            scrollEntries.Clear();
-
-            if (list.Count == 0)
-            {
-                Destroy(scrollUp);
-                Destroy(scrollDown);
-                scrollIndex = 0;
-
-                CreateText(0, -Screen.height / 2 + fs * 2, w, "Plugins are up-to-date", new Color(1, 1, 1), fs);
-                return;
-            }
-
-            var background = new GameObject();
-            background.transform.parent = parent.transform;
-
-            var img = background.AddComponent<Image>();
-            img.color = new Color(0, 0, 0, 0.95f);
-            var rect = img.GetComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 0);
-            rect.sizeDelta = new Vector2(w, h);
-
-            y -= fs;
-
-            CreateText(x, y, w, "Some plugins are out of date", new Color(1, 0.75f, 0), fs + 5);
-            
-            y -= fs + 10;
-
-            int index = scrollIndex;
-            scrollUp = CreateText(x, y, w, "/\\", new Color(1, 0.75f, 0), fs);
-            scrollUp.SetActive(index > 0);
-
-            for (int i = index; i < list.Count; i++)
-            {
-                var de = list[i];
-                if (y < miny)
-                {
-                    break;
-                }
-
-                var goGuid = CreateText(x, y, w, de.local.guid, new Color(1, 1, 1), fs);
-                scrollEntries.Add(new()
-                {
-                    local = de.local,
-                    remote = de.remote,
-                    gameObject = goGuid
-                });
-
-                y -= fs + 5;
-                CreateText(x, y, w, de.local.description, new Color(0.8f, 0.8f, 0.8f), fs);
-                y -= fs + 5;
-                CreateText(x, y, w, de.local.explicitVersion + " -> " + de.remote.version, new Color(0.5f, 1, 0.5f), fs);
-                y -= fs + 5; 
-            }
-
-            if (y < miny)
-            {
-                scrollDown = CreateText(x, y, w, "\\/", new Color(1, 0.75f, 0), fs);
-            }
-            else
-            {
-                scrollDown = null;
-            }
-        }
-
-        static bool IsWithin(GameObject go, Vector2 mouse)
-        {
-            RectTransform rect = go.GetComponent<Text>().GetComponent<RectTransform>();
-
-            var lp = rect.localPosition;
-            lp.x += Screen.width / 2 - rect.sizeDelta.x / 2;
-            lp.y += Screen.height / 2 - rect.sizeDelta.y / 2;
-
-            return mouse.x >= lp.x && mouse.y >= lp.y
-                && mouse.x <= lp.x + rect.sizeDelta.x && mouse.y <= lp.y + rect.sizeDelta.y;
-        }
-
-        class PluginVersionDiff
-        {
-            internal PluginEntry local;
-            internal PluginEntry remote;
-            internal GameObject gameObject;
         }
     }
 }

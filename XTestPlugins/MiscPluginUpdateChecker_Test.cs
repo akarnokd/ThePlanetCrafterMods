@@ -42,7 +42,7 @@ namespace XTestPlugins
             string str = @"<?xml version='1.0' encoding='utf-8'?>
                <version_info_repository>
                    <plugin guid='id1' description='desc1'>
-                       <version discover='file' method='BepInPluginVersionQuote'/>
+                       <version discover='file' method='BepInPluginVersionQuote' link='link_a'/>
                        <changelog>
                            <entry version='1.1' title='title11' link='link11'>
                                 Content11
@@ -53,7 +53,7 @@ namespace XTestPlugins
                        </changelog>
                    </plugin>
                    <plugin guid='id2' description='desc2'>
-                       <version value='1.2'/>
+                       <version value='1.2' link='link_b'/>
                        <changelog/>
                    </plugin>
                </version_info_repository>
@@ -67,6 +67,7 @@ namespace XTestPlugins
             Assert.AreEqual("desc1", vir.plugins[0].description);
             Assert.IsNull(vir.plugins[0].explicitVersion);
             Assert.AreEqual("file", vir.plugins[0].discoverUrl);
+            Assert.AreEqual("link_a", vir.plugins[0].link);
             Assert.AreEqual(DiscoverMethod.BepInPluginVersionQuote, vir.plugins[0].discoverMethod);
             Assert.AreEqual(2, vir.plugins[0].changelog.Count);
 
@@ -75,7 +76,7 @@ namespace XTestPlugins
             Assert.AreEqual("link11", vir.plugins[0].changelog[0].link);
             Assert.AreEqual("Content11", vir.plugins[0].changelog[0].content.Trim());
 
-            Assert.AreEqual("1.0", vir.plugins[0].changelog[1].version);
+            Assert.AreEqual(Version.Parse("1.0"), vir.plugins[0].changelog[1].version);
             Assert.AreEqual("title10", vir.plugins[0].changelog[1].title);
             Assert.AreEqual("link10", vir.plugins[0].changelog[1].link);
             Assert.AreEqual("Content10", vir.plugins[0].changelog[1].content.Trim());
@@ -84,7 +85,8 @@ namespace XTestPlugins
 
             Assert.AreEqual("id2", vir.plugins[1].guid);
             Assert.AreEqual("desc2", vir.plugins[1].description);
-            Assert.AreEqual("1.2", vir.plugins[1].explicitVersion);
+            Assert.AreEqual(Version.Parse("1.2"), vir.plugins[1].explicitVersion);
+            Assert.AreEqual("link_b", vir.plugins[1].link);
             Assert.IsNull(vir.plugins[1].discoverUrl);
             Assert.AreEqual(DiscoverMethod.Unknown, vir.plugins[1].discoverMethod);
             Assert.AreEqual(0, vir.plugins[1].changelog.Count);
