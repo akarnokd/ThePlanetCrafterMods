@@ -46,7 +46,8 @@ namespace MiscPluginUpdateChecker
             string startUrl,
             Action<object> logInfo, 
             Action<object> logWarning,
-            Action<object> logError)
+            Action<object> logError,
+            bool randomArgument)
         {
             logInfo("Download Repositories <- Begin");
 
@@ -64,7 +65,7 @@ namespace MiscPluginUpdateChecker
                     logInfo("  Repository " + repoUrl);
                     try
                     {
-                        var request = WebRequest.Create(repoUrl).NoCache();
+                        var request = WebRequest.Create(MaybeRandom(repoUrl, randomArgument)).NoCache();
 
                         using (var response = request.GetResponse())
                         {
@@ -120,7 +121,7 @@ namespace MiscPluginUpdateChecker
                         logInfo("    discover = " + value.discoverUrl);
                         logInfo("    method = " + value.discoverMethod);
 
-                        string source = GetStringFromUrl(value.discoverUrl);
+                        string source = GetStringFromUrl(MaybeRandom(value.discoverUrl, randomArgument));
 
                         if (value.discoverMethod == DiscoverMethod.BepInPluginVersionQuote)
                         {
@@ -159,6 +160,15 @@ namespace MiscPluginUpdateChecker
             var reader = new StreamReader(stream, Encoding.UTF8);
 
             return reader.ReadToEnd();
+        }
+
+        static string MaybeRandom(string url, bool randomize)
+        {
+            if (randomize)
+            {
+                return url + "?v=" + DateTime.UtcNow.Ticks;
+            }
+            return url;
         }
     }
 

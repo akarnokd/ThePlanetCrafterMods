@@ -22,6 +22,7 @@ namespace MiscPluginUpdateChecker
 
         static ConfigEntry<bool> isEnabled;
         static ConfigEntry<string> versionInfoRepository;
+        static ConfigEntry<bool> bypassCache;
 
         private void Awake()
         {
@@ -32,6 +33,7 @@ namespace MiscPluginUpdateChecker
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             versionInfoRepository = Config.Bind("General", "VersionInfoRepository", Helpers.defaultVersionInfoRepository, "The URL from where to download an XML describing various known plugins and their latest versions.");
+            bypassCache = Config.Bind("General", "BypassCache", false, "If true, this mod will try to bypass caching on the targeted URLs by appending an arbitrary query parameter");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

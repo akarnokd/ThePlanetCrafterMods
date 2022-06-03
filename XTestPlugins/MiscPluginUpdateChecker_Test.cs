@@ -97,7 +97,8 @@ namespace XTestPlugins
                 Helpers.defaultVersionInfoRepository,
                 o => Console.WriteLine("INFO : " + o),
                 o => Console.WriteLine("WARN : " + o),
-                o => Console.WriteLine("ERROR: " + o)
+                o => Console.WriteLine("ERROR: " + o),
+                true
             );
 
             Assert.IsTrue(result.Count > 0);
