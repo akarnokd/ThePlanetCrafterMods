@@ -16,7 +16,7 @@ using UnityEngine.InputSystem;
 [assembly: InternalsVisibleTo("XTestPlugins")]
 namespace MiscPluginUpdateChecker
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.miscpluginupdatechecker", "(Misc) Plugin Update Checker", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.miscpluginupdatechecker", "(Misc) Plugin Update Checker", "1.0.0.1")]
     [BepInDependency("akarnokd.theplanetcraftermods.featmultiplayer", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -44,13 +44,11 @@ namespace MiscPluginUpdateChecker
 
         static CancellationTokenSource cancelDownload;
         static volatile List<PluginVersionDiff> pluginInfos;
-        static GameObject startObject;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
         static void Intro_Start(Intro __instance)
         {
-            startObject = __instance.gameObject;
             if (isEnabled.Value)
             {
                 pluginInfos = null;
@@ -59,6 +57,10 @@ namespace MiscPluginUpdateChecker
                 var bypass = bypassCache.Value;
 
                 var localPlugins = GetLocalPlugins();
+
+                Destroy(aparent);
+                aparent = new GameObject("PluginVersionDiff");
+                aparent.SetActive(false);
 
                 cancelDownload = new CancellationTokenSource();
                 Task.Factory.StartNew(() => GetPluginInfos(startUrl, bypass, localPlugins),
@@ -70,18 +72,18 @@ namespace MiscPluginUpdateChecker
 
         void Update()
         {
+            var pis = pluginInfos;
             if (!cancelDownload.IsCancellationRequested)
             {
-                var pis = pluginInfos;
-                if (pis != null && parent == null)
+                if (pis != null && aparent != null && !aparent.activeSelf)
                 {
                     DisplayPluginDiffs(pis);
                 }
             }
-            if (parent != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (aparent != null && aparent.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                Destroy(parent);
-                parent = null;
+                Destroy(aparent);
+                aparent = null;
                 pluginInfos = null;
                 foreach (GameObject go in toHide)
                 {
@@ -89,7 +91,7 @@ namespace MiscPluginUpdateChecker
                 }
                 toHide.Clear();
             }
-            if (parent != null && pluginInfos != null)
+            if (aparent != null && aparent.activeSelf && pluginInfos != null)
             {
                 var mouse = Mouse.current.position.ReadValue();
 
@@ -130,7 +132,7 @@ namespace MiscPluginUpdateChecker
             scrollIndex = 0;
         }
 
-        static GameObject parent;
+        static GameObject aparent;
         static GameObject scrollUp;
         static GameObject scrollDown;
         static int scrollIndex;
@@ -139,8 +141,8 @@ namespace MiscPluginUpdateChecker
 
         static void DisplayPluginDiffs(List<PluginVersionDiff> diffs)
         {
-            parent = new GameObject("PluginVersionDiff");
-            Canvas canvas = parent.AddComponent<Canvas>();
+            aparent.SetActive(true);
+            Canvas canvas = aparent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             scrollIndex = 0;
             RenderDiffList(diffs);
@@ -150,7 +152,7 @@ namespace MiscPluginUpdateChecker
                 toHide.Clear();
                 foreach (GameObject go in FindObjectsOfType<GameObject>())
                 {
-                    if (go != parent && go.GetComponentInChildren<Canvas>() && go.activeSelf)
+                    if (go != aparent && go.GetComponentInChildren<Canvas>() && go.activeSelf)
                     {
                         toHide.Add(go);
                         go.SetActive(false);
@@ -162,7 +164,7 @@ namespace MiscPluginUpdateChecker
         static GameObject CreateText(int x, int y, int w, string text, Color color, int fontSize)
         {
             var go = new GameObject("PluginVersionDiffText");
-            go.transform.SetParent(parent.transform);
+            go.transform.SetParent(aparent.transform);
 
             var txt = go.AddComponent<Text>();
             txt.text = text;
@@ -183,7 +185,7 @@ namespace MiscPluginUpdateChecker
 
         static void RenderDiffList(List<PluginVersionDiff> list)
         {
-            foreach (Transform child in parent.transform)
+            foreach (Transform child in aparent.transform)
             {
                 Destroy(child.gameObject);
             }
@@ -218,7 +220,7 @@ namespace MiscPluginUpdateChecker
             }
 
             var background = new GameObject("PluginVersionDiffBackground");
-            background.transform.parent = parent.transform;
+            background.transform.parent = aparent.transform;
 
             var img = background.AddComponent<Image>();
             img.color = new Color(0, 0, 0, 0.95f);

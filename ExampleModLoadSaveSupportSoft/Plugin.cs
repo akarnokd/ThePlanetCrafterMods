@@ -10,6 +10,7 @@ using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
+using UnityEngine;
 
 namespace ExampleModLoadSaveSupportSoft
 {
@@ -44,7 +45,8 @@ namespace ExampleModLoadSaveSupportSoft
                 handle = (IDisposable)mi.Invoke(pi.Instance, new object[] { guid, new Action<string>(OnLoad), new Func<string>(OnSave) });
 
                 Logger.LogInfo("Successfully registered with " + libModLoadSaveSupportGuid);
-            } else
+            }
+            else
             {
                 Logger.LogInfo("Could not find " + libModLoadSaveSupportGuid);
             }
@@ -78,8 +80,8 @@ namespace ExampleModLoadSaveSupportSoft
         {
             foreach (TerraformStage stage in ___allGlobalTerraStage)
             {
-                logger.LogInfo(stage.GetTerraId() + " \"" + Readable.GetTerraformStageName(stage) + "\" @ " 
-                    + string.Format("{0:##,###}", stage.GetStageStartValue()) + " " + stage.GetWorldUnitType());                
+                logger.LogInfo(stage.GetTerraId() + " \"" + Readable.GetTerraformStageName(stage) + "\" @ "
+                    + string.Format("{0:##,###}", stage.GetStageStartValue()) + " " + stage.GetWorldUnitType());
             }
 
             UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
@@ -200,7 +202,7 @@ namespace ExampleModLoadSaveSupportSoft
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
-            foreach(GroupConstructible gc in GroupsHandler.GetGroupsConstructible())
+            foreach (GroupConstructible gc in GroupsHandler.GetGroupsConstructible())
             {
                 sb.Append(gc.GetId());
                 sb.AppendLine();
@@ -209,6 +211,31 @@ namespace ExampleModLoadSaveSupportSoft
                 sb.Append("  Oxygen: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Oxygen)).AppendLine();
                 sb.Append("  Biomass: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Biomass)).AppendLine();
 
+                var hmt = gc.GetAssociatedGameObject()?.GetComponent<HomemadeTag>();
+                if (hmt != null)
+                {
+                    sb.Append("  HomemadeTag: ").Append(hmt).AppendLine();
+                }
+            }
+            logger.LogInfo(sb.ToString());
+
+            sb = new StringBuilder();
+            HashSet<string> keys = new HashSet<string>();
+            foreach (var gc in FindObjectsOfType<GameObject>())
+            {
+                var woa = gc.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    var hmt = gc.GetComponentInChildren<HomemadeTag>();
+                    if (hmt != null)
+                    {
+                        var str = woa.GetWorldObject().GetGroup().GetId() + " -> " + hmt.homemadeTag;
+                        if (keys.Add(str))
+                        {
+                            sb.AppendLine().Append(str);
+                        }
+                    }
+                }
             }
             logger.LogInfo(sb.ToString());
         }
