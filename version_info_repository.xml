@@ -2,7 +2,7 @@
 <version_info_repository>
     <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
             description="(Misc) Plugin Update Checker">
-        <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginVersionChecker/Plugin.cs" 
+        <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/Plugin.cs" 
                          method="BepInPluginVersionQuote"/>
         <!--
         method="BepInPluginVersionQuote": parse the BepInPlugin annotation for the version tag

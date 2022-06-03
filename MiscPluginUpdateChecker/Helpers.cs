@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Cache;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -63,7 +64,8 @@ namespace MiscPluginUpdateChecker
                     logInfo("  Repository " + repoUrl);
                     try
                     {
-                        var request = WebRequest.Create(repoUrl);
+                        var request = WebRequest.Create(repoUrl).NoCache();
+
                         using (var response = request.GetResponse())
                         {
                             using (var stream = response.GetResponseStream())
@@ -123,17 +125,17 @@ namespace MiscPluginUpdateChecker
                         if (value.discoverMethod == DiscoverMethod.BepInPluginVersionQuote)
                         {
                             value.discoverVersion = Helpers.GetBepInPluginVersionQuoteFrom(source);
-                            logInfo("   version = " + value.discoverVersion); ;
+                            logInfo("    version = " + value.discoverVersion); ;
                         }
                         else
                         if (value.discoverMethod == DiscoverMethod.CsprojVersionTag)
                         {
                             value.discoverVersion = Helpers.GetCsprojVersionTag(source);
-                            logInfo("   version = " + value.discoverVersion); ;
+                            logInfo("    version = " + value.discoverVersion); ;
                         }
                         else
                         {
-                            logWarning("   version = unsupported discovery method");
+                            logWarning("    version = unsupported discovery method");
                         }
                     }
                 }
@@ -150,13 +152,23 @@ namespace MiscPluginUpdateChecker
 
         static string GetStringFromUrl(string url)
         {
-            var request = WebRequest.Create(url);
+            var request = WebRequest.Create(url).NoCache();
             using var response = request.GetResponse();
             using var stream = response.GetResponseStream();
 
             var reader = new StreamReader(stream, Encoding.UTF8);
 
             return reader.ReadToEnd();
+        }
+    }
+
+    static class HelpersExt
+    {
+        internal static WebRequest NoCache(this WebRequest request)
+        {
+            request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+            request.Headers[HttpRequestHeader.CacheControl] = "no-cache";
+            return request;
         }
     }
 }
