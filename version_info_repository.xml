@@ -1,20 +1,210 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
-    <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
-            description="(Misc) Plugin Update Checker"
-            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/Plugin.cs" 
-            method="BepInPluginVersionQuote"
-            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest">
-        <changelog version="1.0.0.0" title="Initial Release"
-               link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest">
-            Optional detailed description.
-        </changelog>
-    </plugin>
+    <plugin guid="akarnokd.theplanetcraftermods.cheatasteroidlandingposition"
+            description="(Cheat) Asteroid Landing Position Override"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatautoconsume"
+            description="(Cheat) Auto Consume Oxygen-Water-Food"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAutoConsume/CheatAutoConsume.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatautoharvest"
+            description="(Cheat) Automatically Harvest Food n Algae"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAutoHarvest/CheatAutoHarvest.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
     <plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
             description="(Cheat) Inventory Stacking"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
             method="CsprojVersionTag"
-            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatmachineremotedeposit"
+            description="(Cheat) Machines Deposit Into Remote Containers"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatMachineRemoteDeposit/CheatMachineRemoteDeposit.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatminimap"
+            description="(Cheat) Minimap"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatMinimap/CheatMinimap.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight"
+            description="(Cheat) Highlight Nearby Resources"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatNearbyResourcesHighlight/CheatNearbyResourcesHighlight.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uiphotomodehidewater"
+            description="(Cheat) Hide Water in Photomode"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatPhotomodeHideWater/CheatPhotomodeHideWater.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.cheatteleportnearestminable"
+            description="(Cheat) Teleport To Nearest Minable"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatTeleportNearestMinable/CheatTeleportNearestMinable.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft"
+            description="(Example) Soft Dependency on ModLoadSaveSupport"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/ExampleModLoadSaveSupportSoft/ExampleModLoadSaveSupportSoft.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.featmultiplayer"
+            description="(Feat) Multiplayer"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatMultiplayer/FeatMultiplayer.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.fixi18nloading"
+            description="(Fix) International Loading"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FixI18NLoading/FixI18NLoading.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.fixunbricksave"
+            description="(Fix) Unbrick Save"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FixUnbrickSave/FixUnbrickSave.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.fixunofficialpatches"
+            description="(Fix) Unofficial Patches"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FixUnofficialPatches/FixUnofficialPatches.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.libmodloadsavesupport"
+            description="(Lib) Support Mods with Load n Save"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/LibModLoadSaveSupport/LibModLoadSaveSupport.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker"
+            description="(Misc) Plugin Update Checker"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/MiscPluginUpdateChecker.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.perfsavereducesize"
+            description="(Perf) Reduce Save Size"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/PerfSaveReduceSize/PerfSaveReduceSize.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.saveautobackup"
+            description="(Save) Auto Backup"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/SaveAutoBackup/SaveAutoBackup.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uicraftequipmentinplace"
+            description="(UI) Craft Equipment Inplace"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UICraftEquipmentInplace/UICraftEquipmentInplace.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uicustominventorysortall"
+            description="(UI) Customize Inventory Sort Order"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UICustomInventorySortAll/UICustomInventorySortAll.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uidontclosecraftwindow"
+            description="(UI) Don't Close Craft Window"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIDontCloseCraftWindow/UIDontCloseCraftWindow.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uihotbar"
+            description="(UI) Hotbar"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIHotbar/UIHotbar.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uiinventorymovemultiple"
+            description="(UI) Inventory Move Multiple Items"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIInventoryMoveMultiple/UIInventoryMoveMultiple.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uipinrecipe"
+            description="(UI) Pin Recipe to Screen"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIPinRecipe/UIPinRecipe.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.saveonquit"
+            description="(UI) Save When Quitting"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UISaveOnQuit/UISaveOnQuit.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowconsumablecount"
+            description="(UI) Show Consumable Counts"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowConsumableCount/UIShowConsumableCount.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowcontainerinfo"
+            description="(UI) Show Container Content Info"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowContainerInfo/UIShowContainerInfo.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowgrabnminecount"
+            description="(UI) Show Grab N Mine Count"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowGrabNMineCount/UIShowGrabNMineCount.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowmultitoolmode"
+            description="(UI) Show MultiTool Mode"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowMultiToolMode/UIShowMultiToolMode.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowplayerinventorycount"
+            description="(UI) Show Player Inventory Counts"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowPlayerInventoryCount/UIShowPlayerInventoryCount.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowplayertooltipitemcount"
+            description="(UI) Show Player Tooltip Item Count"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowPlayerTooltipItemCount/UIShowPlayerTooltipItemCount.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uishowrocketcount"
+            description="(UI) Show Rocket Counts"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowRocketCount/UIShowRocketCount.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uisortsaves"
+            description="(UI) Sort Saves On The Load Screen"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UISortSaves/UISortSaves.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+    <plugin guid="akarnokd.theplanetcraftermods.uitranslationhungarian"
+            description="(UI) Hungarian Translation"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UITranslationHungarian/UITranslationHungarian.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+-
     <!--
     We can include some other repository info source.
         <include url="https://raw.githubusercontent.com/somemodder987/ThePlanetCrafterMods/main/their_version_info_repository.xml" />

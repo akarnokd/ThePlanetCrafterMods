@@ -108,6 +108,20 @@ namespace MiscPluginUpdateChecker
             logInfo("Download Repositories <- Done");
             logInfo("Discovering versions <- Begin");
 
+            DiscoverVersions(plugins, logInfo, logWarning, logError, randomArgument);
+
+            logInfo("Discovering versions <- Done");
+
+            return plugins;
+        }
+
+        internal static void DiscoverVersions(
+            Dictionary<string, PluginEntry> plugins,
+            Action<object> logInfo,
+            Action<object> logWarning,
+            Action<object> logError,
+            bool randomArgument)
+        {
             foreach (var kv in plugins)
             {
                 var key = kv.Key;
@@ -145,10 +159,6 @@ namespace MiscPluginUpdateChecker
                     logError(ex);
                 }
             }
-
-            logInfo("Discovering versions <- Done");
-
-            return plugins;
         }
 
         static string GetStringFromUrl(string url)

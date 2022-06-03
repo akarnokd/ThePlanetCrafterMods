@@ -1,6 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MiscPluginUpdateChecker;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace XTestPlugins
 {
@@ -91,6 +95,12 @@ namespace XTestPlugins
             Assert.AreEqual(DiscoverMethod.Unknown, vir.plugins[1].discoverMethod);
             Assert.AreEqual(0, vir.plugins[1].changelog.Count);
         }
+        [TestMethod]
+        public void VersionInfoRepositoryParse_2()
+        {
+            var vir = VersionInfoRepository.Parse(File.ReadAllText("..\\..\\..\\version_info_repository.xml"));
+            Assert.IsTrue(vir.plugins.Count > 0);
+        }
 
         [TestMethod]
         public void DownloadPluginInfos_Web()
@@ -104,6 +114,71 @@ namespace XTestPlugins
             );
 
             Assert.IsTrue(result.Count > 0);
+        }
+
+        [TestMethod]
+        public void DiscoverVersions_Local()
+        {
+            var vir = VersionInfoRepository.Parse(File.ReadAllText("..\\..\\..\\version_info_repository.xml"));
+
+            Dictionary<string, PluginEntry> plugins = new Dictionary<string, PluginEntry>();
+            foreach (var pi in vir.plugins)
+            {
+                plugins[pi.guid] = pi;
+            }
+
+            Helpers.DiscoverVersions(plugins,
+                o => Console.WriteLine("INFO : " + o),
+                o => Console.WriteLine("WARN : " + o),
+                o => Console.WriteLine("ERROR: " + o),
+                true);
+        }
+
+        [TestMethod]
+        public void GenerateDefaultPluginInfos()
+        {
+            StringBuilder sb = new StringBuilder();
+            string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
+            string patternConst = "BepInPlugin\\((.*?)\\s*,\\s*\"(.*?)\"\\s*,";
+            var regex = new Regex(pattern);
+            foreach(string dir in Directory.EnumerateDirectories("..\\..\\.."))
+            {
+                string d = Path.GetFileName(dir);
+                string f = Path.Combine(dir, "Plugin.cs");
+                if (d != "XTestPlugins" && d != "ZipRest" && File.Exists(f))
+                {
+                    var text = File.ReadAllText(f);
+                    var m = regex.Match(text);
+                    string guid = "";
+                    string desc = "";
+
+                    if (m.Groups[1].Success)
+                    {
+                        guid = m.Groups[1].Value;
+                        desc = m.Groups[2].Value;
+                    }
+                    else
+                    {
+                        m = new Regex(patternConst).Match(text);
+                        if (m.Success)
+                        {
+                            desc = m.Groups[2].Value;
+                            string constDecl = "const\\s+string\\s+" + m.Groups[1].Value + "\\s*=\\s*\"(.*?)\"\\s*;";
+                            m = new Regex(constDecl).Match(text);
+                            guid = m.Groups[1].Value;
+                        }
+                    }
+
+                    sb.Append("    <plugin guid=\"").Append(guid).Append("\"").AppendLine();
+                    sb.Append("            description=\"").Append(desc).Append("\"").AppendLine();
+                    sb.Append("            discover=\"https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/").Append(d).Append("/").Append(d).Append(".csproj\"").AppendLine();
+                    sb.Append("            method=\"CsprojVersionTag\"").AppendLine();
+                    sb.Append("            link=\"https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest\"").AppendLine();
+                    sb.Append("            />").AppendLine();
+                }
+            }
+            Console.Write(sb.ToString());
+            Console.WriteLine();
         }
     }
 }
