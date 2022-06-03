@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 		solution_private.targets = solution_private.targets
+		version_info_repository.xml = version_info_repository.xml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatTeleportNearestMinable", "CheatTeleportNearestMinable\CheatTeleportNearestMinable.csproj", "{1B933605-EBA4-4649-8FDF-ECEA821A280E}"
@@ -73,6 +74,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipRest", "ZipRest\ZipRest.
 		{5618B128-92E8-418F-894B-F0C359091038} = {5618B128-92E8-418F-894B-F0C359091038}
 		{5EB33AFF-D26B-49B8-A2A2-F0B638DD079C} = {5EB33AFF-D26B-49B8-A2A2-F0B638DD079C}
 		{60435D27-3430-4837-830F-0BFD126D07E6} = {60435D27-3430-4837-830F-0BFD126D07E6}
+		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5} = {7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}
 		{8A194581-90E3-4EB1-A0EC-53898856EF7B} = {8A194581-90E3-4EB1-A0EC-53898856EF7B}
 		{8A976BE2-3526-452D-918F-839227623F5D} = {8A976BE2-3526-452D-918F-839227623F5D}
 		{8B938DFE-E804-47F6-AEE0-2F88405BBA3E} = {8B938DFE-E804-47F6-AEE0-2F88405BBA3E}
@@ -111,6 +113,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixUnofficialPatches", "FixUnofficialPatches\FixUnofficialPatches.csproj", "{D27420E1-447E-4AC9-97C1-48B6A8C24940}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatMultiplayer", "FeatMultiplayer\FeatMultiplayer.csproj", "{5EB33AFF-D26B-49B8-A2A2-F0B638DD079C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiscPluginUpdateChecker", "MiscPluginUpdateChecker\MiscPluginUpdateChecker.csproj", "{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -254,6 +258,10 @@ Global
 		{5EB33AFF-D26B-49B8-A2A2-F0B638DD079C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EB33AFF-D26B-49B8-A2A2-F0B638DD079C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EB33AFF-D26B-49B8-A2A2-F0B638DD079C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
