@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
-    <plugin id="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
+    <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
             description="(Misc) Plugin Update Checker">
-        <current_version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginVersionChecker/plugin.cs" 
-                         method="annotation-BepInPlugin"/>
+        <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginVersionChecker/plugin.cs" 
+                         method="BepInPluginVersionQuote"/>
         <!--
-        method="annotation-BepInEx": parse the BepInPlugin annotation for the version tag
-        method="csproj-xml": parse the csproj as XML and locate the version tag.
+        method="BepInPluginVersionQuote": parse the BepInPlugin annotation for the version tag
+        method="CsprojVersionTag": parse the csproj as XML and locate the version tag.
         
         other methods may come
         -->
         <!--
         or use explicit version number
         
-        <current_version value="1.0.0.1"/>
+        <version value="1.0.0.1"/>
         -->
         <changelog>
             <entry version="1.0.0.0" title="Initial Release" 

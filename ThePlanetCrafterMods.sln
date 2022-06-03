@@ -116,6 +116,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatMultiplayer", "FeatMult
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiscPluginUpdateChecker", "MiscPluginUpdateChecker\MiscPluginUpdateChecker.csproj", "{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestPlugins", "XTestPlugins\XTestPlugins.csproj", "{30903A9F-7E6B-4C0E-85EE-56F27311A472}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -262,6 +264,10 @@ Global
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
