@@ -100,7 +100,7 @@ namespace MiscPluginUpdateChecker
                         diff.gameObject.GetComponent<Text>().color = new Color(0.3f, 0.3f, 1f);
                         if (Mouse.current.leftButton.wasPressedThisFrame)
                         {
-                            //Application.OpenURL(diff.remote.link);
+                            Application.OpenURL(diff.remote.link);
                         }
                     }
                     else
