@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,9 +42,13 @@ namespace MiscPluginUpdateChecker
                     var pluginEntry = new PluginEntry();
                     pluginEntry.guid = xe.AttributeWithName("guid");
                     pluginEntry.description = xe.AttributeWithName("description");
+                    pluginEntry.link = xe.AttributeWithName("link");
 
                     var xv = xe.ElementWithName("version");
-                    pluginEntry.explicitVersion = xv.AttributeWithName("value");
+                    var v = xv.AttributeWithName("value");
+                    if (v != null) {
+                        pluginEntry.explicitVersion = Version.Parse(v);
+                    }
                     pluginEntry.discoverUrl = xv.AttributeWithName("discover");
 
                     var dm = xv.AttributeWithName("method");
@@ -89,11 +94,41 @@ namespace MiscPluginUpdateChecker
     {
         internal string guid;
         internal string description;
-        internal string explicitVersion;
+        internal Version explicitVersion;
         internal string discoverUrl;
         internal DiscoverMethod discoverMethod;
-        internal string discoverVersion;
+        internal Version discoverVersion;
+        internal string link;
         internal readonly List<ChangelogEntry> changelog = new();
+
+        internal Version version
+        {
+            get
+            {
+                if (explicitVersion != null)
+                {
+                    return explicitVersion;
+                }
+                if (discoverVersion != null)
+                {
+                    return discoverVersion; ;
+                }
+                return null;
+            }
+        }
+
+        internal int CompareToVersion(Version other)
+        {
+            if (explicitVersion != null)
+            {
+                return explicitVersion.CompareTo(other);
+            }
+            if (discoverVersion != null)
+            {
+                return discoverVersion.CompareTo(other);
+            }
+            return 0;
+        }
     }
 
     internal class ChangelogEntry

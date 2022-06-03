@@ -125,13 +125,13 @@ namespace MiscPluginUpdateChecker
 
                         if (value.discoverMethod == DiscoverMethod.BepInPluginVersionQuote)
                         {
-                            value.discoverVersion = Helpers.GetBepInPluginVersionQuoteFrom(source);
+                            value.discoverVersion = Version.Parse(Helpers.GetBepInPluginVersionQuoteFrom(source));
                             logInfo("    version = " + value.discoverVersion); ;
                         }
                         else
                         if (value.discoverMethod == DiscoverMethod.CsprojVersionTag)
                         {
-                            value.discoverVersion = Helpers.GetCsprojVersionTag(source);
+                            value.discoverVersion = Version.Parse(Helpers.GetCsprojVersionTag(source));
                             logInfo("    version = " + value.discoverVersion); ;
                         }
                         else

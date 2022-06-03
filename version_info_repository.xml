@@ -3,7 +3,8 @@
     <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
             description="(Misc) Plugin Update Checker">
         <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/Plugin.cs" 
-                         method="BepInPluginVersionQuote"/>
+                 method="BepInPluginVersionQuote"
+                 link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
         <!--
         method="BepInPluginVersionQuote": parse the BepInPlugin annotation for the version tag
         method="CsprojVersionTag": parse the csproj as XML and locate the version tag.
@@ -25,7 +26,8 @@
     <plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
             description="(Cheat) Inventory Stacking">
         <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
-                         method="CsprojVersionTag"/>
+                 method="CsprojVersionTag"
+                 link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
     </plugin>
     <!--
     We can include some other repository info source.
