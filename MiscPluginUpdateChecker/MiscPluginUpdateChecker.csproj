@@ -51,11 +51,6 @@
           <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
           <Private>False</Private>
       </Reference>
-      <Reference Include="Game.System.Xml.Linq">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>$(GameManaged)System.Xml.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

@@ -41,21 +41,21 @@ namespace XTestPlugins
         {
             string str = @"<?xml version='1.0' encoding='utf-8'?>
                <version_info_repository>
-                   <plugin guid='id1' description='desc1'>
-                       <version discover='file' method='BepInPluginVersionQuote' link='link_a'/>
-                       <changelog>
-                           <entry version='1.1' title='title11' link='link11'>
+                   <plugin 
+                       guid='id1' description='desc1'
+                       discover='file' 
+                       method='BepInPluginVersionQuote' 
+                       link='link_a'>
+                       <changelog version='1.1' title='title11' link='link11'>
                                 Content11
-                           </entry>
-                           <entry version='1.0' title='title10' link='link10'>
+                       </changelog>
+                       <changelog version='1.0' title='title10' link='link10'>
                                 Content10
-                           </entry>
                        </changelog>
                    </plugin>
-                   <plugin guid='id2' description='desc2'>
-                       <version value='1.2' link='link_b'/>
-                       <changelog/>
-                   </plugin>
+                   <plugin guid='id2' description='desc2'
+                           version='1.2' 
+                           link='link_b'/>
                </version_info_repository>
             ";
 
@@ -71,7 +71,7 @@ namespace XTestPlugins
             Assert.AreEqual(DiscoverMethod.BepInPluginVersionQuote, vir.plugins[0].discoverMethod);
             Assert.AreEqual(2, vir.plugins[0].changelog.Count);
 
-            Assert.AreEqual("1.1", vir.plugins[0].changelog[0].version);
+            Assert.AreEqual(Version.Parse("1.1"), vir.plugins[0].changelog[0].version);
             Assert.AreEqual("title11", vir.plugins[0].changelog[0].title);
             Assert.AreEqual("link11", vir.plugins[0].changelog[0].link);
             Assert.AreEqual("Content11", vir.plugins[0].changelog[0].content.Trim());

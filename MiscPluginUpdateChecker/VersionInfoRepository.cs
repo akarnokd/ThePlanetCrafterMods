@@ -35,23 +35,22 @@ namespace MiscPluginUpdateChecker
 
         static void ProcessDocument(XElement root, VersionInfoRepository result)
         {
-            foreach (var xe in root.Elements())
+            foreach (var xPlugin in root.Elements())
             {
-                if (xe.Name.LocalName == "plugin")
+                if (xPlugin.Name.LocalName == "plugin")
                 {
                     var pluginEntry = new PluginEntry();
-                    pluginEntry.guid = xe.AttributeWithName("guid");
-                    pluginEntry.description = xe.AttributeWithName("description");
+                    pluginEntry.guid = xPlugin.AttributeWithName("guid");
+                    pluginEntry.description = xPlugin.AttributeWithName("description");
 
-                    var xv = xe.ElementWithName("version");
-                    var v = xv.AttributeWithName("value");
+                    var v = xPlugin.AttributeWithName("version");
                     if (v != null) {
                         pluginEntry.explicitVersion = Version.Parse(v);
                     }
-                    pluginEntry.discoverUrl = xv.AttributeWithName("discover");
-                    pluginEntry.link = xv.AttributeWithName("link");
+                    pluginEntry.discoverUrl = xPlugin.AttributeWithName("discover");
+                    pluginEntry.link = xPlugin.AttributeWithName("link");
 
-                    var dm = xv.AttributeWithName("method");
+                    var dm = xPlugin.AttributeWithName("method");
                     pluginEntry.discoverMethod = dm switch
                     {
                         "BepInPluginVersionQuote" => DiscoverMethod.BepInPluginVersionQuote,
@@ -59,31 +58,28 @@ namespace MiscPluginUpdateChecker
                         _ => DiscoverMethod.Unknown
                     };
 
-                    var xcl = xe.ElementWithName("changelog");
-                    if (xcl != null)
+                    foreach (var xChangelog in xPlugin.Elements())
                     {
-                        foreach (var xce in xcl.Elements())
+                        if (xChangelog.Name.LocalName == "changelog")
                         {
-                            if (xce.Name.LocalName == "entry")
-                            {
-                                var logEntry = new ChangelogEntry();
-                                logEntry.version = xce.AttributeWithName("version");
-                                logEntry.title = xce.AttributeWithName("title");
-                                logEntry.link = xce.AttributeWithName("link");
-                                logEntry.content = xce.Value;
+                            var logEntry = new ChangelogEntry();
+                            logEntry.version = Version.Parse(xChangelog.AttributeWithName("version"));
+                            logEntry.title = xChangelog.AttributeWithName("title");
+                            logEntry.link = xChangelog.AttributeWithName("link");
+                            logEntry.content = xChangelog.Value;
 
-                                pluginEntry.changelog.Add(logEntry);
-                            }
+                            pluginEntry.changelog.Add(logEntry);
                         }
                     }
 
+ 
                     result.plugins.Add(pluginEntry);
                 }
                 else
-                if (xe.Name == "include")
+                if (xPlugin.Name == "include")
                 {
                     var ie = new IncludeEntry();
-                    ie.url = xe.AttributeWithName("url");
+                    ie.url = xPlugin.AttributeWithName("url");
                     result.includes.Add(ie);
                 }
             }
@@ -133,7 +129,7 @@ namespace MiscPluginUpdateChecker
 
     internal class ChangelogEntry
     {
-        internal string version;
+        internal Version version;
         internal string title;
         internal string link;
         internal string content;

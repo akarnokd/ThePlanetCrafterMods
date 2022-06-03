@@ -1,34 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
     <plugin guid="akarnokd.theplanetcraftermods.miscpluginupdatechecker" 
-            description="(Misc) Plugin Update Checker">
-        <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/Plugin.cs" 
-                 method="BepInPluginVersionQuote"
-                 link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
-        <!--
-        method="BepInPluginVersionQuote": parse the BepInPlugin annotation for the version tag
-        method="CsprojVersionTag": parse the csproj as XML and locate the version tag.
-        
-        other methods may come
-        -->
-        <!--
-        or use explicit version number
-        
-        <version value="1.0.0.1"/>
-        -->
-        <changelog>
-            <entry version="1.0.0.0" title="Initial Release" 
-                   link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest">
-                
-            </entry>
+            description="(Misc) Plugin Update Checker"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscPluginUpdateChecker/Plugin.cs" 
+            method="BepInPluginVersionQuote"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest">
+        <changelog version="1.0.0.0" title="Initial Release"
+               link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest">
+            Optional detailed description.
         </changelog>
     </plugin>
     <plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
-            description="(Cheat) Inventory Stacking">
-        <version discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
-                 method="CsprojVersionTag"
-                 link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
-    </plugin>
+            description="(Cheat) Inventory Stacking"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"/>
     <!--
     We can include some other repository info source.
         <include url="https://raw.githubusercontent.com/somemodder987/ThePlanetCrafterMods/main/their_version_info_repository.xml" />
