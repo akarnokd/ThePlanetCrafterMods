@@ -19,7 +19,7 @@ namespace FeatMultiplayer
         static string multiplayerFilename = "Survival-9999999";
         void CreateMultiplayerSaveAndEnter()
         {
-            File.Delete(Application.persistentDataPath + "/" + multiplayerFilename);
+            File.Delete(Application.persistentDataPath + "/" + multiplayerFilename + ".json");
 
             Managers.GetManager<StaticDataHandler>().LoadStaticData();
 
@@ -92,6 +92,7 @@ namespace FeatMultiplayer
             _sendQueue.Clear();
             receiveQueue.Clear();
             worldObjectById.Clear();
+            inventoryById.Clear();
         }
 
         void OnApplicationQuit()
