@@ -160,6 +160,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mgr);
             }
             else
+            if (MessageGrowClear.TryParse(message, out var mgc))
+            {
+                receiveQueue.Enqueue(mgc);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -365,6 +370,11 @@ namespace FeatMultiplayer
                 case MessageGrowRemove mgr:
                     {
                         ReceiveMessageGrowRemove(mgr);
+                        break;
+                    }
+                case MessageGrowClear mgc:
+                    {
+                        ReceiveMessageGrowClear(mgc);
                         break;
                     }
                 case string s:

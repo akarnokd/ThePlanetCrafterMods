@@ -72,19 +72,19 @@ namespace FeatMultiplayer
         /// 
         /// On the client, we don't allow this routine to run at all. Growth tracking will be done separately.
         /// </summary>
-        /// <param name="_objectToInstantiate"></param>
-        /// <param name="_fromInit"></param>
-        /// <param name="___worldObjectGrower"></param>
-        /// <param name="___instantiatedGameObjects"></param>
-        /// <param name="___radius"></param>
-        /// <param name="___gameObject"></param>
+        /// <param name="__instance">The GameObject of the grower.</param>
+        /// <param name="_objectToInstantiate">The gameobject representing the thing to spawn</param>
+        /// <param name="_fromInit">Is this the initialization spawn after loading in?</param>
+        /// <param name="___worldObjectGrower">The parent machine outside grower world object</param>
+        /// <param name="___instantiatedGameObjects">List of already instantiated game objects by the grower</param>
+        /// <param name="___radius">The spawn radius</param>
         /// <returns>False if in multiplayer, true otherwise.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition")]
         static bool MachineOutsideGrower_InstantiateAtRandomPosition(
             MachineOutsideGrower __instance,
-            GameObject _objectToInstantiate, 
-            bool _fromInit, 
+            GameObject _objectToInstantiate,
+            bool _fromInit,
             WorldObject ___worldObjectGrower,
             List<GameObject> ___instantiatedGameObjects,
             float ___radius,
@@ -145,7 +145,7 @@ namespace FeatMultiplayer
                     Quaternion lhs = Quaternion.Euler(0f, 0f, z);
                     Quaternion rotation = Quaternion.LookRotation(___alignWithNormal ? raycastHit.normal : Vector3.up) * (lhs * Quaternion.Euler(90f, 0f, 0f));
                     spawn.transform.rotation = rotation;
-                    
+
                     float spawnScaling = 0f;
                     if (_fromInit)
                     {
@@ -167,8 +167,8 @@ namespace FeatMultiplayer
                             __instance.StartCoroutine(enumer);
                         };
 
-                        ag.grabedEvent = (Grabed)Delegate.Combine( 
-                            new Grabed(wo => OnGrabSpawn(spi.machineId, id, spi.doRespawn)), 
+                        ag.grabedEvent = (Grabed)Delegate.Combine(
+                            new Grabed(wo => OnGrabSpawn(spi.machineId, id, spi.doRespawn)),
                             ag.grabedEvent
                         );
                     }
@@ -366,9 +366,9 @@ namespace FeatMultiplayer
                                     if (woa != null)
                                     {
                                         WorldObject woSpawn = woa.GetWorldObject();
-                                        LogWarning("ReceiveMessageGrowRemove: Grabbing: " + mgr.machineId + " -> " 
+                                        LogWarning("ReceiveMessageGrowRemove: Grabbing: " + mgr.machineId + " -> "
                                             + mgr.spawnId + " -> " + DebugWorldObject(woSpawn));
-                                        
+
                                         SendWorldObject(woSpawn, false);
                                         Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
                                         if (inv.AddItem(woSpawn))
@@ -410,6 +410,22 @@ namespace FeatMultiplayer
             else
             {
                 LogWarning("ReceiveMessageGrowRemove: WorldObject not found: " + mgr.machineId);
+            }
+        }
+        static void ReceiveMessageGrowClear(MessageGrowClear mgc)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                if (worldObjectById.TryGetValue(mgc.machineId, out var wo))
+                {
+                    if (TryGetGameObject(wo, out var go))
+                    {
+                        var mog = go.GetComponent<MachineOutsideGrower>();
+
+                        GameObjects.DestroyAllChildren(mog.grownThingsContainer, false);
+                        wo.SetGrowth(0f);
+                    }
+                }
             }
         }
     }
