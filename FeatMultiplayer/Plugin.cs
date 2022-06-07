@@ -2,6 +2,8 @@
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
+using MijuTools;
+using SpaceCraft;
 
 namespace FeatMultiplayer
 {
@@ -93,6 +95,10 @@ namespace FeatMultiplayer
                 if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.iKey.wasPressedThisFrame)
                 {
                     SetupHostInventory();
+                }
+                if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.pKey.wasPressedThisFrame)
+                {
+                    LaunchAllMeteorEvents();
                 }
             }
             else

@@ -14,10 +14,11 @@ namespace FeatMultiplayer
         internal int eventIndex;
         internal Vector3 spawnPosition;
         internal Vector3 landingPosition;
+        internal bool isRocket;
 
         internal static bool TryParse(string str, out MessageAsteroidSpawn mas)
         {
-            if (MessageHelper.TryParseMessage("AsteroidSpawn|", str, 5, out var parameters))
+            if (MessageHelper.TryParseMessage("AsteroidSpawn|", str, 6, out var parameters))
             {
                 try
                 {
@@ -26,6 +27,7 @@ namespace FeatMultiplayer
                     mas.eventIndex = int.Parse(parameters[2]);
                     mas.spawnPosition = DataTreatments.StringToVector3(parameters[3]);
                     mas.landingPosition = DataTreatments.StringToVector3(parameters[4]);
+                    mas.isRocket = "1" == parameters[5];
                     return true;
                 }
                 catch (Exception ex)
@@ -43,6 +45,7 @@ namespace FeatMultiplayer
                 + "|" + eventIndex
                 + "|" + DataTreatments.Vector3ToString(spawnPosition)
                 + "|" + DataTreatments.Vector3ToString(landingPosition)
+                + "|" + (isRocket ? 1 : 0)
                 + "\n";
         }
     }

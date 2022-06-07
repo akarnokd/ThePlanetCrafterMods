@@ -30,6 +30,7 @@ namespace FeatMultiplayer
         {
             internal string groupId;
             internal int eventIndex;
+            internal bool isRocket;
         }
 
         /// <summary>
@@ -119,60 +120,77 @@ namespace FeatMultiplayer
         {
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
-                ___selectedDataMeteoEvent = _meteoEvent;
-                ___meteoSound.StartMeteoAudio(_meteoEvent);
-                ___selectedAsteroidEventData = null;
-                if (_meteoEvent.asteroidEventData != null)
+                try
                 {
-                    ___selectedAsteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(_meteoEvent.asteroidEventData);
-                }
-
-                ___asteroidsHandler.AddAsteroidEvent(___selectedAsteroidEventData);
-                if (overrideMeteorStartTime > 0)
-                {
-                    ___timeNewMeteoSet = overrideMeteorStartTime;
-                    overrideMeteorStartTime = 0f;
-                }
-                else
-                {
-                    ___timeNewMeteoSet = Time.time;
-                }
-
-
-                if (updateMode == MultiplayerMode.CoopHost)
-                {
-
-                    var mei = ___selectedAsteroidEventData.asteroidGameObject.AddComponent<MeteorEventInfo>();
-
-                    // reverse lookup the meteo event to find out the group id
-                    var sendInSpace = __instance.GetComponent<MeteoSendInSpace>();
-                    if (sendInSpace != null)
+                    ___selectedDataMeteoEvent = _meteoEvent;
+                    ___meteoSound.StartMeteoAudio(_meteoEvent);
+                    ___selectedAsteroidEventData = null;
+                    if (_meteoEvent.asteroidEventData != null)
                     {
-                        int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
-                        mei.eventIndex = evtIndex;
-                        mei.groupId = sendInSpace.groupsData[evtIndex].id;
-                        currentMeteorEventIndex = evtIndex;
-                        currentMeteorEventIsRocket = true;
-                        LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Rocket " + currentMeteorEventIndex + " (" + mei.groupId + ")");
+                        ___selectedAsteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(_meteoEvent.asteroidEventData);
+                    }
+
+                    ___asteroidsHandler.AddAsteroidEvent(___selectedAsteroidEventData);
+                    if (overrideMeteorStartTime > 0)
+                    {
+                        ___timeNewMeteoSet = overrideMeteorStartTime;
+                        overrideMeteorStartTime = 0f;
                     }
                     else
                     {
-                        int evtIndex = ___meteoEvents.IndexOf(_meteoEvent);
-                        currentMeteorEventIndex = evtIndex;
-                        currentMeteorEventIsRocket = false;
-                        LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Random " + currentMeteorEventIndex);
+                        ___timeNewMeteoSet = Time.time;
                     }
-                    currentMeteorEventStart = ___timeNewMeteoSet;
 
-                    Send(new MessageMeteorEvent()
+
+                    if (updateMode == MultiplayerMode.CoopHost)
                     {
-                        eventIndex = currentMeteorEventIndex,
-                        startTime = currentMeteorEventStart,
-                        isRocket = currentMeteorEventIsRocket
-                    });
-                    Signal();
-                }
+                        MeteorEventInfo mei = null;
+                        if (___selectedAsteroidEventData != null && ___selectedAsteroidEventData.asteroidGameObject != null)
+                        {
+                            mei = ___selectedAsteroidEventData.asteroidGameObject.AddComponent<MeteorEventInfo>();
+                        }
 
+                        // reverse lookup the meteo event to find out the group id
+                        var sendInSpace = __instance.GetComponent<MeteoSendInSpace>();
+                        int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
+                        if (evtIndex >= 0)
+                        {
+                            if (mei != null)
+                            {
+                                mei.eventIndex = evtIndex;
+                                mei.groupId = sendInSpace.groupsData[evtIndex].id;
+                                mei.isRocket = true;
+                            }
+                            currentMeteorEventIndex = evtIndex;
+                            currentMeteorEventIsRocket = true;
+                            LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Rocket " + currentMeteorEventIndex + " (" + mei.groupId + ")");
+                        }
+                        else
+                        {
+                            evtIndex = ___meteoEvents.IndexOf(_meteoEvent);
+                            if (mei != null)
+                            {
+                                mei.eventIndex = evtIndex;
+                            }
+
+                            currentMeteorEventIndex = evtIndex;
+                            currentMeteorEventIsRocket = false;
+                            LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Random " + currentMeteorEventIndex);
+                        }
+                        currentMeteorEventStart = ___timeNewMeteoSet;
+
+                        Send(new MessageMeteorEvent()
+                        {
+                            eventIndex = currentMeteorEventIndex,
+                            startTime = 0,
+                            isRocket = currentMeteorEventIsRocket
+                        });
+                        Signal();
+                    }
+                } catch (Exception ex)
+                {
+                    LogError(ex);
+                }
                 return false;
             }
             return true;
@@ -277,7 +295,8 @@ namespace FeatMultiplayer
                         rocketGroupId = mei.groupId,
                         eventIndex = mei.eventIndex,
                         spawnPosition = spawnPoint,
-                        landingPosition = landingPosition
+                        landingPosition = landingPosition,
+                        isRocket = mei.isRocket
                     };
 
                     Send(mas);
@@ -589,10 +608,11 @@ namespace FeatMultiplayer
         {
             if (currentMeteorEventIndex >= 0)
             {
+                LogInfo("LaunchMeteorEventAfterLogin: " + currentMeteorEventIndex + (currentMeteorEventIsRocket ? " (rocket)" : "random") + ", T = " + (Time.time - currentMeteorEventStart));
                 Send(new MessageMeteorEvent()
                 {
                     eventIndex = currentMeteorEventIndex,
-                    startTime = currentMeteorEventStart,
+                    startTime = Time.time - currentMeteorEventStart,
                     isRocket = currentMeteorEventIsRocket
                 });
                 Signal();
@@ -608,11 +628,19 @@ namespace FeatMultiplayer
 
             var asteroidHandler = Managers.GetManager<AsteroidsHandler>();
             var mh = Managers.GetManager<MeteoHandler>();
-            var sendInSpace = mh.GetComponent<MeteoSendInSpace>();
 
-            var meteoEvent = sendInSpace.meteoEvents[mas.eventIndex];
+            List<MeteoEventData> mes;
+            if (mas.isRocket) { 
+                var sendInSpace = mh.GetComponent<MeteoSendInSpace>();
+                mes = sendInSpace.meteoEvents;
+            }
+            else
+            {
+                mes = mh.meteoEvents;
+            }
+            var meteoEvent = mes[mas.eventIndex];
 
-            LogInfo("ReceiveMessageAsteroidSpawn: " + mas.rocketGroupId + " @ " + mas.eventIndex + ", from = " + mas.spawnPosition + ", to = " + mas.landingPosition);
+            LogInfo("ReceiveMessageAsteroidSpawn: " + mas.rocketGroupId + " @ " + mas.eventIndex + (mas.isRocket ? " (rocket)" : "(random)") + ", from = " + mas.spawnPosition + ", to = " + mas.landingPosition);
 
             var asteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(meteoEvent.asteroidEventData);
 
@@ -632,9 +660,10 @@ namespace FeatMultiplayer
                 return;
             }
 
-            LogInfo("ReceiveMessageMeteorEvent: Begin event " + mme.eventIndex);
 
-            overrideMeteorStartTime = mme.startTime;
+            overrideMeteorStartTime = Time.time - mme.startTime;
+
+            LogInfo("ReceiveMessageMeteorEvent: Begin event " + mme.eventIndex + (mme.isRocket ? " (rocket)" : " (random)") + ", T = " + mme.startTime);
 
             var mh = Managers.GetManager<MeteoHandler>();
 
@@ -650,6 +679,17 @@ namespace FeatMultiplayer
 
             var me = mes[mme.eventIndex];
             mh.LaunchSpecificMeteoEvent(me);
+        }
+
+        static void LaunchAllMeteorEvents()
+        {
+            var mh = Managers.GetManager<MeteoHandler>();
+            for (int i = 1; i < mh.meteoEvents.Count; i++)
+            {
+                MeteoEventData me = mh.meteoEvents[i];
+                mh.QueueMeteoEvent(me);
+            }
+
         }
     }
 }
