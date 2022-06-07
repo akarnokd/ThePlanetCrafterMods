@@ -366,6 +366,7 @@ namespace FeatMultiplayer
                         float numberOfResourceInDebris = _asteroid.GetNumberOfResourceInDebris();
                         bool flag = _asteroid.GetAssociatedGroups() != null && _asteroid.GetAssociatedGroups().Count > 0 && i > num4;
                         GameObject debrisGo = null;
+                        WorldObject wo = null;
                         if ((float)(i - num4) <= numberOfResourceInDebris && flag)
                         {
                             d = 1f;
@@ -383,7 +384,7 @@ namespace FeatMultiplayer
                                 }
 
                                 // Create the world object for it now
-                                var wo = WorldObjectsHandler.CreateNewWorldObject(groupItem);
+                                wo = WorldObjectsHandler.CreateNewWorldObject(groupItem);
                                 // debris is not saveable by default
                                 wo.SetDontSaveMe(false);
 
@@ -392,17 +393,8 @@ namespace FeatMultiplayer
                                 {
                                     woa = debrisGo.AddComponent<WorldObjectAssociated>();
                                 }
-
                                 woa.SetWorldObject(wo);
                                 gameObjectByWorldObject[wo] = debrisGo;
-
-                                SendWorldObject(wo, false);
-
-                                // setup the position tracker
-                                var dt = debrisGo.AddComponent<DebrisResourceTracker>();
-                                dt.timeToLive = _asteroid.GetDebrisDestroyTime() * (float)___spawnedResourcesDestroyMultiplier;
-                                dt.worldObject = wo;
-                                dt.StartTracking();
                             }
                         }
                         else
@@ -457,6 +449,18 @@ namespace FeatMultiplayer
                             if (debrisGo.transform.localScale.x < num5)
                             {
                                 debrisGo.transform.localScale = new Vector3(num5, num5, num5);
+                            }
+                            if (wo != null)
+                            {
+                                wo.SetPositionAndRotation(debrisGo.transform.position, debrisGo.transform.rotation);
+
+                                SendWorldObject(wo, false);
+
+                                // setup the position tracker
+                                var dt = debrisGo.AddComponent<DebrisResourceTracker>();
+                                dt.timeToLive = _asteroid.GetDebrisDestroyTime() * (float)___spawnedResourcesDestroyMultiplier;
+                                dt.worldObject = wo;
+                                dt.StartTracking();
                             }
                         }
                     }
