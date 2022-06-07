@@ -150,6 +150,16 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mas);
             }
             else
+            if (MessageGrowAdd.TryParse(message, out var mga))
+            {
+                receiveQueue.Enqueue(mga);
+            }
+            else
+            if (MessageGrowRemove.TryParse(message, out var mgr))
+            {
+                receiveQueue.Enqueue(mgr);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -345,6 +355,16 @@ namespace FeatMultiplayer
                 case MessageAsteroidSpawn mas:
                     {
                         ReceiveMessageAsteroidSpawn(mas);
+                        break;
+                    }
+                case MessageGrowAdd mga:
+                    {
+                        ReceiveMessageGrowAdd(mga);
+                        break;
+                    }
+                case MessageGrowRemove mgr:
+                    {
+                        ReceiveMessageGrowRemove(mgr);
                         break;
                     }
                 case string s:

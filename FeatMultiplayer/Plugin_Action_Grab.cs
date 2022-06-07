@@ -29,18 +29,32 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                var woa = __instance.GetComponent<WorldObjectAssociated>();
-
-                if (woa != null)
+                var spi = __instance.GetComponent<OutsideGrowerSpawnInfo>();
+                if (spi != null)
                 {
-                    var wo = woa.GetWorldObject();
-                    var mg = new MessageGrab()
+                    LogInfo("Request Grab Outside " + spi.machineId + ", " + spi.spawnId);
+                    Send(new MessageGrowRemove()
                     {
-                        id = wo.GetId()
-                    };
-                    LogInfo("Request Grab " + DebugWorldObject(wo));
-                    Send(mg);
+                        machineId = spi.machineId,
+                        spawnId = spi.spawnId,
+                    });
                     Signal();
+                }
+                else
+                {
+                    var woa = __instance.GetComponent<WorldObjectAssociated>();
+
+                    if (woa != null)
+                    {
+                        var wo = woa.GetWorldObject();
+                        var mg = new MessageGrab()
+                        {
+                            id = wo.GetId()
+                        };
+                        LogInfo("Request Grab " + DebugWorldObject(wo));
+                        Send(mg);
+                        Signal();
+                    }
                 }
 
                 return false;
@@ -103,11 +117,11 @@ namespace FeatMultiplayer
                     if (TryGetGameObject(wo, out var go))
                     {
                         Managers.GetManager<DisplayersHandler>().GetItemWorldDislpayer().Hide();
+                        GetPlayerMainController().GetPlayerAudio().PlayGrab();
 
                         UnityEngine.Object.Destroy(go);
                         TryRemoveGameObject(wo);
 
-                        GetPlayerMainController().GetPlayerAudio().PlayGrab();
 
                         LogInfo("ReceiveMessageGrab: Grabbed " + DebugWorldObject(wo));
 

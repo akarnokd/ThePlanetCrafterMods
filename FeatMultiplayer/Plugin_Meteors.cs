@@ -385,7 +385,7 @@ namespace FeatMultiplayer
                                 // Create the world object for it now
                                 var wo = WorldObjectsHandler.CreateNewWorldObject(groupItem);
                                 // debris is not saveable by default
-                                // wo.SetDontSaveMe(true);
+                                wo.SetDontSaveMe(false);
 
                                 WorldObjectAssociated woa = debrisGo.GetComponent<WorldObjectAssociated>();
                                 if (woa == null)

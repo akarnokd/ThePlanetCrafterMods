@@ -132,6 +132,7 @@ namespace FeatMultiplayer
             LogInfo("SetupHostInventory");
             AddToInventory(1, new()
             {
+                /*
                 { "Aluminium", 50 },
                 { "Alloy", 50 },
                 { "Uranim", 50 },
@@ -140,6 +141,16 @@ namespace FeatMultiplayer
                 { "Zeolite", 50 },
                 { "PulsarQuartz", 50 },
                 { "RocketReactor", 50 },
+                { "WaterBottle1", 50 },
+                { "Magnesium", 50 },
+                { "Vegetable0Growable", 50 },
+                */
+                { "Alloy", 50 },
+                { "Bioplastic1", 50 },
+                { "Bacteria1", 50 },
+                { "Fertilizer1", 50 },
+                { "Tree0Seed", 50 },
+                { "TreeRoot", 50 },
             });
         }
     }
