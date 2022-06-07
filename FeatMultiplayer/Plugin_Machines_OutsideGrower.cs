@@ -412,21 +412,5 @@ namespace FeatMultiplayer
                 LogWarning("ReceiveMessageGrowRemove: WorldObject not found: " + mgr.machineId);
             }
         }
-        static void ReceiveMessageGrowClear(MessageGrowClear mgc)
-        {
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                if (worldObjectById.TryGetValue(mgc.machineId, out var wo))
-                {
-                    if (TryGetGameObject(wo, out var go))
-                    {
-                        var mog = go.GetComponent<MachineOutsideGrower>();
-
-                        GameObjects.DestroyAllChildren(mog.grownThingsContainer, false);
-                        wo.SetGrowth(0f);
-                    }
-                }
-            }
-        }
     }
 }

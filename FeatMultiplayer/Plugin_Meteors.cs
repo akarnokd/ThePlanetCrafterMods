@@ -23,12 +23,13 @@ namespace FeatMultiplayer
         public static Func<AsteroidEventData, Vector3, Vector3> asteroidLandingOverride;
 
         /// <summary>
-        /// A component that remembers what the original rocket group was
+        /// A component that remembers what the original rocket group/event index was
         /// that started an event.
         /// </summary>
-        internal class RocketGroup : MonoBehaviour
+        internal class MeteorEventInfo : MonoBehaviour
         {
             internal string groupId;
+            internal int eventIndex;
         }
 
         /// <summary>
@@ -87,8 +88,6 @@ namespace FeatMultiplayer
             {
                 // reverse lookup the meteo event to find out the group id
                 var sendInSpace = __instance.GetComponent<MeteoSendInSpace>();
-                int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
-                string groupId = sendInSpace.groupsData[evtIndex].id;
 
                 ___selectedDataMeteoEvent = _meteoEvent;
                 ___meteoSound.StartMeteoAudio(_meteoEvent);
@@ -97,11 +96,17 @@ namespace FeatMultiplayer
                 {
                     ___selectedAsteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(_meteoEvent.asteroidEventData);
                 }
-                ___selectedAsteroidEventData.asteroidGameObject.AddComponent<RocketGroup>().groupId = groupId;
 
                 ___asteroidsHandler.AddAsteroidEvent(___selectedAsteroidEventData);
                 ___timeNewMeteoSet = Time.time;
 
+                var mei = ___selectedAsteroidEventData.asteroidGameObject.AddComponent<MeteorEventInfo>();
+                int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
+                mei.eventIndex = evtIndex;
+                if (evtIndex < sendInSpace.groupsData.Count)
+                {
+                    mei.groupId = sendInSpace.groupsData[evtIndex].id;
+                }
                 return false;
             }
             return true;
@@ -200,9 +205,11 @@ namespace FeatMultiplayer
                     _asteroidEvent.ChangeExistingAsteroidsCount(1);
                     _asteroidEvent.ChangeTotalAsteroidsCount(1);
 
+                    var mei = _asteroidEvent.asteroidGameObject.GetComponent<MeteorEventInfo>();
                     MessageAsteroidSpawn mas = new()
                     {
-                        rocketGroupId = _asteroidEvent.asteroidGameObject.GetComponent<RocketGroup>().groupId,
+                        rocketGroupId = mei.groupId,
+                        eventIndex = mei.eventIndex,
                         spawnPosition = spawnPoint,
                         landingPosition = landingPosition
                     };
@@ -501,28 +508,20 @@ namespace FeatMultiplayer
             var asteroidHandler = Managers.GetManager<AsteroidsHandler>();
             var sendInSpace = Managers.GetManager<MeteoHandler>().GetComponent<MeteoSendInSpace>();
 
-            for (int i = 0; i < sendInSpace.groupsData.Count; i++)
-            {
-                if (sendInSpace.groupsData[i].id == mas.rocketGroupId)
-                {
-                    var meteoEvent = sendInSpace.meteoEvents[i];
+            var meteoEvent = sendInSpace.meteoEvents[mas.eventIndex];
 
-                    LogInfo("ReceiveMessageAsteroidSpawn: " + mas.rocketGroupId + ", from = " + mas.spawnPosition + ", to = " + mas.landingPosition);
+            LogInfo("ReceiveMessageAsteroidSpawn: " + mas.rocketGroupId + " @ " + mas.eventIndex + ", from = " + mas.spawnPosition + ", to = " + mas.landingPosition);
 
-                    var asteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(meteoEvent.asteroidEventData);
+            var asteroidEventData = UnityEngine.Object.Instantiate<AsteroidEventData>(meteoEvent.asteroidEventData);
 
-                    var asteroidGo = UnityEngine.Object.Instantiate<GameObject>(
-                        asteroidEventData.asteroidGameObject, 
-                        mas.spawnPosition, 
-                        Quaternion.identity,
-                        asteroidHandler.gameObject.transform);
-                    asteroidGo.transform.LookAt(mas.landingPosition);
-                    asteroidGo.GetComponent<Asteroid>().SetLinkedAsteroidEvent(asteroidEventData);
+            var asteroidGo = UnityEngine.Object.Instantiate<GameObject>(
+                asteroidEventData.asteroidGameObject,
+                mas.spawnPosition,
+                Quaternion.identity,
+                asteroidHandler.gameObject.transform);
+            asteroidGo.transform.LookAt(mas.landingPosition);
+            asteroidGo.GetComponent<Asteroid>().SetLinkedAsteroidEvent(asteroidEventData);
 
-                    return;
-                }
-            }
-            LogInfo("ReceiveMessageAsteroidSpawn:   unable to locate meteoEvent for " + mas.rocketGroupId + ", from = " + mas.spawnPosition + ", to = " + mas.landingPosition);
         }
     }
 }
