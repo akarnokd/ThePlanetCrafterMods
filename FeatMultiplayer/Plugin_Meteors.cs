@@ -684,9 +684,15 @@ namespace FeatMultiplayer
         static void LaunchAllMeteorEvents()
         {
             var mh = Managers.GetManager<MeteoHandler>();
-            for (int i = 1; i < mh.meteoEvents.Count; i++)
+            for (int i = 0; i < mh.meteoEvents.Count; i++)
             {
                 MeteoEventData me = mh.meteoEvents[i];
+                mh.QueueMeteoEvent(me);
+            }
+            var mss = mh.GetComponent<MeteoSendInSpace>();
+            for (int i = 0; i < mss.meteoEvents.Count; i++)
+            {
+                MeteoEventData me = mss.meteoEvents[i];
                 mh.QueueMeteoEvent(me);
             }
 
