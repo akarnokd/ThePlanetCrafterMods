@@ -51,13 +51,50 @@ namespace FeatMultiplayer
         }
 
         /// <summary>
+        /// The vanilla game uses MeteoHandler::TryToLaunchAnEventLogic to
+        /// periodically check and launch a specific or random meteor event.
+        /// 
+        /// On the Host, we let this happen.
+        /// 
+        /// On the client, we don't let the method run.
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MeteoHandler), "TryToLaunchAnEventLogic")]
+        static bool MeteoHandler_TryToLaunchAnEventLogic()
+        {
+            return updateMode != MultiplayerMode.CoopClient;
+        }
+
+        /// <summary>
+        /// On the client, we override the current time with the host's event start time via
+        /// a non-zero value.
+        /// </summary>
+        static float overrideMeteorStartTime;
+        /// <summary>
+        /// On the host, we save the current event index so a late
+        /// client can join the event effects.
+        /// </summary>
+        static int currentMeteorEventIndex = -1;
+        /// <summary>
+        /// On the host, we save the current event start so a late
+        /// client can join the event effects at the right phase.
+        /// </summary>
+        static float currentMeteorEventStart;
+        /// <summary>
+        /// On the host we save the current event source: rocket
+        /// or random environmental event?
+        /// </summary>
+        static bool currentMeteorEventIsRocket;
+
+        /// <summary>
         /// The vanilla game calls meteoHandler::LaunchSpecificMeteoEvent to
         /// instantiate and queue an AsteroidEventData copy from the incoming MeteoEventData.
         /// 
         /// On the host, we need to figure out what the original rocket group id was,
         /// then attach this information to the newly created AsteroidEventData's gameobject.
         /// 
-        /// On the client, we don't do anything.
+        /// On the client, setup the meteor event so the environment effect is also running.
         /// </summary>
         /// <param name="__instance">The instance to find components on.</param>
         /// <param name="_meteoEvent">What event to start</param>
@@ -76,19 +113,12 @@ namespace FeatMultiplayer
             ref MeteoEventData ___selectedDataMeteoEvent,
             ref AsteroidEventData ___selectedAsteroidEventData,
             AsteroidsHandler ___asteroidsHandler,
-            ref float ___timeNewMeteoSet
+            ref float ___timeNewMeteoSet,
+            List<MeteoEventData> ___meteoEvents
         )
         {
-            if (updateMode == MultiplayerMode.CoopClient)
+            if (updateMode != MultiplayerMode.SinglePlayer)
             {
-                return false;
-            }
-            else
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                // reverse lookup the meteo event to find out the group id
-                var sendInSpace = __instance.GetComponent<MeteoSendInSpace>();
-
                 ___selectedDataMeteoEvent = _meteoEvent;
                 ___meteoSound.StartMeteoAudio(_meteoEvent);
                 ___selectedAsteroidEventData = null;
@@ -98,15 +128,51 @@ namespace FeatMultiplayer
                 }
 
                 ___asteroidsHandler.AddAsteroidEvent(___selectedAsteroidEventData);
-                ___timeNewMeteoSet = Time.time;
-
-                var mei = ___selectedAsteroidEventData.asteroidGameObject.AddComponent<MeteorEventInfo>();
-                int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
-                mei.eventIndex = evtIndex;
-                if (evtIndex < sendInSpace.groupsData.Count)
+                if (overrideMeteorStartTime > 0)
                 {
-                    mei.groupId = sendInSpace.groupsData[evtIndex].id;
+                    ___timeNewMeteoSet = overrideMeteorStartTime;
+                    overrideMeteorStartTime = 0f;
                 }
+                else
+                {
+                    ___timeNewMeteoSet = Time.time;
+                }
+
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+
+                    var mei = ___selectedAsteroidEventData.asteroidGameObject.AddComponent<MeteorEventInfo>();
+
+                    // reverse lookup the meteo event to find out the group id
+                    var sendInSpace = __instance.GetComponent<MeteoSendInSpace>();
+                    if (sendInSpace != null)
+                    {
+                        int evtIndex = sendInSpace.meteoEvents.IndexOf(_meteoEvent);
+                        mei.eventIndex = evtIndex;
+                        mei.groupId = sendInSpace.groupsData[evtIndex].id;
+                        currentMeteorEventIndex = evtIndex;
+                        currentMeteorEventIsRocket = true;
+                        LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Rocket " + currentMeteorEventIndex + " (" + mei.groupId + ")");
+                    }
+                    else
+                    {
+                        int evtIndex = ___meteoEvents.IndexOf(_meteoEvent);
+                        currentMeteorEventIndex = evtIndex;
+                        currentMeteorEventIsRocket = false;
+                        LogInfo("MeteoHandler_LaunchSpecificMeteoEvent: Random " + currentMeteorEventIndex);
+                    }
+                    currentMeteorEventStart = ___timeNewMeteoSet;
+
+                    Send(new MessageMeteorEvent()
+                    {
+                        eventIndex = currentMeteorEventIndex,
+                        startTime = currentMeteorEventStart,
+                        isRocket = currentMeteorEventIsRocket
+                    });
+                    Signal();
+                }
+
                 return false;
             }
             return true;
@@ -499,14 +565,50 @@ namespace FeatMultiplayer
             return gameObject2;
         }
 
+        /// <summary>
+        /// The vanilla game calls MeteoHandler::GetMeteoLerpValue to progress the
+        /// environmental effects of a meteor event.
+        /// 
+        /// On the host, we will use this to detect when an event ends so that
+        /// the ongoing event can be synced to a late client.
+        /// </summary>
+        /// <param name="___selectedDataMeteoEvent">The current event data.</param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MeteoHandler), "GetMeteoLerpValue")]
+        static void MeteoHandler_GetMeteoLerpValue(ref MeteoEventData ___selectedDataMeteoEvent)
+        {
+            if (___selectedDataMeteoEvent == null)
+            {
+                currentMeteorEventIndex = -1;
+                currentMeteorEventStart = 0f;
+                currentMeteorEventIsRocket = false;
+            }
+        }
+
+        static void LaunchMeteorEventAfterLogin()
+        {
+            if (currentMeteorEventIndex >= 0)
+            {
+                Send(new MessageMeteorEvent()
+                {
+                    eventIndex = currentMeteorEventIndex,
+                    startTime = currentMeteorEventStart,
+                    isRocket = currentMeteorEventIsRocket
+                });
+                Signal();
+            }
+        }
+
         static void ReceiveMessageAsteroidSpawn(MessageAsteroidSpawn mas)
         {
             if (updateMode != MultiplayerMode.CoopClient)
             {
                 return;
             }
+
             var asteroidHandler = Managers.GetManager<AsteroidsHandler>();
-            var sendInSpace = Managers.GetManager<MeteoHandler>().GetComponent<MeteoSendInSpace>();
+            var mh = Managers.GetManager<MeteoHandler>();
+            var sendInSpace = mh.GetComponent<MeteoSendInSpace>();
 
             var meteoEvent = sendInSpace.meteoEvents[mas.eventIndex];
 
@@ -521,7 +623,33 @@ namespace FeatMultiplayer
                 asteroidHandler.gameObject.transform);
             asteroidGo.transform.LookAt(mas.landingPosition);
             asteroidGo.GetComponent<Asteroid>().SetLinkedAsteroidEvent(asteroidEventData);
+        }
 
+        static void ReceiveMessageMeteorEvent(MessageMeteorEvent mme)
+        {
+            if (updateMode != MultiplayerMode.CoopClient)
+            {
+                return;
+            }
+
+            LogInfo("ReceiveMessageMeteorEvent: Begin event " + mme.eventIndex);
+
+            overrideMeteorStartTime = mme.startTime;
+
+            var mh = Managers.GetManager<MeteoHandler>();
+
+            List<MeteoEventData> mes;
+            if (mme.isRocket)
+            {
+                mes = mh.GetComponent<MeteoSendInSpace>().meteoEvents;
+            }
+            else
+            {
+                mes = mh.meteoEvents;
+            }
+
+            var me = mes[mme.eventIndex];
+            mh.LaunchSpecificMeteoEvent(me);
         }
     }
 }

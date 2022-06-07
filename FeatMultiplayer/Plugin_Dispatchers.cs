@@ -160,6 +160,16 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mgr);
             }
             else
+            if (MessageMeteorEvent.TryParse(message, out var mme))
+            {
+                receiveQueue.Enqueue(mme);
+            }
+            else
+            if (MessageTime.TryParse(message, out var mt))
+            {
+                receiveQueue.Enqueue(mt);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -365,6 +375,16 @@ namespace FeatMultiplayer
                 case MessageGrowRemove mgr:
                     {
                         ReceiveMessageGrowRemove(mgr);
+                        break;
+                    }
+                case MessageMeteorEvent mme:
+                    {
+                        ReceiveMessageMeteorEvent(mme);
+                        break;
+                    }
+                case MessageTime mt:
+                    {
+                        ReceiveMessageTime(mt);
                         break;
                     }
                 case string s:

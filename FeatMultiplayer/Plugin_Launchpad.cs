@@ -15,6 +15,15 @@ namespace FeatMultiplayer
     public partial class Plugin : BaseUnityPlugin
     {
         /// <summary>
+        /// Marker component to avoid launching the same rocket multiple times.
+        /// </summary>
+        class RocketAlreadyLaunched : MonoBehaviour
+        {
+
+        }
+
+
+        /// <summary>
         /// The vanilla game calls ActionSendInSpace::OnAction when the player presses
         /// the button. It locates the rocket's world object, then locates the game object
         /// which links to that world object, attaches a MachineRocket component, ignites
@@ -34,7 +43,8 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(ActionSendInSpace), nameof(ActionSendInSpace.OnAction))]
         static bool ActionSendInSpace_OnAction(
             ActionSendInSpace __instance,
-            GameObject ___locationGameObject, BaseHudHandler ___hudHandler)
+            GameObject ___locationGameObject, 
+            BaseHudHandler ___hudHandler)
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
@@ -42,7 +52,7 @@ namespace FeatMultiplayer
                 {
                     Destroy(__instance);
                 }
-                if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo))
+                if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo, out _))
                 {
                     LogInfo("ActionSendInSpace_OnAction: Request Launch " + DebugWorldObject(rocketWo));
                     Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
@@ -61,39 +71,11 @@ namespace FeatMultiplayer
                 {
                     Destroy(__instance);
                 }
-                LaunchRocket(__instance, ___locationGameObject, true);
-                return false;
-            }
-            return true;
-        }
-
-        static bool TryFindRocket(Vector3 around, float radius, out WorldObject rocketWo)
-        {
-            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
-            {
-                if (Vector3.Distance(wo.GetPosition(), around) < radius && wo.GetGroup().GetId().StartsWith("Rocket"))
-                {
-                    rocketWo = wo;
-                    return true;
-                }
-            }
-            rocketWo = null;
-            return false;
-        }
-
-        static void LaunchRocket(ActionSendInSpace __instance, GameObject ___locationGameObject,
-            bool notify)
-        {
-            if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo))
-            {
-                if (TryGetGameObject(rocketWo, out var rocketGo))
+                if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo, out var rocketGo))
                 {
                     LogInfo("LaunchRocket: Launch " + DebugWorldObject(rocketWo));
-                    if (notify)
-                    {
-                        Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                        Signal();
-                    }
+                    Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
+                    Signal();
 
                     var machineRocket = rocketGo.GetComponent<MachineRocket>();
                     if (machineRocket == null)
@@ -115,13 +97,33 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    LogWarning("LaunchRocket:  Can't find the GameObject of " + DebugWorldObject(rocketWo));
+                    LogWarning("LaunchRocket: Can't find any rocket around " + ___locationGameObject.transform.position);
+                    ___hudHandler.DisplayCursorText("UI_nothing_to_launch_in_space", 2f, "");
+                }
+                return false;
+            }
+            return true;
+        }
+
+        static bool TryFindRocket(Vector3 around, float radius, out WorldObject rocketWo, out GameObject rocketGo)
+        {
+            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (Vector3.Distance(wo.GetPosition(), around) < radius && wo.GetGroup().GetId().StartsWith("Rocket"))
+                {
+                    if (TryGetGameObject(wo, out rocketGo)) {
+                        if (rocketGo.GetComponent<RocketAlreadyLaunched>() == null)
+                        {
+                            rocketGo.AddComponent<RocketAlreadyLaunched>();
+                            rocketWo = wo;
+                            return true;
+                        }
+                    }
                 }
             }
-            else
-            {
-                LogWarning("LaunchRocket: Can't find any rocket around " + ___locationGameObject.transform.position);
-            }
+            rocketWo = null;
+            rocketGo = null;
+            return false;
         }
 
         /// <summary>
