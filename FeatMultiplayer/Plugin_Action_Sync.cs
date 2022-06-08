@@ -93,19 +93,6 @@ namespace FeatMultiplayer
             Signal();
         }
 
-        static void SendTerraformState()
-        {
-            MessageTerraformState mts = new MessageTerraformState();
-
-            WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
-            mts.oxygen = wuh.GetUnit(DataConfig.WorldUnitType.Oxygen).GetValue();
-            mts.heat = wuh.GetUnit(DataConfig.WorldUnitType.Heat).GetValue();
-            mts.pressure = wuh.GetUnit(DataConfig.WorldUnitType.Pressure).GetValue();
-            mts.biomass = wuh.GetUnit(DataConfig.WorldUnitType.Biomass).GetValue();
-
-            _sendQueue.Enqueue(mts);
-        }
-
         static void SendPeriodicState()
         {
             SendTerraformState();

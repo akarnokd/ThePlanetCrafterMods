@@ -46,6 +46,7 @@ namespace FeatMultiplayer
 
                         lastFullSync = Time.realtimeSinceStartup;
                         SendFullState();
+                        SendTerrainLayers();
                         LaunchMeteorEventAfterLogin();
                         SendMessages();
                         SendStoryEvents();

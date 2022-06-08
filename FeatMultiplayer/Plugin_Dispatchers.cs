@@ -195,6 +195,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mma);
             }
             else
+            if (MessageTerrainLayers.TryParse(message, out var mtl))
+            {
+                receiveQueue.Enqueue(mtl);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -435,6 +440,11 @@ namespace FeatMultiplayer
                 case MessageMessageAdd mma:
                     {
                         ReceiveMessageMessageAdd(mma);
+                        break;
+                    }
+                case MessageTerrainLayers mtl:
+                    {
+                        ReceiveMessageTerrainLayers(mtl);
                         break;
                     }
                 case string s:
