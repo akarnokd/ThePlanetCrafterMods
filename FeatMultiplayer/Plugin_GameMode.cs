@@ -91,62 +91,85 @@ namespace FeatMultiplayer
 
         static void ReceiveMessageDeath(MessageDeath mdt)
         {
-            if (updateMode != MultiplayerMode.CoopHost)
+            if (updateMode == MultiplayerMode.CoopClient)
             {
-                return;
-            }
-
-            switch (GameSettingsHandler.GetGameMode())
-            {
-                case DataConfig.GameSettingMode.Chill:
+                if (worldObjectById.TryGetValue(mdt.chestId, out var wo))
+                {
+                    if (TryGetGameObject(wo, out var go))
                     {
-                        LogWarning("ReceiveMessageDeath: Chill mode?");
-                        break;
+                        InventoryAssociated ia= go.GetComponent<InventoryAssociated>();
+                        go.AddComponent<InventoryDestroyWhenEmpty>()
+                            .SetReferenceInventory(ia.GetInventory());
                     }
-                case DataConfig.GameSettingMode.Standard:
+                    else
                     {
-                        LogInfo("ReceiveMessageDeath: Standard @ " + mdt.position);
-                        var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
-                        var list = inv.GetInsideWorldObjects();
+                        LogWarning("Unknown GameObject for " + DebugWorldObject(wo));
+                    }
+                }
+                else
+                {
+                    LogWarning("Unknonw WorldObject " + mdt.chestId + " @ " + mdt.position);
+                }
+            }
+            else
+            {
 
-                        var dropProbability = 50;
-
-                        if (list.Count != 0)
+                switch (GameSettingsHandler.GetGameMode())
+                {
+                    case DataConfig.GameSettingMode.Chill:
                         {
-                            Inventory dinv = SpawnDeathChest(mdt.position);
+                            LogWarning("ReceiveMessageDeath: Chill mode?");
+                            break;
+                        }
+                    case DataConfig.GameSettingMode.Standard:
+                        {
+                            LogInfo("ReceiveMessageDeath: Standard @ " + mdt.position);
+                            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                            var list = inv.GetInsideWorldObjects();
 
-                            var dropAll = list.Count <= 4;
+                            var dropProbability = 50;
 
-                            for (int i = list.Count - 1; i >= 0; i--)
+                            if (list.Count != 0)
                             {
-                                var item = list[i];
-                                if (dropAll || dropProbability > UnityEngine.Random.Range(0, 100))
+                                Inventory dinv = SpawnDeathChest(mdt.position, out var chestId);
+
+                                var dropAll = list.Count <= 4;
+
+                                for (int i = list.Count - 1; i >= 0; i--)
                                 {
-                                    if (dinv.AddItem(item))
+                                    var item = list[i];
+                                    if (dropAll || dropProbability > UnityEngine.Random.Range(0, 100))
                                     {
-                                        inv.RemoveItem(item, false);
+                                        if (dinv.AddItem(item))
+                                        {
+                                            inv.RemoveItem(item, false);
+                                        }
                                     }
                                 }
+
+                                // make the chest disappear upon emptying it
+                                mdt.chestId = chestId;
+                                Send(mdt);
+                                Signal();
                             }
-
+                            break;
                         }
-                        break;
-                    }
-                case DataConfig.GameSettingMode.Intense:
-                    {
-                        LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
-                        DeathClearInventory(shadowInventoryId);
-                        
-                        break;
-                    }
-                case DataConfig.GameSettingMode.Hardcore:
-                    {
-                        LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
-                        DeathClearInventory(shadowInventoryId);
-                        DeathClearInventory(shadowEquipmentId);
+                    case DataConfig.GameSettingMode.Intense:
+                        {
+                            LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
+                            DeathClearInventory(shadowInventoryId);
 
-                        break;
-                    }
+                            break;
+                        }
+                    case DataConfig.GameSettingMode.Hardcore:
+                        {
+                            LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
+                            DeathClearInventory(shadowInventoryId);
+                            DeathClearInventory(shadowEquipmentId);
+
+                            break;
+                        }
+                }
             }
         }
 
@@ -160,7 +183,34 @@ namespace FeatMultiplayer
             }
         }
 
-        static Inventory SpawnDeathChest(Vector3 position)
+        /// <summary>
+        /// Tracks the given world object and chest inventory,
+        /// destroys them if the chest becomes empty on the host.
+        /// </summary>
+        class DestroyDeatChest : MonoBehaviour
+        {
+            internal WorldObject worldObject;
+            internal Inventory inventory;
+
+            internal void BeginTrack()
+            {
+                inventory.inventoryContentModified = (InventoryModifiedEvent)Delegate.Combine(
+                    inventory.inventoryContentModified, 
+                    new InventoryModifiedEvent(this.OnInventoryModified));
+            }
+
+            void OnInventoryModified(WorldObject _worldObjectModified, bool _added)
+            {
+                if (this.inventory.GetInsideWorldObjects().Count <= 0)
+                {
+                    WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    TryRemoveGameObject(worldObject);
+                    UnityEngine.Object.Destroy(gameObject);
+                }
+            }
+        }
+
+        static Inventory SpawnDeathChest(Vector3 position, out int chestId)
         {
             var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container1"), 0);
             wo.SetPositionAndRotation(position, Quaternion.identity);
@@ -170,6 +220,12 @@ namespace FeatMultiplayer
 
             var inv = go.GetComponent<InventoryAssociated>().GetInventory();
             inv.SetSize(30);
+            
+            Destroy(go.GetComponentInChildren<ActionDeconstructible>());
+            var ddc = go.AddComponent<DestroyDeatChest>();
+            ddc.worldObject = wo;
+            ddc.inventory = inv;
+            ddc.BeginTrack();
 
             SendWorldObject(wo, false);
             Send(new MessageInventorySize()
@@ -178,6 +234,7 @@ namespace FeatMultiplayer
                 size = inv.GetSize()
             });
             Signal();
+            chestId = wo.GetId();
             return inv;
         }
     }
