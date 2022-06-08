@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.1.0.9</Version>
+    <Version>0.1.0.10</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

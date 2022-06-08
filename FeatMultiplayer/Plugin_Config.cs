@@ -24,13 +24,14 @@ namespace FeatMultiplayer
         static ConfigEntry<string> hostAcceptName;
         static ConfigEntry<string> hostAcceptPassword;
         static ConfigEntry<string> hostColor;
-
+        static ConfigEntry<int> hostLogLevel;
 
         // client side properties
         static ConfigEntry<string> hostAddress;
         static ConfigEntry<string> clientName;
         static ConfigEntry<string> clientPassword;
         static ConfigEntry<string> clientColor;
+        static ConfigEntry<int> clientLogLevel;
 
         static ConfigEntry<int> fontSize;
 
@@ -61,11 +62,13 @@ namespace FeatMultiplayer
             hostAcceptPassword = Config.Bind("Host", "Password", "password,wordpass", "Comma separated list of the plaintext(!) passwords accepted by the host, in pair with the Host/Name list.");
             hostColor = Config.Bind("Host", "Color", "1,1,1,1", "The color of the host avatar as comma-separated RGBA floats");
             hostServiceAddress = Config.Bind("Host", "ServiceAddress", "default", "The local IP address the host would listen, '' for auto address, 'default' for first IPv4 local address, 'defaultv6' for first IPv6 local address");
+            hostLogLevel = Config.Bind("Host", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
             clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");
             clientPassword = Config.Bind("Client", "Password", "password", "The plaintext(!) password presented to the host when joining their game.");
             clientColor = Config.Bind("Client", "Color", "0.75,0.75,1,1", "The color of the client avatar as comma-separated RGBA floats");
+            clientLogLevel = Config.Bind("Client", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);

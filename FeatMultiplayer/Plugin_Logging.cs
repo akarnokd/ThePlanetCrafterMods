@@ -21,72 +21,78 @@ namespace FeatMultiplayer
         /// </summary>
         internal static ManualLogSource theLogger;
 
+        static void LogInternal(object message, int level)
+        {
+            if (updateMode == MultiplayerMode.SinglePlayer || updateMode == MultiplayerMode.MainMenu)
+            {
+                switch (level)
+                {
+                    case 1:
+                        {
+                            theLogger.LogInfo(message);
+                            break;
+                        }
+                    case 2:
+                        {
+                            theLogger.LogWarning(message);
+                            break;
+                        }
+                    case 3:
+                        {
+                            theLogger.LogError(message);
+                            break;
+                        }
+                    default:
+                        {
+                            theLogger.LogDebug(message);
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                string fileName = Application.persistentDataPath + "\\Player_";
+                int logLevel = 0;
+                if (updateMode == MultiplayerMode.CoopClient)
+                {
+                    fileName += "Client.log";
+                    logLevel = clientLogLevel.Value;
+                } else
+                {
+                    fileName += "Host.log";
+                    logLevel = hostLogLevel.Value;
+                }
+                if (level >= logLevel)
+                {
+                    string prefix = level switch
+                    {
+                        1 => "[Info:    (Feat)Multiplayer] ",
+                        2 => "[Warning: (Feat)Multiplayer] ",
+                        3 => "[Error:   (Feat)Multiplayer] ",
+                        _ => "[Debug:   (Feat)Multiplayer] "
+                    };
+
+                    lock (logLock)
+                    {
+                        File.AppendAllText(fileName, prefix + message + "\r\n");
+                    }
+                }
+            }
+
+        }
+
         internal static void LogInfo(object message)
         {
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Client.log", "[Info   :(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Host.log", "[Info   :(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            {
-                theLogger.LogInfo(message);
-            }
+            LogInternal(message, 1);
         }
 
         internal static void LogError(object message)
         {
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Client.log", "[Error  :(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Host.log", "[Error  :(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            {
-                theLogger.LogInfo(message);
-            }
+            LogInternal(message, 3);
         }
         internal static void LogWarning(object message)
         {
-            if (updateMode == MultiplayerMode.CoopClient)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Client.log", "[Warning:(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                lock (logLock)
-                {
-                    File.AppendAllText(Application.persistentDataPath + "\\Player_Host.log", "[Warning:(Feat) Multiplayer] " + message + "\r\n");
-                }
-            }
-            else
-            {
-                theLogger.LogInfo(message);
-            }
+            LogInternal(message, 2);
         }
     }
 }
