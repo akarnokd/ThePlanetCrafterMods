@@ -175,6 +175,16 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(md);
             }
             else
+            if (MessageGameMode.TryParse(message, out var mgm))
+            {
+                receiveQueue.Enqueue(mgm);
+            }
+            else
+            if (MessageDeath.TryParse(message, out var mdt))
+            {
+                receiveQueue.Enqueue(mdt);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -395,6 +405,16 @@ namespace FeatMultiplayer
                 case MessageDeconstruct md:
                     {
                         ReceiveMessageDeconstruct(md);
+                        break;
+                    }
+                case MessageGameMode mgm:
+                    {
+                        ReceiveMessageGameMode(mgm);
+                        break;
+                    }
+                case MessageDeath mdt:
+                    {
+                        ReceiveMessageDeath(mdt);
                         break;
                     }
                 case string s:

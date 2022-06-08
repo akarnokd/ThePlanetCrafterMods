@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using HarmonyLib;
 using MijuTools;
 using SpaceCraft;
 using System;
@@ -24,6 +25,14 @@ namespace FeatMultiplayer
                 duration = duration
             };
             receiveQueue.Enqueue(msg);
+        }
+
+        static void ToggleConsumption()
+        {
+            slowdownConsumption = !slowdownConsumption;
+            LogInfo("SlowdownConsumption: " + slowdownConsumption);
+
+            ResetGaugeConsumptions();
         }
     }
 }

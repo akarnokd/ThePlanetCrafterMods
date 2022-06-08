@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using SpaceCraft;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,12 @@ namespace FeatMultiplayer
                         otherPlayer = PlayerAvatar.CreateAvatar(color, false);
                         Send("Welcome\n");
                         Signal();
+                        Send(new MessageGameMode()
+                        {
+                            modeIndex = (int)GameSettingsHandler.GetGameMode()
+                        });
+                        Signal();
+
                         lastFullSync = Time.realtimeSinceStartup;
                         SendFullState();
                         LaunchMeteorEventAfterLogin();

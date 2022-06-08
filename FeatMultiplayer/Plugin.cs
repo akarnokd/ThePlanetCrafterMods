@@ -100,6 +100,11 @@ namespace FeatMultiplayer
                 {
                     LaunchAllMeteorEvents();
                 }
+
+                if (Keyboard.current.hKey.wasPressedThisFrame)
+                {
+                    ToggleConsumption();
+                }
             }
             else
             {
