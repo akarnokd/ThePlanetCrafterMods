@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.10")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -28,6 +28,9 @@ namespace CheatInventoryStacking
         static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
 
         static ManualLogSource logger;
+
+        static Func<string> getMultiplayerMode;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -521,6 +524,12 @@ namespace CheatInventoryStacking
         {
             if (stackSize.Value > 1)
             {
+                // In multiplayer mode, don't do the stuff below
+                if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
+                {
+                    return true;
+                }
+
                 // Unfortunately, We have to rewrite it in its entirety
                 // foreach (Group group in list)
                 // {

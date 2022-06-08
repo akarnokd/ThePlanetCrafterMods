@@ -170,6 +170,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mt);
             }
             else
+            if (MessageDeconstruct.TryParse(message, out var md))
+            {
+                receiveQueue.Enqueue(md);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -385,6 +390,11 @@ namespace FeatMultiplayer
                 case MessageTime mt:
                     {
                         ReceiveMessageTime(mt);
+                        break;
+                    }
+                case MessageDeconstruct md:
+                    {
+                        ReceiveMessageDeconstruct(md);
                         break;
                     }
                 case string s:
