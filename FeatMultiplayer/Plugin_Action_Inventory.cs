@@ -20,6 +20,10 @@ namespace FeatMultiplayer
         /// avoiding message ping-pong between the parties.
         /// </summary>
         static bool suppressInventoryChange;
+        /// <summary>
+        /// If the CheatInventoryStacking is installed, consider the stack counts when displaying information.
+        /// </summary>
+        static Func<List<WorldObject>, int> getStackCount;
 
         /// <summary>
         /// Helps retarget the client's backpack and equipment ids to the shadow inventory and shadow equipment storages.
@@ -65,7 +69,7 @@ namespace FeatMultiplayer
         /// <param name="_worldObject">What was added</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem))]
-        static void Inventory_AddItem(bool __result, List<WorldObject> ___worldObjectsInInventory,
+        static void Inventory_AddItem_Post(bool __result, List<WorldObject> ___worldObjectsInInventory,
             int ___inventoryId, WorldObject _worldObject)
         {
             if (__result && updateMode != MultiplayerMode.SinglePlayer && !suppressInventoryChange)
@@ -115,10 +119,11 @@ namespace FeatMultiplayer
         /// <returns>False if on client and syncing is enabled.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem))]
-        static bool Inventory_RemoveItem_Pre(int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
+        static bool Inventory_RemoveItem_Pre(Inventory __instance, int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
         {
             if (updateMode == MultiplayerMode.CoopClient && !suppressInventoryChange)
             {
+                __instance.GetInsideWorldObjects().Remove(_worldObject);
                 var mir = new MessageInventoryRemoved()
                 {
                     inventoryId = ___inventoryId,
@@ -146,7 +151,7 @@ namespace FeatMultiplayer
         /// <param name="_destroyWorldObject">If true, the world object is destroyed, such as when it was consumed or used for building.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem))]
-        static void Inventory_RemoveItem(int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
+        static void Inventory_RemoveItem_Post(int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
         {
             if (updateMode == MultiplayerMode.CoopHost && !suppressInventoryChange)
             {
@@ -205,6 +210,23 @@ namespace FeatMultiplayer
             }
         }
 
+        /// <summary>
+        /// The vanilla game calls PlayerEquipment::UpdateAfterEquipmentChange to apply
+        /// the equipment effect added/removed by the player.
+        /// 
+        /// On the host, we let it happen.
+        /// 
+        /// On the client, we prevent it from running so the host-sync messages about
+        /// adding and removing can apply the item.
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerEquipment), "UpdateAfterEquipmentChange")]
+        static bool PlayerEquipment_UpdateAfterEquipmentChange()
+        {
+            return updateMode != MultiplayerMode.CoopClient;
+        }
+
         static void ClientConsumeRecipe(GroupConstructible gc)
         {
             var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
@@ -242,14 +264,18 @@ namespace FeatMultiplayer
                     WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mia.itemId);
                     if (wo != null)
                     {
-                        var _playerController = GetPlayerMainController();
-                        _playerController.GetPlayerEquipment()
-                            .AddItemInEquipment(wo);
+                        var peq = GetPlayerMainController().GetPlayerEquipment();
+                        var peqInv = peq.GetInventory();
+
+                        if (!InventoryContainsId(peqInv, wo.GetId()))
+                        {
+                            peqInv.AddItem(wo);
+                        }
+                        TryApplyEquipment(wo, GetPlayerMainController(), null);
+
                         LogInfo("ReceiveMessageInventoryAdded: Add Equipment " + mia.itemId + ", " + mia.groupId);
 
-                        _playerController.GetPlayerEquipment()
-                            .GetInventory()
-                            .RefreshDisplayerContent();
+                        peqInv.RefreshDisplayerContent();
                     }
                     else
                     {
@@ -266,31 +292,53 @@ namespace FeatMultiplayer
             if (inv != null)
             {
                 WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mia.itemId);
-                if (wo == null)
+                if (wo == null && WorldObjectsIdHandler.IsWorldObjectFromScene(mia.itemId))
                 {
                     wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(mia.groupId), mia.itemId);
                 }
-                suppressInventoryChange = updateMode == MultiplayerMode.CoopClient;
-                try
+                if (wo != null)
                 {
-                    inv.AddItem(wo);
-                    LogInfo("ReceiveMessageInventoryAdded: " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
-                    inv.RefreshDisplayerContent();
+                    suppressInventoryChange = updateMode == MultiplayerMode.CoopClient;
+                    try
+                    {
+                        if (!InventoryContainsId(inv, wo.GetId()))
+                        {
+                            inv.AddItem(wo);
+                            LogInfo("ReceiveMessageInventoryAdded: " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
+                            inv.RefreshDisplayerContent();
+                        }
+                    }
+                    finally
+                    {
+                        suppressInventoryChange = false;
+                    }
                 }
-                finally
+                else
                 {
-                    suppressInventoryChange = false;
+                    LogWarning("ReceiveMessageInventoryAdded: Uknown WorldObject " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
                 }
             }
             else
             {
-                LogInfo("ReceiveMessageInventoryAdded: Uknown inventory " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
+                LogWarning("ReceiveMessageInventoryAdded: Uknown inventory " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
             }
+        }
+
+        static bool InventoryContainsId(Inventory inv, int id)
+        {
+            foreach (WorldObject wo in inv.GetInsideWorldObjects())
+            {
+                if (wo.GetId() == id)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         static void ReceiveMessageInventoryRemoved(MessageInventoryRemoved mia)
         {
-            LogInfo("ReceiveMessageInventoryRemoved - Begin");
+            //LogInfo("ReceiveMessageInventoryRemoved - Begin");
             int targetId = mia.inventoryId;
             if (targetId == 1 && shadowInventoryId != 0)
             {
@@ -310,9 +358,17 @@ namespace FeatMultiplayer
                     WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(mia.itemId);
                     if (wo != null)
                     {
-                        var _playerController = GetPlayerMainController();
-                        _playerController.GetPlayerEquipment()
-                            .RemoveItemFromEquipment(wo);
+                        PlayerMainController player = GetPlayerMainController();
+                        var peq = player.GetPlayerEquipment();
+                        var peqInv = peq.GetInventory();
+
+                        peqInv.RemoveItem(wo);
+
+                        // if unequipping causes further inventory change, let it happen
+                        suppressInventoryChange = false;
+
+                        UnapplyUsingList(player, peqInv.GetInsideWorldObjects());
+
                         LogInfo("ReceiveMessageInventoryRemoved: Remove Equipment " + mia.itemId + ", " + wo.GetGroup().GetId());
                     }
                     else
@@ -354,7 +410,7 @@ namespace FeatMultiplayer
                     LogWarning("ReceiveMessageInventoryRemoved: Unknown inventory " + mia.inventoryId + " <= " + mia.itemId);
                 }
             }
-            LogInfo("ReceiveMessageInventoryRemoved - End");
+            //LogInfo("ReceiveMessageInventoryRemoved - End");
         }
 
         static void ReceiveMessageInventories(MessageInventories minv)
@@ -489,7 +545,17 @@ namespace FeatMultiplayer
                         TryApplyEquipment(wo, _playerController, equipTypes);
                     }
 
-                    UnapplyEquipment(equipTypes, _playerController);
+                    // re-enable inventory sync in case of backpack/equipment capacity change
+                    bool suppr = suppressInventoryChange;
+                    suppressInventoryChange = false;
+                    try
+                    {
+                        UnapplyEquipment(equipTypes, _playerController);
+                    }
+                    finally
+                    {
+                        suppressInventoryChange = suppr;
+                    }
                 }
                 inv.RefreshDisplayerContent();
             }
@@ -509,10 +575,7 @@ namespace FeatMultiplayer
             if (wo.GetGroup() is GroupItem groupItem)
             {
                 var equipType = groupItem.GetEquipableType();
-                if (!equippables.Contains(equipType))
-                {
-                    equippables.Add(equipType);
-                }
+                equippables?.Add(equipType);
                 switch (equipType)
                 {
                     case DataConfig.EquipableType.BackpackIncrease:
@@ -638,22 +701,85 @@ namespace FeatMultiplayer
                                 .SetMineTimeReducer(0);
             }
             // FIXME backpack and equipment mod unequipping
-            /*
             float dropDistance = 0.7f;
             if (!equipTypes.Contains(DataConfig.EquipableType.BackpackIncrease))
             {
                 Inventory inv = player.GetPlayerBackpack().GetInventory();
+                var list = inv.GetInsideWorldObjects();
                 inv.SetSize(12);
                 var point = player.GetAimController().GetAimRay().GetPoint(dropDistance);
                 
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    if (!IsFull(inv))
+                    {
+                        break;
+                    }
+                    var item = list[i];
+                    inv.RemoveItem(item, false);
+                    LogInfo("UnapplyEquipment: Dropping From Backpack " + DebugWorldObject(item));
+                    WorldObjectsHandler.DropOnFloor(item, point);
+                    LogInfo("UnapplyEquipment: " + inv.GetInsideWorldObjects().Count + "; " + inv.IsFull());
+                }
             }
             if (!equipTypes.Contains(DataConfig.EquipableType.EquipmentIncrease))
             {
                 Inventory inv = player.GetPlayerBackpack().GetInventory();
-                inv.SetSize(4);
+                Inventory equip = player.GetPlayerEquipment().GetInventory();
                 var point = player.GetAimController().GetAimRay().GetPoint(dropDistance);
+
+                var list = equip.GetInsideWorldObjects();
+                equip.SetSize(4);
+                bool equipmentRemoved = false;
+
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    if (!equip.IsFull())
+                    {
+                        break;
+                    }
+                    equipmentRemoved = true;
+                    var eq = list[i];
+                    equip.RemoveItem(eq, false);
+                    if (!inv.AddItem(eq))
+                    {
+                        LogInfo("UnapplyEquipment: Dropping From Equipment " + DebugWorldObject(eq));
+                        WorldObjectsHandler.DropOnFloor(eq, point);
+                    }
+                    else
+                    {
+                        LogInfo("UnapplyEquipment: Move to backpack " + DebugWorldObject(eq));
+                    }
+                }
+
+                if (equipmentRemoved)
+                {
+                    UnapplyUsingList(player, list);
+                }
             }
-            */
+        }
+
+        static bool IsFull(Inventory inv)
+        {
+            if (getStackCount != null)
+            {
+                return inv.GetSize() < getStackCount(inv.GetInsideWorldObjects());
+            }
+            return inv.IsFull();
+        }
+
+        static void UnapplyUsingList(PlayerMainController player, List<WorldObject> list)
+        {
+            var equippables = new HashSet<DataConfig.EquipableType>();
+            foreach (WorldObject wo in list)
+            {
+                if (wo.GetGroup() is GroupItem groupItem)
+                {
+                    var equipType = groupItem.GetEquipableType();
+                    equippables.Add(equipType);
+                }
+            }
+            UnapplyEquipment(equippables, player);
         }
 
         static void ReceiveMessageSortInventory(MessageSortInventory msi)

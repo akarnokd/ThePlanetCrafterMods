@@ -151,6 +151,8 @@ namespace FeatMultiplayer
                 { "Fertilizer1", 50 },
                 { "Tree0Seed", 50 },
                 { "TreeRoot", 50 },
+                { "EquipmentIncrease1", 2 },
+                { "Backpack1", 2 },
             });
         }
     }
