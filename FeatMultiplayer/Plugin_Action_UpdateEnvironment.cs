@@ -37,6 +37,12 @@ namespace FeatMultiplayer
             return true;
         }
 
+        /// <summary>
+        /// Set to true in <see cref="ReceiveWelcome"/> so the first terraform
+        /// sync doesn't ping over all the unlocks.
+        /// </summary>
+        static bool firstTerraformSync;
+
         static void ReceiveTerraformState(MessageTerraformState mts)
         {
             if (updateMode == MultiplayerMode.CoopClient)
@@ -63,6 +69,16 @@ namespace FeatMultiplayer
                     if (wu.GetUnitType() == DataConfig.WorldUnitType.Terraformation)
                     {
                         worldUnitCurrentTotalValue.SetValue(wu, mts.oxygen + mts.heat + mts.pressure + mts.biomass);
+                    }
+                }
+
+                // Prevent pinging all unlocks after the join
+                if (firstTerraformSync)
+                {
+                    firstTerraformSync = false;
+                    var go = FindObjectOfType<AlertUnlockables>();
+                    if (go != null) {
+                        AccessTools.Field(typeof(AlertUnlockables), "hasInited").SetValue(go, false);
                     }
                 }
 

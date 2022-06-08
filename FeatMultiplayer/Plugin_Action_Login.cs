@@ -64,6 +64,7 @@ namespace FeatMultiplayer
             }
             otherPlayer = PlayerAvatar.CreateAvatar(color, true);
             NotifyUserFromBackground("Joined the host.");
+            firstTerraformSync = true;
         }
 
         static void ReceiveDisconnected()

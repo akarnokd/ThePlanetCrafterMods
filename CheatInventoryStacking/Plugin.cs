@@ -29,7 +29,7 @@ namespace CheatInventoryStacking
 
         static ManualLogSource logger;
 
-        static Func<string> getMultiplayerMode;
+        public static Func<string> getMultiplayerMode;
 
         private void Awake()
         {

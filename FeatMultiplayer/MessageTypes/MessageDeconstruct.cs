@@ -9,19 +9,21 @@ namespace FeatMultiplayer
     internal class MessageDeconstruct : MessageStringProvider
     {
         internal int id;
+        internal string groupId;
         internal readonly List<int> itemIds = new();
 
         internal static bool TryParse(string str, out MessageDeconstruct md)
         {
-            if (MessageHelper.TryParseMessage("Deconstruct|", str, 3, out var parameters))
+            if (MessageHelper.TryParseMessage("Deconstruct|", str, 4, out var parameters))
             {
                 try
                 {
                     md = new();
                     md.id = int.Parse(parameters[1]);
-                    if (parameters[2].Length != 0)
+                    md.groupId = parameters[2];
+                    if (parameters[3].Length != 0)
                     {
-                        foreach (var sid in parameters[2].Split(','))
+                        foreach (var sid in parameters[3].Split(','))
                         {
                             md.itemIds.Add(int.Parse(sid));
                         }
@@ -40,7 +42,7 @@ namespace FeatMultiplayer
         public string GetString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("Deconstruct|").Append(id).Append('|');
+            sb.Append("Deconstruct|").Append(id).Append('|').Append(groupId).Append('|');
             for (int i = 0; i < itemIds.Count; i++)
             {
                 int id = itemIds[i];

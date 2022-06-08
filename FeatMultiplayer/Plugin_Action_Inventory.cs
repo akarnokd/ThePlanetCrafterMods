@@ -312,6 +312,10 @@ namespace FeatMultiplayer
                     {
                         suppressInventoryChange = false;
                     }
+                    if (inventorySpawning.Remove(targetId))
+                    {
+                        LogInfo("ReceiveMessageInventoryAdded: Clearing inventorySpawning marker " + mia.inventoryId);
+                    }
                 }
                 else
                 {
@@ -808,6 +812,24 @@ namespace FeatMultiplayer
             }
         }
 
+        /// <summary>
+        /// Set of inventory ids that are being spawned by the host.
+        /// </summary>
+        static readonly HashSet<int> inventorySpawning = new();
+
+        /// <summary>
+        /// The vanilla game calls InventoryAssociated::GetInventory to generate the inventory contents on
+        /// demand.
+        /// 
+        /// On the host, we simply let it happen.
+        /// 
+        /// On the client, we send a inventory spawn request to the host. We return
+        /// a temporary empty inventory, which must be locked out of deconstruction.
+        /// </summary>
+        /// <param name="__instance">The component instance to find the inventory id</param>
+        /// <param name="___inventory">The actual inventory returned generated</param>
+        /// <param name="__result">The inventory instance</param>
+        /// <returns>false for the client, true otherwise</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryAssociated), nameof(InventoryAssociated.GetInventory))]
         static bool InventoryAssociated_GetInventory(InventoryAssociated __instance,
@@ -834,10 +856,10 @@ namespace FeatMultiplayer
                             Inventory inventory = InventoriesHandler.CreateNewInventory(component.GetSize(), iid);
                             __instance.SetInventory(inventory);
                             __result = ___inventory;
-                            var scene = SceneManager.GetActiveScene();
                             LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
                             Send(new MessageInventorySpawn() { inventoryId = iid });
                             Signal();
+                            inventorySpawning.Add(iid);
                         }
                     }
                     else

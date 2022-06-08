@@ -39,7 +39,8 @@ namespace FeatMultiplayer
                     LogInfo("ActionDeconstructible_FinalyDestroy: " + DebugWorldObject(wo));
                     Send(new MessageDeconstruct()
                     {
-                        id = wo.GetId()
+                        id = wo.GetId(),
+                        groupId = wo.GetGroup().GetId()
                     });
                     Signal();
                 }
@@ -62,11 +63,67 @@ namespace FeatMultiplayer
             return true;
         }
 
+        /// <summary>
+        /// The game uses ActionDeconstructible::Deconstruct to check if the object can be safely deconstructed,
+        /// i.e., it is empty inside and its inventory is empty.
+        /// 
+        /// On the host, we let this happen.
+        /// 
+        /// On the client, we have to check if the object to be deconstructed has a scene inventory currently
+        /// being spawned. If so, put up an inventory error.
+        /// </summary>
+        /// <param name="__instance">The instance being destructed</param>
+        /// <param name="___hudHandler">The way to display messages</param>
+        /// <returns>False if an inventory is being spawned for the object, true otherwise</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionDeconstructible), "Deconstruct")]
+        static bool ActionDeconstructible_Deconstruct(ActionDeconstructible __instance, BaseHudHandler ___hudHandler)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                InventoryAssociated component = __instance.gameObjectRoot.GetComponent<InventoryAssociated>();
+                if (component != null) {
+                    Inventory inv = component.GetInventory();
+                    if (inventorySpawning.Contains(inv.GetId()))
+                    {
+                        LogInfo("ActionDeconstructible_Deconstruct: Inventory has not spawned yet: " + inv.GetId());
+
+                        ___hudHandler.DisplayCursorText("UI_CantDeconstructIfInventory", 0f, "");
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
         static void ReceiveMessageDeconstruct(MessageDeconstruct md)
         {
-            if (worldObjectById.TryGetValue(md.id, out var wo))
+            bool isSceneObject = WorldObjectsIdHandler.IsWorldObjectFromScene(md.id);
+
+            if (!worldObjectById.TryGetValue(md.id, out var wo))
             {
-                if (TryGetGameObject(wo, out var go))
+                if (updateMode == MultiplayerMode.CoopHost && isSceneObject)
+                {
+                    wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(md.groupId), md.id);
+                    SendWorldObject(wo, false);
+                }
+            }
+            if (wo != null)
+            {
+                if (!TryGetGameObject(wo, out var go) && isSceneObject)
+                {
+                    foreach (var wofs in FindObjectsOfType<WorldObjectFromScene>())
+                    {
+                        if (wofs.GetUniqueId() == md.id)
+                        {
+                            LogInfo("ReceiveMessageDeconstruct: Found scene GameObject for " + DebugWorldObject(wo));
+                            gameObjectByWorldObject[wo] = wofs.gameObject;
+                            go = wofs.gameObject;
+                            break;
+                        }
+                    }
+                }
+                if (go != null)
                 {
                     if (updateMode == MultiplayerMode.CoopHost)
                     {
