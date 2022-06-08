@@ -35,7 +35,7 @@ namespace FeatMultiplayer
 
                         }
                         PrepareShadowInventories();
-                        otherPlayer = PlayerAvatar.CreateAvatar(color, false);
+                        otherPlayer = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
                         Send("Welcome\n");
                         Signal();
                         Send(new MessageGameMode()
@@ -69,7 +69,7 @@ namespace FeatMultiplayer
             {
 
             }
-            otherPlayer = PlayerAvatar.CreateAvatar(color, true);
+            otherPlayer = PlayerAvatar.CreateAvatar(color, true, GetPlayerMainController());
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;
         }

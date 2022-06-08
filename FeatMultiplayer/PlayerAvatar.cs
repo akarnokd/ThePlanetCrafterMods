@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SpaceCraft;
+using UnityEngine;
 
 namespace FeatMultiplayer
 {
@@ -7,6 +8,8 @@ namespace FeatMultiplayer
         internal GameObject avatar;
         internal GameObject avatarFront;
         internal GameObject avatarBack;
+        internal GameObject light1;
+        internal GameObject light2;
 
         internal void Destroy()
         {
@@ -15,19 +18,24 @@ namespace FeatMultiplayer
             UnityEngine.Object.Destroy(avatarBack);
         }
 
-        internal void SetPosition(Vector3 position, Quaternion rotation)
+        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode)
         {
             if (avatar != null)
             {
                 avatar.transform.position = new Vector3(position.x, position.y + 1.5f, position.z);
-                avatar.transform.rotation = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
+                var yrot = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
+                avatar.transform.rotation = yrot;
 
+                light1.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
+                light1.SetActive(lightMode == 1);
+                light2.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
+                light2.SetActive(lightMode == 2);
             }
         }
 
         //static readonly Color avatarDefaultColor = new Color(1f, 0.75f, 0, 1f);
 
-        internal static PlayerAvatar CreateAvatar(Color color, bool host)
+        internal static PlayerAvatar CreateAvatar(Color color, bool host, PlayerMainController player)
         {
             PlayerAvatar result = new PlayerAvatar();
 
@@ -60,6 +68,19 @@ namespace FeatMultiplayer
             sr.sprite = Sprite.Create(host ? Plugin.astronautBackHost : Plugin.astronautBack, new Rect(0, 0, Plugin.astronautFront.width, Plugin.astronautFront.height), new Vector2(0.5f, 0.5f));
             sr.color = color;
 
+            // ------------
+
+            var lights = player.GetComponentInChildren<MultiToolLight>();
+
+            result.light1 = UnityEngine.Object.Instantiate<GameObject>(lights.toolLightT1);
+            result.light1.transform.SetParent(result.avatar.transform);
+            result.light1.transform.localPosition = new Vector3(0, 0, 0.52f);
+            result.light1.SetActive(true);
+
+            result.light2 = UnityEngine.Object.Instantiate<GameObject>(lights.toolLightT2);
+            result.light2.transform.SetParent(result.avatar.transform);
+            result.light2.transform.localPosition = new Vector3(0, 0, 0.52f);
+            result.light2.SetActive(false);
 
             return result;
         }

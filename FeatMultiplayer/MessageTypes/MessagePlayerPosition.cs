@@ -12,6 +12,7 @@ namespace FeatMultiplayer
     {
         internal Vector3 position;
         internal Quaternion rotation;
+        internal int lightMode;
 
         public string GetString()
         {
@@ -30,37 +31,34 @@ namespace FeatMultiplayer
             sb.Append(rotation.z.ToString(CultureInfo.InvariantCulture));
             sb.Append('|');
             sb.Append(rotation.w.ToString(CultureInfo.InvariantCulture));
+            sb.Append('|');
+            sb.Append(lightMode);
             sb.Append('\n');
             return sb.ToString();
         }
 
         public static bool TryParse(string str, out MessagePlayerPosition message)
         {
-            if (MessageHelper.TryParseMessage("PlayerPosition|", str, out string[] parts))
+            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 9, out string[] parts))
             {
-                if (parts.Length == 8)
+                try
                 {
                     message = new MessagePlayerPosition();
-                    try
-                    {
-                        message.position.x = float.Parse(parts[1], CultureInfo.InvariantCulture);
-                        message.position.y = float.Parse(parts[2], CultureInfo.InvariantCulture);
-                        message.position.z = float.Parse(parts[3], CultureInfo.InvariantCulture);
+                    message.position.x = float.Parse(parts[1], CultureInfo.InvariantCulture);
+                    message.position.y = float.Parse(parts[2], CultureInfo.InvariantCulture);
+                    message.position.z = float.Parse(parts[3], CultureInfo.InvariantCulture);
 
-                        message.rotation.x = float.Parse(parts[4], CultureInfo.InvariantCulture);
-                        message.rotation.y = float.Parse(parts[5], CultureInfo.InvariantCulture);
-                        message.rotation.z = float.Parse(parts[6], CultureInfo.InvariantCulture);
-                        message.rotation.w = float.Parse(parts[7], CultureInfo.InvariantCulture);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Plugin.LogError(ex);
-                    }
+                    message.rotation.x = float.Parse(parts[4], CultureInfo.InvariantCulture);
+                    message.rotation.y = float.Parse(parts[5], CultureInfo.InvariantCulture);
+                    message.rotation.z = float.Parse(parts[6], CultureInfo.InvariantCulture);
+                    message.rotation.w = float.Parse(parts[7], CultureInfo.InvariantCulture);
+
+                    message.lightMode = int.Parse(parts[8]);
+                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    Plugin.LogInfo("PlayerPosition missing data: " + parts.Length);
+                    Plugin.LogError(ex);
                 }
             }
             message = null;

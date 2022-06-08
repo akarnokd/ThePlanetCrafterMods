@@ -87,11 +87,27 @@ namespace FeatMultiplayer
             PlayerMainController pm = GetPlayerMainController();
             if (pm != null)
             {
+                var lightMode = 0;
+                var mtl = pm.GetComponentInChildren<MultiToolLight>();
+                if (mtl != null)
+                {
+                    if (mtl.toolLightT2.activeSelf)
+                    {
+                        lightMode = 2;
+                    }
+                    else
+                    if (mtl.toolLightT1.activeSelf)
+                    {
+                        lightMode = 1;
+                    }
+                }
                 Transform player = pm.transform;
+                var camera = pm.GetComponentInChildren<PlayerLookable>();
                 MessagePlayerPosition mpp = new MessagePlayerPosition
                 {
                     position = player.position,
-                    rotation = player.rotation
+                    rotation = camera.m_Camera.transform.rotation,
+                    lightMode = lightMode
                 };
                 Send(mpp);
                 Signal();
@@ -100,7 +116,7 @@ namespace FeatMultiplayer
 
         static void ReceivePlayerLocation(MessagePlayerPosition mpp)
         {
-            otherPlayer?.SetPosition(mpp.position, mpp.rotation);
+            otherPlayer?.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
         }
     }
 }
