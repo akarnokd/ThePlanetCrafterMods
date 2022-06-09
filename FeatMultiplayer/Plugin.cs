@@ -56,24 +56,6 @@ namespace FeatMultiplayer
         internal static PlayerAvatar otherPlayer;
 
         /// <summary>
-        /// Returns the current game mode to be used by other mods that
-        /// are sensitive of being in a multiplayer or sensitive to be
-        /// on the host or client side.
-        /// </summary>
-        /// <returns>The current mode: <c>MainMenu</c>, <c>SinglePlayer</c>, <c>CoopHost</c> or <c>CoopClient</c> </returns>
-        public static string GetMultiplayerMode()
-        {
-            return updateMode switch
-            {
-                MultiplayerMode.MainMenu => "MainMenu",
-                MultiplayerMode.SinglePlayer => "SinglePlayer",
-                MultiplayerMode.CoopHost => "CoopHost",
-                MultiplayerMode.CoopClient => "CoopClient",
-                _ => "Unknown",
-            };
-        }
-
-        /// <summary>
         /// The main update, called by Unity on each frame.
         /// </summary>
         void Update()

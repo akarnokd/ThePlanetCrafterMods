@@ -1,9 +1,61 @@
 ﻿using BepInEx;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+
+        /// <summary>
+        /// List of functions to call with a non-standard message to be parsed and submitted to the UI.
+        /// </summary>
+        static readonly List<Func<int, string, ConcurrentQueue<object>, bool>> messageParsers = new();
+
+        /// <summary>
+        /// List of functions to handle the message object on the UI thread.
+        /// </summary>
+        static readonly List<Func<object, bool>> messageReceivers = new();
+
+        static bool TryMessageParsers(int clientId, string str)
+        {
+            foreach (var f in messageParsers)
+            {
+                try
+                {
+                    if (f(clientId, str, receiveQueue))
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
+            }
+            return false;
+        }
+
+        static bool TryMessageReceivers(object o)
+        {
+            foreach (var f in messageReceivers)
+            {
+                try
+                {
+                    if (f(o))
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
+            }
+            return false;
+        }
+
         static void DispatchMessageString(string s)
         {
             if (s == "Welcome")
@@ -215,6 +267,7 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue("Welcome");
             }
             else
+            if (!TryMessageParsers(1, message)) // FIXME use the proper client id once manyplayer is supported
             {
                 LogInfo("ParseMessage: Unknown message?\r\n" + message);
             }
@@ -454,7 +507,10 @@ namespace FeatMultiplayer
                     }
                 default:
                     {
-                        LogWarning("DispatchMessage: Unsupported message " + message);
+                        if (!TryMessageReceivers(message))
+                        {
+                            LogWarning("DispatchMessage: Unsupported message " + message);
+                        }
                         break;
                     }
                     // TODO dispatch on message type

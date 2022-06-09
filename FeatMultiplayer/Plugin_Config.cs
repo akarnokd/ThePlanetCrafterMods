@@ -85,6 +85,8 @@ namespace FeatMultiplayer
             
             TryInstallMachineOverrides();
 
+            ApiSetup();
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -22,6 +22,12 @@ namespace FeatMultiplayer
         static readonly Dictionary<int, WorldObject> worldObjectById = new();
 
         /// <summary>
+        /// Tracks the number of WorldObjects in a specific group id retrieved
+        /// via <c>WorldObject.GetGroup().GetId()</c>.
+        /// </summary>
+        static readonly Dictionary<string, int> countByGroupId = new();
+
+        /// <summary>
         /// The map from WorldObjects to GameObjects.
         /// Obtained via reflection from the private field <code>WorldObjectsHandler.worldObjects</code>.
         /// <code>WorldObjectsHandler.GetGameObjectViaWorldObject</code> crashes if
@@ -60,12 +66,10 @@ namespace FeatMultiplayer
         static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
         {
             worldObjectById[_worldObject.GetId()] = _worldObject;
-            /*
-            if (_worldObject.GetGroup() == null)
-            {
-                LogError("WorldObject.group is null for " + _worldObject.GetId() + "\r\n" + Environment.StackTrace);
-            }
-            */
+
+            string gid = _worldObject.GetGroup().GetId();
+            countByGroupId.TryGetValue(gid, out var c);
+            countByGroupId[gid] = c + 1;
         }
 
         /// <summary>
@@ -85,6 +89,12 @@ namespace FeatMultiplayer
                 !WorldObjectsIdHandler.IsWorldObjectFromScene(id))
             {
                 worldObjectById.Remove(id);
+
+                string gid = _worldObject.GetGroup().GetId();
+                if (countByGroupId.TryGetValue(gid, out var c))
+                {
+                    countByGroupId[gid] = c - 1;
+                }
             }
         }
 
@@ -108,15 +118,16 @@ namespace FeatMultiplayer
         /// The vanilla game updates all world objects at once upon loading a save.
         /// We also redo the full id to WorldObject Dictionary.
         /// </summary>
-        /// <param name="_allWorldObjects"></param>
+        /// <param name="_allWorldObjects">The list of all world objects.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.SetAllWorldObjects))]
         static void WorldObjectsHandler_SetAllWorldObjects(List<WorldObject> _allWorldObjects)
         {
             worldObjectById.Clear();
+            countByGroupId.Clear();
             foreach (WorldObject wo in _allWorldObjects)
             {
-                worldObjectById[wo.GetId()] = wo;
+                WorldObjectsHandler_StoreNewWorldObject(wo);
             }
         }
 

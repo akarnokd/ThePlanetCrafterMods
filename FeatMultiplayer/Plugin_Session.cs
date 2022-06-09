@@ -91,7 +91,10 @@ namespace FeatMultiplayer
             otherPlayer = null;
             _sendQueue.Clear();
             receiveQueue.Clear();
+
             worldObjectById.Clear();
+            countByGroupId.Clear();
+            
             inventoryById.Clear();
         }
 
