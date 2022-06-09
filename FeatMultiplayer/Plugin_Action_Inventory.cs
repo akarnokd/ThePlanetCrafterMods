@@ -72,6 +72,7 @@ namespace FeatMultiplayer
         static void Inventory_AddItem_Post(bool __result, List<WorldObject> ___worldObjectsInInventory,
             int ___inventoryId, WorldObject _worldObject)
         {
+            //LogInfo("InventoryAddItem: " + ___inventoryId + ", " + _worldObject.GetGroup().GetId() + ", Count = " + ___worldObjectsInInventory.Count + ", result = " + __result);
             if (__result && updateMode != MultiplayerMode.SinglePlayer && !suppressInventoryChange)
             {
                 int iid = ___inventoryId;
@@ -89,15 +90,9 @@ namespace FeatMultiplayer
                     itemId = _worldObject.GetId(),
                     groupId = _worldObject.GetGroup().GetId()
                 };
-                LogInfo("InventorAddItem: " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
+                LogInfo("InventoryAddItem: Send " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
                 Send(mia);
                 Signal();
-
-                // remove from the client's inventory so that only the Host can add it back
-                if (updateMode == MultiplayerMode.CoopClient)
-                {
-                    ___worldObjectsInInventory.Remove(_worldObject);
-                }
             }
         }
 

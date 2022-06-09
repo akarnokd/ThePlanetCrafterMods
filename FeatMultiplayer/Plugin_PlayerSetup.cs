@@ -17,13 +17,11 @@ namespace FeatMultiplayer
         static int shadowEquipmentWorldId = 51;
         static int shadowEquipmentId;
 
-        static bool slowdownConsumption = true;
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
         static bool GaugesConsumptionHandler_GetThirstConsumptionRate(ref float __result)
         {
-            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption)
+            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption.Value)
             {
                 __result = -0.0001f;
                 return false;
@@ -35,7 +33,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetOxygenConsumptionRate))]
         static bool GaugesConsumptionHandler_GetOxygenConsumptionRate(ref float __result)
         {
-            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption)
+            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption.Value)
             {
                 __result = -0.0001f;
                 return false;
@@ -46,7 +44,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetHealthConsumptionRate))]
         static bool GaugesConsumptionHandler_GetHealthConsumptionRate(ref float __result)
         {
-            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption)
+            if (updateMode != MultiplayerMode.SinglePlayer && slowdownConsumption.Value)
             {
                 __result = -0.0001f;
                 return false;

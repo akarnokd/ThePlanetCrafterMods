@@ -29,8 +29,8 @@ namespace FeatMultiplayer
 
         static void ToggleConsumption()
         {
-            slowdownConsumption = !slowdownConsumption;
-            LogInfo("SlowdownConsumption: " + slowdownConsumption);
+            slowdownConsumption.Value = !slowdownConsumption.Value;
+            LogInfo("SlowdownConsumption: " + slowdownConsumption.Value);
 
             ResetGaugeConsumptions();
         }

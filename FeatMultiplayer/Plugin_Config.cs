@@ -34,6 +34,7 @@ namespace FeatMultiplayer
         static ConfigEntry<int> clientLogLevel;
 
         static ConfigEntry<int> fontSize;
+        static ConfigEntry<bool> slowdownConsumption;
 
         internal static Texture2D astronautFront;
         internal static Texture2D astronautBack;
@@ -55,6 +56,7 @@ namespace FeatMultiplayer
             networkFrequency = Config.Bind("General", "Frequency", 20, "The frequency of checking the network for messages.");
             fullSyncDelay = Config.Bind("General", "SyncDelay", 3000, "Delay between full sync from the host to the client, in milliseconds");
             smallSyncDelay = Config.Bind("General", "SyncDelaySmall", 500, "Delay between small sync from the host to the client, in milliseconds");
+            slowdownConsumption = Config.Bind("General", "SlowdownConsumption", true, "Slows down health/food/water consumption rate");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");

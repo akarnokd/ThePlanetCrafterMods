@@ -116,6 +116,7 @@ namespace FeatMultiplayer
                 {
                     listener.Stop();
                     LogInfo("Stopping HostAcceptor on port " + port.Value);
+                    clientConnected = false;
                 }
             }
             catch (Exception ex)
