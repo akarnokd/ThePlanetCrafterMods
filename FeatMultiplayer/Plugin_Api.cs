@@ -104,6 +104,24 @@ namespace FeatMultiplayer
         /// </summary>
         public static Action<object, Action<object>> apiSuppressInventoryChangeWhile;
 
+        /// <summary>
+        /// Returns the shadow backpack inventory of the specified 
+        /// client id or null if not found.
+        /// </summary>
+        public static Func<int, Inventory> apiGetClientBackpack;
+
+        /// <summary>
+        /// Returns the shadow equipment inventory of the specified 
+        /// client id or null if not found.
+        /// </summary>
+        public static Func<int, Inventory> apiGetClientEquipment;
+
+        /// <summary>
+        /// Sends the entire inventory, including its size and content
+        /// to the given client.
+        /// </summary>
+        public static Action<int, Inventory> apiSendInventory;
+
         #region - Api Setup -
 
         /// <summary>
@@ -119,6 +137,9 @@ namespace FeatMultiplayer
             apiSignal = ApiSignal;
             apiSendWorldObject = ApiSendWorldObject;
             apiSuppressInventoryChangeWhile = ApiSuppressInventoryChangeWhile;
+            apiGetClientBackpack = ApiGetClientBackpack;
+            apiGetClientEquipment = ApiGetClientEquipment;
+            apiSendInventory = ApiSendInventory;
         }
 
         static int ApiGetCountByGroupId(string groupId)
@@ -182,6 +203,29 @@ namespace FeatMultiplayer
             {
                 suppressInventoryChange = false;
             }
+        }
+
+        static Inventory ApiGetClientBackpack(int clientId)
+        {
+            // FIXME use the client id to send to the proper client.
+            return InventoriesHandler.GetInventoryById(shadowInventoryId);
+        }
+
+        static Inventory ApiGetClientEquipment(int clientId)
+        {
+            // FIXME use the client id to send to the proper client.
+            return InventoriesHandler.GetInventoryById(shadowEquipmentId);
+        }
+
+        static void ApiSendInventory(int clientId, Inventory inventory)
+        {
+            // FIXME use the client id to send to the proper client.
+            Send(new MessageInventorySize()
+            {
+                inventoryId = inventory.GetId(),
+                size = inventory.GetSize()
+            });
+            // FIXME send inventory content too
         }
 
         #endregion - Api Setup -
