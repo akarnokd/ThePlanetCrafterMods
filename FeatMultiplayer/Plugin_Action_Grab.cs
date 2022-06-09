@@ -15,6 +15,8 @@ namespace FeatMultiplayer
         /// <summary>
         /// The vanilla game calls it when the player grabs a grabable object (self-dropped resources, food, etc.).
         /// 
+        /// On the host, we need to intercept it so that once the item is grabbed, we can update the client about it.
+        /// 
         /// On the client, we need to intercept this and instead of grabbing, ask the host to grab it for us and
         /// put it into our inventory.
         /// 
@@ -22,10 +24,14 @@ namespace FeatMultiplayer
         /// and host confirm of grabbing
         /// </summary>
         /// <param name="__instance">The component that points to the WorldObject we need</param>
-        /// <returns></returns>
+        /// <param name="___itemWorldDisplayer">To hide the item world displayer</param>
+        /// <param name="___playerSource">For the backpack and for playing the grab audio.</param>
+        /// <returns>false in multiplayer, true in singleplayer</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionGrabable), "Grab")]
-        static bool ActionGrabable_Grab(ActionGrabable __instance)
+        static bool ActionGrabable_Grab(ActionGrabable __instance, 
+            PlayerMainController ___playerSource, 
+            ItemWorldDislpayer ___itemWorldDisplayer)
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
@@ -57,6 +63,26 @@ namespace FeatMultiplayer
                     }
                 }
 
+                return false;
+            }
+            else
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                var woa = __instance.GetComponent<WorldObjectAssociated>();
+
+                if (woa != null)
+                {
+                    Destroy(__instance.gameObject);
+                    
+                    var wo = woa.GetWorldObject();
+                    ___playerSource.GetPlayerBackpack().GetInventory().AddItem(wo);
+                    wo.SetDontSaveMe(_dontSaveMe: false);
+                    SendWorldObject(wo, false);
+
+                    ___playerSource.GetPlayerAudio().PlayGrab();
+                    ___itemWorldDisplayer.Hide();
+                    __instance.grabedEvent?.Invoke(wo);
+                }
                 return false;
             }
             return true;

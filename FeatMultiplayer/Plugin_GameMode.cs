@@ -187,7 +187,7 @@ namespace FeatMultiplayer
         /// Tracks the given world object and chest inventory,
         /// destroys them if the chest becomes empty on the host.
         /// </summary>
-        class DestroyDeatChest : MonoBehaviour
+        class DestroyDeathChest : MonoBehaviour
         {
             internal WorldObject worldObject;
             internal Inventory inventory;
@@ -222,7 +222,7 @@ namespace FeatMultiplayer
             inv.SetSize(30);
             
             Destroy(go.GetComponentInChildren<ActionDeconstructible>());
-            var ddc = go.AddComponent<DestroyDeatChest>();
+            var ddc = go.AddComponent<DestroyDeathChest>();
             ddc.worldObject = wo;
             ddc.inventory = inv;
             ddc.BeginTrack();

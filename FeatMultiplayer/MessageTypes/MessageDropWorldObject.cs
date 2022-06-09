@@ -11,34 +11,29 @@ namespace FeatMultiplayer
     internal class MessageDropWorldObject : MessageStringProvider
     {
         internal int id;
+        internal string groupId;
         internal Vector3 position;
         internal float dropSize;
 
         public static bool TryParse(string str, out MessageDropWorldObject message)
         {
-            if (MessageHelper.TryParseMessage("DropWorldObject|", str, out string[] parts))
+            if (MessageHelper.TryParseMessage("DropWorldObject|", str, 7, out string[] parts))
             {
-                if (parts.Length == 6)
+                try
                 {
                     message = new MessageDropWorldObject();
-                    try
-                    {
-                        message.id = int.Parse(parts[1]);
-                        message.position.x = float.Parse(parts[2], CultureInfo.InvariantCulture);
-                        message.position.y = float.Parse(parts[3], CultureInfo.InvariantCulture);
-                        message.position.z = float.Parse(parts[4], CultureInfo.InvariantCulture);
+                    message.id = int.Parse(parts[1]);
+                    message.groupId = parts[2];
+                    message.position.x = float.Parse(parts[3], CultureInfo.InvariantCulture);
+                    message.position.y = float.Parse(parts[4], CultureInfo.InvariantCulture);
+                    message.position.z = float.Parse(parts[5], CultureInfo.InvariantCulture);
 
-                        message.dropSize = float.Parse(parts[5], CultureInfo.InvariantCulture);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Plugin.LogError(ex);
-                    }
+                    message.dropSize = float.Parse(parts[6], CultureInfo.InvariantCulture);
+                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    Plugin.LogInfo("MessageDropWorldObject missing data: " + parts.Length);
+                    Plugin.LogError(ex);
                 }
             }
             message = null;
@@ -50,6 +45,8 @@ namespace FeatMultiplayer
             StringBuilder sb = new StringBuilder();
             sb.Append("DropWorldObject|");
             sb.Append(id);
+            sb.Append('|');
+            sb.Append(groupId);
             sb.Append('|');
             sb.Append(position.x.ToString(CultureInfo.InvariantCulture));
             sb.Append('|');

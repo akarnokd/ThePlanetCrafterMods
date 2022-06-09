@@ -54,12 +54,43 @@ namespace FeatMultiplayer
                 MessageDropWorldObject msg = new MessageDropWorldObject()
                 {
                     id = _worldObject.GetId(),
+                    groupId = _worldObject.GetGroup().GetId(),
                     position = _position,
                     dropSize = _dropSize
                 };
                 Send(msg);
                 Signal();
             }
+        }
+
+        /// <summary>
+        /// The vanilla game calls WorldObjectsHandler::CreateAndDropOnFloor when an item can't go into
+        /// inventory and needs to be dropped at a specific location. By default, this is what
+        /// happens when deconstructing buildings with a full inventory or recycling items (which
+        /// always puts items into the world).
+        /// </summary>
+        /// <param name="_group">The group to create an item for.</param>
+        /// <param name="_position">where to put the item.</param>
+        /// <param name="_dropSize">the size of the dropped item.</param>
+        /// <returns>False on the client, true otherwise</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.CreateAndDropOnFloor))]
+        static bool WorldObjectsHandler_CreateAndDropOnFloor(Group _group, Vector3 _position, float _dropSize = 0f)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                MessageDropWorldObject msg = new MessageDropWorldObject()
+                {
+                    id = 0,
+                    groupId = _group.GetId(),
+                    position = _position,
+                    dropSize = _dropSize
+                };
+                Send(msg);
+                Signal();
+                return false;
+            }
+            return true;
         }
 
         static IEnumerator WorldObjectsHandler_DropOnFloor_Tracker(WorldObject _worldObject)
@@ -100,7 +131,23 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (worldObjectById.TryGetValue(mdwo.id, out var wo))
+                WorldObject wo = null;
+                if (mdwo.id == 0 && !string.IsNullOrEmpty(mdwo.groupId))
+                {
+                    Group _group = GroupsHandler.GetGroupViaId(mdwo.groupId);
+                    if (_group != null)
+                    {
+                        wo = WorldObjectsHandler.CreateNewWorldObject(_group, 0);
+                    }
+                    else
+                    {
+                        LogWarning("ReceiveMessageDropWorldObject: Unknown group " + mdwo.groupId);
+                    }
+                } else
+                {
+                    worldObjectById.TryGetValue(mdwo.id, out wo);
+                }
+                if (wo != null)
                 {
                     WorldObjectsHandler.DropOnFloor(wo, mdwo.position, mdwo.dropSize);
                     SendWorldObject(wo, false);
@@ -109,6 +156,10 @@ namespace FeatMultiplayer
                         go.GetComponent<WorldObjectAssociated>()
                             .StartCoroutine(WorldObjectsHandler_DropOnFloor_Tracker(wo));
                     }
+                }
+                else
+                {
+                    LogWarning("ReceiveMessageDropWorldObject: Unknown WorldObject " + mdwo.id + ", groupId = " + mdwo.groupId);
                 }
             }
         }

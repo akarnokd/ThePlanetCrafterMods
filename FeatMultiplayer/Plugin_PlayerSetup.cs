@@ -130,30 +130,130 @@ namespace FeatMultiplayer
         static void SetupHostInventory()
         {
             LogInfo("SetupHostInventory");
-            AddToInventory(1, new()
+
+            List<GroupItem> groupsToAdd = new();
+            foreach (var gr in GroupsHandler.GetAllGroups())
             {
-                /*
-                { "Aluminium", 50 },
-                { "Alloy", 50 },
-                { "Uranim", 50 },
-                { "Iridium", 50 },
-                { "Osmium", 50 },
-                { "Zeolite", 50 },
-                { "PulsarQuartz", 50 },
-                { "RocketReactor", 50 },
-                { "WaterBottle1", 50 },
-                { "Magnesium", 50 },
-                { "Vegetable0Growable", 50 },
-                */
-                { "Alloy", 50 },
-                { "Bioplastic1", 50 },
-                { "Bacteria1", 50 },
-                { "Fertilizer1", 50 },
-                { "Tree0Seed", 50 },
-                { "TreeRoot", 50 },
-                { "EquipmentIncrease1", 2 },
-                { "Backpack1", 2 },
+                if (gr is GroupItem gi)
+                {
+                    string item = gi.GetId();
+                    if (!item.StartsWith("Rocket") || item == "RocketReactor")
+                    {
+                        groupsToAdd.Add(gi);
+                    }
+                }
+            }
+            groupsToAdd.Sort((a, b) =>
+            {
+                if (a.GetEquipableType() != DataConfig.EquipableType.Null && b.GetEquipableType() == DataConfig.EquipableType.Null)
+                {
+                    return 1;
+                }
+                if (a.GetEquipableType() == DataConfig.EquipableType.Null && b.GetEquipableType() != DataConfig.EquipableType.Null)
+                {
+                    return -1;
+                }
+                var aid = a.GetId();
+                var bid = b.GetId();
+                // --------------------------------
+                if (aid.StartsWith("Golden") && !bid.StartsWith("Golden"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Golden") && bid.StartsWith("Golden"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Tree") && !bid.StartsWith("Tree"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Tree") && bid.StartsWith("Tree"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Seed") && !bid.StartsWith("Seed"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Seed") && bid.StartsWith("Seed"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Vegetable") && !bid.StartsWith("Vegetable"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Vegetable") && bid.StartsWith("Vegetable"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("astrofood") && !bid.StartsWith("astrofood"))
+                {
+                    return -1;
+                }
+                if (!aid.StartsWith("astrofood") && bid.StartsWith("astrofood"))
+                {
+                    return 1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("WaterBottle") && !bid.StartsWith("WaterBottle"))
+                {
+                    return -1;
+                }
+                if (!aid.StartsWith("WaterBottle") && bid.StartsWith("WaterBottle"))
+                {
+                    return 1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("OxygenCapsule") && !bid.StartsWith("OxygenCapsule"))
+                {
+                    return -1;
+                }
+                if (!aid.StartsWith("OxygenCapsule") && bid.StartsWith("OxygenCapsule"))
+                {
+                    return 1;
+                }
+
+                return a.GetId().CompareTo(b.GetId());
             });
+
+            int perChest = 30;
+            Vector3 pos = GetPlayerMainController().transform.position;
+            for (int i = 0; i < groupsToAdd.Count; i += perChest)
+            {
+                Dictionary<string, int> dict = new();
+                for (int j = i; j < groupsToAdd.Count && j < i + perChest; j++)
+                {
+                    dict.Add(groupsToAdd[j].GetId(), 50);
+                }
+                if (dict.Count != 0)
+                {
+                    var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container1"), 0);
+                    wo.SetPositionAndRotation(pos, Quaternion.identity);
+                    wo.SetDontSaveMe(false);
+
+                    var go = WorldObjectsHandler.InstantiateWorldObject(wo, false);
+
+                    var inv = go.GetComponent<InventoryAssociated>().GetInventory();
+                    inv.SetSize(perChest);
+
+                    SendWorldObject(wo, false);
+                    Send(new MessageInventorySize()
+                    {
+                        inventoryId = inv.GetId(),
+                        size = inv.GetSize()
+                    });
+
+                    AddToInventory(inv.GetId(), dict);
+
+                    pos.y += 1f;
+                }
+            }
         }
     }
 }
