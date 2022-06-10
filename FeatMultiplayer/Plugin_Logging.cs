@@ -66,12 +66,13 @@ namespace FeatMultiplayer
                 {
                     string prefix = level switch
                     {
-                        1 => "[Info:    (Feat)Multiplayer] ",
-                        2 => "[Warning: (Feat)Multiplayer] ",
-                        3 => "[Error:   (Feat)Multiplayer] ",
-                        _ => "[Debug:   (Feat)Multiplayer] "
+                        1 => "[Info:    (Feat) Multiplayer @ ",
+                        2 => "[Warning: (Feat) Multiplayer @ ",
+                        3 => "[Error:   (Feat) Multiplayer @ ",
+                        _ => "[Debug:   (Feat) Multiplayer @ "
                     };
 
+                    prefix += DateTimeOffset.Now.ToString("HH:mm:ss.fff") + " ] ";
                     lock (logLock)
                     {
                         File.AppendAllText(fileName, prefix + message + "\r\n");
