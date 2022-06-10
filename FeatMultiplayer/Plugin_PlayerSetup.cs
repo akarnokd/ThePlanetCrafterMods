@@ -110,20 +110,27 @@ namespace FeatMultiplayer
         static void SetupInitialInventory()
         {
             LogInfo("SetupInitialInventory");
+
+            int stacks = 1;
+            if (stackSize != null)
+            {
+                stacks = Math.Min(10, Math.Max(stacks, stackSize.Value));
+            }
+
             AddToInventory(shadowInventoryId, new()
             {
                 { "MultiBuild", 1 },
                 { "MultiDeconstruct", 1 },
                 { "MultiToolLight", 1 },
-                { "Iron", 10 },
-                { "Magnesium", 10 },
-                { "Silicon", 10 },
-                { "Titanium", 10},
-                { "Cobalt", 10 },
-                { "BlueprintT1", 10 },
-                { "OxygenCapsule1", 10 },
-                { "WaterBottle1", 10 },
-                { "astrofood", 10 }
+                { "Iron", stacks },
+                { "Magnesium", stacks },
+                { "Silicon", stacks },
+                { "Titanium", stacks},
+                { "Cobalt", stacks },
+                { "BlueprintT1", stacks },
+                { "OxygenCapsule1", stacks },
+                { "WaterBottle1", stacks },
+                { "astrofood", stacks }
             });
         }
 
@@ -222,6 +229,12 @@ namespace FeatMultiplayer
                 return a.GetId().CompareTo(b.GetId());
             });
 
+            int stacks = 1;
+            if (stackSize != null)
+            {
+                stacks = Math.Min(50, Math.Max(stacks, stackSize.Value));
+            }
+
             int perChest = 30;
             Vector3 pos = GetPlayerMainController().transform.position;
             for (int i = 0; i < groupsToAdd.Count; i += perChest)
@@ -229,7 +242,7 @@ namespace FeatMultiplayer
                 Dictionary<string, int> dict = new();
                 for (int j = i; j < groupsToAdd.Count && j < i + perChest; j++)
                 {
-                    dict.Add(groupsToAdd[j].GetId(), 50);
+                    dict.Add(groupsToAdd[j].GetId(), stacks);
                 }
                 if (dict.Count != 0)
                 {

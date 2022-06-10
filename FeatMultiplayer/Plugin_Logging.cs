@@ -82,6 +82,11 @@ namespace FeatMultiplayer
 
         }
 
+        internal static void LogDebug(object message)
+        {
+            LogInternal(message, 0);
+        }
+
         internal static void LogInfo(object message)
         {
             LogInternal(message, 1);

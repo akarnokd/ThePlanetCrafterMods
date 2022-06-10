@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using MijuTools;
 using SpaceCraft;
@@ -24,6 +25,8 @@ namespace FeatMultiplayer
         /// If the CheatInventoryStacking is installed, consider the stack counts when displaying information.
         /// </summary>
         static Func<List<WorldObject>, int> getStackCount;
+
+        static ConfigEntry<int> stackSize;
 
         /// <summary>
         /// Helps retarget the client's backpack and equipment ids to the shadow inventory and shadow equipment storages.

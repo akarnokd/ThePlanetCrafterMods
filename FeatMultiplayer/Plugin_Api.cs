@@ -122,6 +122,26 @@ namespace FeatMultiplayer
         /// </summary>
         public static Action<int, Inventory> apiSendInventory;
 
+        /// <summary>
+        /// Logs the given object to the appropriate host/client log file.
+        /// </summary>
+        public static Action<object> apiLogDebug;
+
+        /// <summary>
+        /// Logs the given object to the appropriate host/client log file.
+        /// </summary>
+        public static Action<object> apiLogInfo;
+
+        /// <summary>
+        /// Logs the given object to the appropriate host/client log file.
+        /// </summary>
+        public static Action<object> apiLogWarning;
+
+        /// <summary>
+        /// Logs the given object to the appropriate host/client log file.
+        /// </summary>
+        public static Action<object> apiLogError;
+
         #region - Api Setup -
 
         /// <summary>
@@ -140,6 +160,10 @@ namespace FeatMultiplayer
             apiGetClientBackpack = ApiGetClientBackpack;
             apiGetClientEquipment = ApiGetClientEquipment;
             apiSendInventory = ApiSendInventory;
+            apiLogDebug = LogDebug;
+            apiLogInfo = LogInfo;
+            apiLogWarning = LogWarning;
+            apiLogError = LogError;
         }
 
         static int ApiGetCountByGroupId(string groupId)

@@ -126,6 +126,8 @@ namespace FeatMultiplayer
                 MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", new Type[] { typeof(List<WorldObject>) });
                 getStackCount = AccessTools.MethodDelegate<Func<List<WorldObject>, int>>(mi, null);
 
+                stackSize = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
+
                 var getMultiplayerModeField = AccessTools.Field(pi.Instance.GetType(), "getMultiplayerMode");
                 getMultiplayerModeField.SetValue(pi.Instance, new Func<string>(GetMultiplayerMode));
             }

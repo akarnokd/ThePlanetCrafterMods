@@ -32,6 +32,10 @@ namespace FeatMultiplayer
         private Func<int, Inventory> apiGetClientBackpack;
         private Func<int, Inventory> apiGetClientEquipment;
         private Action<int, Inventory> apiSendInventory;
+        private Action<object> apiLogDebug;
+        private Action<object> apiLogInfo;
+        private Action<object> apiLogWarning;
+        private Action<object> apiLogError;
 
         /// <summary>
         /// Enumeration for the state of the multiplayer mod.
@@ -100,6 +104,14 @@ namespace FeatMultiplayer
 
                 result.apiSendInventory
                       = GetApi<Action<int, Inventory>>(pi, "apiSendInventory");
+
+                result.apiLogDebug = GetApi<Action<object>>(pi, "apiLogDebug");
+
+                result.apiLogInfo = GetApi<Action<object>>(pi, "apiLogInfo");
+
+                result.apiLogWarning = GetApi<Action<object>>(pi, "apiLogWarning");
+
+                result.apiLogError = GetApi<Action<object>>(pi, "apiLogError");
 
             }
             return result;
@@ -196,6 +208,30 @@ namespace FeatMultiplayer
         {
             ThrowIfUnavailable();
             return apiGetClientEquipment(clientId);
+        }
+
+        public void LogDebug(object obj)
+        {
+            ThrowIfUnavailable();
+            apiLogDebug(obj);
+        }
+
+        public void LogInfo(object obj)
+        {
+            ThrowIfUnavailable();
+            apiLogInfo(obj);
+        }
+
+        public void LogWarning(object obj)
+        {
+            ThrowIfUnavailable();
+            apiLogWarning(obj);
+        }
+
+        public void LogError(object obj)
+        {
+            ThrowIfUnavailable();
+            apiLogError(obj);
         }
 
         private void ThrowIfUnavailable()
