@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace FeatMultiplayer
 {
@@ -60,30 +61,14 @@ namespace FeatMultiplayer
             return updateMode == MultiplayerMode.SinglePlayer;
         }
 
-        /// <summary>
-        /// Distance in units how close the avatar has to be to the door.
-        /// </summary>
-        static float doorActivationDistance = 3f;
-
         static IEnumerator DoorsReaction(Door door1, Door door2, Collider collider)
         {
             bool entered = false;
-            var d1 = door1.transform.position;
-            var d2 = door2.transform.position;
-            var d3 = d1 + (d2 - d1) / 2;
 
             for (; ; )
             {
                 var localPosition = GetPlayerMainController().transform.position;
                 var otherPosition = otherPlayer != null ? otherPlayer.rawPosition : localPosition;
-
-                /*
-                var localDist = Vector3.Distance(localPosition, d3);
-                var otherDist = Vector3.Distance(otherPosition, d3);
-
-                var localInRange = localDist <= doorActivationDistance;
-                var otherInRange = otherDist <= doorActivationDistance;
-                */
 
                 var localInRange = collider.bounds.Contains(localPosition);
                 var otherInRange = collider.bounds.Contains(otherPosition);
@@ -143,5 +128,144 @@ namespace FeatMultiplayer
         {
             otherPlayer?.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
         }
+
+        /// <summary>
+        /// The vanilla game uses SectorEnter::Start to set up a collision box around load boundaries (sectors).
+        /// 
+        /// On the host, we track the other player and load in the respective sector.
+        /// 
+        /// On the client, we don't care where the host is?!
+        /// </summary>
+        /// <param name="__instance">The parent SectorEnter to register a coroutine tracker on.</param>
+        /// <param name="___collider">The collision box object around the sector</param>
+        /// <param name="___sector">The sector itself so we know what scene to load via <see cref="SceneManager.LoadSceneAsync(int, LoadSceneMode)"/></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SectorEnter), "Start")]
+        static void SectorEnter_Start(SectorEnter __instance, Collider ___collider, Sector ___sector)
+        {
+            LogInfo("SectorEnter_Start: " + ___sector.gameObject.name);
+            __instance.StartCoroutine(SectorEnter_TrackOtherPlayer(___collider, ___sector));
+        }
+
+        /// <summary>
+        /// How often to check the collisions with the other player.
+        /// </summary>
+        static float sectorTrackDelay = 0.5f;
+        /// <summary>
+        /// If the player triggered a scene load, defer the spawns.
+        /// </summary>
+        static bool sceneLoadingForSpawn;
+        /// <summary>
+        /// What inventory generation requests are pending due to scene loading.
+        /// </summary>
+        static HashSet<int> sceneSpawnRequest = new();
+
+        static IEnumerator SectorEnter_TrackOtherPlayer(Collider ___collider, Sector ___sector)
+        {
+            bool otherEntered = false;
+            for (; ; )
+            {
+                if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
+                {
+                    string name = ___sector.gameObject.name;
+                    if (___collider.bounds.Contains(otherPlayer.rawPosition))
+                    {
+                        if (!otherEntered)
+                        {
+                            otherEntered = true;
+                            LogInfo("SectorEnter_TrackOtherPlayer: other player entered " + name);
+                        }
+                        Scene scene = SceneManager.GetSceneByName(name);
+                        if (!scene.IsValid())
+                        {
+                            sceneLoadingForSpawn = true;
+                            LogInfo("SectorEnter_TrackOtherPlayer: Loading Scene " + name);
+                            var aop = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
+                            aop.completed += (op) => OnSceneLoadedForSpawn(op, ___sector, name);
+                        }
+                    }
+                    else
+                    {
+                        if (otherEntered)
+                        {
+                            otherEntered = false;
+                            LogInfo("SectorEnter_TrackOtherPlayer: other player exited " + name);
+                        }
+                    }
+
+                }
+                yield return new WaitForSeconds(sectorTrackDelay);
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Sector), "LoadSector")]
+        static bool Sector_LoadSector(Sector __instance, List<GameObject> ___decoyGameObjects)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                string name = __instance.gameObject.name;
+
+                Scene scene = SceneManager.GetSceneByName(name);
+                if (!scene.IsValid())
+                {
+                    LogInfo("Sector_LoadSector " + name + " Loading");
+                    var aop = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
+                    aop.completed += (ao) =>
+                    {
+                        LogInfo("Sector_LoadSector " + name + " Loading Done");
+                        foreach (var go in ___decoyGameObjects)
+                        {
+                            go.SetActive(false);
+                        }
+                    };
+                } else
+                {
+                    LogInfo("Sector_LoadSector " + name + ", Decoys = " + ___decoyGameObjects.Count + " already loaded");
+                }
+                return false;
+            }
+            return true;
+        }
+
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Sector), "SceneLoaded")]
+        static void Sector_SceneLoaded(Sector __instance)
+        {
+            LogInfo("Sector_SceneLoaded " + __instance.gameObject.name);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Sector), "SceneUnLoaded")]
+        static void Sector_SceneUnLoaded(Sector __instance)
+        {
+            LogInfo("Sector_SceneUnLoaded " + __instance.gameObject.name);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Sector), "UnloadSector")]
+        static void Sector_UnloadSector(Sector __instance, List<GameObject> ___decoyGameObjects)
+        {
+            LogInfo("Sector_UnloadSector " + __instance.gameObject.name + ", Decoys = " + ___decoyGameObjects.Count);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectFromScene), "Start")]
+        static void WorldObjectFromScene_Start(WorldObjectFromScene __instance)
+        {
+            WorldObject worldObject = WorldObjectsHandler.GetWorldObjectViaId(__instance.GetUniqueId());
+            if (worldObject != null) 
+            {
+                LogInfo("WorldObjectFromScene_Start: "
+                    + worldObject.GetId() + ", " + worldObject.GetGroup().GetId()
+                    + ", " + worldObject.GetIsFromDb() + " = "
+                    + (worldObject != null 
+                    && !worldObject.GetIsFromDb()
+                    && worldObject.GetIsPlaced()
+                    && Vector3.Distance(worldObject.GetPosition(), __instance.transform.position) > 2f));
+            }
+        }
+        */
     }
 }

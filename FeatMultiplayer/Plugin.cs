@@ -2,13 +2,15 @@
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
+using MijuTools;
+using SpaceCraft;
 
 namespace FeatMultiplayer
 {
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.16")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.17")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -84,6 +86,27 @@ namespace FeatMultiplayer
                 if (Keyboard.current.hKey.wasPressedThisFrame)
                 {
                     ToggleConsumption();
+                }
+                if (Keyboard.current.lKey.wasPressedThisFrame)
+                {
+                    if (Keyboard.current.shiftKey.IsPressed())
+                    {
+                        ClearLogs();
+                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Log cleared");
+                    }
+                    else
+                    {
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            hostLogLevel.Value = hostLogLevel.Value == 1 ? 2 : 1;
+                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Host Loglevel set to " + hostLogLevel.Value);
+                        }
+                        if (updateMode == MultiplayerMode.CoopClient)
+                        {
+                            clientLogLevel.Value = clientLogLevel.Value == 1 ? 2 : 1;
+                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Client Loglevel set to " + clientLogLevel.Value);
+                        }
+                    }
                 }
             }
             else

@@ -9,15 +9,17 @@ namespace FeatMultiplayer
     internal class MessageGrab : MessageStringProvider
     {
         internal int id;
+        internal string groupId;
 
         internal static bool TryParse(string str, out MessageGrab mg)
         {
-            if (MessageHelper.TryParseMessage("Grab|", str, 2, out var parameters))
+            if (MessageHelper.TryParseMessage("Grab|", str, 3, out var parameters))
             {
                 try
                 {
                     mg = new MessageGrab();
                     mg.id = int.Parse(parameters[1]);
+                    mg.groupId = parameters[2];
                     return true;
                 }
                 catch (Exception ex)
@@ -31,7 +33,7 @@ namespace FeatMultiplayer
 
         public string GetString()
         {
-            return "Grab|" + id + "\n";
+            return "Grab|" + id + "|" + groupId + "\n";
         }
     }
 }

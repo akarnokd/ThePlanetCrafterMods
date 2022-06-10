@@ -319,6 +319,11 @@ namespace FeatMultiplayer
                         spawn.transform.position = mga.position;
                         spawn.transform.rotation = mga.rotation;
 
+                        if (!mog.canRecolt)
+                        {
+                            GameObjects.RemoveCollidersOnChildren(spawn, false);
+                        }
+
                         var scaling = mga.growth;
                         spawn.transform.localScale = new Vector3(scaling, scaling, scaling);
 

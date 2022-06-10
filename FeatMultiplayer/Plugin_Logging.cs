@@ -52,7 +52,7 @@ namespace FeatMultiplayer
             else
             {
                 string fileName = Application.persistentDataPath + "\\Player_";
-                int logLevel = 0;
+                int logLevel;
                 if (updateMode == MultiplayerMode.CoopClient)
                 {
                     fileName += "Client.log";
@@ -80,6 +80,21 @@ namespace FeatMultiplayer
                 }
             }
 
+        }
+
+        internal static void ClearLogs()
+        {
+            string fileName = Application.persistentDataPath + "\\Player_";
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                fileName += "Client.log";
+            }
+            else
+            {
+                fileName += "Host.log";
+            }
+
+            File.Delete(fileName);
         }
 
         internal static void LogDebug(object message)

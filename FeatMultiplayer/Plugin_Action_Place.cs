@@ -159,14 +159,51 @@ namespace FeatMultiplayer
         /// <param name="___ghost">Clear the ghost as the vanilla game does not do this and may result in being unable to build again.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
-        static void PlayerBuilder_InputOnAction(PlayerBuilder __instance,
-            bool _isPressingAccessibilityKey, ref ConstructibleGhost ___ghost)
+        static void PlayerBuilder_InputOnAction(
+            PlayerBuilder __instance,
+            bool _isPressingAccessibilityKey, 
+            ref ConstructibleGhost ___ghost,
+            GroupConstructible ___ghostGroupConstructible
+        )
         {
-            if (cancelBuildAfterPlace && !_isPressingAccessibilityKey)
+            if (cancelBuildAfterPlace)
             {
-                __instance.InputOnCancelAction();
-                ___ghost = null;
                 cancelBuildAfterPlace = false;
+
+                __instance.GetComponent<PlayerAudio>().PlayBuildGhost();
+                __instance.GetComponent<PlayerAnimations>().AnimateConstruct(true);
+                __instance.Invoke("StopAnimation", 0.5f);
+
+                Inventory inv = GetPlayerMainController().GetPlayerBackpack().GetInventory();
+
+                var itemItself = new List<Group>() { ___ghostGroupConstructible };
+                var recipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+                suppressInventoryChange = true;
+                try
+                {
+                    if (inv.ContainsItems(itemItself))
+                    {
+                        inv.RemoveItems(itemItself, false, true);
+                    }
+                    else
+                    {
+                        inv.RemoveItems(recipe, false, true);
+                    }
+                }
+                finally
+                {
+                    suppressInventoryChange = false;
+                }
+                if (_isPressingAccessibilityKey && recipe.Count > 0)
+                {
+                    ___ghost = null;
+                    __instance.SetNewGhost(___ghostGroupConstructible);
+                }
+                else
+                {
+                    __instance.InputOnCancelAction();
+                    ___ghost = null;
+                }
             }
         }
 

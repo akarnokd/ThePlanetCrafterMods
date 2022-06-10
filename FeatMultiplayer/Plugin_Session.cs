@@ -98,6 +98,8 @@ namespace FeatMultiplayer
             countByGroupId.Clear();
             
             inventoryById.Clear();
+
+            rocketsInFlight.Clear();
         }
 
         void OnApplicationQuit()

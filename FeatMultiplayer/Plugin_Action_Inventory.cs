@@ -842,7 +842,7 @@ namespace FeatMultiplayer
                             }
                             else
                             {
-                                LogInfo("InventoryAssociated_GetInventory: Generating host inventory");
+                                LogInfo("InventoryAssociated_GetInventory: Generating host inventory: " + iid + ", Size = " + component.GetSize());
                                 Send(new MessageInventorySize() { inventoryId = iid, size = component.GetSize() });
                                 Signal();
 
@@ -908,59 +908,6 @@ namespace FeatMultiplayer
                 }
             }
             LogWarning("ReceiveMessageInventorySpawn: InventoryFromScene not found: " + iid + ", (sector not loaded?)");
-        }
-
-        /// <summary>
-        /// The vanilla game uses SectorEnter::Start to set up a collision box around load boundaries (sectors).
-        /// 
-        /// On the host, we track the other player and load in the respective sector.
-        /// 
-        /// On the client, we don't care where the host is?!
-        /// </summary>
-        /// <param name="__instance">The parent SectorEnter to register a coroutine tracker on.</param>
-        /// <param name="___collider">The collision box object around the sector</param>
-        /// <param name="___sector">The sector itself so we know what scene to load via <see cref="SceneManager.LoadSceneAsync(int, LoadSceneMode)"/></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SectorEnter), "Start")]
-        static void SectorEnter_Start(SectorEnter __instance, Collider ___collider, Sector ___sector)
-        {
-            __instance.StartCoroutine(SectorEnter_TrackOtherPlayer(___collider, ___sector));
-        }
-
-        /// <summary>
-        /// How often to check the collisions with the other player.
-        /// </summary>
-        static float sectorTrackDelay = 0.5f;
-        /// <summary>
-        /// If the player triggered a scene load, defer the spawns.
-        /// </summary>
-        static bool sceneLoadingForSpawn;
-        /// <summary>
-        /// What inventory generation requests are pending due to scene loading.
-        /// </summary>
-        static HashSet<int> sceneSpawnRequest = new();
-
-        static IEnumerator SectorEnter_TrackOtherPlayer(Collider ___collider, Sector ___sector)
-        {
-            for (; ; )
-            {
-                if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
-                {
-                    if (___collider.bounds.Contains(otherPlayer.avatar.transform.position))
-                    {
-                        string name = ___sector.gameObject.name;
-                        Scene scene = SceneManager.GetSceneByName(name);
-                        if (!scene.IsValid())
-                        {
-                            sceneLoadingForSpawn = true;
-                            LogInfo("SectorEnter_TrackOtherPlayer: Loading Scene " + name);
-                            var aop = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
-                            aop.completed += (op) => OnSceneLoadedForSpawn(op, ___sector, name);
-                        }
-                    }
-                }
-                yield return new WaitForSeconds(sectorTrackDelay);
-            }
         }
 
         static void OnSceneLoadedForSpawn(AsyncOperation op, Sector ___sector, string name)

@@ -159,26 +159,22 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                int randomId = 300000000 + UnityEngine.Random.Range(1000000, 9999999);
+                for (int i = 0; i < 50; i++)
+                {
+                    int randomId = 300000000 + UnityEngine.Random.Range(1000000, 9999999);
+                    if (!worldObjectById.ContainsKey(randomId))
+                    {
+                        __result = randomId;
+                        return false;
+                    }
+                }
                 int max = -1;
-                bool duplicate = false;
                 foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
                 {
                     int id = wo.GetId();
-                    if (id == randomId)
-                    {
-                        duplicate = true;
-                    }
                     max = Math.Max(max, id);
                 }
-                if (duplicate)
-                {
-                    __result = max + 1;
-                }
-                else
-                {
-                    __result = randomId;
-                }
+                __result = max + 1;
                 return false;
             }
             return true;

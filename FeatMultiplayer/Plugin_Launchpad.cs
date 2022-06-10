@@ -73,27 +73,32 @@ namespace FeatMultiplayer
                 }
                 if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo, out var rocketGo))
                 {
-                    LogInfo("LaunchRocket: Launch " + DebugWorldObject(rocketWo));
-                    Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                    Signal();
-
-                    var machineRocket = rocketGo.GetComponent<MachineRocket>();
-                    if (machineRocket == null)
+                    if (rocketGo.GetComponent<RocketAlreadyLaunched>() == null)
                     {
-                        machineRocket = rocketGo.AddComponent<MachineRocket>();
+                        rocketGo.AddComponent<RocketAlreadyLaunched>();
+
+                        LogInfo("LaunchRocket: Launch " + DebugWorldObject(rocketWo));
+                        Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
+                        Signal();
+
+                        var machineRocket = rocketGo.GetComponent<MachineRocket>();
+                        if (machineRocket == null)
+                        {
+                            machineRocket = rocketGo.AddComponent<MachineRocket>();
+                        }
+                        machineRocket.Ignite();
+
+                        if (__instance.GetComponent<ActionnableInteractive>() != null)
+                        {
+                            __instance.GetComponent<ActionnableInteractive>().OnActionInteractive();
+                        }
+
+                        Managers.GetManager<MeteoHandler>().SendSomethingInSpace(rocketWo.GetGroup());
+                        GetPlayerMainController().GetPlayerCameraShake().SetShaking(true, 0.06f, 0.0035f);
+                        HandleRocketMultiplier(rocketWo);
+
+                        machineRocket.StartCoroutine(RocketLaunchTracker(rocketWo, machineRocket));
                     }
-                    machineRocket.Ignite();
-
-                    if (__instance.GetComponent<ActionnableInteractive>() != null)
-                    {
-                        __instance.GetComponent<ActionnableInteractive>().OnActionInteractive();
-                    }
-
-                    Managers.GetManager<MeteoHandler>().SendSomethingInSpace(rocketWo.GetGroup());
-                    GetPlayerMainController().GetPlayerCameraShake().SetShaking(true, 0.06f, 0.0035f);
-                    HandleRocketMultiplier(rocketWo);
-
-                    machineRocket.StartCoroutine(RocketLaunchTracker(rocketWo, machineRocket));
                 }
                 else
                 {
@@ -111,13 +116,9 @@ namespace FeatMultiplayer
             {
                 if (Vector3.Distance(wo.GetPosition(), around) < radius && wo.GetGroup().GetId().StartsWith("Rocket"))
                 {
-                    if (TryGetGameObject(wo, out rocketGo)) {
-                        if (rocketGo.GetComponent<RocketAlreadyLaunched>() == null)
-                        {
-                            rocketGo.AddComponent<RocketAlreadyLaunched>();
-                            rocketWo = wo;
-                            return true;
-                        }
+                    if (TryGetGameObject(wo, out rocketGo) && rocketGo != null && rocketGo.activeSelf) {
+                        rocketWo = wo;
+                        return true;
                     }
                 }
             }
@@ -195,36 +196,41 @@ namespace FeatMultiplayer
         {
             if (worldObjectById.TryGetValue(ml.rocketId, out var rocketWo))
             {
-                if (TryGetGameObject(rocketWo, out var rocketGo))
+                if (TryGetGameObject(rocketWo, out var rocketGo) && rocketGo != null && rocketGo.activeSelf)
                 {
-                    var machineRocket = rocketGo.GetComponent<MachineRocket>();
-                    if (machineRocket == null)
+                    if (rocketGo.GetComponent<RocketAlreadyLaunched>() == null)
                     {
-                        machineRocket = rocketGo.AddComponent<MachineRocket>();
-                    }
-                    if (updateMode == MultiplayerMode.CoopHost)
-                    {
-                        Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                        Signal();
-                    }
-                    machineRocket.Ignite();
-                    PlayerMainController pm = GetPlayerMainController();
-                    if (Vector3.Distance(pm.transform.position, rocketWo.GetPosition()) < rocketShakeDistance) 
+                        rocketGo.AddComponent<RocketAlreadyLaunched>();
+                        var machineRocket = rocketGo.GetComponent<MachineRocket>();
+                        if (machineRocket == null)
                         {
-                        pm.GetPlayerCameraShake().SetShaking(true, 0.06f, 0.0035f);
-                    }
-                    LogInfo("ReceiveMessageLaunch: Launch " + DebugWorldObject(rocketWo));
-                    if (updateMode == MultiplayerMode.CoopHost)
-                    {
-                        Managers.GetManager<MeteoHandler>().SendSomethingInSpace(rocketWo.GetGroup());
+                            machineRocket = rocketGo.AddComponent<MachineRocket>();
+                        }
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
+                            Signal();
+                        }
+                        machineRocket.Ignite();
+                        PlayerMainController pm = GetPlayerMainController();
+                        if (Vector3.Distance(pm.transform.position, rocketWo.GetPosition()) < rocketShakeDistance)
+                        {
+                            pm.GetPlayerCameraShake().SetShaking(true, 0.06f, 0.0035f);
+                        }
+                        LogInfo("ReceiveMessageLaunch: Launch " + DebugWorldObject(rocketWo));
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            Managers.GetManager<MeteoHandler>().SendSomethingInSpace(rocketWo.GetGroup());
 
-                        HandleRocketMultiplier(rocketWo);
+                            HandleRocketMultiplier(rocketWo);
 
-                        machineRocket.StartCoroutine(RocketLaunchTracker(rocketWo, machineRocket));
-                    }
-                    else
-                    {
-                        rocketsInFlight.Add(rocketWo.GetId());
+                            machineRocket.StartCoroutine(RocketLaunchTracker(rocketWo, machineRocket));
+                        }
+                        else
+                        {
+                            rocketsInFlight.Add(rocketWo.GetId());
+                        }
+
                     }
                 }
                 else

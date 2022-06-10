@@ -53,9 +53,13 @@ namespace FeatMultiplayer
                     if (woa != null)
                     {
                         var wo = woa.GetWorldObject();
+
+                        gameObjectByWorldObject[wo] = woa.gameObject;
+
                         var mg = new MessageGrab()
                         {
-                            id = wo.GetId()
+                            id = wo.GetId(),
+                            groupId = wo.GetGroup().GetId()
                         };
                         LogInfo("Request Grab " + DebugWorldObject(wo));
                         Send(mg);
@@ -72,8 +76,6 @@ namespace FeatMultiplayer
 
                 if (woa != null)
                 {
-                    Destroy(__instance.gameObject);
-                    
                     var wo = woa.GetWorldObject();
                     ___playerSource.GetPlayerBackpack().GetInventory().AddItem(wo);
                     wo.SetDontSaveMe(_dontSaveMe: false);
@@ -82,6 +84,8 @@ namespace FeatMultiplayer
                     ___playerSource.GetPlayerAudio().PlayGrab();
                     ___itemWorldDisplayer.Hide();
                     __instance.grabedEvent?.Invoke(wo);
+
+                    Destroy(__instance.gameObject);
                 }
                 return false;
             }
@@ -95,45 +99,65 @@ namespace FeatMultiplayer
 
         static void ReceiveMessageGrab(MessageGrab mg)
         {
-            LogInfo("ReceiveMessageGrab: " + mg.id);
+            //LogInfo("ReceiveMessageGrab: " + mg.id);
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (worldObjectById.TryGetValue(mg.id, out var wo))
+                worldObjectById.TryGetValue(mg.id, out var wo);
+                if (wo == null && WorldObjectsIdHandler.IsWorldObjectFromScene(mg.id))
                 {
-                    if (wo.GetIsPlaced())
+                    Group g = GroupsHandler.GetGroupViaId(mg.groupId);
+                    if (g != null)
                     {
-                        Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                        LogInfo("ReceiveMessageGrab: Creating scene item " + mg.id + ", " + mg.groupId);
+                        wo = WorldObjectsHandler.CreateNewWorldObject(g, mg.id);
+                        SendWorldObject(wo, false);
+                    }
+                    else
+                    {
+                        LogWarning("ReceiveMessageGrab: Unknown group " + mg.id + ", " + mg.groupId);
+                    }
+                }
+                if (wo != null)
+                {
+                    Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
 
-                        if (inv.AddItem(wo))
+                    if (inv.AddItem(wo))
+                    {
+                        LogInfo("ReceiveMessageGrab: Confirm Grab " + DebugWorldObject(wo));
+                        Send(mg);
+                        Signal();
+
+                        if (TryGetGameObject(wo, out var go))
                         {
-                            wo.SetDontSaveMe(false);
-                            if (TryGetGameObject(wo, out var go))
+                            var ag = go.GetComponent<ActionGrabable>();
+                            Grabed g = ag?.grabedEvent;
+
+                            TryRemoveGameObject(wo);
+                            Destroy(go);
+
+                            if (g != null)
                             {
-                                var ag = go.GetComponent<ActionGrabable>();
-                                Grabed g = ag?.grabedEvent;
-
-                                UnityEngine.Object.Destroy(go);
-                                TryRemoveGameObject(wo);
-
-                                LogInfo("ReceiveMessageGrab: Client.Grab " + mg.id);
-                                Send(mg);
-                                Signal();
-
-                                if (g != null)
+                                clientGrabCallback = true;
+                                try
                                 {
-                                    clientGrabCallback = true;
-                                    try
-                                    {
-                                        g.Invoke(wo);
-                                    }
-                                    finally
-                                    {
-                                        clientGrabCallback = false;
-                                    }
+                                    g.Invoke(wo);
+                                }
+                                finally
+                                {
+                                    clientGrabCallback = false;
                                 }
                             }
+                            LogInfo("ReceiveMessageGrab: GameObject destroy success " + DebugWorldObject(wo));
+                        }
+                        else
+                        {
+                            LogWarning("ReceiveMessageGrab: No GameObject found for " + DebugWorldObject(wo));
                         }
                     }
+                }
+                else
+                {
+                    LogWarning("ReceiveMessageGrab: WorldObject not found " + mg.id + ", " + mg.groupId);
                 }
             }
             else
@@ -149,7 +173,7 @@ namespace FeatMultiplayer
                         TryRemoveGameObject(wo);
 
 
-                        LogInfo("ReceiveMessageGrab: Grabbed " + DebugWorldObject(wo));
+                        LogInfo("ReceiveMessageGrab: Grab Success " + DebugWorldObject(wo));
 
                         Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer()
                         .AddInformation(2.5f, Readable.GetGroupName(wo.GetGroup()),
@@ -159,6 +183,10 @@ namespace FeatMultiplayer
                     {
                         LogWarning("ReceiveMessageGrab: No GameObject found for " + DebugWorldObject(wo));
                     }
+                }
+                else
+                {
+                    LogWarning("ReceiveMessageGrab: WorldObject not found " + mg.id + ", " + mg.groupId);
                 }
             }
         }

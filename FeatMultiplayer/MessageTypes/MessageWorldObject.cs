@@ -42,7 +42,7 @@ namespace FeatMultiplayer
                 sb.Append(separator);
                 sb.Append(separator);
             }
-            sb.Append(DataTreatments.ColorToString(wo.GetColor())); // 6
+            sb.Append(MessageHelper.ColorToString(wo.GetColor())); // 6
             sb.Append(separator);
             sb.Append(wo.GetText()); // 7
             sb.Append(separator);
