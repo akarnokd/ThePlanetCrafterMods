@@ -96,43 +96,6 @@ namespace FeatMultiplayer
             }
         }
 
-
-        /// <summary>
-        /// The vanilla game calls Inventory::RemoveItem all over the place to remove items from inventories.
-        /// 
-        /// On the host, we have things to do after the call, see <see cref="Inventory_RemoveItem(int, WorldObject, bool)"/>.
-        /// 
-        /// On the client, we have to intercept before the removal so we can retarget and ask the host to remove the item
-        /// for us. This avoids issues with the full sync process.
-        /// 
-        /// We also use the <see cref="suppressInventoryChange"/> so that local inventory changes bounced back from the other side
-        /// do not create message ping-ponging.
-        /// </summary>
-        /// <param name="___inventoryId">The inventory id where the object would be removed</param>
-        /// <param name="_worldObject">The world object to remove</param>
-        /// <param name="_destroyWorldObject">If true, the world object is destroyed, such as when it was consumed or used for building.</param>
-        /// <returns>False if on client and syncing is enabled.</returns>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem))]
-        static bool Inventory_RemoveItem_Pre(Inventory __instance, int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
-        {
-            if (updateMode == MultiplayerMode.CoopClient && !suppressInventoryChange)
-            {
-                __instance.GetInsideWorldObjects().Remove(_worldObject);
-                var mir = new MessageInventoryRemoved()
-                {
-                    inventoryId = ___inventoryId,
-                    itemId = _worldObject.GetId(),
-                    destroy = _destroyWorldObject
-                };
-                LogInfo("InventoryRemoveItemPre: " + ___inventoryId + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
-                Send(mir);
-                Signal();
-                return false;
-            }
-            return true;
-        }
-
         /// <summary>
         /// The vanilla game calls Inventory::RemoveItem all over the place to remove items from inventories.
         /// 
@@ -146,28 +109,43 @@ namespace FeatMultiplayer
         /// <param name="_destroyWorldObject">If true, the world object is destroyed, such as when it was consumed or used for building.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem))]
-        static void Inventory_RemoveItem_Post(int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
+        static void Inventory_RemoveItem(int ___inventoryId, WorldObject _worldObject, bool _destroyWorldObject)
         {
-            if (updateMode == MultiplayerMode.CoopHost && !suppressInventoryChange)
+            if (!suppressInventoryChange)
             {
-                int iid = ___inventoryId;
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
-                    if (!TryConvertHostToClientInventoryId(iid, out iid))
+                    int iid = ___inventoryId;
+                    if (updateMode == MultiplayerMode.CoopHost)
                     {
-                        return;
+                        if (!TryConvertHostToClientInventoryId(iid, out iid))
+                        {
+                            return;
+                        }
                     }
-                }
 
-                var mir = new MessageInventoryRemoved()
+                    var mir = new MessageInventoryRemoved()
+                    {
+                        inventoryId = iid,
+                        itemId = _worldObject.GetId(),
+                        destroy = _destroyWorldObject
+                    };
+                    LogInfo("InventoryRemoveItem: " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
+                    Send(mir);
+                    Signal();
+                }
+                if (updateMode == MultiplayerMode.CoopClient && !suppressInventoryChange)
                 {
-                    inventoryId = iid,
-                    itemId = _worldObject.GetId(),
-                    destroy = _destroyWorldObject
-                };
-                LogInfo("InventoryRemoveItemPost: " + iid + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
-                Send(mir);
-                Signal();
+                    var mir = new MessageInventoryRemoved()
+                    {
+                        inventoryId = ___inventoryId,
+                        itemId = _worldObject.GetId(),
+                        destroy = _destroyWorldObject
+                    };
+                    LogInfo("InventoryRemoveItem: " + ___inventoryId + ", " + _worldObject.GetId() + ", " + _worldObject.GetGroup().GetId());
+                    Send(mir);
+                    Signal();
+                }
             }
         }
 
