@@ -124,11 +124,11 @@ namespace FeatMultiplayer
                         {
                             if (iid != currentInvId)
                             {
-                                LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " also present in " + iid + "! Removing from " + iid);
+                                LogWarning("UnborkInventories: WorldObject " + woid + " (" + wo.GetGroup().GetId() + ")" + " @ " + currentInvId + " also present in " + iid + "! Removing from " + iid);
                             }
                             else
                             {
-                                LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " duplicate found! Removing duplicate.");
+                                LogWarning("UnborkInventories: WorldObject " + woid + " (" + wo.GetGroup().GetId() + ")" + " @ " + currentInvId + " duplicate found! Removing duplicate.");
                             }
                             wos.RemoveAt(i);
                         }
@@ -139,7 +139,7 @@ namespace FeatMultiplayer
                     }
                     else
                     {
-                        LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " no longer exist! Removing from inventory.");
+                        LogWarning("UnborkInventories: WorldObject " + woid + " (" + wo.GetGroup().GetId() + ")" + " @ " + currentInvId + " no longer exist! Removing from inventory.");
                         wos.RemoveAt(i);
                     }
                 }
