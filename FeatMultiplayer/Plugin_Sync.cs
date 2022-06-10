@@ -118,21 +118,29 @@ namespace FeatMultiplayer
                     WorldObject wo = wos[i];
                     int woid = wo.GetId();
 
-                    if (worldObjectToInventoryId.TryGetValue(woid, out var iid))
+                    if (worldObjectById.ContainsKey(woid))
                     {
-                        if (iid != currentInvId)
+                        if (worldObjectToInventoryId.TryGetValue(woid, out var iid))
                         {
-                            LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " also present in " + iid + "! Removing from " + iid);
+                            if (iid != currentInvId)
+                            {
+                                LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " also present in " + iid + "! Removing from " + iid);
+                            }
+                            else
+                            {
+                                LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " duplicate found! Removing duplicate.");
+                            }
+                            wos.RemoveAt(i);
                         }
                         else
                         {
-                            LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " duplicate found! Removing duplicate.");
+                            worldObjectToInventoryId[woid] = currentInvId;
                         }
-                        wos.RemoveAt(i);
                     }
                     else
                     {
-                        worldObjectToInventoryId[woid] = currentInvId;
+                        LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " no longer exist! Removing from inventory.");
+                        wos.RemoveAt(i);
                     }
                 }
             }
