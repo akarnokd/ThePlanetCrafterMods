@@ -180,7 +180,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(MachineRocket), nameof(MachineRocket.Ignite))]
         static void MachineRocket_Ignite(Rigidbody ___rigidbody)
         {
-            Physics.IgnoreCollision(___rigidbody.GetComponent<Collider>(), GetPlayerMainController().GetComponent<Collider>());
+            Physics.IgnoreCollision(___rigidbody.GetComponentInChildren<Collider>(), GetPlayerMainController().GetComponentInChildren<Collider>());
         }
 
         static float rocketShakeDistance = 100f;
