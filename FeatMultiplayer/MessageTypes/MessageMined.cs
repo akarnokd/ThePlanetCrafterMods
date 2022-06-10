@@ -9,23 +9,22 @@ namespace FeatMultiplayer
     internal class MessageMined : MessageStringProvider
     {
         internal int id;
+        internal string groupId;
 
         internal static bool TryParse(string str, out MessageMined mm)
         {
-            if (MessageHelper.TryParseMessage("Mined|", str, out var parameters))
+            if (MessageHelper.TryParseMessage("Mined|", str, 3, out var parameters))
             {
                 try
                 {
-                    if (parameters.Length == 2)
-                    {
-                        mm = new MessageMined();
-                        mm.id = int.Parse(parameters[1]);
-                        return true;
-                    }
+                    mm = new();
+                    mm.id = int.Parse(parameters[1]);
+                    mm.groupId = parameters[2];
+                    return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-
+                    Plugin.LogError(ex);
                 }
             }
             mm = null;
@@ -34,7 +33,7 @@ namespace FeatMultiplayer
 
         public string GetString()
         {
-            return "Mined|" + id + "\n";
+            return "Mined|" + id + "|" + groupId + "\n";
         }
     }
 }

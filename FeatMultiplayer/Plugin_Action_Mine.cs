@@ -34,8 +34,12 @@ namespace FeatMultiplayer
                     WorldObject worldObject = woa.GetWorldObject();
                     if (worldObject != null)
                     {
-                        LogInfo("Mined: " + worldObject.GetId() + " of " + worldObject.GetGroup().GetId() + " at " + worldObject.GetPosition());
-                        Send(new MessageMined() {  id = worldObject.GetId() });
+                        SendWorldObject(worldObject, false);
+
+                        int woid = worldObject.GetId();
+                        string groupId = worldObject.GetGroup().GetId();
+                        LogInfo("Mined: " + woid + " of " + groupId + " at " + woa.gameObject.transform.position);
+                        Send(new MessageMined() {  id = woid, groupId = groupId });
                         Signal();
                     }
                 }
@@ -44,25 +48,51 @@ namespace FeatMultiplayer
 
         static void ReceiveMessageMined(MessageMined mm)
         {
-            LogInfo("ReceiveMessageMined: OtherPlayer mined " + mm.id);
+            LogInfo("ReceiveMessageMined: OtherPlayer mined " + mm.id + ", " + mm.groupId);
 
             WorldObject wo1 = WorldObjectsHandler.GetWorldObjectViaId(mm.id);
-            if (wo1 != null && wo1.GetIsPlaced())
+
+            if (updateMode == MultiplayerMode.CoopHost)
             {
-                LogInfo("ReceiveMessageMined: Hiding WorldObject " + mm.id);
+                if (wo1 == null && WorldObjectsIdHandler.IsWorldObjectFromScene(mm.id))
+                {
+                    var gr = GroupsHandler.GetGroupViaId(mm.groupId);
+                    if (gr != null)
+                    {
+                        wo1 = WorldObjectsHandler.CreateNewWorldObject(gr, mm.id);
+                        LogInfo("ReceiveMessageMined: Creating WorldObject for " + mm.id + ", " + mm.groupId);
+                    }
+                    else
+                    {
+                        LogWarning("ReceiveMessageMined: Unknown group for " + mm.id + ", " + mm.groupId);
+                    }
+                }
+            }
+
+            if (wo1 != null)
+            {
+                LogInfo("ReceiveMessageMined: Hiding WorldObject " + mm.id + ", " + mm.groupId);
                 wo1.ResetPositionAndRotation();
                 wo1.SetDontSaveMe(false);
+                SendWorldObject(wo1, false);
 
                 if (TryGetGameObject(wo1, out var go))
                 {
                     TryRemoveGameObject(wo1);
-                    UnityEngine.Object.Destroy(go);
+                    Destroy(go);
                 }
                 else
                 {
-                    LogWarning("ReceiveMessageMined: GameObject not found");
+                    LogWarning("ReceiveMessageMined: GameObject not found for " + mm.id + ", " + mm.groupId);
                 }
                 return;
+            }
+            else
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    LogWarning("ReceiveMessageMined: Unknown WorldObject " + mm.id + ", " + mm.groupId);
+                }
             }
         }
     }
