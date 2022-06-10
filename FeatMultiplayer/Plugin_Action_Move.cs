@@ -26,59 +26,84 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(DoorsHandler), "Start")]
         static void DoorsHandler_Start(DoorsHandler __instance, Door ___door1, Door ___door2)
         {
-            __instance.StartCoroutine(DoorsReaction(___door1, ___door2));
+            if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
+            {
+                __instance.StartCoroutine(DoorsReaction(___door1, ___door2, __instance.GetComponentInChildren<Collider>()));
+            }
+        }
+
+        /// <summary>
+        /// The vanilla calls this when the user leaves the collision box of the door.
+        /// 
+        /// We bypass this in multiplayer so the doors open and close with
+        /// considering all players nearby.
+        /// </summary>
+        /// <returns>True for singleplayer, false for multiplayer.</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DoorsHandler), "OnTriggerEnter")]
+        static bool DoorsHandler_OnTriggerEnter()
+        {
+            return updateMode == MultiplayerMode.SinglePlayer;
+        }
+
+        /// <summary>
+        /// The vanilla calls this when the user leaves the collision box of the door.
+        /// 
+        /// We bypass this in multiplayer so the doors open and close with
+        /// considering all players nearby.
+        /// </summary>
+        /// <returns>True for singleplayer, false for multiplayer.</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DoorsHandler), "OnTriggerExit")]
+        static bool DoorsHandler_OnTriggerExit()
+        {
+            return updateMode == MultiplayerMode.SinglePlayer;
         }
 
         /// <summary>
         /// Distance in units how close the avatar has to be to the door.
         /// </summary>
-        static float doorActivationDistance = 2f;
-        /// <summary>
-        /// How often to check the player avatar's position, in seconds.
-        /// </summary>
-        static float doorActivationCheckPeriod = 0.05f;
+        static float doorActivationDistance = 3f;
 
-        static IEnumerator DoorsReaction(Door door1, Door door2)
+        static IEnumerator DoorsReaction(Door door1, Door door2, Collider collider)
         {
             bool entered = false;
             var d1 = door1.transform.position;
             var d2 = door2.transform.position;
             var d3 = d1 + (d2 - d1) / 2;
+
             for (; ; )
             {
-                if (otherPlayer != null)
+                var localPosition = GetPlayerMainController().transform.position;
+                var otherPosition = otherPlayer != null ? otherPlayer.rawPosition : localPosition;
+
+                /*
+                var localDist = Vector3.Distance(localPosition, d3);
+                var otherDist = Vector3.Distance(otherPosition, d3);
+
+                var localInRange = localDist <= doorActivationDistance;
+                var otherInRange = otherDist <= doorActivationDistance;
+                */
+
+                var localInRange = collider.bounds.Contains(localPosition);
+                var otherInRange = collider.bounds.Contains(otherPosition);
+
+                if (!entered && (localInRange || otherInRange))
                 {
-                    var pos = otherPlayer.avatar.transform.position;
-
-
-                    if (Vector3.Distance(pos, d3) <= doorActivationDistance)
-                    {
-                        if (!entered)
-                        {
-                            entered = true;
-                            door1.OpenDoor();
-                            door2.OpenDoor();
-                        }
-                    }
-                    else
-                    if (entered)
-                    {
-                        entered = false;
-                        // FIXME what if the main player also stands there?!
-                        door1.CloseDoor();
-                        door2.CloseDoor();
-                    }
+                    entered = true;
+                    door1.OpenDoor();
+                    door2.OpenDoor();
                 }
                 else
+                if (entered && !localInRange && !otherInRange)
                 {
-                    if (entered)
-                    {
-                        entered = false;
-                        door1.CloseDoor();
-                        door2.CloseDoor();
-                    }
+                    entered = false;
+                    door1.CloseDoor();
+                    door2.CloseDoor();
                 }
-                yield return new WaitForSeconds(doorActivationCheckPeriod);
+
+                
+                yield return 0;
             }
         }
 

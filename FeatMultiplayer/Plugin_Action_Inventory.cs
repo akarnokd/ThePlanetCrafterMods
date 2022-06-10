@@ -794,7 +794,8 @@ namespace FeatMultiplayer
         /// The vanilla game calls InventoryAssociated::GetInventory to generate the inventory contents on
         /// demand.
         /// 
-        /// On the host, we simply let it happen.
+        /// On the host, we will notify the client about the creation of the inventory and
+        /// let the add messages propagate.
         /// 
         /// On the client, we send a inventory spawn request to the host. We return
         /// a temporary empty inventory, which must be locked out of deconstruction.
@@ -810,7 +811,7 @@ namespace FeatMultiplayer
             ref Inventory __result
         )
         {
-            if (updateMode == MultiplayerMode.CoopClient)
+            if (updateMode != MultiplayerMode.SinglePlayer)
             {
                 if (___inventory == null)
                 {
@@ -829,15 +830,32 @@ namespace FeatMultiplayer
                             Inventory inventory = InventoriesHandler.CreateNewInventory(component.GetSize(), iid);
                             __instance.SetInventory(inventory);
                             __result = ___inventory;
-                            LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
-                            Send(new MessageInventorySpawn() { inventoryId = iid });
-                            Signal();
-                            inventorySpawning.Add(iid);
+                            if (updateMode == MultiplayerMode.CoopClient)
+                            {
+                                LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
+                                Send(new MessageInventorySpawn() { inventoryId = iid });
+                                Signal();
+                                inventorySpawning.Add(iid);
+                            }
+                            else
+                            {
+                                LogInfo("InventoryAssociated_GetInventory: Generating host inventory");
+                                Send(new MessageInventorySize() { inventoryId = iid, size = component.GetSize() });
+                                Signal();
+
+                                List<Group> generatedGroups = component.GetGeneratedGroups();
+                                foreach (Group item in generatedGroups)
+                                {
+                                    WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(item);
+                                    SendWorldObject(worldObject, false);
+                                    inventory.AddItem(worldObject);
+                                }
+                            }
                         }
                     }
                     else
                     {
-                        LogInfo("InventoryAssociated_GetInventory: No InventoryFromScene?!");
+                        LogWarning("InventoryAssociated_GetInventory: No InventoryFromScene?!");
                     }
                 }
                 else

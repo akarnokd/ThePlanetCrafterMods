@@ -58,6 +58,8 @@ namespace FeatMultiplayer
 
             // =========================================================
 
+            UnborkInventories();
+
             sb = new StringBuilder();
             sb.Append("Inventories");
 
@@ -74,10 +76,10 @@ namespace FeatMultiplayer
             MessageInventories.Append(sb, inv, 1);
 
             // Send all the other inventories after
-
             foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
             {
                 int id = inv2.GetId();
+
                 // Ignore Host's own inventory/equipment
                 if (id != 1 && id != 2 && id != shadowInventoryId && id != shadowEquipmentId)
                 {
@@ -97,6 +99,43 @@ namespace FeatMultiplayer
         {
             SendTerraformState();
             Signal();
+        }
+
+        /// <summary>
+        /// Removes duplicate and multi-home world objects from inventories.
+        /// </summary>
+        static void UnborkInventories()
+        {
+            Dictionary<int, int> worldObjectToInventoryId = new();
+            foreach (Inventory inv in InventoriesHandler.GetAllInventories())
+            {
+                int currentInvId = inv.GetId();
+
+                List<WorldObject> wos = inv.GetInsideWorldObjects();
+
+                for (int i = wos.Count - 1; i >= 0; i--)
+                {
+                    WorldObject wo = wos[i];
+                    int woid = wo.GetId();
+
+                    if (worldObjectToInventoryId.TryGetValue(woid, out var iid))
+                    {
+                        if (iid != currentInvId)
+                        {
+                            LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " also present in " + iid + "! Removing from " + iid);
+                        }
+                        else
+                        {
+                            LogWarning("UnborkInventories: WorldObject " + woid + " @ " + currentInvId + " duplicate found! Removing duplicate.");
+                        }
+                        wos.RemoveAt(i);
+                    }
+                    else
+                    {
+                        worldObjectToInventoryId[woid] = currentInvId;
+                    }
+                }
+            }
         }
     }
 }

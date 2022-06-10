@@ -11,6 +11,11 @@ namespace FeatMultiplayer
         internal GameObject light1;
         internal GameObject light2;
 
+        /// <summary>
+        /// What the other side told us about their position.
+        /// </summary>
+        internal Vector3 rawPosition;
+
         internal void Destroy()
         {
             UnityEngine.Object.Destroy(avatar);
@@ -22,6 +27,8 @@ namespace FeatMultiplayer
         {
             if (avatar != null)
             {
+                rawPosition = position;
+
                 avatar.transform.position = new Vector3(position.x, position.y + 1.5f, position.z);
                 var yrot = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
                 avatar.transform.rotation = yrot;

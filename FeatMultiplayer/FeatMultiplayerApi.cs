@@ -31,6 +31,7 @@ namespace FeatMultiplayer
         private Action<object, Action<object>> apiSuppressInventoryChangeWhile;
         private Func<int, Inventory> apiGetClientBackpack;
         private Func<int, Inventory> apiGetClientEquipment;
+        private Action<int, Inventory> apiSendInventory;
 
         /// <summary>
         /// Enumeration for the state of the multiplayer mod.
@@ -97,6 +98,9 @@ namespace FeatMultiplayer
                 result.apiGetClientEquipment
                       = GetApi<Func<int, Inventory>>(pi, "apiGetClientEquipment");
 
+                result.apiSendInventory
+                      = GetApi<Action<int, Inventory>>(pi, "apiSendInventory");
+
             }
             return result;
         }
@@ -128,6 +132,72 @@ namespace FeatMultiplayer
             };
         }
 
+        public int GetGroupCount(string groupId)
+        {
+            ThrowIfUnavailable();
+            return apiCountByGroupId(groupId);
+        }
+
+        public void AddMessageParser(Func<int, string, ConcurrentQueue<object>, bool> parser)
+        {
+            ThrowIfUnavailable();
+            apiAddMessageParser(parser);
+        }
+
+        public void AddMessageReceiver(Func<object, bool> receiver)
+        {
+            ThrowIfUnavailable();
+            apiAddMessageReceiver(receiver);
+        }
+
+        public void Send(object obj, int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            apiSend(clientId, obj);
+        }
+
+        public void Signal(int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            apiSignal(clientId);
+        }
+
+        public void SendWorldObject(WorldObject worldObject, int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            apiSendWorldObject(clientId, worldObject);
+        }
+
+
+        public void SendInventory(Inventory inventory, int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            apiSendInventory(clientId, inventory);
+        }
+
+        public void SuppressInventoryChangeWhile(Action action)
+        {
+            SuppressInventoryChangeWhile(null, obj => action());
+        }
+
+        public void SuppressInventoryChangeWhile(object parameter, Action<object> actionWithParameter)
+        {
+            ThrowIfUnavailable();
+            apiSuppressInventoryChangeWhile(parameter, actionWithParameter);
+        }
+
+        public Inventory GetClientBackpack(int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            return apiGetClientBackpack(clientId);
+        }
+
+        public Inventory GetClientEquipment(int clientId = 0)
+        {
+            ThrowIfUnavailable();
+            return apiGetClientEquipment(clientId);
+        }
+
         private void ThrowIfUnavailable()
         {
             if (!IsAvailable())
@@ -138,7 +208,12 @@ namespace FeatMultiplayer
 
         private static T GetApi<T>(BepInEx.PluginInfo pi, string name)
         {
-            return (T)AccessTools.Field(pi.Instance.GetType(), name).GetValue(null);
+            var fi = AccessTools.Field(pi.Instance.GetType(), name);
+            if (fi == null)
+            {
+                throw new NullReferenceException("Missing field " + pi.Instance.GetType() + "." + name);
+            }
+            return (T)fi.GetValue(null);
         }
     }
 }

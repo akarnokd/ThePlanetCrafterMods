@@ -92,6 +92,8 @@ namespace FeatMultiplayer
             _sendQueue.Clear();
             receiveQueue.Clear();
 
+            inventorySpawning.Clear();
+
             worldObjectById.Clear();
             countByGroupId.Clear();
             

@@ -31,6 +31,11 @@ namespace FeatMultiplayer
         static void EnvironmentDayNightCycle_Start(EnvironmentDayNightCycle __instance)
         {
             environmentDayNightCycleValue = AccessTools.Field(typeof(EnvironmentDayNightCycle), "dayNightLerpValue");
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                // don't let the client interpolation run at all
+                __instance.StopAllCoroutines();
+            }
             __instance.StartCoroutine(DayNightCycle(__instance, 0.5f));
         }
 

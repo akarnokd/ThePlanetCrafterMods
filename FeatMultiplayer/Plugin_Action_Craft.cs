@@ -54,6 +54,17 @@ namespace FeatMultiplayer
                     }
                     else
                     {
+                        // Client prediction: the removal will succeed, no need to notify about the removal
+                        suppressInventoryChange = true;
+                        try
+                        {
+                            inventory.RemoveItems(recipe, false, true);
+                        }
+                        finally
+                        {
+                            suppressInventoryChange = false;
+                        }
+
                         _sourceCrafter?.CraftAnimation(groupItem);
                         ___totalCraft++;
                         __result = true;
@@ -112,6 +123,17 @@ namespace FeatMultiplayer
 
                     if (updateMode == MultiplayerMode.CoopClient)
                     {
+                        // Client prediction: the removal will succeed, no need to notify about the removal
+                        suppressInventoryChange = true;
+                        try
+                        {
+                            inventory.RemoveItems(recipe, false, true);
+                        }
+                        finally
+                        {
+                            suppressInventoryChange = false;
+                        }
+
                         Send(new MessageCraftWorld()
                         {
                             groupId = groupItem.GetId(),
@@ -123,7 +145,7 @@ namespace FeatMultiplayer
                     else
                     {
                         var wo = WorldObjectsHandler.CreateNewWorldObject(groupItem, 0);
-                        inventory.RemoveItems(recipe, true, false);
+                        inventory.RemoveItems(recipe, true, true);
 
                         wo.SetPositionAndRotation(_sourceCrafter.GetSpawnPosition(), new Quaternion(0f, 0f, 0f, 0f));
                         var go = WorldObjectsHandler.InstantiateWorldObject(wo, false);
@@ -185,12 +207,12 @@ namespace FeatMultiplayer
                         else
                         {
                             WorldObjectsHandler.DestroyWorldObject(wo);
-                            LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = inventory full");
+                            LogWarning("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = inventory full");
                         }
                     }
                     else
                     {
-                        LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = missing ingredients");
+                        LogWarning("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = missing ingredients");
                     }
                 } 
                 else
@@ -224,11 +246,10 @@ namespace FeatMultiplayer
                         LogInfo("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = true");
                         // FIXME this won't animate properly on the client
                         SendWorldObject(wo, false);
-                        Signal();
                     }
                     else
                     {
-                        LogInfo("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = false, reason = missing ingredients");
+                        LogWarning("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = false, reason = missing ingredients");
                     }
                 }
                 else
