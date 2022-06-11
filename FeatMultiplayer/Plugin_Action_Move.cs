@@ -249,25 +249,6 @@ namespace FeatMultiplayer
         {
             LogInfo("Sector_UnloadSector " + __instance.gameObject.name + ", Decoys = " + ___decoyGameObjects.Count);
         }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(WorldObjectFromScene), "Start")]
-        static void WorldObjectFromScene_Start(WorldObjectFromScene __instance)
-        {
-            LogInfo("WorldObjectFromScene_Start");
-            LogInfo("WorldObjectFromScene_Start " + __instance.GetUniqueId());
-            WorldObject worldObject = WorldObjectsHandler.GetWorldObjectViaId(__instance.GetUniqueId());
-            if (worldObject != null) 
-            {
-                LogInfo("WorldObjectFromScene_Start: "
-                    + worldObject.GetId() + ", " + worldObject.GetGroup().GetId()
-                    + ", " + worldObject.GetIsFromDb() + " = "
-                    + (worldObject != null 
-                    && !worldObject.GetIsFromDb()
-                    && worldObject.GetIsPlaced()
-                    && Vector3.Distance(worldObject.GetPosition(), __instance.transform.position) > 2f));
-            }
-        }
         */
     }
 }

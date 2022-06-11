@@ -36,6 +36,14 @@ namespace FeatMultiplayer
         static Dictionary<WorldObject, GameObject> gameObjectByWorldObject;
 
         /// <summary>
+        /// Maps GameObjects having the <see cref="WorldObjectFromScene"/> 
+        /// or <see cref="InventoryFromScene"/> component
+        /// to their unique identifier so they can be located before their
+        /// WorldObject is created by player interaction.
+        /// </summary>
+        static Dictionary<int, GameObject> gameObjectBySceneId = new();
+
+        /// <summary>
         /// Try locating the GameObject for the given WorldObject.
         /// </summary>
         /// <param name="wo">The world object to use as a reference</param>
@@ -43,7 +51,11 @@ namespace FeatMultiplayer
         /// <returns>true if found</returns>
         internal static bool TryGetGameObject(WorldObject wo, out GameObject go)
         {
-            return gameObjectByWorldObject.TryGetValue(wo, out go);
+            if (gameObjectByWorldObject.TryGetValue(wo, out go))
+            {
+                return true;
+            }
+            return gameObjectBySceneId.TryGetValue(wo.GetId(), out go);
         }
 
         /// <summary>
@@ -315,6 +327,40 @@ namespace FeatMultiplayer
                     maxInventoryId = Math.Max(maxInventoryId, iid);
                 }
             }
+        }
+
+        /// <summary>
+        /// Added to scene objects so they can be unregistered from
+        /// the <see cref="gameObjectBySceneId"/> dictionary.
+        /// </summary>
+        class UntrackGameObject : MonoBehaviour
+        {
+            internal int sceneId;
+
+            public void OnDestroy()
+            {
+                gameObjectBySceneId.Remove(sceneId);
+            }
+        }
+
+        /// <summary>
+        /// The vanilla game has the WorldObjectFromScene::Start setup a coroutine
+        /// that waits until the game is loaded, then hides objects in the world that
+        /// have been picked up.
+        /// 
+        /// If the client looks at a GameObject in a Sector, the WorldObject->GameObject
+        /// association might not yet exist on the other side. We need a way to get from the
+        /// scene id to the game object on both sides before their WorldObject is created
+        /// from the (nonexistent) user interaction with their WorldObjectAssociated::GetWorldObject().
+        /// </summary>
+        /// <param name="__instance">The WorldObjectFromScene instance to install the untracker on.</param>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectFromScene), "Start")]
+        static void WorldObjectFromScene_Start(WorldObjectFromScene __instance)
+        {
+            int id = __instance.GetUniqueId();
+            gameObjectBySceneId[id] = __instance.gameObject;
+            __instance.gameObject.AddComponent<UntrackGameObject>().sceneId = id;
         }
     }
 }

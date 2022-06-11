@@ -50,6 +50,10 @@ namespace FeatMultiplayer
 
         static string DebugWorldObject(WorldObject wo)
         {
+            if (wo == null)
+            {
+                return "{ null }";
+            }
             StringBuilder sb = new StringBuilder();
             sb.Append("{ id=").Append(wo.GetId())
             .Append(", groupId = ");

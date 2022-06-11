@@ -54,8 +54,6 @@ namespace FeatMultiplayer
                     {
                         var wo = woa.GetWorldObject();
 
-                        gameObjectByWorldObject[wo] = woa.gameObject;
-
                         var mg = new MessageGrab()
                         {
                             id = wo.GetId(),
