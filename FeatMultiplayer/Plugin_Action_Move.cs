@@ -254,6 +254,8 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(WorldObjectFromScene), "Start")]
         static void WorldObjectFromScene_Start(WorldObjectFromScene __instance)
         {
+            LogInfo("WorldObjectFromScene_Start");
+            LogInfo("WorldObjectFromScene_Start " + __instance.GetUniqueId());
             WorldObject worldObject = WorldObjectsHandler.GetWorldObjectViaId(__instance.GetUniqueId());
             if (worldObject != null) 
             {
