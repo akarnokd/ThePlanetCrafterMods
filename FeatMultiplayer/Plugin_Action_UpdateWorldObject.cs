@@ -90,7 +90,10 @@ namespace FeatMultiplayer
 
                 foreach (var kv in worldObjectById)
                 {
-                    toDelete.Add(kv.Key);
+                    if (!kv.Value.GetDontSaveMe())
+                    {
+                        toDelete.Add(kv.Key);
+                    }
                 }
 
                 HashSet<int> unplaceSceneObjects = new();
@@ -105,16 +108,19 @@ namespace FeatMultiplayer
 
                 foreach (int id in toDelete)
                 {
-                    //LogInfo("WorldObject " + id + " destroyed: " + DebugWorldObject(id));
                     if (worldObjectById.TryGetValue(id, out var wo))
                     {
                         if (TryGetGameObject(wo, out var go))
                         {
-                            LogInfo("WorldObject " + id + " GameObject destroyed: no longer exists");
-                            UnityEngine.Object.Destroy(go);
+                            LogInfo("ReceiveMessageAllObjects: Destroying " + DebugWorldObject(id));
+                            LogInfo("ReceiveMessageAllObjects:   GameObject destroyed at " + go.transform.position);
                             TryRemoveGameObject(wo);
+                            Destroy(go);
                         }
                         WorldObjectsHandler.DestroyWorldObject(wo);
+                    }
+                    else {
+                        LogWarning("ReceiveMessageAllObjects: Unknown WorldObject " + id);
                     }
                 }
             }
@@ -141,88 +147,31 @@ namespace FeatMultiplayer
 
         static bool DeleteActionMinableForId(int id)
         {
-
-            foreach (GameObject sceneGo in FindObjectsOfType<GameObject>())
+            if (gameObjectBySceneId.TryGetValue(id, out var go))
             {
-                var uid = sceneGo.GetComponentInChildren<WorldUniqueId>();
-                if (uid != null && uid.GetWorldUniqueId() == id)
+                if (go.GetComponent<ActionMinable>() != null)
                 {
-                    UnityEngine.Object.Destroy(sceneGo);
-                    if (worldObjectById.TryGetValue(id, out var wo))
-                    {
-                        TryRemoveGameObject(wo);
-                    }
-                    LogInfo("UpdateWorldObject:   GameObject deleted via WorldUniqueId " + id);
-                    return true;
+                    LogInfo("DeleteActionMinableForId: " + id + " success");
+                    Destroy(go);
+                }
+                else
+                {
+                    LogInfo("DeleteActionMinableForId: " + id + " failed = not minable?");
                 }
             }
-            foreach (ActionMinable am in FindObjectsOfType<ActionMinable>()) {
-                var woa = am.GetComponent<WorldObjectAssociated>();
-                if (woa != null && woa.GetWorldObject().GetId() == id)
-                {
-                    UnityEngine.Object.Destroy(am.gameObject);
-                    if (worldObjectById.TryGetValue(id, out var wo))
-                    {
-                        TryRemoveGameObject(wo);
-                    }
-                    LogInfo("UpdateWorldObject:   GameObject deleted via ActionMinable " + id);
-                    return true;
-                }
+            else
+            {
+                LogWarning("DeleteActionMinableForId: " + id + " failed = not found");
             }
 
-            LogWarning("UpdateWorldObject:   WorldUniqueId, ActionMinable not found " + id);
             return false;
         }
 
         static void DeleteActionMinableForIds(HashSet<int> ids)
         {
-
-            if (ids.Count != 0)
+            foreach (var id in ids)
             {
-                foreach (GameObject sceneGo in FindObjectsOfType<GameObject>())
-                {
-                    var uid = sceneGo.GetComponentInChildren<WorldUniqueId>();
-                    if (uid != null)
-                    {
-                        int id = uid.GetWorldUniqueId();
-                        if (ids.Contains(uid.GetWorldUniqueId()))
-                        {
-                            ids.Remove(id);
-                            UnityEngine.Object.Destroy(sceneGo);
-                            if (worldObjectById.TryGetValue(id, out var wo))
-                            {
-                                TryRemoveGameObject(wo);
-                            }
-                            LogInfo("UpdateWorldObject:   GameObject deleted via WorldUniqueId " + id);
-                        }
-                    }
-                }
-                if (ids.Count != 0)
-                {
-                    foreach (ActionMinable am in FindObjectsOfType<ActionMinable>())
-                    {
-                        var woa = am.GetComponent<WorldObjectAssociated>();
-                        if (woa != null)
-                        {
-                            int id = woa.GetWorldObject().GetId();
-                            if (ids.Contains(id))
-                            {
-                                ids.Remove(id);
-                                UnityEngine.Object.Destroy(am.gameObject);
-                                if (worldObjectById.TryGetValue(id, out var wo))
-                                {
-                                    TryRemoveGameObject(wo);
-                                }
-                                LogInfo("UpdateWorldObject:   GameObject deleted via ActionMinable " + id);
-                            }
-                        }
-                    }
-                }
-
-                if (ids.Count != 0)
-                {
-                    LogWarning("UpdateWorldObject:   WorldUniqueId, ActionMinable not found " + string.Join(", ", ids));
-                }
+                DeleteActionMinableForId(id);
             }
         }
 

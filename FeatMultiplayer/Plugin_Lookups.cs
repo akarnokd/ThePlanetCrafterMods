@@ -77,11 +77,18 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
         static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
         {
-            worldObjectById[_worldObject.GetId()] = _worldObject;
+            int id = _worldObject.GetId();
+            worldObjectById[id] = _worldObject;
 
             string gid = _worldObject.GetGroup().GetId();
             countByGroupId.TryGetValue(gid, out var c);
             countByGroupId[gid] = c + 1;
+            /*
+            if (id < 200000000 && updateMode == MultiplayerMode.CoopClient)
+            {
+                LogWarning("Scene Object got WorldObject " + DebugWorldObject(_worldObject) + "\r\n" + Environment.StackTrace);
+            }
+            */
         }
 
         /// <summary>
