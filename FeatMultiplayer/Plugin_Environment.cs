@@ -35,6 +35,7 @@ namespace FeatMultiplayer
             {
                 // don't let the client interpolation run at all
                 __instance.StopAllCoroutines();
+                LogInfo("EnvironmentDayNightCycle_Start: Stopping Day-night cycle on the client.");
             }
             __instance.StartCoroutine(DayNightCycle(__instance, 0.5f));
         }
