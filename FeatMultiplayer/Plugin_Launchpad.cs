@@ -155,8 +155,13 @@ namespace FeatMultiplayer
         }
 
         /// <summary>
-        /// We ignore the default ActionSendIntoSpace::HandleRocketMultiplier so it doesn't
-        /// mess with the shadow rocket inventory nothing uses.
+        /// We replicate ActionSendIntoSpace::HandleRocketMultiplier as we might not have
+        /// an ActionSendIntoSpace instance to call it on.
+        /// 
+        /// The vanilla version finds or creates a hidden rocket container and adds the rocket
+        /// to its inventory. Later, since this hidden rocket container is constructible,
+        /// the WorldUnit::SetIncreaseAndDecreaseForWorldObjects will find it
+        /// and get the total multiplier based on how many rockets are registered inside.
         /// </summary>
         /// <param name="rocketWo">The rocket used to find out what world unit it affects</param>
         static void HandleRocketMultiplier(WorldObject rocketWo)
@@ -166,7 +171,30 @@ namespace FeatMultiplayer
                 DataConfig.WorldUnitType unitType = worldUnit.GetUnitType();
                 if (((GroupItem)rocketWo.GetGroup()).GetGroupUnitMultiplier(unitType) != 0f)
                 {
-                    Managers.GetManager<WorldUnitsHandler>().GetUnit(unitType).ForceResetValues();
+                    if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(unitType, out var hiddenGroupId))
+                    {
+                        WorldObject hiddenRocketContainer = null;
+
+                        foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                        {
+                            if (wo.GetGroup().GetId() == hiddenGroupId)
+                            {
+                                hiddenRocketContainer = wo;
+                                break;
+                            }
+                        }
+
+                        if (hiddenRocketContainer == null)
+                        {
+                            LogInfo("HandleRocketMultiplier: Creating shadow rocket container for " + hiddenGroupId);
+                            hiddenRocketContainer = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(hiddenGroupId), 0);
+                            hiddenRocketContainer.SetPositionAndRotation(GameConfig.spaceLocation, Quaternion.identity);
+                            WorldObjectsHandler.InstantiateWorldObject(hiddenRocketContainer, false);
+                        }
+                        InventoriesHandler.GetInventoryById(hiddenRocketContainer.GetLinkedInventoryId()).AddItem(rocketWo);
+
+                        Managers.GetManager<WorldUnitsHandler>().GetUnit(unitType).ForceResetValues();
+                    }
                 }
             }
         }

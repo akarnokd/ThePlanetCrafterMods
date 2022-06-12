@@ -88,7 +88,7 @@ namespace FeatMultiplayer
                 }
 
                 
-                yield return 0;
+                yield return null;
             }
         }
 
