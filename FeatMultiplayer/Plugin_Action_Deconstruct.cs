@@ -110,20 +110,7 @@ namespace FeatMultiplayer
             }
             if (wo != null)
             {
-                if (!TryGetGameObject(wo, out var go) && isSceneObject)
-                {
-                    foreach (var wofs in FindObjectsOfType<WorldObjectFromScene>())
-                    {
-                        if (wofs.GetUniqueId() == md.id)
-                        {
-                            LogInfo("ReceiveMessageDeconstruct: Found scene GameObject for " + DebugWorldObject(wo));
-                            gameObjectByWorldObject[wo] = wofs.gameObject;
-                            go = wofs.gameObject;
-                            break;
-                        }
-                    }
-                }
-                if (go != null)
+                if (TryGetGameObject(wo, out var go) && go != null)
                 {
                     if (updateMode == MultiplayerMode.CoopHost)
                     {
@@ -138,6 +125,7 @@ namespace FeatMultiplayer
                             {
                                 ingredients.AddRange(panelGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe());
                             }
+                            v.ResetContigousPanel();
                         }
 
                         // Send out the resource objects
@@ -156,6 +144,9 @@ namespace FeatMultiplayer
                         {
                             wo.SetDontSaveMe(false);
                         }
+
+                        go.GetComponent<RequireEnergy>()?.CheckEnergyStatus(false);
+
                         WorldObjectsHandler.DestroyWorldObject(wo);
                         TryRemoveGameObject(wo);
                         Destroy(go);

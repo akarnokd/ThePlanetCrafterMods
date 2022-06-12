@@ -208,6 +208,32 @@ namespace FeatMultiplayer
             }
         }
 
+        /// <summary>
+        /// The vanilla game calls WorldObjectAssociated::RefreshPanelsId is called
+        /// to sync back the current panels of the GameObject to the panel ids
+        /// in the WorldObject.
+        /// 
+        /// This happens when a panel is constructed, deconstructed, or the
+        /// entire building gets deconstructed so adjacent buildings have to reset their
+        /// exterior panels.
+        /// 
+        /// On the host, we have to intercept this for now as a full sync may just
+        /// post an open building with the wrong panels until the next sync happens.
+        /// 
+        /// We do nothing on the client.
+        /// </summary>
+        /// <param name="___worldObjectAssociated">The associated building WorldObject.</param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectAssociated), nameof(WorldObjectAssociated.RefreshPanelsId))]
+        static void WorldObjectAssociated_RefreshPanelsId(WorldObject ___worldObjectAssociated)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                SendWorldObject(___worldObjectAssociated, false);
+                Signal();
+            }
+        }
+
         static void ReceiveMessagePlaceConstructible(MessagePlaceConstructible mpc)
         {
             GroupConstructible gc = GroupsHandler.GetGroupViaId(mpc.groupId) as GroupConstructible;
