@@ -85,6 +85,7 @@ namespace FeatMultiplayer
                         Send(mpc);
                         Signal();
                     }
+                    Destroy(__instance.gameObject);
                     __result = null;
                     cancelBuildAfterPlace = true;
                     return false;
