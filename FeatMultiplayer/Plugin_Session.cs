@@ -19,6 +19,7 @@ namespace FeatMultiplayer
         static string multiplayerFilename = "Survival-9999999";
         void CreateMultiplayerSaveAndEnter()
         {
+
             File.Delete(Application.persistentDataPath + "/" + multiplayerFilename + ".json");
 
             Managers.GetManager<StaticDataHandler>().LoadStaticData();
@@ -55,6 +56,7 @@ namespace FeatMultiplayer
                 LogInfo("SaveFilesSelector not found");
             }
         }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start()
@@ -66,6 +68,7 @@ namespace FeatMultiplayer
             {
                 LogInfo("Entering world as Host");
                 StartAsHost();
+                LaunchStuckRockets();
             }
             else if (updateMode == MultiplayerMode.CoopClient)
             {
@@ -100,6 +103,8 @@ namespace FeatMultiplayer
             inventoryById.Clear();
 
             rocketsInFlight.Clear();
+
+            hiddenRocketInventories.Clear();
         }
 
         void OnApplicationQuit()

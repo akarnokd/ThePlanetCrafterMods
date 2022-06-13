@@ -132,7 +132,7 @@ namespace FeatMultiplayer
         /// notify the client.
         /// </summary>
         static float hideRocketDelay = 38f;
-        static float updateWorldObjectPositionDelay = 0.5f;
+        static float updateWorldObjectPositionDelay = 0.05f;
 
         static IEnumerator RocketLaunchTracker(WorldObject rocketWo, MachineRocket rocket)
         {
@@ -143,6 +143,7 @@ namespace FeatMultiplayer
                 {
                     yield return new WaitForSeconds(updateWorldObjectPositionDelay);
                     rocketWo.SetPositionAndRotation(rocket.transform.position, rocket.transform.rotation);
+                    SendWorldObject(rocketWo, false);
                 }
                 else
                 {
@@ -153,6 +154,11 @@ namespace FeatMultiplayer
             rocketWo.ResetPositionAndRotation();
             SendWorldObject(rocketWo, false);
         }
+
+        /// <summary>
+        /// Caches the hidden rocket inventories.
+        /// </summary>
+        static Dictionary<string, Inventory> hiddenRocketInventories = new();
 
         /// <summary>
         /// We replicate ActionSendIntoSpace::HandleRocketMultiplier as we might not have
@@ -173,25 +179,47 @@ namespace FeatMultiplayer
                 {
                     if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(unitType, out var hiddenGroupId))
                     {
-                        WorldObject hiddenRocketContainer = null;
 
-                        foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                        if (!hiddenRocketInventories.TryGetValue(hiddenGroupId, out var hiddenInv))
                         {
-                            if (wo.GetGroup().GetId() == hiddenGroupId)
+                            WorldObject hiddenRocketContainer = null;
+
+                            foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
                             {
-                                hiddenRocketContainer = wo;
+                                if (wo.GetGroup().GetId() == hiddenGroupId)
+                                {
+                                    hiddenRocketContainer = wo;
+                                    break;
+                                }
+                            }
+
+                            if (hiddenRocketContainer == null)
+                            {
+                                LogInfo("HandleRocketMultiplier: Creating shadow rocket container for " + hiddenGroupId);
+                                hiddenRocketContainer = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(hiddenGroupId), 0);
+                                hiddenRocketContainer.SetPositionAndRotation(GameConfig.spaceLocation, Quaternion.identity);
+                                WorldObjectsHandler.InstantiateWorldObject(hiddenRocketContainer, false);
+                            }
+                            hiddenInv = InventoriesHandler.GetInventoryById(hiddenRocketContainer.GetLinkedInventoryId());
+                            hiddenRocketInventories[hiddenGroupId] = hiddenInv;
+                        }
+
+                        // Do not add duplicates
+                        bool found = false;
+                        foreach (WorldObject rocketAlreadyThere in hiddenInv.GetInsideWorldObjects())
+                        {
+                            if (rocketAlreadyThere.GetId() == rocketWo.GetId())
+                            {
+                                found = true;
                                 break;
                             }
                         }
-
-                        if (hiddenRocketContainer == null)
+                        if (!found && !hiddenInv.AddItem(rocketWo))
                         {
-                            LogInfo("HandleRocketMultiplier: Creating shadow rocket container for " + hiddenGroupId);
-                            hiddenRocketContainer = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(hiddenGroupId), 0);
-                            hiddenRocketContainer.SetPositionAndRotation(GameConfig.spaceLocation, Quaternion.identity);
-                            WorldObjectsHandler.InstantiateWorldObject(hiddenRocketContainer, false);
+                            // automatically resize to accomodate
+                            hiddenInv.SetSize(hiddenInv.GetSize() * 11 / 10 + 1);
+                            hiddenInv.AddItem(rocketWo);
                         }
-                        InventoriesHandler.GetInventoryById(hiddenRocketContainer.GetLinkedInventoryId()).AddItem(rocketWo);
 
                         Managers.GetManager<WorldUnitsHandler>().GetUnit(unitType).ForceResetValues();
                     }
@@ -269,6 +297,33 @@ namespace FeatMultiplayer
             else
             {
                 LogWarning("ReceiveMessageLaunch: Unknown rocketId " + ml.rocketId);
+            }
+        }
+
+        static void LaunchStuckRockets()
+        {
+            LogInfo("Trying to launch stuck rockets: " + worldObjectById.Count);
+            foreach (WorldObject wo in worldObjectById.Values)
+            {
+                string gid = wo.GetGroup().GetId();
+                if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+                {
+                    if (wo.GetIsPlaced())
+                    {
+                        LogInfo("LaunchStuckRockets: " + DebugWorldObject(wo));
+                        var launchMessage = new MessageLaunch()
+                        {
+                            rocketId = wo.GetId()
+                        };
+                        ReceiveMessageLaunch(launchMessage);
+                    }
+                    else
+                    if (updateMode == MultiplayerMode.CoopHost)
+                    {
+                        // Make sure the hidden rocket container has the rocket
+                        HandleRocketMultiplier(wo);
+                    }
+                }
             }
         }
     }

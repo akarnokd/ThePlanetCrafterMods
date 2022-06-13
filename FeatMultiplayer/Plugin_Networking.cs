@@ -51,7 +51,9 @@ namespace FeatMultiplayer
                 LogInfo("Client connecting to " + hostAddress.Value + ":" + port.Value);
                 try
                 {
-                    TcpClient client = new TcpClient(hostAddress.Value, port.Value);
+                    TcpClient client = new TcpClient();
+                    client.Connect(hostAddress.Value, port.Value);
+                    LogInfo("Client connection success");
                     NotifyUserFromBackground("Connecting to Host...Success");
                     networkConnected = true;
                     stopNetwork.Token.Register(() =>

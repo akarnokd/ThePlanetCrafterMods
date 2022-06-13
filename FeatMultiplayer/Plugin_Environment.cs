@@ -28,16 +28,18 @@ namespace FeatMultiplayer
         /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(EnvironmentDayNightCycle), "Start")]
-        static void EnvironmentDayNightCycle_Start(EnvironmentDayNightCycle __instance)
+        static void EnvironmentDayNightCycle_Start(EnvironmentDayNightCycle __instance, ref float ___fullDayStayTime)
         {
             environmentDayNightCycleValue = AccessTools.Field(typeof(EnvironmentDayNightCycle), "dayNightLerpValue");
             if (updateMode == MultiplayerMode.CoopClient)
             {
                 // don't let the client interpolation run at all
-                __instance.StopAllCoroutines();
                 LogInfo("EnvironmentDayNightCycle_Start: Stopping Day-night cycle on the client.");
+                __instance.StopAllCoroutines();
             }
             __instance.StartCoroutine(DayNightCycle(__instance, 0.5f));
+            // Speed up day-night for testing
+            //___fullDayStayTime = 1;
         }
 
         static IEnumerator DayNightCycle(EnvironmentDayNightCycle __instance, float delay)
@@ -46,9 +48,18 @@ namespace FeatMultiplayer
             {
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
+                    var dn = __instance.GetDayNightLerpValue();
+                    LogInfo("DayNightCycle: " + dn);
+                    /*
+                    LogWarning("FullDayStayTime: " + __instance.fullDayStayTime);
+                    LogWarning("Time: " + Time.time);
+                    LogWarning("pongValue: " + AccessTools.Field(typeof(EnvironmentDayNightCycle), "pongValue").GetValue(__instance));
+                    LogWarning("fullPhaseTimeReached: " + AccessTools.Field(typeof(EnvironmentDayNightCycle), "fullPhaseTimeReached").GetValue(__instance));
+                    LogWarning("previousLerpValue: " + AccessTools.Field(typeof(EnvironmentDayNightCycle), "previousLerpValue").GetValue(__instance));
+                    */
                     Send(new MessageTime()
                     {
-                        time = __instance.GetDayNightLerpValue()
+                        time = dn
                     });
                     Signal();
                 }
@@ -57,6 +68,7 @@ namespace FeatMultiplayer
                 {
                     if (hostTime != null)
                     {
+                        LogInfo("DayNightCycle: " + hostTime.time);
                         environmentDayNightCycleValue.SetValue(__instance, hostTime.time);
                         hostTime = null;
                     }
