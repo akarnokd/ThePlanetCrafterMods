@@ -63,6 +63,7 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.MainMenu)
             {
                 DoMainMenuUpdate();
+                CheckLogKeys();
             }
             if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
             {
@@ -87,30 +88,35 @@ namespace FeatMultiplayer
                 {
                     ToggleConsumption();
                 }
-                if (Keyboard.current.lKey.wasPressedThisFrame)
-                {
-                    if (Keyboard.current.shiftKey.IsPressed())
-                    {
-                        ClearLogs();
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Log cleared");
-                    }
-                    else
-                    {
-                        if (updateMode == MultiplayerMode.CoopHost)
-                        {
-                            hostLogLevel.Value = hostLogLevel.Value == 1 ? 2 : 1;
-                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Host Loglevel set to " + hostLogLevel.Value);
-                        }
-                        if (updateMode == MultiplayerMode.CoopClient)
-                        {
-                            clientLogLevel.Value = clientLogLevel.Value == 1 ? 2 : 1;
-                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Client Loglevel set to " + clientLogLevel.Value);
-                        }
-                    }
-                }
+                CheckLogKeys();
             }
             else
             {
+            }
+        }
+
+        static void CheckLogKeys()
+        {
+            if (Keyboard.current.lKey.wasPressedThisFrame)
+            {
+                if (Keyboard.current.shiftKey.IsPressed())
+                {
+                    ClearLogs();
+                    Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 2f, "Log cleared");
+                }
+                else
+                {
+                    if (updateMode == MultiplayerMode.CoopHost)
+                    {
+                        hostLogLevel.Value = hostLogLevel.Value == 1 ? 2 : 1;
+                        Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 2f, "Host Loglevel set to " + hostLogLevel.Value);
+                    }
+                    if (updateMode == MultiplayerMode.CoopClient)
+                    {
+                        clientLogLevel.Value = clientLogLevel.Value == 1 ? 2 : 1;
+                        Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 2f, "Client Loglevel set to " + clientLogLevel.Value);
+                    }
+                }
             }
         }
 

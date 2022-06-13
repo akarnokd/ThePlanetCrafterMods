@@ -49,7 +49,7 @@ namespace FeatMultiplayer
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
                     var dn = __instance.GetDayNightLerpValue();
-                    LogInfo("DayNightCycle: " + dn);
+                    //LogInfo("DayNightCycle: " + dn);
                     /*
                     LogWarning("FullDayStayTime: " + __instance.fullDayStayTime);
                     LogWarning("Time: " + Time.time);
@@ -68,7 +68,7 @@ namespace FeatMultiplayer
                 {
                     if (hostTime != null)
                     {
-                        LogInfo("DayNightCycle: " + hostTime.time);
+                        //LogInfo("DayNightCycle: " + hostTime.time);
                         environmentDayNightCycleValue.SetValue(__instance, hostTime.time);
                         hostTime = null;
                     }

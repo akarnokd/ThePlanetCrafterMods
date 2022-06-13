@@ -394,9 +394,6 @@ namespace FeatMultiplayer
                                 }
                                 else
                                 {
-                                    Managers.GetManager<DisplayersHandler>().GetItemWorldDislpayer().Hide();
-                                    GetPlayerMainController().GetPlayerAudio().PlayGrab();
-
                                     LogWarning("ReceiveMessageGrowRemove: Removing: " + mgr.machineId + " -> " + mgr.spawnId);
                                     Destroy(spawn.gameObject);
                                 }

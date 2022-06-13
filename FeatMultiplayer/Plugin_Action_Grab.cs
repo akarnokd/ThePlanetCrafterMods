@@ -38,6 +38,9 @@ namespace FeatMultiplayer
                 var spi = __instance.GetComponent<OutsideGrowerSpawnInfo>();
                 if (spi != null)
                 {
+                    ___itemWorldDisplayer.Hide();
+                    ___playerSource.GetPlayerAudio().PlayGrab();
+
                     LogInfo("Request Grab Outside " + spi.machineId + ", " + spi.spawnId);
                     Send(new MessageGrowRemove()
                     {

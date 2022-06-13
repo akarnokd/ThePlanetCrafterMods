@@ -102,9 +102,8 @@ namespace FeatMultiplayer
                     //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
                     toDelete.Remove(mwo.id);
 
-                    UpdateWorldObject(mwo, unplaceSceneObjects);
+                    UpdateWorldObject(mwo);
                 }
-                DeleteActionMinableForIds(unplaceSceneObjects);
 
                 foreach (int id in toDelete)
                 {
@@ -142,37 +141,7 @@ namespace FeatMultiplayer
         static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
         {
             LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
-            UpdateWorldObject(mc.worldObject, null);
-        }
-
-        static bool DeleteActionMinableForId(int id)
-        {
-            if (gameObjectBySceneId.TryGetValue(id, out var go))
-            {
-                if (go.GetComponent<ActionMinable>() != null)
-                {
-                    LogInfo("DeleteActionMinableForId: " + id + " success");
-                    Destroy(go);
-                }
-                else
-                {
-                    LogInfo("DeleteActionMinableForId: " + id + " failed = not minable?");
-                }
-            }
-            else
-            {
-                LogWarning("DeleteActionMinableForId: " + id + " failed = not found");
-            }
-
-            return false;
-        }
-
-        static void DeleteActionMinableForIds(HashSet<int> ids)
-        {
-            foreach (var id in ids)
-            {
-                DeleteActionMinableForId(id);
-            }
+            UpdateWorldObject(mc.worldObject);
         }
 
         static void UpdatePanelsOn(WorldObject wo)
@@ -240,8 +209,7 @@ namespace FeatMultiplayer
         /// We'd expect an inventory sync to correctly fill in that inventory.
         /// </summary>
         /// <param name="mwo">The message to use for creating/updating a WorldObject.</param>
-        /// <param name="unplaceSceneObjects">Set of identifiers to unplace while loading into a world</param>
-        static void UpdateWorldObject(MessageWorldObject mwo, HashSet<int> unplaceSceneObjects)
+        static void UpdateWorldObject(MessageWorldObject mwo)
         {
             bool isNew = false;
             if (!worldObjectById.TryGetValue(mwo.id, out var wo))
@@ -264,16 +232,13 @@ namespace FeatMultiplayer
             var oldRotation = wo.GetRotation();
             var oldColor = wo.GetColor();
             var oldText = wo.GetText();
+            var oldPanelIds = wo.GetPanelsId();
 
             wo.SetPositionAndRotation(mwo.position, mwo.rotation);
-            bool doPlace = wo.GetIsPlaced();
             wo.SetColor(mwo.color);
             wo.SetText(mwo.text);
             wo.SetGrowth(mwo.growth);
 
-            List<int> beforePanelIds = wo.GetPanelsId();
-            bool doUpdatePanels = (beforePanelIds == null && mwo.panelIds.Count != 0)
-                || (beforePanelIds != null && !beforePanelIds.SequenceEqual(mwo.panelIds));
             wo.SetPanelsId(mwo.panelIds);
             wo.SetDontSaveMe(false);
 
@@ -300,6 +265,10 @@ namespace FeatMultiplayer
                 wo.SetLinkedInventoryId(0);
             }
 
+            bool doPlace = wo.GetIsPlaced();
+            bool doUpdatePanels = (oldPanelIds == null && mwo.panelIds.Count != 0)
+                || (oldPanelIds != null && !oldPanelIds.SequenceEqual(mwo.panelIds));
+
             bool hasGameObject = TryGetGameObject(wo, out var go) && go != null;
 
             bool dontUpdatePosition = false;
@@ -311,31 +280,45 @@ namespace FeatMultiplayer
                 dontUpdatePosition = true;
             }
             else
-            if (wasPlaced && !doPlace)
+            if ((wasPlaced || isNew) && !doPlace)
             {
                 if (hasGameObject)
                 {
                     LogInfo("UpdateWorldObject:   WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
-                    UnityEngine.Object.Destroy(go);
                     TryRemoveGameObject(wo);
+                    Destroy(go);
+                    hasGameObject = false;
                 }
-                /*
-                else
-                {
-                    LogInfo("WorldObject " + wo.GetId() + " has no associated GameObject");
-                }
-                */
                 rocketsInFlight.Remove(mwo.id);
             }
-            if (doPlace && !dontUpdatePosition && hasGameObject)
+            if (hasGameObject)
             {
-                if (IsChanged(oldPosition, mwo.position) || IsChanged(oldRotation, mwo.rotation))
+                if (doPlace && !dontUpdatePosition)
                 {
-                    if (!rocketsInFlight.Contains(mwo.id))
+                    if (IsChanged(oldPosition, mwo.position) || IsChanged(oldRotation, mwo.rotation))
                     {
-                        LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
-                        go.transform.position = mwo.position;
-                        go.transform.rotation = mwo.rotation;
+                        if (!rocketsInFlight.Contains(mwo.id))
+                        {
+                            LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                            go.transform.position = mwo.position;
+                            go.transform.rotation = mwo.rotation;
+                        }
+                    }
+                }
+                if (!string.Equals(oldText, mwo.text))
+                {
+                    var wot = go.GetComponentInChildren<WorldObjectText>();
+                    if (wot != null)
+                    {
+                        wot.SetText(mwo.text);
+                    }
+                }
+                if (!IsChanged(oldColor, mwo.color))
+                {
+                    var woc = go.GetComponentInChildren<WorldObjectColor>();
+                    if (woc != null)
+                    {
+                        woc.SetColor(mwo.color);
                     }
                 }
             }
@@ -344,28 +327,12 @@ namespace FeatMultiplayer
                 LogInfo("UpdateWorldObject:   Panels " + wo.GetId() + ", " + wo.GetGroup().GetId());
                 UpdatePanelsOn(wo);
             }
-            if (!string.Equals(oldText, mwo.text) && hasGameObject)
-            {
-                var wot = go.GetComponentInChildren<WorldObjectText>();
-                if (wot != null)
-                {
-                    wot.SetText(mwo.text);
-                }
-            }
-            if (!IsChanged(oldColor, mwo.color) && hasGameObject)
-            {
-                var woc = go.GetComponentInChildren<WorldObjectColor>();
-                if (woc != null)
-                {
-                    woc.SetColor(mwo.color);
-                }
-            }
 
             if (mwo.makeGrabable)
             {
                 if (hasGameObject)
                 {
-                    UnityEngine.Object.Destroy(go.GetComponent<ActionMinable>());
+                    Destroy(go.GetComponent<ActionMinable>());
                     var grabComponent = go.GetComponent<ActionGrabable>();
                     if (grabComponent == null)
                     {
@@ -376,19 +343,6 @@ namespace FeatMultiplayer
                 else
                 {
                     LogInfo("UpdateWorldObject:   makeGrabable no GameObject for " + DebugWorldObject(wo));
-                }
-            }
-
-            // remove already mined objects
-            if (isNew && WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && !doPlace)
-            {
-                if (unplaceSceneObjects != null)
-                {
-                    unplaceSceneObjects.Add(wo.GetId());
-                }
-                else
-                {
-                    DeleteActionMinableForId(wo.GetId());
                 }
             }
         }
