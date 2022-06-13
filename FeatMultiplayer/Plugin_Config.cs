@@ -106,6 +106,9 @@ namespace FeatMultiplayer
         static FieldInfo worldObjectColorWorldObject;
         static MethodInfo sectorSceneLoaded;
         static MethodInfo actionSendInSpaceHandleRocketMultiplier;
+        static FieldInfo machineGrowerIfLinkedGroupHasEnergy;
+        static FieldInfo machineGrowerIfLinkedGroupWorldObject;
+        static MethodInfo machineGrowerIfLinkedGroupSetInteractiveStatus;
 
         static void InitReflectiveAccessors()
         {
@@ -120,6 +123,10 @@ namespace FeatMultiplayer
             sectorSceneLoaded = AccessTools.Method(typeof(Sector), "SceneLoaded", new Type[] { typeof(AsyncOperation) });
 
             actionSendInSpaceHandleRocketMultiplier = AccessTools.Method(typeof(ActionSendInSpace), "HandleRocketMultiplier", new Type[] { typeof(WorldObject) });
+
+            machineGrowerIfLinkedGroupHasEnergy = AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "hasEnergy");
+            machineGrowerIfLinkedGroupWorldObject = AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "worldObject"); ;
+            machineGrowerIfLinkedGroupSetInteractiveStatus = AccessTools.Method(typeof(MachineGrowerIfLinkedGroup), "SetInteractiveStatus", new Type[] { typeof(bool), typeof(bool) });
 
             if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
