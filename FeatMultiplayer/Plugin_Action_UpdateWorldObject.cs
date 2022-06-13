@@ -96,7 +96,6 @@ namespace FeatMultiplayer
                     }
                 }
 
-                HashSet<int> unplaceSceneObjects = new();
                 foreach (MessageWorldObject mwo in mc.worldObjects)
                 {
                     //LogInfo("WorldObject " + mwo.id + " - " + mwo.groupId + " at " + mwo.position);
@@ -272,7 +271,7 @@ namespace FeatMultiplayer
             bool hasGameObject = TryGetGameObject(wo, out var go) && go != null;
 
             bool dontUpdatePosition = false;
-            if (!wasPlaced && doPlace)
+            if (!wasPlaced && doPlace && !hasGameObject)
             {
                 go = WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 hasGameObject = true;

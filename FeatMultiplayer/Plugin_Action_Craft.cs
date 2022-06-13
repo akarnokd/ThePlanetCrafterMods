@@ -243,7 +243,7 @@ namespace FeatMultiplayer
                         var go = WorldObjectsHandler.InstantiateWorldObject(wo, false);
                         go.AddComponent<ShowMeAfterDelay>().SetDelay(mcw.craftTime);
 
-                        LogInfo("ReceiveMessageCraftWorld: " + mcw.groupId + ", success = true");
+                        LogInfo("ReceiveMessageCraftWorld: " + DebugWorldObject(wo) + ", success = true");
                         // FIXME this won't animate properly on the client
                         SendWorldObject(wo, false);
                     }
