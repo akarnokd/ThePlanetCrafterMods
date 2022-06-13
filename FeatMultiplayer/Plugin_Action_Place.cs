@@ -121,6 +121,15 @@ namespace FeatMultiplayer
                         var wo = woa.GetWorldObject();
                         if (wo != null)
                         {
+                            // Sync back any color or text
+                            if (woa.TryGetComponent<WorldObjectColor>(out var wcolor))
+                            {
+                                wo.SetColor(wcolor.GetColor());
+                            }
+                            if (woa.TryGetComponent<WorldObjectText>(out var wtext))
+                            {
+                                wo.SetText(wtext.GetText());
+                            }
                             SendWorldObject(wo, false);
                             return;
                         }
@@ -240,11 +249,21 @@ namespace FeatMultiplayer
             if (gc != null)
             {
                 LogInfo("ReceiveMessagePlaceConstructible: " + mpc.groupId + ", " + mpc.position + ", " + mpc.rotation);
-                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(gc, WorldObjectsIdHandler.GetNewWorldObjectIdForDb());
-                worldObject.SetPositionAndRotation(mpc.position, mpc.rotation);
-                WorldObjectsHandler.InstantiateWorldObject(worldObject, _fromDb: false);
+                var wo = WorldObjectsHandler.CreateNewWorldObject(gc, WorldObjectsIdHandler.GetNewWorldObjectIdForDb());
+                wo.SetPositionAndRotation(mpc.position, mpc.rotation);
+                var go = WorldObjectsHandler.InstantiateWorldObject(wo, _fromDb: false);
 
-                SendWorldObject(worldObject, false);
+                // Sync back any color or text
+                if (go.TryGetComponent<WorldObjectColor>(out var wcolor))
+                {
+                    wo.SetColor(wcolor.GetColor());
+                }
+                if (go.TryGetComponent<WorldObjectText>(out var wtext))
+                {
+                    wo.SetText(wtext.GetText());
+                }
+
+                SendWorldObject(wo, false);
 
                 ClientConsumeRecipe(gc);
             }
