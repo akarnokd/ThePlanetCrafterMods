@@ -153,27 +153,49 @@ namespace FeatMultiplayer
         }
 
         /// <summary>
+        /// Called by the Inventory_AutoSort method to allow custom sorting options.
+        /// </summary>
+        public static Action<List<WorldObject>> inventoryAutoSortOverride;
+
+        /// <summary>
         /// The vanilla game uses Inventory::AutoSort when the user clicks on the sort button in the inventory screen.
         /// 
         /// On the host, the shadow backpack and shadow equipment is renamed to 1 and 2.
         ///
-        /// On both sides, we let the sort happen, then ask the other party to sort their inventory.
+        /// On both sides, we have to sort ourselves because the underlying inventoryDisplayer is
+        /// null for inventories not shown on the other side.
         /// 
         /// This avoids forgetting the sort if the client rejoins or the host changes something in the inventory.
         /// </summary>
         /// <param name="___inventoryId">The target inventory id</param>
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AutoSort))]
-        static void Inventory_AutoSort(int ___inventoryId)
+        static bool Inventory_AutoSort(int ___inventoryId, 
+            List<WorldObject> ___worldObjectsInInventory,
+            InventoryDisplayer ___inventoryDisplayer)
         {
+            if (updateMode == MultiplayerMode.SinglePlayer)
+            {
+                return true;
+            }
+            if (inventoryAutoSortOverride != null)
+            {
+                inventoryAutoSortOverride(___worldObjectsInInventory);
+            }
+            else
+            {
+                ___worldObjectsInInventory.Sort((a, b) => a.GetGroup().GetId().CompareTo(b.GetGroup().GetId()));
+            }
+            ___inventoryDisplayer?.RefreshContent();
             if (!suppressInventoryChange)
             {
+
                 int iid = ___inventoryId;
                 if (updateMode == MultiplayerMode.CoopHost) 
                 { 
                     if (!TryConvertHostToClientInventoryId(iid, out iid))
                     {
-                        return;
+                        return false;
                     }
                 }
 
@@ -184,6 +206,8 @@ namespace FeatMultiplayer
                 Send(msi);
                 Signal();
             }
+
+            return false;
         }
 
         /// <summary>
