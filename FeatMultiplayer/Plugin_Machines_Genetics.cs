@@ -39,23 +39,7 @@ namespace FeatMultiplayer
                 CleanStateDisplay(__instance);
                 if (___worldObject.GetGrowth() >= 100f)
                 {
-                    ___isFinishingSequencing = true;
-                    List<WorldObject> insideWorldObjects = ___inventoryRight.GetInsideWorldObjects();
-
-                    if (updateMode == MultiplayerMode.CoopHost)
-                    {
-                        for (int i = insideWorldObjects.Count - 1; i > -1; i--)
-                        {
-                            WorldObject worldObject = insideWorldObjects[i];
-                            ___inventoryRight.RemoveItem(worldObject, true);
-                        }
-                        WorldObject worldObject2 = WorldObjectsHandler.CreateNewWorldObject(___worldObject.GetLinkedGroups()[0], 0);
-                        ___inventoryRight.AddItem(worldObject2);
-                        ___isFinishingSequencing = false;
-
-                        SendWorldObject(worldObject2, false);
-                    }
-                    __instance.CancelCraftProcess();
+                    __instance.buttonAnalyze.SetActive(value: true);
                 }
                 else if (___worldObject.GetGrowth() > 0f)
                 {
@@ -251,22 +235,42 @@ namespace FeatMultiplayer
         {
             for (; ; )
             {
-                var worldObject = (WorldObject)machineGrowerIfLinkedGroupWorldObject.GetValue(instance);
+                var machineWo = (WorldObject)machineGrowerIfLinkedGroupWorldObject.GetValue(instance);
                 var hasEnergy = (bool)machineGrowerIfLinkedGroupHasEnergy.GetValue(instance);
-                if (worldObject != null && hasEnergy)
+                if (machineWo != null && hasEnergy)
                 {
-                    if (worldObject.GetGrowth() < 100f)
+                    if (machineWo.GetGrowth() < 100f)
                     {
-                        if (worldObject.HasLinkedGroups())
+                        if (machineWo.HasLinkedGroups())
                         {
-                            worldObject.SetGrowth(worldObject.GetGrowth() + increaseRate);
+                            machineWo.SetGrowth(machineWo.GetGrowth() + increaseRate);
                             machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { true, false });
-                            if (worldObject.GetGrowth() >= 100f)
+                            if (machineWo.GetGrowth() >= 100f)
                             {
-                                worldObject.SetGrowth(100f);
+                                InventoryAssociated invAssoc = instance.GetComponent<InventoryAssociated>();
+                                if (invAssoc != null)
+                                {
+                                    var ___inventoryRight = invAssoc.GetInventory();
+                                    List<WorldObject> insideWorldObjects = ___inventoryRight.GetInsideWorldObjects();
+
+                                    for (int i = insideWorldObjects.Count - 1; i > -1; i--)
+                                    {
+                                        WorldObject inner = insideWorldObjects[i];
+                                        ___inventoryRight.RemoveItem(inner, true);
+                                    }
+                                    WorldObject productWo = WorldObjectsHandler.CreateNewWorldObject(machineWo.GetLinkedGroups()[0], 0);
+                                    SendWorldObject(productWo, false);
+
+                                    ___inventoryRight.AddItem(productWo);
+                                    ___inventoryRight.RefreshDisplayerContent();
+
+                                    machineWo.SetGrowth(0f);
+                                    machineWo.SetLinkedGroups(null);
+                                }
+
                                 machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { false, false });
-                            }
-                            SendWorldObject(worldObject, false);
+                            } 
+                            SendWorldObject(machineWo, false);
                         }
                         else
                         {
