@@ -321,6 +321,8 @@ found all places where this can be bad. Backup your saves!
 
 ### Configuration
 
+`akarnokd.theplanetcraftermods.cheatinventorystacking.cfg`
+
 ```
 [General]
 
