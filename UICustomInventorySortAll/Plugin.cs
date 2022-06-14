@@ -3,12 +3,17 @@ using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
+using System;
+using BepInEx.Bootstrap;
 
 namespace UICustomInventorySortAll
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.2")]
+    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+
         /// <summary>
         /// List of comma-separated resource ids to look for in order.
         /// </summary>
@@ -20,6 +25,8 @@ namespace UICustomInventorySortAll
             "WaterBottle1",
             "astrofood" // no capitalization in the game
         });
+
+        static Func<string> apiGetMultiplayerMode;
 
         private void Awake()
         {
@@ -37,12 +44,30 @@ namespace UICustomInventorySortAll
                 preferenceMap[preferenceArray[i]] = i;
             }
 
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
+            {
+                apiGetMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
+
+                AccessTools.Field(pi.Instance.GetType(), "inventoryAutoSortOverride").SetValue(null, new Action<List<WorldObject>>(DoSort));
+            }
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AutoSort))]
         static bool Inventory_AutoSort(List<WorldObject> ___worldObjectsInInventory, InventoryDisplayer ___inventoryDisplayer)
+        {
+            if (apiGetMultiplayerMode != null && apiGetMultiplayerMode() == "SinglePlayer")
+            {
+                DoSort(___worldObjectsInInventory);
+                ___inventoryDisplayer?.RefreshContent();
+                return false;
+            }
+            return true;
+        }
+
+        static void DoSort(List<WorldObject> ___worldObjectsInInventory)
         {
             ___worldObjectsInInventory.Sort((a, b) =>
             {
@@ -71,8 +96,6 @@ namespace UICustomInventorySortAll
 
                 return ga.CompareTo(gb);
             });
-            ___inventoryDisplayer.RefreshContent();
-            return false;
         }
     }
 }
