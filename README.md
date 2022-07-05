@@ -458,9 +458,6 @@ Saves the game automatically. You can configure the save period via the config f
 `akarnokd.theplanetcraftermods.saveautosave.cfg`
 
 ```
-## Settings file was created by plugin (Save) Auto Save v1.0.0.0
-## Plugin GUID: akarnokd.theplanetcraftermods.saveautosave
-
 [General]
 
 ## Save delay in minutes. Set to 0 to disable.
