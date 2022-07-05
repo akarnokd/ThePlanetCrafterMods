@@ -36,7 +36,7 @@ by deleting the directory itself.
 
 | Cheats | UI/QoL | Other |
 |---|---|---|
-| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Traduzione Italiana](#ui-italian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Fix International Loading](#fix-international-loading)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Unbrick Save](#fix-unbrick-save)<br/>[Unofficial Patches](#fix-unofficial-patches)<br/>[Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)<br/>[Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/(Misc)-Plugin-Update-Checker) |
+| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Traduzione Italiana](#ui-italian-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Fix International Loading](#fix-international-loading)<br/>[Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Auto Save](#save-auto-save)<br/>[Unbrick Save](#fix-unbrick-save)<br/>[Unofficial Patches](#fix-unofficial-patches)<br/>[Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)<br/>[Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/(Misc)-Plugin-Update-Checker) |
 
 
 ## (Cheat) Asteroid Landing Position Override
@@ -446,6 +446,29 @@ KeepAge = 0
 # Setting type: Boolean
 # Default value: true
 Async = true
+```
+
+## (Save) Auto Save
+
+Saves the game automatically. You can configure the save period via the config file (default 5 minutes). You can use fractions such as
+`0.5` to save every 30 seconds.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.saveautosave.cfg`
+
+```
+[General]
+
+## Settings file was created by plugin (Save) Auto Save v1.0.0.0
+## Plugin GUID: akarnokd.theplanetcraftermods.saveautosave
+
+[General]
+
+## Save delay in minutes. Set to 0 to disable.
+# Setting type: Single
+# Default value: 5
+SaveDelay = 5
 ```
 
 ## (UI) Customize Inventory Sort Order
