@@ -8,7 +8,7 @@ using MijuTools;
 
 namespace UIPhotomodeHideWater
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -30,6 +30,14 @@ namespace UIPhotomodeHideWater
                 foreach (GameObject gameObject2 in Managers.GetManager<WaterHandler>().waterVolumes)
                 {
                     gameObject2.SetActive(active);
+                }
+
+                foreach (GameObject gameObject2 in FindObjectsOfType<GameObject>(true))
+                {
+                    if (gameObject2.name == "Water")
+                    {
+                        gameObject2.SetActive(active);
+                    }
                 }
             }
         }
