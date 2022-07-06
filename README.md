@@ -483,6 +483,19 @@ Specify the order of items when clicking on the sort all button in inventories.
 Preference = OxygenCapsule1,WaterBottle1,astrofood
 ```
 
+## (UI) Prevent Accidental Deconstruct
+
+When deconstructing, hold the accessibility key (default CTRL) too to prevent accidental deconstruction with a plain
+left click.
+
+### Configuration
+
+`.cfg`
+
+```
+```
+
+
 ## (UI) Don't Close Craft Window
 
 When crafting an item, <kbd>Right Click</kbd> to not close the crafting window.
