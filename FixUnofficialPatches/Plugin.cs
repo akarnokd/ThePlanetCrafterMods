@@ -82,5 +82,21 @@ namespace FixUnofficialPatches
                 }
             }
         }
+
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerAimController), "HandleAiming")]
+        static void PlayerAimController_HandleAiming(Ray ___aimingRay, float ___distanceHitLimit, int ___layerMask)
+        {
+            if (Physics.Raycast(___aimingRay, out var raycastHit, ___distanceHitLimit, ___layerMask))
+            {
+                logger.LogInfo("Looking at " + raycastHit.transform.gameObject.name + " (" + ___layerMask + ")");
+            }
+            else
+            {
+                logger.LogInfo("No hits");
+            }
+        }
+        */
     }
 }

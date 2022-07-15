@@ -10,7 +10,7 @@ namespace FeatMultiplayer
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.25")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.26")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -68,27 +68,32 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
             {
                 DoMultiplayerUpdate();
-                /* */
-                if (otherPlayer != null && Keyboard.current.tKey.wasPressedThisFrame)
+                var ap = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+                if (!wh.GetHasUiOpen() && ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey())
                 {
-                    LogInfo("Teleporting to the other player");
-                    var apc = GetPlayerMainController();
-                    apc.SetPlayerPlacement(otherPlayer.avatar.transform.position, apc.transform.rotation);
-                }
-                if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.iKey.wasPressedThisFrame)
-                {
-                    SetupHostInventory();
-                }
-                if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.pKey.wasPressedThisFrame)
-                {
-                    LaunchAllMeteorEvents();
-                }
+                    /* */
+                    if (otherPlayer != null && Keyboard.current.tKey.wasPressedThisFrame)
+                    {
+                        LogInfo("Teleporting to the other player");
+                        var apc = GetPlayerMainController();
+                        apc.SetPlayerPlacement(otherPlayer.avatar.transform.position, apc.transform.rotation);
+                    }
+                    if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.iKey.wasPressedThisFrame)
+                    {
+                        SetupHostInventory();
+                    }
+                    if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.pKey.wasPressedThisFrame)
+                    {
+                        LaunchAllMeteorEvents();
+                    }
 
-                if (Keyboard.current.hKey.wasPressedThisFrame)
-                {
-                    ToggleConsumption();
+                    if (Keyboard.current.hKey.wasPressedThisFrame)
+                    {
+                        ToggleConsumption();
+                    }
+                    CheckLogKeys();
                 }
-                CheckLogKeys();
             }
             else
             {

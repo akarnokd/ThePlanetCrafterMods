@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.8")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -241,6 +241,8 @@ namespace UIHotbar
             bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
 
+            int oldActiveSlot = activeSlot;
+
             Dictionary<string, int> inventoryCounts = new Dictionary<string, int>();
             CountInventory(player, inventoryCounts);
 
@@ -340,6 +342,10 @@ namespace UIHotbar
 
                     text.text = buildableCount.ToString();
                 }
+            }
+            if (activeSlot != -1 && activeSlot != oldActiveSlot)
+            {
+                player.GetMultitool().SetState(DataConfig.MultiToolState.Build);
             }
         }
 
