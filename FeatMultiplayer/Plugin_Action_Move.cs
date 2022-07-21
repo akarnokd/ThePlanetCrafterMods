@@ -70,24 +70,27 @@ namespace FeatMultiplayer
                 var localPosition = GetPlayerMainController().transform.position;
                 var otherPosition = otherPlayer != null ? otherPlayer.rawPosition : localPosition;
 
-                var localInRange = collider.bounds.Contains(localPosition);
-                var otherInRange = collider.bounds.Contains(otherPosition);
-
-                if (!entered && (localInRange || otherInRange))
+                if (collider != null && door1 != null && door2 != null)
                 {
-                    entered = true;
-                    door1.OpenDoor();
-                    door2.OpenDoor();
-                }
-                else
-                if (entered && !localInRange && !otherInRange)
-                {
-                    entered = false;
-                    door1.CloseDoor();
-                    door2.CloseDoor();
+                    var localInRange = collider.bounds.Contains(localPosition);
+                    var otherInRange = collider.bounds.Contains(otherPosition);
+
+                    if (!entered && (localInRange || otherInRange))
+                    {
+                        entered = true;
+                        door1.OpenDoor();
+                        door2.OpenDoor();
+                    }
+                    else
+                    if (entered && !localInRange && !otherInRange)
+                    {
+                        entered = false;
+                        door1.CloseDoor();
+                        door2.CloseDoor();
+                    }
+
                 }
 
-                
                 yield return null;
             }
         }

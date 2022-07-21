@@ -218,7 +218,7 @@ namespace FeatMultiplayer
             else
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                __result = UpdateGrowth(timeRepeat, __instance, ___increaseRate);
+                __result = MachineGrowerIfLinkedGroup_UpdateGrowth_Override(timeRepeat, __instance, ___increaseRate);
                 return false;
             }
             return true;
@@ -231,7 +231,7 @@ namespace FeatMultiplayer
         /// <param name="instance"></param>
         /// <param name="increaseRate"></param>
         /// <returns>The coroutine as IEnumerator</returns>
-        static IEnumerator UpdateGrowth(float timeRepeat, MachineGrowerIfLinkedGroup instance, float increaseRate)
+        static IEnumerator MachineGrowerIfLinkedGroup_UpdateGrowth_Override(float timeRepeat, MachineGrowerIfLinkedGroup instance, float increaseRate)
         {
             for (; ; )
             {
@@ -241,7 +241,8 @@ namespace FeatMultiplayer
                 {
                     if (machineWo.GetGrowth() < 100f)
                     {
-                        if (machineWo.HasLinkedGroups())
+                        var linkedGroups = machineWo.GetLinkedGroups();
+                        if (linkedGroups != null && linkedGroups.Count != 0)
                         {
                             machineWo.SetGrowth(machineWo.GetGrowth() + increaseRate);
                             machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { true, false });
@@ -258,7 +259,7 @@ namespace FeatMultiplayer
                                         WorldObject inner = insideWorldObjects[i];
                                         ___inventoryRight.RemoveItem(inner, true);
                                     }
-                                    WorldObject productWo = WorldObjectsHandler.CreateNewWorldObject(machineWo.GetLinkedGroups()[0], 0);
+                                    WorldObject productWo = WorldObjectsHandler.CreateNewWorldObject(linkedGroups[0], 0);
                                     SendWorldObject(productWo, false);
 
                                     ___inventoryRight.AddItem(productWo);

@@ -10,7 +10,7 @@ namespace FeatMultiplayer
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.26")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.1.0.27")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -68,9 +68,9 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
             {
                 DoMultiplayerUpdate();
-                var ap = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var ap = GetPlayerMainController();
                 WindowsHandler wh = Managers.GetManager<WindowsHandler>();
-                if (!wh.GetHasUiOpen() && ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey())
+                if (ap != null && wh != null && !wh.GetHasUiOpen() && ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey())
                 {
                     /* */
                     if (otherPlayer != null && Keyboard.current.tKey.wasPressedThisFrame)

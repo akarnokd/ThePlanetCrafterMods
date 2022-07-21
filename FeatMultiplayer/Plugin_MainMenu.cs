@@ -84,7 +84,7 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            hostLocalIPText = CreateText("    Local Address = " + GetMainIPv4() + ":" + port.Value, fs);
+            hostLocalIPText = CreateText("    Local Address = " + GetHostLocalAddress() + ":" + port.Value, fs);
             rectTransform = hostLocalIPText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
@@ -156,6 +156,26 @@ namespace FeatMultiplayer
         static string GetUPnPString()
         {
             return "( " + (useUPnP.Value ? "X" : " ") + " ) Use UPnP";
+        }
+
+        static string GetHostLocalAddress()
+        {
+            var hostIp = hostServiceAddress.Value;
+            IPAddress hostIPAddress = IPAddress.Any;
+            if (hostIp == "default")
+            {
+                hostIPAddress = GetMainIPv4();
+            }
+            else
+            if (hostIp == "defaultv6")
+            {
+                hostIPAddress = GetMainIPv6();
+            }
+            else
+            {
+                hostIPAddress = IPAddress.Parse(hostIp);
+            }
+            return hostIPAddress.ToString();
         }
 
         static string GetExternalAddressString()
