@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace FixI18NLoading
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixi18nloading", "(Fix) International Loading", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixi18nloading", "(Fix) International Loading", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -34,12 +34,20 @@ namespace FixI18NLoading
                 return false;
             }
             __result = new Color(
-                float.Parse(components[0].Replace(',', '.'), CultureInfo.InvariantCulture),
-                float.Parse(components[1].Replace(',', '.'), CultureInfo.InvariantCulture),
-                float.Parse(components[2].Replace(',', '.'), CultureInfo.InvariantCulture),
-                float.Parse(components[3].Replace(',', '.'), CultureInfo.InvariantCulture)
+                Rescale(float.Parse(components[0].Replace(',', '.'), CultureInfo.InvariantCulture)),
+                Rescale(float.Parse(components[1].Replace(',', '.'), CultureInfo.InvariantCulture)),
+                Rescale(float.Parse(components[2].Replace(',', '.'), CultureInfo.InvariantCulture)),
+                Rescale(float.Parse(components[3].Replace(',', '.'), CultureInfo.InvariantCulture))
             );
             return false;
+        }
+        static float Rescale(float num)
+        {
+            while (num > 1f)
+            {
+                num /= 10f;
+            }
+            return num;
         }
     }
 }
