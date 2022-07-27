@@ -43,9 +43,12 @@ namespace FixI18NLoading
         }
         static float Rescale(float num)
         {
-            while (num > 1f)
+            if (num > 1f)
             {
-                num /= 10f;
+                while (num >= 1f)
+                {
+                    num /= 10f;
+                }
             }
             return num;
         }
