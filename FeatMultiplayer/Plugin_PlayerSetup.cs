@@ -97,7 +97,16 @@ namespace FeatMultiplayer
                     for (int i = 0; i < kv.Value; i++)
                     {
                         var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
-                        inv.AddItem(wo);
+                        if (!inv.AddItem(wo))
+                        {
+                            LogWarning("Could not add " + kv.Key + " to " + iid + ". Inventory full?!");
+                        }
+                        /*
+                        else
+                        {
+                            LogInfo("AddToInventory > " + iid + ": " + kv.Key + " [" + i + " / " + kv.Value + "] @ " + inv.GetInsideWorldObjects().Count);
+                        }
+                        */
                     }
                 }
                 else
@@ -138,25 +147,40 @@ namespace FeatMultiplayer
         {
             LogInfo("SetupHostInventory");
 
-            List<GroupItem> groupsToAdd = new();
+            List<Group> groupsToAdd = new();
             foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 if (gr is GroupItem gi)
                 {
                     string item = gi.GetId();
-                    if (!item.StartsWith("Rocket") || item == "RocketReactor")
+                    if (item != "GoldenEffigieSpawner")
                     {
-                        groupsToAdd.Add(gi);
+                        if (!item.StartsWith("Rocket") || item == "RocketReactor")
+                        {
+                            groupsToAdd.Add(gi);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var gc in gi.GetAssociatedGroups())
+                        {
+                            groupsToAdd.Add(GroupsHandler.GetGroupViaId(gc.id));
+                        }
                     }
                 }
             }
             groupsToAdd.Sort((a, b) =>
             {
-                if (a.GetEquipableType() != DataConfig.EquipableType.Null && b.GetEquipableType() == DataConfig.EquipableType.Null)
+                var ga = a as GroupItem;
+                var gb = b as GroupItem;
+                var ea = ga != null ? ga.GetEquipableType() : DataConfig.EquipableType.Null;
+                var eb = gb != null ? gb.GetEquipableType() : DataConfig.EquipableType.Null;
+
+                if (ea != DataConfig.EquipableType.Null && eb == DataConfig.EquipableType.Null)
                 {
                     return 1;
                 }
-                if (a.GetEquipableType() == DataConfig.EquipableType.Null && b.GetEquipableType() != DataConfig.EquipableType.Null)
+                if (ea == DataConfig.EquipableType.Null && eb != DataConfig.EquipableType.Null)
                 {
                     return -1;
                 }
