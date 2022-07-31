@@ -8,7 +8,7 @@ using MijuTools;
 
 namespace UIPhotomodeHideWater
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -21,10 +21,10 @@ namespace UIPhotomodeHideWater
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
-        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
-            bool active = !___handObjectsToHide[0].activeSelf;
+            bool active = ___uisToHide[0].activeSelf;
             if (Keyboard.current[Key.LeftShift].isPressed)
             {
                 foreach (GameObject gameObject2 in Managers.GetManager<WaterHandler>().waterVolumes)

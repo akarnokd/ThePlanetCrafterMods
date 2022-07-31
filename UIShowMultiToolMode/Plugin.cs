@@ -9,7 +9,7 @@ using BepInEx.Configuration;
 
 namespace UIShowMultiToolMode
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", "1.0.0.1")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -186,10 +186,10 @@ namespace UIShowMultiToolMode
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
-        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
-            bool active = !___handObjectsToHide[0].activeSelf;
+            bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
         }
     }

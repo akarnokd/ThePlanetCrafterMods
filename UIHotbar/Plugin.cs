@@ -134,7 +134,7 @@ namespace UIHotbar
             if (parent == null)
             {
                 Logger.LogInfo("Begin Creating the Hotbar");
-                parent = new GameObject();
+                parent = new GameObject("HotbarCanvas");
                 Canvas canvas = parent.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -560,10 +560,10 @@ namespace UIHotbar
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
-        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
-            bool active = !___handObjectsToHide[0].activeSelf;
+            bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
         }
 

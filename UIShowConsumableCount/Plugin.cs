@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace UIShowConsumableCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -59,9 +59,9 @@ namespace UIShowConsumableCount
         {
             Logger.LogInfo("Begin adding UI elements");
 
-            healthCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeHealth>());
-            waterCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeThirst>());
-            oxygenCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeOxygen>());
+            healthCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeHealth>(), "FoodConsumableCounter");
+            waterCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeThirst>(), "WaterConsumableCounter");
+            oxygenCount = AddTextForGauge(UnityEngine.Object.FindObjectOfType<PlayerGaugeOxygen>(), "OxygenConsumableCounter");
 
             counts[DataConfig.UsableType.Eatable] = healthCount;
             counts[DataConfig.UsableType.Drinkable] = waterCount;
@@ -70,14 +70,14 @@ namespace UIShowConsumableCount
             Logger.LogInfo("Done adding UI elements");
         }
 
-        GameObject AddTextForGauge(PlayerGauge gauge)
+        GameObject AddTextForGauge(PlayerGauge gauge, string name)
         {
             int fs = fontSize.Value;
 
             Transform tr = gauge.gaugeSlider.transform;
             RectTransform grt = gauge.gaugeSlider.GetComponent<RectTransform>();
 
-            GameObject result = new GameObject();
+            GameObject result = new GameObject(name);
             result.transform.parent = tr;
 
             Text text = result.AddComponent<Text>();
@@ -142,10 +142,10 @@ namespace UIShowConsumableCount
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
-        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
-            bool active = !___handObjectsToHide[0].activeSelf;
+            bool active = ___uisToHide[0].activeSelf;
             healthCount?.SetActive(active);
             waterCount?.SetActive(active);
             oxygenCount?.SetActive(active);

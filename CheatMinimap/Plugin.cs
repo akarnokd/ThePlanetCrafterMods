@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.14")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.15")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -349,10 +349,10 @@ namespace CheatMinimap
         static WorldUnitsHandler worldUnitsHandler;
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LiveDevTools), nameof(LiveDevTools.ToggleUi))]
-        static void LiveDevTools_ToggleUi(List<GameObject> ___handObjectsToHide)
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
-            mapVisible = !___handObjectsToHide[0].activeSelf;
+            mapVisible = ___uisToHide[0].activeSelf;
         }
 
         [HarmonyPostfix]
