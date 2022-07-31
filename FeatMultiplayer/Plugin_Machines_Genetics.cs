@@ -32,7 +32,10 @@ namespace FeatMultiplayer
             UiWindowGenetics __instance,
             WorldObject ___worldObject, 
             Inventory ___inventoryRight,
-            ref bool ___isFinishingSequencing)
+            ref Group ___matchingGroup,
+            DataConfig.CraftableIn ___craftableIdentifier,
+            GroupData ___groupLarvae
+        )
         {
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
@@ -46,7 +49,16 @@ namespace FeatMultiplayer
                     __instance.buttonCancelCraft.SetActive(true);
                     LockInventory(__instance, ___inventoryRight);
                     __instance.sequencingAnimationContainer.SetActive(true);
-                    __instance.groupLoadingDisplayer.SetDisplayLoadingGroup(___worldObject.GetLinkedGroups()[0], true);
+                    ___matchingGroup = ___worldObject.GetLinkedGroups()[0];
+
+                    if (___craftableIdentifier == DataConfig.CraftableIn.CraftGeneticT1)
+                    {
+                        __instance.groupLoadingDisplayer.SetDisplayLoadingGroup(___matchingGroup, true);
+                    }
+                    else if (___craftableIdentifier == DataConfig.CraftableIn.CraftInsectsT1)
+                    {
+                        __instance.groupLoadingDisplayer.SetDisplayLoadingGroup(GroupsHandler.GetGroupViaId(___groupLarvae.id), true, _showInterogationPoint: true);
+                    }
                 }
                 else
                 {
@@ -157,14 +169,9 @@ namespace FeatMultiplayer
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowGenetics), nameof(UiWindowGenetics.CancelCraftProcess))]
         static void UiWindowGenetics_CancelCraftProcess(
-            bool ___isFinishingSequencing,
             WorldObject ___worldObject)
         {
 
-            if (___isFinishingSequencing)
-            {
-                return;
-            }
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 Send(new MessageGeneticsAction()
