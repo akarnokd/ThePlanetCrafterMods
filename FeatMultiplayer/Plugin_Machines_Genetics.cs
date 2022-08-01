@@ -252,32 +252,15 @@ namespace FeatMultiplayer
                         if (linkedGroups != null && linkedGroups.Count != 0)
                         {
                             machineWo.SetGrowth(machineWo.GetGrowth() + increaseRate);
-                            machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { true, false });
                             if (machineWo.GetGrowth() >= 100f)
                             {
-                                InventoryAssociated invAssoc = instance.GetComponent<InventoryAssociated>();
-                                if (invAssoc != null)
-                                {
-                                    var ___inventoryRight = invAssoc.GetInventory();
-                                    List<WorldObject> insideWorldObjects = ___inventoryRight.GetInsideWorldObjects();
-
-                                    for (int i = insideWorldObjects.Count - 1; i > -1; i--)
-                                    {
-                                        WorldObject inner = insideWorldObjects[i];
-                                        ___inventoryRight.RemoveItem(inner, true);
-                                    }
-                                    WorldObject productWo = WorldObjectsHandler.CreateNewWorldObject(linkedGroups[0], 0);
-                                    SendWorldObject(productWo, false);
-
-                                    ___inventoryRight.AddItem(productWo);
-                                    ___inventoryRight.RefreshDisplayerContent();
-
-                                    machineWo.SetGrowth(0f);
-                                    machineWo.SetLinkedGroups(null);
-                                }
-
+                                machineWo.SetGrowth(100f);
                                 machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { false, false });
                             } 
+                            else
+                            {
+                                machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { true, false });
+                            }
                             SendWorldObject(machineWo, false);
                         }
                         else
@@ -292,6 +275,64 @@ namespace FeatMultiplayer
                 }
                 yield return new WaitForSeconds(timeRepeat);
             }
+        }
+
+        /// <summary>
+        /// The vanilla game uses MachineConvertRecipe::CheckIfFullyGrown to periodically
+        /// check if an associated WorldObject is fully grown (WorldObject.GetGrowth() &gt;= 100).
+        /// If so, removes everything from the inventory and adds a produce back into it, resetting
+        /// the growth of the associated WorldObject.
+        /// 
+        /// On the host, we have to intercept the creation of the replacement object and send it to
+        /// the client, along with the info about the growth getting a reset.
+        /// 
+        /// On the client, we don't do anything and let the world object and inventory update messages
+        /// take care of things.
+        /// </summary>
+        /// <param name="___worldObject">The associated grower machine's WorldObject.</param>
+        /// <param name="___inventory">The associated grower machine's inventory.</param>
+        /// <returns>true in singleplayer, false otherwise</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineConvertRecipe), nameof(MachineConvertRecipe.CheckIfFullyGrown))]
+        static bool MachineConvertRecipe_CheckIfFullyGrown(
+            WorldObject ___worldObject,
+            Inventory ___inventory
+        )
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (___worldObject.GetGrowth() >= 100f)
+                {
+                    var linkedGroups = ___worldObject.GetLinkedGroups();
+                    if (linkedGroups != null && linkedGroups.Count != 0)
+                    {
+                        Group group = linkedGroups[0];
+                        GroupItem groupItem = (GroupItem)group;
+                        if (group != null)
+                        {
+                            List<WorldObject> insideWorldObjects = ___inventory.GetInsideWorldObjects();
+                            for (int i = insideWorldObjects.Count - 1; i > -1; i--)
+                            {
+                                WorldObject innerWo = insideWorldObjects[i];
+                                ___inventory.RemoveItem(innerWo, true);
+                            }
+                            WorldObject product = WorldObjectsHandler.CreateNewWorldObject(groupItem, 0);
+                            SendWorldObject(product, false);
+                            ___inventory.AddItem(product);
+                            ___worldObject.SetGrowth(0f);
+                            ___worldObject.SetLinkedGroups(null);
+                            SendWorldObject(___worldObject, false);
+                        }
+                    }
+                }
+                return false;
+            }
+            else
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                return false;
+            }
+            return true;
         }
 
         static void ReceiveMessageGeneticsAction(MessageGeneticsAction mga)
