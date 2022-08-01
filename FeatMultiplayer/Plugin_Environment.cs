@@ -130,13 +130,15 @@ namespace FeatMultiplayer
 
         static void SendTerraformState()
         {
-            MessageTerraformState mts = new MessageTerraformState();
+            MessageTerraformState mts = new();
 
             WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
             mts.oxygen = wuh.GetUnit(DataConfig.WorldUnitType.Oxygen).GetValue();
             mts.heat = wuh.GetUnit(DataConfig.WorldUnitType.Heat).GetValue();
             mts.pressure = wuh.GetUnit(DataConfig.WorldUnitType.Pressure).GetValue();
-            mts.biomass = wuh.GetUnit(DataConfig.WorldUnitType.Biomass).GetValue();
+            mts.plants = wuh.GetUnit(DataConfig.WorldUnitType.Plants).GetValue();
+            mts.insects = wuh.GetUnit(DataConfig.WorldUnitType.Insects).GetValue();
+            mts.animals = wuh.GetUnit(DataConfig.WorldUnitType.Animals).GetValue();
 
             _sendQueue.Enqueue(mts);
         }
@@ -189,13 +191,21 @@ namespace FeatMultiplayer
                     {
                         worldUnitCurrentTotalValue.SetValue(wu, mts.pressure);
                     }
-                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass)
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Plants)
                     {
-                        worldUnitCurrentTotalValue.SetValue(wu, mts.biomass);
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.plants);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Insects)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.insects);
+                    }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Animals)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.animals);
                     }
                     if (wu.GetUnitType() == DataConfig.WorldUnitType.Terraformation)
                     {
-                        worldUnitCurrentTotalValue.SetValue(wu, mts.oxygen + mts.heat + mts.pressure + mts.biomass);
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.GetTi());
                     }
                 }
 

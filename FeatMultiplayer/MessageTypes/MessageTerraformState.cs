@@ -13,31 +13,28 @@ namespace FeatMultiplayer
         internal float oxygen;
         internal float heat;
         internal float pressure;
-        internal float biomass;
+        internal float plants;
+        internal float insects;
+        internal float animals;
 
         internal static bool TryParse(string str, out MessageTerraformState mts)
         {
-            if (MessageHelper.TryParseMessage("TerraformState|", str, out var parameters))
+            if (MessageHelper.TryParseMessage("TerraformState|", str, 6, out var parameters))
             {
-                if (parameters.Length == 5)
+                try
                 {
-                    try
-                    {
-                        mts = new MessageTerraformState();
-                        mts.oxygen = float.Parse(parameters[1], CultureInfo.InvariantCulture);
-                        mts.heat = float.Parse(parameters[2], CultureInfo.InvariantCulture);
-                        mts.pressure = float.Parse(parameters[3], CultureInfo.InvariantCulture);
-                        mts.biomass = float.Parse(parameters[4], CultureInfo.InvariantCulture);
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Plugin.LogError(ex);
-                    }
+                    mts = new MessageTerraformState();
+                    mts.oxygen = float.Parse(parameters[1], CultureInfo.InvariantCulture);
+                    mts.heat = float.Parse(parameters[2], CultureInfo.InvariantCulture);
+                    mts.pressure = float.Parse(parameters[3], CultureInfo.InvariantCulture);
+                    mts.plants = float.Parse(parameters[4], CultureInfo.InvariantCulture);
+                    mts.insects = float.Parse(parameters[5], CultureInfo.InvariantCulture);
+                    mts.animals = float.Parse(parameters[6], CultureInfo.InvariantCulture);
+                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    Plugin.LogError("TerraformState.Length = " + parameters.Length);
+                    Plugin.LogError(ex);
                 }
             }
             mts = null;
@@ -47,10 +44,22 @@ namespace FeatMultiplayer
         public string GetString()
         {
             return "TerraformState|" 
-                + oxygen.ToString(CultureInfo.InvariantCulture) + "|" 
-                + heat.ToString(CultureInfo.InvariantCulture) + "|" 
-                + pressure.ToString(CultureInfo.InvariantCulture) + "|"
-                + biomass.ToString(CultureInfo.InvariantCulture) + "\n";
+                + oxygen.ToString(CultureInfo.InvariantCulture)
+                + "|" + heat.ToString(CultureInfo.InvariantCulture)
+                + "|" + pressure.ToString(CultureInfo.InvariantCulture)
+                + "|" + plants.ToString(CultureInfo.InvariantCulture)
+                + "|" + insects.ToString(CultureInfo.InvariantCulture)
+                + "|" + animals.ToString(CultureInfo.InvariantCulture)
+                + "\n";
+        }
+
+        /// <summary>
+        /// Returns the Terraformation Index derived from the components.
+        /// </summary>
+        /// <returns>the Terraformation Index derived from the components.</returns>
+        public float GetTi()
+        {
+            return oxygen + heat + pressure + plants + insects + animals;
         }
     }
 }
