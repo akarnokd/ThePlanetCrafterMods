@@ -206,38 +206,35 @@ namespace FeatMultiplayer
 				}
 				*/
 				var allowedSpawnsAt = GetValidSpawns(raycastHit.point, ___larvaesToSpawn);
-				if (allowedSpawnsAt.Count != 0)
+				for (int i = 0; i < allowedSpawnsAt.Count; i++)
                 {
-					for (int i = 0; i < allowedSpawnsAt.Count - 1; i++)
+					int spawnIndex = UnityEngine.Random.Range(i, players.Count);
+					GroupDataItem spawnCandidate = allowedSpawnsAt[spawnIndex];
+
+					if (spawnCandidate.chanceToSpawn >= UnityEngine.Random.Range(0, 100))
                     {
-						int spawnIndex = UnityEngine.Random.Range(i, players.Count);
-						GroupDataItem spawnCandidate = allowedSpawnsAt[spawnIndex];
+						var larvaeGroup = GroupsHandler.GetGroupViaId(spawnCandidate.id);
+						var larvaeGo = WorldObjectsHandler.CreateAndInstantiateWorldObject(larvaeGroup, raycastHit.point, Quaternion.identity);
 
-						if (spawnCandidate.chanceToSpawn >= UnityEngine.Random.Range(0, 100))
-                        {
-							var larvaeGroup = GroupsHandler.GetGroupViaId(spawnCandidate.id);
-							var larvaeGo = WorldObjectsHandler.CreateAndInstantiateWorldObject(larvaeGroup, raycastHit.point, Quaternion.identity);
+						larvaeGo.transform.SetParent(___poolContainer.transform);
 
-							larvaeGo.transform.SetParent(___poolContainer.transform);
+						___larvaesSpawned.Add(larvaeGo);
+						var larvaeWo = larvaeGo.GetComponentInChildren<WorldObjectAssociated>().GetWorldObject();
+						// FIXME work out the special case for larvae sync
+						larvaeWo.SetDontSaveMe(true);
 
-							___larvaesSpawned.Add(larvaeGo);
-							var larvaeWo = larvaeGo.GetComponentInChildren<WorldObjectAssociated>().GetWorldObject();
-							// FIXME work out the special case for larvae sync
-							larvaeWo.SetDontSaveMe(true);
-
-							float num = UnityEngine.Random.value * 360f;
-							Quaternion quaternion = Quaternion.Euler(0f, 0f, num);
-							Quaternion quaternion2 = Quaternion.LookRotation(raycastHit.normal) * (quaternion * Quaternion.Euler(90f, 0f, 0f));
-							larvaeGo.transform.rotation = quaternion2;
-							larvaeGo.transform.localScale = new Vector3(1f, 1f, 1f);
-							larvaeWo.SetPositionAndRotation(larvaeWo.GetPosition(), quaternion2);
+						float num = UnityEngine.Random.value * 360f;
+						Quaternion quaternion = Quaternion.Euler(0f, 0f, num);
+						Quaternion quaternion2 = Quaternion.LookRotation(raycastHit.normal) * (quaternion * Quaternion.Euler(90f, 0f, 0f));
+						larvaeGo.transform.rotation = quaternion2;
+						larvaeGo.transform.localScale = new Vector3(1f, 1f, 1f);
+						larvaeWo.SetPositionAndRotation(larvaeWo.GetPosition(), quaternion2);
 							
-							SendWorldObject(larvaeWo, false);
+						SendWorldObject(larvaeWo, false);
 
-							break;
-                        }
-					}
-                }
+						break;
+                    }
+				}
 			}
 		}
 
