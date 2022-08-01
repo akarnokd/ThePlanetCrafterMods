@@ -13,7 +13,7 @@ namespace LibModLoadSaveSupport
     /// <summary>
     /// Manages the saving and loading of custom data (plugin save states).
     /// </summary>
-    [BepInPlugin(pluginGuid, "(Lib) Support Mods with Load n Save", "1.0.0.1")]
+    [BepInPlugin(pluginGuid, "(Lib) Support Mods with Load n Save", "1.0.0.2")]
     public class LibModLoadSaveSupportPlugin : BaseUnityPlugin
     {
 
@@ -155,11 +155,23 @@ namespace LibModLoadSaveSupport
                 // split the file along the chunk delimiters (default @)
                 string[] lines = text.Split(new char[] { ___chunckDelimiter });
 
+                // Since 0.5.005: biomass was renamed to plants
+                lines[0] = lines[0].Replace("unitBiomassLevel", "unitPlantsLevel");
+
                 JsonUtility.FromJsonOverwrite(lines[0], ___worldState);
                 JsonUtility.FromJsonOverwrite(lines[1], ___playerState);
                 JsonUtility.FromJsonOverwrite(lines[4], ___playerStats);
                 ParseJsonList(lines[2], ___worldObjects, ___listDelimiter);
                 ParseJsonList(lines[3], ___inventories, ___listDelimiter);
+
+                // Since 0.5.005: need to rename SpaceMultiplierBiomass to SpaceMultiplierPlants
+                foreach (var wo in ___worldObjects)
+                {
+                    if (wo.gId == "SpaceMultiplierBiomass")
+                    {
+                        wo.gId = "SpaceMultiplierPlants";
+                    }
+                }
 
                 // scan through the lest of the lines and pick out the
                 // pluginGuid marker
