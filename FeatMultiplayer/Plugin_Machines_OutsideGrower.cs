@@ -93,7 +93,8 @@ namespace FeatMultiplayer
             bool ___canRecolt,
             GameObject ___grownThingsContainer,
             bool ___alignWithNormal,
-            float ___growSize
+            float ___growSize,
+            GameObject ___spawnOnThis
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
@@ -118,6 +119,10 @@ namespace FeatMultiplayer
                         validLocation = true;
                     }
                     if (___spawnOnWater && raycastHit.collider.gameObject.layer == LayerMask.NameToLayer(GameConfig.layerWaterName))
+                    {
+                        validLocation = true;
+                    }
+                    if (___spawnOnThis != null && raycastHit.collider.gameObject == ___spawnOnThis)
                     {
                         validLocation = true;
                     }
