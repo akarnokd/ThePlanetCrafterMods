@@ -94,12 +94,14 @@ namespace FeatMultiplayer
             GameObject ___grownThingsContainer,
             bool ___alignWithNormal,
             float ___growSize,
-            GameObject ___spawnOnThis
+            GameObject ___spawnOnThis,
+            float ___downValue,
+            bool ___canRecoltOnlyWhenFullyGrown
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                int layerMask = ~LayerMask.GetMask(GameConfig.layerSectorName, GameConfig.layerIgnoreRaycast);
+                int layerMask = ~LayerMask.GetMask(GameConfig.commonIgnoredLayers);
                 Vector2 randomPointInRadius = UnityEngine.Random.insideUnitCircle * ___radius;
 
                 var go = __instance.gameObject;
@@ -143,8 +145,8 @@ namespace FeatMultiplayer
                     spi.typeIndex = __instance.thingsToGrow.IndexOf(_objectToInstantiate);
                     spi.machineId = ___worldObjectGrower.GetId();
 
-                    float yFightingCorrection = 0.1f;
-                    spawn.transform.position = new Vector3(raycastHit.point.x, raycastHit.point.y - yFightingCorrection, raycastHit.point.z);
+                    var spawnPosition = spawn.transform.position;
+                    spawn.transform.position = new Vector3(spawnPosition.x, spawnPosition.y - ___downValue, spawnPosition.z);
 
                     float z = UnityEngine.Random.value * 360f;
                     Quaternion lhs = Quaternion.Euler(0f, 0f, z);
@@ -161,6 +163,11 @@ namespace FeatMultiplayer
                     var ag = spawn.GetComponent<ActionGrabable>();
                     if (ag != null)
                     {
+                        if (___canRecoltOnlyWhenFullyGrown)
+                        {
+                            ag.SetCanGrab(false);
+                        }
+
                         spi.doRespawn = () =>
                         {
                             ___instantiatedGameObjects.Remove(spawn);
@@ -238,14 +245,14 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (___instantiatedGameObjects != null && ___instantiatedGameObjects.Count > 0)
+                if (___instantiatedGameObjects != null && ___instantiatedGameObjects.Count > 0 && ___hasEnergy)
                 {
                     bool allFullGrown = true;
                     foreach (GameObject spawn in ___instantiatedGameObjects)
                     {
                         if (spawn != null)
                         {
-                            if (spawn.transform.localScale.x <= ___growSize && ___hasEnergy)
+                            if (spawn.transform.localScale.x <= ___growSize)
                             {
                                 float num = ___growSpeed * UnityEngine.Random.Range(0f, 1f);
                                 spawn.transform.localScale += new Vector3(num, num, num);
@@ -254,6 +261,14 @@ namespace FeatMultiplayer
                                 foreach (VegetationTree tree in spawn.GetComponentsInChildren<VegetationTree>())
                                 {
                                     tree.UpdateConditions();
+                                }
+                            }
+                            else
+                            {
+                                var ag = spawn.GetComponent<ActionGrabable>();
+                                if (ag != null)
+                                {
+                                    ag.SetCanGrab(true);
                                 }
                             }
 
@@ -285,7 +300,7 @@ namespace FeatMultiplayer
                             if (!(gameObject2 == null))
                             {
                                 int num2 = Mathf.RoundToInt(Mathf.InverseLerp(0f, ___growSize, gameObject2.transform.localScale.x) * 100f);
-                                ___worldObjectGrower.SetGrowth((float)num2);
+                                ___worldObjectGrower.SetGrowth(num2);
                                 break;
                             }
                         }
@@ -336,6 +351,12 @@ namespace FeatMultiplayer
                         spi.spawnId = mga.spawnId;
                         spi.typeIndex = mga.typeIndex;
                         spi.machineId = mga.machineId;
+
+                        var ag = spawn.GetComponent<ActionGrabable>();
+                        if (ag != null)
+                        {
+                            ag.SetCanGrab(mga.growth < mga.growSize);
+                        }
                     }
                     else
                     {
