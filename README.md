@@ -130,7 +130,7 @@ None.
 
 ## (Cheat) Highlight Nearby Resources
 
-Press <kbd>CTRL+F</kbd> or <kbd>X</kbd> to highlight nearby resources.
+Press <kbd>X</kbd> to highlight nearby resources.
 Press <kbd>Shift+X</kbd> to highlight and cycle forward through the set of resources configured.
 Press <kbd>Ctrl+X</kbd> to highlight and cycle backward through the set of resources configured.
 
