@@ -19,7 +19,7 @@ namespace FeatMultiplayer
 
         internal static bool TryParse(string str, out MessageTerraformState mts)
         {
-            if (MessageHelper.TryParseMessage("TerraformState|", str, 6, out var parameters))
+            if (MessageHelper.TryParseMessage("TerraformState|", str, 7, out var parameters))
             {
                 try
                 {

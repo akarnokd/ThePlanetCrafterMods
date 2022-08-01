@@ -243,7 +243,7 @@ namespace FeatMultiplayer
 						Quaternion quaternion = Quaternion.Euler(0f, 0f, num);
 						Quaternion quaternion2 = Quaternion.LookRotation(raycastHit.normal) * (quaternion * Quaternion.Euler(90f, 0f, 0f));
 						larvaeGo.transform.rotation = quaternion2;
-						larvaeGo.transform.localScale = new Vector3(1f, 20f, 1f);
+						larvaeGo.transform.localScale = new Vector3(1f, 1f, 1f);
 						larvaeWo.SetPositionAndRotation(larvaeWo.GetPosition(), quaternion2);
 
 						LogInfo("Larvae; Spawning new [" + ___larvaesSpawned.Count + "] " + DebugWorldObject(larvaeWo));
