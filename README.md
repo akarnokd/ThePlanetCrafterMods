@@ -9,7 +9,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.4.015
+## Supported Game Version: 0.5.005
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -160,6 +160,21 @@ ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridiu
 # Setting type: String
 # Default value: X
 CycleResourceKey = X
+
+## List of comma-separated larve ids to look for.
+# Setting type: String
+# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3
+LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3
+
+## If nonzero, a thin white bar will appear and point to the resource
+# Setting type: Single
+# Default value: 5
+LineIndicatorLength = 5
+
+## How long the resource indicators should remain visible, in seconds.
+# Setting type: Single
+# Default value: 15
+TimeToLive = 15
 
 ```
 

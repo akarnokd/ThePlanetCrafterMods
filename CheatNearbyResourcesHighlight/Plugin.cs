@@ -8,10 +8,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using System;
+using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -30,6 +31,12 @@ namespace CheatNearbyResourcesHighlight
         /// List of comma-separated resource ids to look for.
         /// </summary>
         private static ConfigEntry<string> resourceSetStr;
+
+        private static ConfigEntry<string> larvaeSetStr;
+
+        private static ConfigEntry<float> lineIndicatorLength;
+
+        private static ConfigEntry<float> timeToLive;
 
         /// <summary>
         /// Which specific resource to hightlight only
@@ -55,10 +62,35 @@ namespace CheatNearbyResourcesHighlight
             "PulsarShard"
         });
 
+        static readonly string defaultLarvaeSet = "LarvaeBase1,LarvaeBase2,LarvaeBase3";
+
         class GameObjectTTL
         {
-            public GameObject gameObject;
+            public GameObject resource;
+            public GameObject icon;
+            public GameObject bar1;
+            public GameObject bar2;
             public float time;
+
+            public void Hide()
+            {
+                icon.SetActive(false);
+                bar1?.SetActive(false);
+                bar2?.SetActive(false);
+            }
+
+            public void Destroy()
+            {
+                resource = null;
+                UnityEngine.Object.Destroy(icon);
+                UnityEngine.Object.Destroy(bar1);
+                UnityEngine.Object.Destroy(bar2);
+            }
+
+            public void LookAt(Transform target, Vector3 up)
+            {
+                icon.transform.LookAt(target, up);
+            }
         }
 
         static List<GameObjectTTL> scannerImageList = new List<GameObjectTTL>();
@@ -72,6 +104,9 @@ namespace CheatNearbyResourcesHighlight
             stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.");
             resourceSetStr = Config.Bind("General", "ResourceSet", defaultResourceSet, "List of comma-separated resource ids to look for.");
             cycleResourceKey = Config.Bind("General", "CycleResourceKey", "X", "Key used for cycling resources from the set");
+            larvaeSetStr = Config.Bind("General", "LarvaeSet", defaultLarvaeSet, "List of comma-separated larve ids to look for.");
+            lineIndicatorLength = Config.Bind("General", "LineIndicatorLength", 5f, "If nonzero, a thin white bar will appear and point to the resource");
+            timeToLive = Config.Bind("General", "TimeToLive", 15f, "How long the resource indicators should remain visible, in seconds.");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -94,19 +129,22 @@ namespace CheatNearbyResourcesHighlight
                     //
                     if (Keyboard.current[k].wasPressedThisFrame)
                     {
-                        string[] resourceSetArray = resourceSetStr.Value.Split(',');
+                        List<string> scanSetList = new();
+                        scanSetList.AddRange(resourceSetStr.Value.Split(','));
+                        scanSetList.AddRange(larvaeSetStr.Value.Split(','));
+
                         if (Keyboard.current[Key.LeftShift].isPressed)
                         {
                             if (currentResource == null)
                             {
-                                currentResource = resourceSetArray[0];
+                                currentResource = scanSetList[0];
                             }
                             else
                             {
-                                int idx = Array.IndexOf(resourceSetArray, currentResource);
-                                if (idx < resourceSetArray.Length - 1)
+                                int idx = scanSetList.IndexOf(currentResource);
+                                if (idx < scanSetList.Count - 1)
                                 {
-                                    currentResource = resourceSetArray[idx + 1];
+                                    currentResource = scanSetList[idx + 1];
                                 }
                                 else
                                 {
@@ -118,14 +156,14 @@ namespace CheatNearbyResourcesHighlight
                         {
                             if (currentResource == null)
                             {
-                                currentResource = resourceSetArray[resourceSetArray.Length - 1];
+                                currentResource = scanSetList[scanSetList.Count - 1];
                             }
                             else
                             {
-                                int idx = Array.IndexOf(resourceSetArray, currentResource);
+                                int idx = scanSetList.IndexOf(currentResource);
                                 if (idx > 0)
                                 {
-                                    currentResource = resourceSetArray[idx - 1];
+                                    currentResource = scanSetList[idx - 1];
                                 }
                                 else
                                 {
@@ -140,15 +178,15 @@ namespace CheatNearbyResourcesHighlight
                     for (int i = scannerImageList.Count - 1; i >= 0; i--)
                     {
                         GameObjectTTL gameObjectTTL = scannerImageList[i];
-                        if (Time.time >= gameObjectTTL.time)
+                        if (Time.time >= gameObjectTTL.time || (gameObjectTTL.resource == null || !gameObjectTTL.resource.activeSelf))
                         {
-                            gameObjectTTL.gameObject.SetActive(false);
-                            UnityEngine.Object.Destroy(gameObjectTTL.gameObject);
+                            gameObjectTTL.Hide();
+                            gameObjectTTL.Destroy();
                             scannerImageList.RemoveAt(i);
                         }
                         else
                         {
-                            gameObjectTTL.gameObject.transform.LookAt(player, player.up);
+                            gameObjectTTL.LookAt(player, player.up);
                         }
                     }
                 }
@@ -161,60 +199,111 @@ namespace CheatNearbyResourcesHighlight
             float maxRangeSqr = radius.Value * radius.Value;
             float sy = stretchY.Value;
             // prepare resource sets to highlight
-            HashSet<string> resourceSet = new HashSet<string>();
+            HashSet<string> scanSet = new HashSet<string>();
+            bool hasResources = false;
+            bool hasLarvae = false;
             if (currentResource != null)
             {
-                resourceSet.Add(currentResource);
+                scanSet.Add(currentResource);
+                hasResources = true;
+                hasLarvae = true;
             }
             else
             {
                 foreach (string r in resourceSetStr.Value.Split(','))
                 {
-                    resourceSet.Add(r);
+                    scanSet.Add(r);
+                    hasResources = true;
+                }
+                foreach (string lr in larvaeSetStr.Value.Split(','))
+                {
+                    scanSet.Add(lr);
+                    hasLarvae = true;
                 }
             }
 
             // hide any previously shown scanner images.
             foreach (GameObjectTTL go in scannerImageList)
             {
-                go.gameObject.SetActive(false);
-                UnityEngine.Object.Destroy(go.gameObject);
+                go.Hide();
+                go.Destroy();
             }
             scannerImageList.Clear();
 
+            var playerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             // where is the player?
-            Transform player = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform;
+            Transform player = playerController.transform;
             Vector3 playerPosition = player.position;
             int c = 0;
 
 
             // Where are the minable objects?
-            ActionMinable[] minableResources = UnityEngine.Object.FindObjectsOfType<ActionMinable>();
-            foreach (ActionMinable resource in minableResources)
+            List<Component> candidates = new();
+            if (hasResources)
+            {
+                candidates.AddRange(FindObjectsOfType<ActionMinable>());
+            }
+            if (hasLarvae)
+            {
+                candidates.AddRange(FindObjectsOfType<ActionGrabable>());
+            }
+
+            foreach (Component resource in candidates)
             {
                 WorldObjectAssociated component = resource.GetComponent<WorldObjectAssociated>();
                 if (component != null)
                 {
                     WorldObject worldObject = component.GetWorldObject();
-                    if (worldObject != null && resourceSet.Contains(worldObject.GetGroup().GetId()))
+                    string gid = worldObject != null ? worldObject.GetGroup().GetId() : "";
+                    if (scanSet.Contains(gid))
                     {
                         Vector3 resourcePosition = resource.gameObject.transform.position;
                         if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f
                             && (resourcePosition - playerPosition).sqrMagnitude < maxRangeSqr)
                         {
-                            GameObject gameObject = new GameObject("ScannerImage");
-                            SpriteRenderer spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-                            spriteRenderer.sprite = worldObject.GetGroup().GetImage();
+                            var resourceImage = worldObject.GetGroup().GetImage();
+
+                            GameObject iconGo = new GameObject("ScannerImage-" + gid);
+                            SpriteRenderer spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
+                            spriteRenderer.sprite = resourceImage;
                             spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
-                            gameObject.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
-                            gameObject.transform.rotation = resource.gameObject.transform.rotation;
-                            gameObject.transform.localScale = new Vector3(1f, sy, 1f);
-                            gameObject.transform.LookAt(player, player.up);
-                            gameObject.SetActive(true);
+                            iconGo.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
+                            iconGo.transform.rotation = resource.gameObject.transform.rotation;
+                            iconGo.transform.localScale = new Vector3(1f, sy, 1f);
+                            iconGo.transform.LookAt(player, player.up);
+                            iconGo.SetActive(true);
 
                             GameObjectTTL go = new GameObjectTTL();
-                            go.gameObject = gameObject;
-                            go.time = Time.time + 15f;
+                            go.resource = resource.gameObject;
+                            go.icon = iconGo;
+                            go.time = Time.time + timeToLive.Value;
+
+                            float barLen = lineIndicatorLength.Value;
+                            if (barLen > 0)
+                            {
+                                float barWidth = 0.1f;
+                                GameObject bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
+                                var image1 = bar1.AddComponent<SpriteRenderer>();
+                                image1.sprite = resourceImage;
+                                image1.color = new Color(1f, 1f, 1f, 1f);
+                                bar1.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
+                                bar1.transform.rotation = Quaternion.identity;
+                                bar1.transform.localScale = new Vector3(barWidth, barLen, barWidth);
+                                bar1.SetActive(true);
+
+                                GameObject bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
+                                var image2 = bar2.AddComponent<SpriteRenderer>();
+                                image2.sprite = resourceImage;
+                                image2.color = new Color(1f, 1f, 1f, 1f);
+                                bar2.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
+                                bar2.transform.localScale = new Vector3(barWidth, barLen, barWidth);
+                                bar2.transform.rotation = Quaternion.Euler(0, 90, 0);
+                                bar2.SetActive(true);
+
+                                go.bar1 = bar1;
+                                go.bar2 = bar2;
+                            }
+
                             scannerImageList.Add(go);
                             c++;
                         }
@@ -222,18 +311,6 @@ namespace CheatNearbyResourcesHighlight
                 }
             }
             Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found resources: " + c + " x " + (currentResource ?? "any"));
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnToggleLightDispatcher))]
-        static bool PlayerInputDispatcher_OnToggleLightDispatcher()
-        {
-            if (Keyboard.current[Key.LeftCtrl].isPressed)
-            {
-                ScanForResourcesNow();
-                return false;
-            }
-            return true;
         }
     }
 }
