@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.15")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.16")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -240,7 +240,7 @@ namespace CheatMinimap
                     float mapImageHeight = theMap.height;
 
                     // calibrated to the given map
-                    float playerCenterX = 700;
+                    float playerCenterX = 400;
                     float playerCenterY = 800;
                     float mapWidth = 4000;
                     float mapHeight = 4000;
@@ -479,7 +479,10 @@ namespace CheatMinimap
             var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
             var move = pm.GetPlayerMovable();
             move.flyMode = true;
-            pm.SetPlayerPlacement(new Vector3(700, 300, 800), q);
+            int playerX = 400;
+            int playerZ = 800;
+
+            pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
             SetVisuals(4000 / 2, pm);
             foreach (ParticleSystem ps in UnityEngine.Object.FindObjectsOfType<ParticleSystem>())
             {
@@ -497,6 +500,11 @@ namespace CheatMinimap
             Logger.LogInfo("Sector count: " + sectors.Length);
             foreach (Sector sector in sectors)
             {
+                Logger.LogInfo("Checking a sector");
+                if (sector == null || sector.gameObject == null)
+                {
+                    continue;
+                }
                 string name = sector.gameObject.name;
                 Logger.LogInfo("Sector: " + name);
                 if (/*name.StartsWith("Sector-Cave-") || */name.Contains("_Interior"))
@@ -527,10 +535,15 @@ namespace CheatMinimap
                         yield return 0;
                     }
 
+                    Logger.LogInfo("        " + name + " hiding decoys");
                     foreach (GameObject gameObject in sector.decoyGameObjects)
                     {
-                        gameObject.SetActive(true);
+                        if (gameObject != null)
+                        {
+                            gameObject.SetActive(true);
+                        }
                     }
+                    Logger.LogInfo("        " + name + " loaded successfully");
                 }
             }
 
@@ -540,7 +553,7 @@ namespace CheatMinimap
             int[] ys = new[] { 50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500 };
 
             foreach (int y in ys) {
-                pm.SetPlayerPlacement(new Vector3(700, y, 800), q);
+                pm.SetPlayerPlacement(new Vector3(playerX, y, playerZ), q);
                 SetVisuals(4000 / 2, pm);
                 yield return 0;
                 ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
