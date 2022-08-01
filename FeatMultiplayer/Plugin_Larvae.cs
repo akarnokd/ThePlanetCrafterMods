@@ -46,7 +46,7 @@ namespace FeatMultiplayer
 			int ___maxLarvaeToSpawn,
 			List<GameObject> ___larvaesSpawned,
 			float ___updateInterval,
-			float ___radius,
+			int ___radius,
 			List<GroupDataItem> ___larvaesToSpawn,
 			LayerMask ___ignoredLayerMasks,
 			GameObject ___poolContainer
@@ -54,6 +54,7 @@ namespace FeatMultiplayer
         {
 			if (updateMode == MultiplayerMode.CoopHost)
             {
+				LogInfo("Larvae; Radius = " + ___radius + ", Max spawn = " + ___maxLarvaeToSpawn);
 				__instance.StopAllCoroutines();
 				__instance.StartCoroutine(PlayerLarvaeAround_TryToSpawnLarvae_Override(
 					___larvaesStart, ___playerDirectEnvironment, ___larvaesEnd, ___worldUnitsHandler, ___maxLarvaeToSpawn,
@@ -91,6 +92,7 @@ namespace FeatMultiplayer
 
 					var players = GetAllPlayerLocations();
 					var density = LarvaeDensity(___radius, maxLarvaeToSpawnScaled);
+					// LogInfo("Larvae; maxLarvaeToSpawnScaled = " + maxLarvaeToSpawnScaled + ", num = " + num);
 
 					if (ShouldSpawnMoreLarvae(___larvaesSpawned.Count, density, ___radius, players))
 					{
@@ -149,6 +151,12 @@ namespace FeatMultiplayer
 			var area = uniqueCellCount * areaApproxStep * areaApproxStep;
 			var currentDensity = currentCount / area;
 
+			/*
+			LogInfo("Larvae; Spawn area = " + area + ", currentCount = " 
+				+ currentCount + ", currentDensity = " + currentDensity
+				+ ", maxDensity = " + maxDensity);
+			*/
+
 			return currentDensity < maxDensity;
         }
 
@@ -186,6 +194,11 @@ namespace FeatMultiplayer
 			return result;
         }
 
+		/// <summary>
+		/// Exception to non-saveable group ids because of larvae.
+		/// </summary>
+		static readonly HashSet<string> larvaeGroupIds = new();
+
 		static void PlaceLarvae(List<GameObject> ___larvaesSpawned, float ___radius, List<Vector3> players, 
 			LayerMask ignoredLayerMasks, List<GroupDataItem> ___larvaesToSpawn, GameObject ___poolContainer)
         {
@@ -206,13 +219,16 @@ namespace FeatMultiplayer
 				}
 				*/
 				var allowedSpawnsAt = GetValidSpawns(raycastHit.point, ___larvaesToSpawn);
-				for (int i = 0; i < allowedSpawnsAt.Count; i++)
+				var maxTries = 200;
+				var tries = 0;
+				while (allowedSpawnsAt.Count != 0 && tries < maxTries)
                 {
-					int spawnIndex = UnityEngine.Random.Range(i, players.Count);
+					int spawnIndex = UnityEngine.Random.Range(0, players.Count);
 					GroupDataItem spawnCandidate = allowedSpawnsAt[spawnIndex];
 
 					if (spawnCandidate.chanceToSpawn >= UnityEngine.Random.Range(0, 100))
                     {
+						larvaeGroupIds.Add(spawnCandidate.id);
 						var larvaeGroup = GroupsHandler.GetGroupViaId(spawnCandidate.id);
 						var larvaeGo = WorldObjectsHandler.CreateAndInstantiateWorldObject(larvaeGroup, raycastHit.point, Quaternion.identity);
 
@@ -227,13 +243,17 @@ namespace FeatMultiplayer
 						Quaternion quaternion = Quaternion.Euler(0f, 0f, num);
 						Quaternion quaternion2 = Quaternion.LookRotation(raycastHit.normal) * (quaternion * Quaternion.Euler(90f, 0f, 0f));
 						larvaeGo.transform.rotation = quaternion2;
-						larvaeGo.transform.localScale = new Vector3(1f, 1f, 1f);
+						larvaeGo.transform.localScale = new Vector3(1f, 20f, 1f);
 						larvaeWo.SetPositionAndRotation(larvaeWo.GetPosition(), quaternion2);
-							
+
+						LogInfo("Larvae; Spawning new [" + ___larvaesSpawned.Count + "] " + DebugWorldObject(larvaeWo));
+
 						SendWorldObject(larvaeWo, false);
 
 						break;
                     }
+					allowedSpawnsAt.RemoveAt(spawnIndex);
+					tries++;
 				}
 			}
 		}
@@ -269,6 +289,7 @@ namespace FeatMultiplayer
 								var wo = assocWo.GetWorldObject();
 								if (wo != null)
 								{
+									LogInfo("Larvae; Removing " + DebugWorldObject(wo));
 									wo.ResetPositionAndRotation();
 									SendWorldObject(wo, false);
 
@@ -296,7 +317,7 @@ namespace FeatMultiplayer
 		/// <returns>True for singleplayer, false for multiplayer.</returns>
 		[HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerLarvaeAround), "OnTriggerEnter")]
-		static bool PlayerLarvaeAround_OnTriggerEnter(Collider __other)
+		static bool PlayerLarvaeAround_OnTriggerEnter()
         {
 			return updateMode == MultiplayerMode.SinglePlayer;
         }
@@ -314,7 +335,7 @@ namespace FeatMultiplayer
 		/// <returns>True for singleplayer, false for multiplayer.</returns>
 		[HarmonyPrefix]
 		[HarmonyPatch(typeof(PlayerLarvaeAround), "OnTriggerExit")]
-		static bool PlayerLarvaeAround_OnTriggerExit(Collider __other)
+		static bool PlayerLarvaeAround_OnTriggerExit()
 		{
 			return updateMode == MultiplayerMode.SinglePlayer;
 		}
@@ -352,11 +373,20 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(LarvaeZone), "Start")]
 		static void LarvaeZone_Start(LarvaeZone __instance)
         {
+			var pool = __instance.GetLarvaesToAddToPool();
+			var list = new List<string>();
+			foreach (var p in pool)
+			{
+				list.Add(p.id);
+			}
+
+			LogInfo("Larvae; Zone " + __instance.name + " [" + string.Join(", ", pool));
 			if (updateMode == MultiplayerMode.CoopHost)
             {
 				var lzt = __instance.gameObject.AddComponent<LarvaeZoneTracker>();
 				lzt.zoneRef = __instance;
 				allLarvaeZones.Add(__instance);
+				LogInfo("        Adding zone " + __instance.name + " [" + string.Join(", ", pool));
             }
         }
 	}

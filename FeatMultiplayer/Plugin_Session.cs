@@ -105,6 +105,8 @@ namespace FeatMultiplayer
             rocketsInFlight.Clear();
 
             hiddenRocketInventories.Clear();
+
+            larvaeGroupIds.Clear();
         }
 
         void OnApplicationQuit()

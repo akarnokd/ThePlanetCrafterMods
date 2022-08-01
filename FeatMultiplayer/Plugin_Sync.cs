@@ -37,7 +37,7 @@ namespace FeatMultiplayer
             int count = 0;
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
             {
-                if (!wo.GetDontSaveMe())
+                if (!wo.GetDontSaveMe() || larvaeGroupIds.Contains(wo.GetGroup().GetId()))
                 {
                     int id = wo.GetId();
                     if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
