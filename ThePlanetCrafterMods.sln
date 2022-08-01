@@ -58,7 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIHotbar", "UIHotbar\UIHotb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipRest", "ZipRest\ZipRest.csproj", "{2252A7D3-9E04-4C43-9512-1BD40AB594BC}"
 	ProjectSection(ProjectDependencies) = postProject
-		{00F0E184-F9B9-4535-8590-3BAA4FB50373} = {00F0E184-F9B9-4535-8590-3BAA4FB50373}
 		{0E2D77A6-B995-449B-8B8F-0A273F750453} = {0E2D77A6-B995-449B-8B8F-0A273F750453}
 		{0F9F35E2-F9A0-4D51-A459-B381F6D63295} = {0F9F35E2-F9A0-4D51-A459-B381F6D63295}
 		{10B39461-2449-4762-B763-E8216F51136C} = {10B39461-2449-4762-B763-E8216F51136C}
@@ -124,8 +123,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaveAutoSave", "SaveAutoSave\SaveAutoSave.csproj", "{EE0618BE-099B-4502-B19C-EC3228A5F310}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIDeconstructPreventAccidental", "UIDeconstructPreventAccidental\UIDeconstructPreventAccidental.csproj", "{AFBD5388-1D44-4F5C-83EE-6936B88399D9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationPolish", "UITranslationPolish\UITranslationPolish.csproj", "{00F0E184-F9B9-4535-8590-3BAA4FB50373}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -285,10 +282,6 @@ Global
 		{AFBD5388-1D44-4F5C-83EE-6936B88399D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFBD5388-1D44-4F5C-83EE-6936B88399D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFBD5388-1D44-4F5C-83EE-6936B88399D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00F0E184-F9B9-4535-8590-3BAA4FB50373}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00F0E184-F9B9-4535-8590-3BAA4FB50373}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00F0E184-F9B9-4535-8590-3BAA4FB50373}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00F0E184-F9B9-4535-8590-3BAA4FB50373}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
