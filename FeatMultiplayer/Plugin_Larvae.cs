@@ -375,13 +375,18 @@ namespace FeatMultiplayer
             {
                 list.Add(p.id);
             }
+            var bounds = __instance.GetComponent<Collider>().bounds;
+            var center = bounds.center;
+            var extents = bounds.extents;
+            var str = string.Join(",", (int)center.x, (int)center.y, (int)center.z,
+                (int)extents.x, (int)extents.y, (int)extents.z);
 
-            LogInfo("Larvae; Zone " + __instance.name + " [" + string.Join(", ", pool));
+            LogInfo("Larvae; Zone " + str + " [ " + string.Join(", ", list) + " ]");
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (!allLarvaeZones.ContainsKey(__instance.name))
+                if (!allLarvaeZones.ContainsKey(str))
                 {
-                    allLarvaeZones[__instance.name] = __instance;
+                    allLarvaeZones[str] = __instance;
                 }
             }
         }
