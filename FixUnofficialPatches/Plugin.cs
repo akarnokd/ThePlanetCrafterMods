@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -24,21 +24,6 @@ namespace FixUnofficialPatches
             logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
-        }
-
-        /// <summary>
-        /// Fixes the lack of localization Id when viewing a Craft Station T2, so the window title is not properly updated.
-        /// </summary>
-        /// <param name="__instance">The ActionCrafter instance of the station object</param>
-        /// <param name="___titleLocalizationId">The field hosting the localization id</param>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.OnAction))]
-        static void ActionCrafter_OnAction(ActionCrafter __instance, ref string ___titleLocalizationId)
-        {
-            if (__instance.GetCrafterIdentifier() == DataConfig.CraftableIn.CraftStationT2)
-            {
-                ___titleLocalizationId = "GROUP_NAME_CraftStation1";
-            }
         }
 
         void Update()
@@ -82,6 +67,24 @@ namespace FixUnofficialPatches
                 }
             }
         }
+
+        /*
+         * Fixed in 0.5.005
+        /// <summary>
+        /// Fixes the lack of localization Id when viewing a Craft Station T2, so the window title is not properly updated.
+        /// </summary>
+        /// <param name="__instance">The ActionCrafter instance of the station object</param>
+        /// <param name="___titleLocalizationId">The field hosting the localization id</param>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.OnAction))]
+        static void ActionCrafter_OnAction(ActionCrafter __instance, ref string ___titleLocalizationId)
+        {
+            if (__instance.GetCrafterIdentifier() == DataConfig.CraftableIn.CraftStationT2)
+            {
+                ___titleLocalizationId = "GROUP_NAME_CraftStation1";
+            }
+        }
+        */
 
         /*
         [HarmonyPostfix]
