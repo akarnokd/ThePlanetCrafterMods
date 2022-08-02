@@ -76,7 +76,7 @@ namespace FeatMultiplayer
 			int ___maxLarvaeToSpawn,
 			List<GameObject> ___larvaesSpawned,
 			float ___updateInterval,
-			float ___radius,
+			int ___radius,
 			List<GroupDataItem> ___larvaesToSpawn,
 			LayerMask ___ignoredLayerMasks,
 			GameObject ___poolContainer
@@ -104,51 +104,36 @@ namespace FeatMultiplayer
 			}
 		}
 
-		const float areaApproxStep = 0.5f;
-
-		static bool ShouldSpawnMoreLarvae(int currentCount, float maxDensity, float radius, List<Vector3> players)
+		struct XZ
         {
-			var uniqueCellCount = 0;
+			internal int x;
+			internal int z;
+        }
+
+		static bool ShouldSpawnMoreLarvae(int currentCount, float maxDensity, int radius, List<Vector3> players)
+        {
 			var radiusSquare = radius * radius;
+
+			var cellSet = new HashSet<XZ>();
 
             for (int i = 0; i < players.Count; i++)
             {
                 Vector3 player = players[i];
-                for (float x = -radius; x <= radius; x += areaApproxStep)
+                for (int x = -radius - 1; x <= radius + 1 ; x++)
                 {
-					for (float z = -radius; z <= radius; z += areaApproxStep)
+					for (int z = -radius - 1; z <= radius + 1; z++)
                     {
-						var distanceSquare = x * x + z * z;
-
-						if (distanceSquare <= radiusSquare)
-                        {
-							var testX = player.x + x;
-							var testZ = player.y + z;
-							bool inRange = false;
-							for (int j = 0; j < players.Count; j++)
-                            {
-								if (j != i)
-                                {
-									var other = players[j];
-									distanceSquare = (other.x - testX) * (other.x - testX) + (other.z - testZ) * (other.z - testZ);
-									if (distanceSquare <= radiusSquare)
-                                    {
-										inRange = true;
-										break;
-                                    }
-								}
-                            }
-
-							if (!inRange)
-                            {
-								uniqueCellCount++;
-							}
-                        }
+						var distSquare = x * x + z * z;
+						if (distSquare < radiusSquare)
+						{
+							var xz = new XZ { x = x + (int)player.x, z = z + (int)player.z };
+							cellSet.Add(xz);
+						}
                     }
                 }
             }
 
-			var area = uniqueCellCount * areaApproxStep * areaApproxStep;
+			var area = cellSet.Count;
 			var currentDensity = currentCount / area;
 
 			/*
@@ -183,7 +168,7 @@ namespace FeatMultiplayer
 			List<GroupDataItem> result = new(___larvaesToSpawn);
 
 			// zone specific spawn
-			foreach (LarvaeZone lz in allLarvaeZones)
+			foreach (LarvaeZone lz in allLarvaeZones.Values)
             {
 				if (lz.GetComponent<Collider>().bounds.Contains(position))
                 {
@@ -343,20 +328,7 @@ namespace FeatMultiplayer
 		/// <summary>
 		/// Tracks all LarvaeZone instances.
 		/// </summary>
-		static List<LarvaeZone> allLarvaeZones = new();
-
-		/// <summary>
-		/// Behavior to detect when a LarvaeZone is destroyed so
-		/// it can be removed from allLarvaeZones.
-		/// </summary>
-		internal class LarvaeZoneTracker : MonoBehaviour
-        {
-			internal LarvaeZone zoneRef;
-			internal void Destroy()
-            {
-				allLarvaeZones.Remove(zoneRef);
-            }
-        }
+		static Dictionary<string, LarvaeZone> allLarvaeZones = new();
 
 		/// <summary>
 		/// In the vanilla game, when the LarvaeZone::Start is initialized by Unity,
@@ -383,10 +355,10 @@ namespace FeatMultiplayer
 			LogInfo("Larvae; Zone " + __instance.name + " [" + string.Join(", ", pool));
 			if (updateMode == MultiplayerMode.CoopHost)
             {
-				var lzt = __instance.gameObject.AddComponent<LarvaeZoneTracker>();
-				lzt.zoneRef = __instance;
-				allLarvaeZones.Add(__instance);
-				LogInfo("        Adding zone " + __instance.name + " [" + string.Join(", ", pool));
+				if (!allLarvaeZones.ContainsKey(__instance.name))
+                {
+					allLarvaeZones[__instance.name] = __instance;
+                }
             }
         }
 	}
