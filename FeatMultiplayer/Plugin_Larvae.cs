@@ -125,10 +125,15 @@ namespace FeatMultiplayer
 
 			if (cellsInCircle == null)
 			{
+				int r = 0;
+				while (r < radius)
+                {
+					r += delta;
+                }
 				cellsInCircle = new List<XZ>();
-				for (int x = -radius - delta; x <= radius + delta; x += delta)
+				for (int x = -r; x <= r; x += delta)
 				{
-					for (int z = -radius - delta; z <= radius + delta; z += delta)
+					for (int z = -r; z <= r; z += delta)
 					{
 						var distSquare = x * x + z * z;
 						if (distSquare < radiusSquare)
@@ -144,9 +149,11 @@ namespace FeatMultiplayer
             for (int i = 0; i < players.Count; i++)
             {
 				Vector3 player = players[i];
+				int px = (int)player.x / 4;
+				int py = (int)player.y / 4;
 				foreach (var tempxz in cellsInCircle)
                 {
-					var xz = new XZ { x = tempxz.x + (int)player.x, z = tempxz.z + (int)player.z };
+					var xz = new XZ { x = tempxz.x + px, z = tempxz.z + py };
 					cellSet.Add(xz);
 				}
             }
