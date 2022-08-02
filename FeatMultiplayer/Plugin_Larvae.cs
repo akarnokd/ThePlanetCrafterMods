@@ -4,6 +4,7 @@ using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -110,38 +111,54 @@ namespace FeatMultiplayer
 			internal int z;
         }
 
+		static List<XZ> cellsInCircle;
+
 		static bool ShouldSpawnMoreLarvae(int currentCount, float maxDensity, int radius, List<Vector3> players)
         {
+			/*
+			var sw = new Stopwatch();
+			sw.Start();
+			*/
 			var radiusSquare = radius * radius;
+			var delta = 4;
+			float unitArea = delta * delta;
+
+			if (cellsInCircle == null)
+			{
+				cellsInCircle = new List<XZ>();
+				for (int x = -radius - delta; x <= radius + delta; x += delta)
+				{
+					for (int z = -radius - delta; z <= radius + delta; z += delta)
+					{
+						var distSquare = x * x + z * z;
+						if (distSquare < radiusSquare)
+						{
+							cellsInCircle.Add(new XZ { x = x, z = z });
+						}
+					}
+				}
+			}
 
 			var cellSet = new HashSet<XZ>();
 
             for (int i = 0; i < players.Count; i++)
             {
-                Vector3 player = players[i];
-                for (int x = -radius - 1; x <= radius + 1 ; x++)
+				Vector3 player = players[i];
+				foreach (var tempxz in cellsInCircle)
                 {
-					for (int z = -radius - 1; z <= radius + 1; z++)
-                    {
-						var distSquare = x * x + z * z;
-						if (distSquare < radiusSquare)
-						{
-							var xz = new XZ { x = x + (int)player.x, z = z + (int)player.z };
-							cellSet.Add(xz);
-						}
-                    }
-                }
+					var xz = new XZ { x = tempxz.x + (int)player.x, z = tempxz.z + (int)player.z };
+					cellSet.Add(xz);
+				}
             }
 
-			var area = cellSet.Count;
+			var area = cellSet.Count * unitArea;
 			var currentDensity = currentCount / area;
 
 			/*
-			LogInfo("Larvae; Spawn area = " + area + ", currentCount = " 
+			LogInfo("Larvae; cellSet = " + cellSet.Count + ", Spawn area = " + area + ", currentCount = " 
 				+ currentCount + ", currentDensity = " + currentDensity
-				+ ", maxDensity = " + maxDensity);
+				+ ", maxDensity = " + maxDensity + ", t = " + sw.ElapsedTicks / 10000);
 			*/
-
 			return currentDensity < maxDensity;
         }
 
