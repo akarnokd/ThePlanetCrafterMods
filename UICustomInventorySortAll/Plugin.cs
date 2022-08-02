@@ -8,7 +8,7 @@ using BepInEx.Bootstrap;
 
 namespace UICustomInventorySortAll
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", "1.0.0.3")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -49,6 +49,12 @@ namespace UICustomInventorySortAll
                 apiGetMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
 
                 AccessTools.Field(pi.Instance.GetType(), "inventoryAutoSortOverride").SetValue(null, new Action<List<WorldObject>>(DoSort));
+
+                Logger.LogInfo(modFeatMultiplayerGuid + " found, installing AutoSort override");
+            } 
+            else
+            {
+                Logger.LogInfo(modFeatMultiplayerGuid + " not found");
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -58,7 +64,7 @@ namespace UICustomInventorySortAll
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AutoSort))]
         static bool Inventory_AutoSort(List<WorldObject> ___worldObjectsInInventory, InventoryDisplayer ___inventoryDisplayer)
         {
-            if (apiGetMultiplayerMode != null && apiGetMultiplayerMode() == "SinglePlayer")
+            if (apiGetMultiplayerMode == null || apiGetMultiplayerMode() == "SinglePlayer")
             {
                 DoSort(___worldObjectsInInventory);
                 ___inventoryDisplayer?.RefreshContent();
