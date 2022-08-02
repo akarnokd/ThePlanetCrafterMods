@@ -97,7 +97,10 @@ namespace FeatMultiplayer
 
                     if (ShouldSpawnMoreLarvae(___larvaesSpawned.Count, density, ___radius, players))
                     {
-                        PlaceLarvae(___larvaesSpawned, ___radius, players, ___ignoredLayerMasks, ___larvaesToSpawn, ___poolContainer);
+                        bool addLarvaesFromZone = ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesEnd, null);
+
+                        PlaceLarvae(___larvaesSpawned, ___radius, players, ___ignoredLayerMasks, 
+                            ___larvaesToSpawn, ___poolContainer, addLarvaesFromZone);
                     }
                     CleanFarAwayLarvae(___larvaesSpawned, 2 * ___radius, players);
                 }
@@ -186,17 +189,22 @@ namespace FeatMultiplayer
             return transforms;
         }
 
-        static List<GroupDataItem> GetValidSpawns(Vector3 position, List<GroupDataItem> ___larvaesToSpawn)
+        static List<GroupDataItem> GetValidSpawns(Vector3 position, List<GroupDataItem> ___larvaesToSpawn, 
+            bool addLarvaesFromZone)
         {
             // the baseline spawn
             List<GroupDataItem> result = new(___larvaesToSpawn);
 
-            // zone specific spawn
-            foreach (LarvaeZone lz in allLarvaeZones.Values)
+            // Since 0.5.006: Add zone spawns only after end of larvaes stage
+            if (addLarvaesFromZone)
             {
-                if (lz.GetComponent<Collider>().bounds.Contains(position))
+                // zone specific spawn
+                foreach (LarvaeZone lz in allLarvaeZones.Values)
                 {
-                    result.AddRange(lz.GetLarvaesToAddToPool());
+                    if (lz.GetComponent<Collider>().bounds.Contains(position))
+                    {
+                        result.AddRange(lz.GetLarvaesToAddToPool());
+                    }
                 }
             }
 
@@ -209,7 +217,8 @@ namespace FeatMultiplayer
         static readonly HashSet<string> larvaeGroupIds = new();
 
         static void PlaceLarvae(List<GameObject> ___larvaesSpawned, float ___radius, List<Vector3> players, 
-            LayerMask ignoredLayerMasks, List<GroupDataItem> ___larvaesToSpawn, GameObject ___poolContainer)
+            LayerMask ignoredLayerMasks, List<GroupDataItem> ___larvaesToSpawn, GameObject ___poolContainer,
+            bool addLarvaesFromZone)
         {
             int playerIndex = UnityEngine.Random.Range(0, players.Count);
             Vector3 player = players[playerIndex];
@@ -227,7 +236,7 @@ namespace FeatMultiplayer
                     return;
                 }
                 */
-                var allowedSpawnsAt = GetValidSpawns(raycastHit.point, ___larvaesToSpawn);
+                var allowedSpawnsAt = GetValidSpawns(raycastHit.point, ___larvaesToSpawn, addLarvaesFromZone);
                 var maxTries = 200;
                 var tries = 0;
                 while (allowedSpawnsAt.Count != 0 && tries < maxTries)
