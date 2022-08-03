@@ -152,8 +152,8 @@ namespace FeatMultiplayer
             for (int i = 0; i < players.Count; i++)
             {
                 Vector3 player = players[i];
-                int px = (int)player.x / 4;
-                int py = (int)player.y / 4;
+                int px = ((int)player.x / 4) * 4;
+                int py = ((int)player.y / 4) * 4;
                 foreach (var tempxz in cellsInCircle)
                 {
                     var xz = new XZ { x = tempxz.x + px, z = tempxz.z + py };
