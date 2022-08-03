@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.10")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -69,7 +69,8 @@ namespace UIPinRecipe
                 {
                     k = (Key)pi.GetRawConstantValue();
                 }
-                if (Keyboard.current[k].isPressed)
+                WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+                if (Keyboard.current[k].isPressed && wh != null && !wh.GetHasUiOpen())
                 {
                     ClearPinnedRecipes();
                 }
