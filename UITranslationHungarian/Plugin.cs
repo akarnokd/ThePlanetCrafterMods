@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace UITranslationHungarian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.11")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.12")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "hungarian";
