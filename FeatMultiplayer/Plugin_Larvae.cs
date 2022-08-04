@@ -241,12 +241,13 @@ namespace FeatMultiplayer
                 var tries = 0;
                 while (allowedSpawnsAt.Count != 0 && tries < maxTries)
                 {
-                    int spawnIndex = UnityEngine.Random.Range(0, players.Count);
+                    int spawnIndex = UnityEngine.Random.Range(0, allowedSpawnsAt.Count);
                     GroupDataItem spawnCandidate = allowedSpawnsAt[spawnIndex];
 
                     if (spawnCandidate.chanceToSpawn >= UnityEngine.Random.Range(0, 100))
                     {
                         larvaeGroupIds.Add(spawnCandidate.id);
+
                         var larvaeGroup = GroupsHandler.GetGroupViaId(spawnCandidate.id);
                         var larvaeGo = WorldObjectsHandler.CreateAndInstantiateWorldObject(larvaeGroup, raycastHit.point, Quaternion.identity);
 
@@ -264,7 +265,7 @@ namespace FeatMultiplayer
                         larvaeGo.transform.localScale = new Vector3(1f, 1f, 1f);
                         larvaeWo.SetPositionAndRotation(larvaeWo.GetPosition(), quaternion2);
 
-                        LogInfo("Larvae; Spawning new [" + ___larvaesSpawned.Count + "] " + DebugWorldObject(larvaeWo));
+                        LogInfo("Larvae; Spawning new [" + ___larvaesSpawned.Count + "] chance = " + spawnCandidate.chanceToSpawn + ", " + DebugWorldObject(larvaeWo));
 
                         SendWorldObject(larvaeWo, false);
 
@@ -290,7 +291,8 @@ namespace FeatMultiplayer
                     var inRange = false;
                     foreach (var pos in players)
                     {
-                        if (Vector3.Distance(pos, larvae.transform.position) < ___radius)
+                        var dist = Vector3.Distance(pos, larvae.transform.position);
+                        if (dist < ___radius)
                         {
                             inRange = true;
                             break;
