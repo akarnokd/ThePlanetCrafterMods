@@ -199,11 +199,11 @@ namespace FeatMultiplayer
             if (addLarvaesFromZone)
             {
                 // zone specific spawn
-                foreach (LarvaeZone lz in allLarvaeZones.Values)
+                foreach (var lz in allLarvaeZones.Values)
                 {
-                    if (lz.GetComponent<Collider>().bounds.Contains(position))
+                    if (lz.bounds.Contains(position))
                     {
-                        result.AddRange(lz.GetLarvaesToAddToPool());
+                        result.AddRange(lz.spawns);
                     }
                 }
             }
@@ -359,9 +359,19 @@ namespace FeatMultiplayer
         }
 
         /// <summary>
+        /// Make a copy of the LarvaeZone component as it is deleted when the player
+        /// leaves the area.
+        /// </summary>
+        class LarvaeZoneCached
+        {
+            internal Bounds bounds;
+            internal List<GroupDataItem> spawns;
+        }
+
+        /// <summary>
         /// Tracks all LarvaeZone instances.
         /// </summary>
-        static Dictionary<string, LarvaeZone> allLarvaeZones = new();
+        static Dictionary<string, LarvaeZoneCached> allLarvaeZones = new();
 
         /// <summary>
         /// In the vanilla game, when the LarvaeZone::Start is initialized by Unity,
@@ -395,7 +405,10 @@ namespace FeatMultiplayer
             {
                 if (!allLarvaeZones.ContainsKey(str))
                 {
-                    allLarvaeZones[str] = __instance;
+                    LarvaeZoneCached lzc = new();
+                    lzc.bounds = bounds;
+                    lzc.spawns = __instance.GetLarvaesToAddToPool();
+                    allLarvaeZones[str] = lzc;
                 }
             }
         }
