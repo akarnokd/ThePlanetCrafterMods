@@ -133,7 +133,8 @@ namespace FeatMultiplayer
                         return false;
                     }
 
-                    GameObject spawn = UnityEngine.Object.Instantiate<GameObject>(_objectToInstantiate, ___grownThingsContainer.transform);
+                    GameObject spawn = Instantiate<GameObject>(_objectToInstantiate, ___grownThingsContainer.transform);
+                    spawn.transform.position = raycastHit.point;
                     if (!___canRecolt)
                     {
                         GameObjects.RemoveCollidersOnChildren(spawn, false);
@@ -355,7 +356,7 @@ namespace FeatMultiplayer
                         var ag = spawn.GetComponent<ActionGrabable>();
                         if (ag != null)
                         {
-                            ag.SetCanGrab(mga.growth < mga.growSize);
+                            ag.SetCanGrab(mog.canRecoltOnlyWhenFullyGrown && mga.growth >= mga.growSize);
                         }
                     }
                     else
