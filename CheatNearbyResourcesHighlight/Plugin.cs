@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -62,7 +62,17 @@ namespace CheatNearbyResourcesHighlight
             "PulsarShard"
         });
 
-        static readonly string defaultLarvaeSet = "LarvaeBase1,LarvaeBase2,LarvaeBase3";
+        static readonly string defaultLarvaeSet = string.Join(",", new string[]
+        {
+            "LarvaeBase1",
+            "LarvaeBase2",
+            "LarvaeBase3",
+            "Butterfly11Larvae",
+            "Butterfly12Larvae",
+            "Butterfly13Larvae",
+            "Butterfly14Larvae",
+            "Butterfly15Larvae"
+        });
 
         class GameObjectTTL
         {
