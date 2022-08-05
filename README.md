@@ -653,7 +653,6 @@ Pressing the <kbd>F1</kbd> (configurable) shows an overview panel with the curre
 `akarnokd.theplanetcraftermods.uioverviewpanel.cfg`
 
 ```
-
 [General]
 
 ## Font size
