@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -47,21 +47,22 @@ namespace FixUnofficialPatches
             if (saveFilesSelectorInstance != null && saveFilesSelectorInstance.filesListContainer.transform.parent.gameObject.activeSelf)
             {
                 var scrollBox = saveFilesSelectorInstance.GetComponentInChildren<ScrollRect>();
-                float contentHeight = scrollBox.content.sizeDelta.y;
-
-                var scroll = Mouse.current.scroll.ReadValue();
-                if (scroll.y != 0)
+                if (scrollBox != null)
                 {
-                    var counts = (List<GameObject>)saveFilesSelectorObjectsInList.GetValue(saveFilesSelectorInstance);
-                    if (counts.Count != 0)
+                    var scroll = Mouse.current.scroll.ReadValue();
+                    if (scroll.y != 0)
                     {
-                        if (scroll.y < 0)
+                        var counts = (List<GameObject>)saveFilesSelectorObjectsInList.GetValue(saveFilesSelectorInstance);
+                        if (counts != null && counts.Count != 0)
                         {
-                            scrollBox.verticalNormalizedPosition -= 1f / counts.Count;
-                        }
-                        else if (scroll.y > 0)
-                        {
-                            scrollBox.verticalNormalizedPosition += 1f / counts.Count;
+                            if (scroll.y < 0)
+                            {
+                                scrollBox.verticalNormalizedPosition -= 1f / counts.Count;
+                            }
+                            else if (scroll.y > 0)
+                            {
+                                scrollBox.verticalNormalizedPosition += 1f / counts.Count;
+                            }
                         }
                     }
                 }
