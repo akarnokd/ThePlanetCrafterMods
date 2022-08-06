@@ -35,6 +35,14 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<bool> sequencerEnabled;
 
+        static ConfigEntry<string> sequencerMutagenId;
+
+        static ConfigEntry<string> sequencerTreeRootId;
+
+        static ConfigEntry<string> sequencerFlowerSeedId;
+
+        static ConfigEntry<string> sequencerTreeSeedId;
+
         static ConfigEntry<bool> debugMode;
 
         static Func<string> getMultiplayerMode;
@@ -53,11 +61,15 @@ namespace CheatAutoSequenceDNA
             incubatorEnabled = Config.Bind("Incubator", "Enabled", true, "Should the Incubator auto sequence?");
             incubatorFertilizerId = Config.Bind("Incubator", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
             incubatorMutagenId = Config.Bind("Incubator", "Mutagen", "*Mutagen", "The name of the container(s) where to look for mutagen.");
-            incubatorLarvaeId = Config.Bind("Incubator", "Larvae", "*Larvae", "The name of the container(s) where to look for larvae.");
+            incubatorLarvaeId = Config.Bind("Incubator", "Larvae", "*Larvae", "The name of the container(s) where to look for larvae (common, uncommon, rare).");
             incubatorButterflyId = Config.Bind("Incubator", "Butterfly", "*Butterfly", "The name of the container(s) where to deposit the spawned butterflies.");
             incubatorBeeId = Config.Bind("Incubator", "Bee", "*Bee", "The name of the container(s) where to deposit the spawned bees.");
             incubatorSilkId = Config.Bind("Incubator", "Silk", "*Silk", "The name of the container(s) where to deposit the spawned silk worms.");
 
+            sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
+            sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
+            sequencerFlowerSeedId = Config.Bind("Sequencer", "FlowerSeed", "*FlowerSeed", "The name of the container(s) where to look for Flower Seeds (all kinds).");
+            sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
 
@@ -145,7 +157,7 @@ namespace CheatAutoSequenceDNA
 
         void HandleIncubators()
         {
-            log("Begin");
+            log("Begin<Incubators>");
             // Category keys for various source and target container names
             Dictionary<string, string> keywordMapping = new()
             {
@@ -191,24 +203,27 @@ namespace CheatAutoSequenceDNA
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.GetInventoryById(incubator.GetLinkedInventoryId());
 
-                    log("    Depositing products");
                     var currentItems = incubatorInv.GetInsideWorldObjects();
-                    List<WorldObject> items = new(currentItems);
-                    for (int i = items.Count - 1; i >= 0; i--)
+                    if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
                     {
-                        WorldObject item = items[i];
-                        var gid = item.GetGroup().GetId();
-                        if (gid.StartsWith("Butterfly"))
+                        log("    Depositing products");
+                        List<WorldObject> items = new(currentItems);
+                        for (int i = items.Count - 1; i >= 0; i--)
                         {
-                            TryDeposit(incubatorInv, item, itemCategories, "Butterfly");
-                        }
-                        if (gid.StartsWith("Bee"))
-                        {
-                            TryDeposit(incubatorInv, item, itemCategories, "Bee");
-                        }
-                        if (gid.StartsWith("Silk"))
-                        {
-                            TryDeposit(incubatorInv, item, itemCategories, "Silk");
+                            WorldObject item = items[i];
+                            var gid = item.GetGroup().GetId();
+                            if (gid.StartsWith("Butterfly"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "Butterfly");
+                            }
+                            if (gid.StartsWith("Bee"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "Bee");
+                            }
+                            if (gid.StartsWith("Silk"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "Silk");
+                            }
                         }
                     }
 
@@ -246,17 +261,24 @@ namespace CheatAutoSequenceDNA
                         if (hasLarvae && hasMutagen && hasFertilizer)
                         {
                             var spawnTarget = Analyze(currentItems, DataConfig.CraftableIn.CraftInsectsT1);
-                            log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() * 100 + " %)");
-
-                            incubator.SetGrowth(1f);
-                            incubator.SetLinkedGroups(new List<Group> { spawnTarget });
-
-                            var t = Time.time + 0.01f;
-                            foreach (WorldObject wo in incubatorInv.GetInsideWorldObjects())
+                            if (spawnTarget != null)
                             {
-                                wo.SetLockInInventoryTime(t);
+                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() * 100 + " %)");
+
+                                incubator.SetGrowth(1f);
+                                incubator.SetLinkedGroups(new List<Group> { spawnTarget });
+
+                                var t = Time.time + 0.01f;
+                                foreach (WorldObject wo in incubatorInv.GetInsideWorldObjects())
+                                {
+                                    wo.SetLockInInventoryTime(t);
+                                }
+                                StartCoroutine(RefreshDisplayer(0.1f, incubatorInv));
                             }
-                            StartCoroutine(RefreshDisplayer(0.1f, incubatorInv));
+                            else
+                            {
+                                log("    Sequencing: No applicable DNA sequence found");
+                            }
                         }
                         else
                         {
@@ -274,9 +296,161 @@ namespace CheatAutoSequenceDNA
                             }
                         }
                     }
+                    else
+                    {
+                        log("    Sequencing progress: " + (incubator.GetGrowth()) + " %");
+                    }
                 }
             }
-            log("Done");
+            else
+            {
+                log("  No incubators found.");
+            }
+            log("Done<Incubators>");
+        }
+
+        void HandleSequencers()
+        {
+            log("Begin<Sequencers>");
+            // Category keys for various source and target container names
+            Dictionary<string, string> keywordMapping = new()
+            {
+                { "Mutagen", sequencerMutagenId.Value },
+                { "TreeRoot", sequencerTreeRootId.Value },
+                { "FlowerSeed", sequencerFlowerSeedId.Value },
+                { "TreeSeed", sequencerTreeSeedId.Value },
+            };
+
+            // List of world objects per category (containers, machines)
+            Dictionary<string, List<WorldObject>> itemCategories = new();
+
+            log("  Container discovery");
+            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            {
+                var gid = wo.GetGroup().GetId();
+                var txt = wo.GetText() ?? "";
+                if (gid == "Container1" || gid == "Container2")
+                {
+                    foreach (var kv in keywordMapping)
+                    {
+                        if (txt.Contains(kv.Value))
+                        {
+                            GetOrCreate(itemCategories, kv.Key).Add(wo);
+                            log("    " + kv.Key + " <- " + DebugWorldObject(wo));
+                        }
+                    }
+                }
+                if (gid == "GeneticManipulator1")
+                {
+                    GetOrCreate(itemCategories, "Sequencer").Add(wo);
+                    log("    Sequencer <- " + DebugWorldObject(wo));
+                }
+            }
+
+            if (itemCategories.TryGetValue("Sequencer", out var sequencerList))
+            {
+                foreach (var sequencer in sequencerList)
+                {
+                    log("  Sequencer: " + DebugWorldObject(sequencer));
+                    // Try to deposit finished products first
+                    Inventory sequencerInv = InventoriesHandler.GetInventoryById(sequencer.GetLinkedInventoryId());
+
+                    var currentItems = sequencerInv.GetInsideWorldObjects();
+                    if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
+                    {
+                        log("    Depositing products");
+                        List<WorldObject> items = new(currentItems);
+                        for (int i = items.Count - 1; i >= 0; i--)
+                        {
+                            WorldObject item = items[i];
+                            var gid = item.GetGroup().GetId();
+                            if (gid.StartsWith("Tree") && gid.EndsWith("Seed"))
+                            {
+                                TryDeposit(sequencerInv, item, itemCategories, "TreeSeed");
+                            }
+                        }
+                    }
+
+                    if (sequencer.GetGrowth() == 0)
+                    {
+                        log("    Collecting ingredients");
+                        bool hasFlower = false;
+                        bool hasMutagen = false;
+                        bool hasRoot = false;
+
+                        foreach (var wo in currentItems)
+                        {
+                            var gid = wo.GetGroup().GetId();
+                            if (gid.StartsWith("Seed"))
+                            {
+                                hasFlower = true;
+                            }
+                            hasMutagen |= gid == "Mutagen1";
+                            hasRoot |= gid == "TreeRoot";
+                        }
+
+                        if (!hasFlower)
+                        {
+                            hasFlower = TryCollect(sequencerInv, "Seed", itemCategories, "FlowerSeed");
+                        }
+                        if (!hasMutagen)
+                        {
+                            hasMutagen = TryCollect(sequencerInv, "Mutagen1", itemCategories, "Mutagen");
+                        }
+                        if (!hasRoot)
+                        {
+                            hasRoot = TryCollect(sequencerInv, "TreeRoot", itemCategories, "TreeRoot");
+                        }
+
+                        if (hasFlower && hasMutagen && hasRoot)
+                        {
+                            var spawnTarget = Analyze(currentItems, DataConfig.CraftableIn.CraftGeneticT1);
+                            if (spawnTarget != null)
+                            {
+                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() * 100 + " %)");
+
+                                sequencer.SetGrowth(1f);
+                                sequencer.SetLinkedGroups(new List<Group> { spawnTarget });
+
+                                var t = Time.time + 0.01f;
+                                foreach (WorldObject wo in sequencerInv.GetInsideWorldObjects())
+                                {
+                                    wo.SetLockInInventoryTime(t);
+                                }
+                                StartCoroutine(RefreshDisplayer(0.1f, sequencerInv));
+                            }
+                            else
+                            {
+                                log("    Sequencing: No applicable DNA sequence found");
+                            }
+                        }
+                        else
+                        {
+                            if (!hasFlower)
+                            {
+                                log("      Missing Flower Seed ingredient");
+                            }
+                            if (!hasMutagen)
+                            {
+                                log("      Missing Mutagen ingredient");
+                            }
+                            if (!hasRoot)
+                            {
+                                log("      Missing Tree Root ingredient");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        log("    Sequencing progress: " + (sequencer.GetGrowth()) + " %");
+                    }
+                }
+            }
+            else
+            {
+                log("  No sequencers found.");
+            }
+            log("Done<Sequencers>");
         }
 
         GroupItem Analyze(List<WorldObject> currentItems, DataConfig.CraftableIn craftableIn)
@@ -384,16 +558,13 @@ namespace CheatAutoSequenceDNA
                         }
                     }
                 }
-                log("      Collect item: Failed - no items found");
+                log("      Collect item: <" + gid + "> Failed - no items found");
                 return false;
             }
-            log("      Collect item: Failed - no containers found");
+            log("      Collect item: <" + gid + "> Failed - no containers found");
             return false;
         }
 
-        void HandleSequencers()
-        {
-            
-        }
+        
     }
 }

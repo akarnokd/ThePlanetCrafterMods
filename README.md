@@ -153,19 +153,101 @@ On the recipe side:
 - `*Larvae` - where the various common, uncommon and rare larvae will be searched for.
 - `*Mutagen` - where the *Mutagen* ingredient is searched for.
 - `*Fertilizer` - where the *Fertilzier* ingredient is searched for.
+- `*TreeRoot` - where the *Tree Root* ingredient is searched for.
+- `*FlowerSeed` - where the various *Flower Seed* ingredient is searched for.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
 - `*Bee` - where to deposit the created *Bee*s.
 - `*Silk` - where to deposit the created *Silk Worm*s.
+- `*TreeSeed` - where to deposit the created *Tree Seed*s (all kinds).
+
+(Note. Unlike other similar mods, you don't need to start the naming with the star `*` character. The defaults shown are just a convention I use.)
 
 You can name as many containers like this as you want. If a source container does not contain an item,
 it will search the next container. If a destination container is full, it will search for the next container.
+
+The *Sequencer* and *Incubator* both require *Mutagen* and you can name different or the same containers where
+they would both get their ingredients from.
 
 ### Configuration
 
 `akarnokd.theplanetcraftermods.cheatautosequencedna.cfg`
 
+```
+[General]
+
+## Enable debugging with detailed logs (chatty!).
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+[Incubator]
+
+## Should the Incubator auto sequence?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The name of the container(s) where to look for fertilizer.
+# Setting type: String
+# Default value: *Fertilizer
+Fertilizer = *Fertilizer
+
+## The name of the container(s) where to look for mutagen.
+# Setting type: String
+# Default value: *Mutagen
+Mutagen = *Mutagen
+
+## The name of the container(s) where to look for larvae (common, uncommon, rare).
+# Setting type: String
+# Default value: *Larvae
+Larvae = *Larvae
+
+## The name of the container(s) where to deposit the spawned butterflies.
+# Setting type: String
+# Default value: *Butterfly
+Butterfly = *Butterfly
+
+## The name of the container(s) where to deposit the spawned bees.
+# Setting type: String
+# Default value: *Bee
+Bee = *Bee
+
+## The name of the container(s) where to deposit the spawned silk worms.
+# Setting type: String
+# Default value: *Silk
+Silk = *Silk
+
+[Sequencer]
+
+## Should the Tree-sequencer auto sequence?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The name of the container(s) where to look for fertilizer.
+# Setting type: String
+# Default value: *Mutagen
+Mutagen = *Mutagen
+
+## The name of the container(s) where to look for Tree Root.
+# Setting type: String
+# Default value: *TreeRoot
+TreeRoot = *TreeRoot
+
+## The name of the container(s) where to look for Flower Seeds (all kinds).
+# Setting type: String
+# Default value: *FlowerSeed
+FlowerSeed = *FlowerSeed
+
+## The name of the container(s) where to deposit the spawned tree seeds.
+# Setting type: String
+# Default value: *TreeSeed
+TreeSeed = *TreeSeed
+
+
+```
 
 ## (Cheat) Photomode Hide Water
 
