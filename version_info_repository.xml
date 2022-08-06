@@ -18,6 +18,12 @@
           method="CsprojVersionTag"
           link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
+  <plugin guid="akarnokd.theplanetcraftermods.cheatautolaunchrocket"
+          description="(Cheat) Auto Launch Rockets"
+          discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAutoLaunchRocket/CheatAutoLaunchRocket.csproj"
+          method="CsprojVersionTag"
+          link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
   <plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
           description="(Cheat) Inventory Stacking"
           discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
@@ -147,6 +153,12 @@
   <plugin guid="akarnokd.theplanetcraftermods.uiinventorymovemultiple"
           description="(UI) Inventory Move Multiple Items"
           discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIInventoryMoveMultiple/UIInventoryMoveMultiple.csproj"
+          method="CsprojVersionTag"
+          link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+  <plugin guid="akarnokd.theplanetcraftermods.uioverviewpanel"
+          description="(UI) Overview Panel"
+          discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIOverviewPanel/UIOverviewPanel.csproj"
           method="CsprojVersionTag"
           link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
