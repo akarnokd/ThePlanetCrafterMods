@@ -203,6 +203,10 @@ namespace FeatMultiplayer
                     {
                         worldUnitCurrentTotalValue.SetValue(wu, mts.animals);
                     }
+                    if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass)
+                    {
+                        worldUnitCurrentTotalValue.SetValue(wu, mts.GetBiomass());
+                    }
                     if (wu.GetUnitType() == DataConfig.WorldUnitType.Terraformation)
                     {
                         worldUnitCurrentTotalValue.SetValue(wu, mts.GetTi());

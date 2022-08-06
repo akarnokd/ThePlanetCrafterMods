@@ -61,5 +61,10 @@ namespace FeatMultiplayer
         {
             return oxygen + heat + pressure + plants + insects + animals;
         }
+
+        public float GetBiomass()
+        {
+            return plants + insects + animals;
+        }
     }
 }

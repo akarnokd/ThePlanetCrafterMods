@@ -157,7 +157,10 @@ namespace FeatMultiplayer
                     {
                         if (!item.StartsWith("Rocket") || item == "RocketReactor")
                         {
-                            groupsToAdd.Add(gi);
+                            if (!item.EndsWith("Hatched") && !item.EndsWith("Growable"))
+                            {
+                                groupsToAdd.Add(gi);
+                            }
                         }
                     }
                     else
@@ -248,6 +251,42 @@ namespace FeatMultiplayer
                 if (!aid.StartsWith("OxygenCapsule") && bid.StartsWith("OxygenCapsule"))
                 {
                     return 1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Larvae") && !bid.StartsWith("Larvae"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Larvae") && bid.StartsWith("Larvae"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Butterfly") && !bid.StartsWith("Butterfly"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Butterfly") && bid.StartsWith("Butterfly"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("Bee") && !bid.StartsWith("Bee"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("Bee") && bid.StartsWith("Bee"))
+                {
+                    return -1;
+                }
+                // --------------------------------
+                if (aid.StartsWith("SilkWorm") && !bid.StartsWith("SilkWorm"))
+                {
+                    return 1;
+                }
+                if (!aid.StartsWith("SilkWorm") && bid.StartsWith("SilkWorm"))
+                {
+                    return -1;
                 }
 
                 return a.GetId().CompareTo(b.GetId());
