@@ -130,6 +130,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatAutoLaunchRocket", "Ch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIOverviewPanel", "UIOverviewPanel\UIOverviewPanel.csproj", "{335F95F5-B1A9-40C9-BB17-ACFDC248A792}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatAutoSequenceDNA", "CheatAutoSequenceDNA\CheatAutoSequenceDNA.csproj", "{590CCD56-D8D5-4DCF-8AE0-2179F91D89FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -296,6 +298,10 @@ Global
 		{335F95F5-B1A9-40C9-BB17-ACFDC248A792}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{335F95F5-B1A9-40C9-BB17-ACFDC248A792}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{335F95F5-B1A9-40C9-BB17-ACFDC248A792}.Release|Any CPU.Build.0 = Release|Any CPU
+		{590CCD56-D8D5-4DCF-8AE0-2179F91D89FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{590CCD56-D8D5-4DCF-8AE0-2179F91D89FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{590CCD56-D8D5-4DCF-8AE0-2179F91D89FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{590CCD56-D8D5-4DCF-8AE0-2179F91D89FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
