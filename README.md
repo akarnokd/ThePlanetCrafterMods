@@ -152,7 +152,7 @@ following naming convention is used (can be changed in the config file):
 On the recipe side:
 - `*Larvae` - where the various common, uncommon and rare larvae will be searched for.
 - `*Mutagen` - where the *Mutagen* ingredient is searched for.
-- `*Fertilizer` - where the *Fertilzier* ingredient is searched for.
+- `*Fertilizer` - where the *Fertilizer* ingredient is searched for.
 - `*TreeRoot` - where the *Tree Root* ingredient is searched for.
 - `*FlowerSeed` - where the various *Flower Seed* ingredient is searched for.
 
