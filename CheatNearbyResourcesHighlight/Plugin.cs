@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.6")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -260,63 +260,74 @@ namespace CheatNearbyResourcesHighlight
 
             foreach (Component resource in candidates)
             {
-                WorldObjectAssociated component = resource.GetComponent<WorldObjectAssociated>();
-                if (component != null)
+                var gid = "";
+                Sprite icon = null;
+
+                if (resource.TryGetComponent<WorldObjectFromScene>(out var woScene)) {
+                    var gd = woScene.GetGroupData();
+                    gid = gd.id;
+                    icon = gd.icon;
+                }
+                else
+                if (resource is ActionGrabable && resource.TryGetComponent<WorldObjectAssociated>(out var woa))
                 {
-                    WorldObject worldObject = component.GetWorldObject();
-                    string gid = worldObject != null ? worldObject.GetGroup().GetId() : "";
-                    if (scanSet.Contains(gid))
+                    var wo = woa.GetWorldObject();
+                    if (wo != null)
                     {
-                        Vector3 resourcePosition = resource.gameObject.transform.position;
-                        if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f
-                            && (resourcePosition - playerPosition).sqrMagnitude < maxRangeSqr)
+                        var gd = wo.GetGroup();
+                        gid = gd.id;
+                        icon = gd.GetImage();
+                    }
+                }
+                if (gid != "" && scanSet.Contains(gid))
+                {
+                    Vector3 resourcePosition = resource.gameObject.transform.position;
+                    if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f
+                        && (resourcePosition - playerPosition).sqrMagnitude < maxRangeSqr)
+                    {
+                        GameObject iconGo = new GameObject("ScannerImage-" + gid);
+                        SpriteRenderer spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
+                        spriteRenderer.sprite = icon;
+                        spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
+                        iconGo.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
+                        iconGo.transform.rotation = resource.gameObject.transform.rotation;
+                        iconGo.transform.localScale = new Vector3(1f, sy, 1f);
+                        iconGo.transform.LookAt(player, player.up);
+                        iconGo.SetActive(true);
+
+                        GameObjectTTL go = new GameObjectTTL();
+                        go.resource = resource.gameObject;
+                        go.icon = iconGo;
+                        go.time = Time.time + timeToLive.Value;
+
+                        float barLen = lineIndicatorLength.Value;
+                        if (barLen > 0)
                         {
-                            var resourceImage = worldObject.GetGroup().GetImage();
+                            float barWidth = 0.1f;
+                            GameObject bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
+                            var image1 = bar1.AddComponent<SpriteRenderer>();
+                            image1.sprite = icon;
+                            image1.color = new Color(1f, 1f, 1f, 1f);
+                            bar1.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
+                            bar1.transform.rotation = Quaternion.identity;
+                            bar1.transform.localScale = new Vector3(barWidth, barLen, barWidth);
+                            bar1.SetActive(true);
 
-                            GameObject iconGo = new GameObject("ScannerImage-" + gid);
-                            SpriteRenderer spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
-                            spriteRenderer.sprite = resourceImage;
-                            spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
-                            iconGo.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
-                            iconGo.transform.rotation = resource.gameObject.transform.rotation;
-                            iconGo.transform.localScale = new Vector3(1f, sy, 1f);
-                            iconGo.transform.LookAt(player, player.up);
-                            iconGo.SetActive(true);
+                            GameObject bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
+                            var image2 = bar2.AddComponent<SpriteRenderer>();
+                            image2.sprite = icon;
+                            image2.color = new Color(1f, 1f, 1f, 1f);
+                            bar2.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
+                            bar2.transform.localScale = new Vector3(barWidth, barLen, barWidth);
+                            bar2.transform.rotation = Quaternion.Euler(0, 90, 0);
+                            bar2.SetActive(true);
 
-                            GameObjectTTL go = new GameObjectTTL();
-                            go.resource = resource.gameObject;
-                            go.icon = iconGo;
-                            go.time = Time.time + timeToLive.Value;
-
-                            float barLen = lineIndicatorLength.Value;
-                            if (barLen > 0)
-                            {
-                                float barWidth = 0.1f;
-                                GameObject bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
-                                var image1 = bar1.AddComponent<SpriteRenderer>();
-                                image1.sprite = resourceImage;
-                                image1.color = new Color(1f, 1f, 1f, 1f);
-                                bar1.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
-                                bar1.transform.rotation = Quaternion.identity;
-                                bar1.transform.localScale = new Vector3(barWidth, barLen, barWidth);
-                                bar1.SetActive(true);
-
-                                GameObject bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
-                                var image2 = bar2.AddComponent<SpriteRenderer>();
-                                image2.sprite = resourceImage;
-                                image2.color = new Color(1f, 1f, 1f, 1f);
-                                bar2.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + barLen / 2, resourcePosition.z);
-                                bar2.transform.localScale = new Vector3(barWidth, barLen, barWidth);
-                                bar2.transform.rotation = Quaternion.Euler(0, 90, 0);
-                                bar2.SetActive(true);
-
-                                go.bar1 = bar1;
-                                go.bar2 = bar2;
-                            }
-
-                            scannerImageList.Add(go);
-                            c++;
+                            go.bar1 = bar1;
+                            go.bar2 = bar2;
                         }
+
+                        scannerImageList.Add(go);
+                        c++;
                     }
                 }
             }

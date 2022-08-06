@@ -85,24 +85,31 @@ namespace FeatMultiplayer
         {
             for (; ; )
             {
-                if (___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesStart, null) && !___playerDirectEnvironment.GetIsInLivable())
+                try
                 {
-                    float num = Mathf.InverseLerp(___larvaesStart.GetStageStartValue(), ___larvaesEnd.GetStageStartValue(), ___worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue());
-
-                    float maxLarvaeToSpawnScaled = ___maxLarvaeToSpawn * num;
-
-                    var players = GetAllPlayerLocations();
-                    var density = LarvaeDensity(___radius, maxLarvaeToSpawnScaled);
-                    // LogInfo("Larvae; maxLarvaeToSpawnScaled = " + maxLarvaeToSpawnScaled + ", num = " + num);
-
-                    if (ShouldSpawnMoreLarvae(___larvaesSpawned.Count, density, ___radius, players))
+                    if (___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesStart, null) && !___playerDirectEnvironment.GetIsInLivable())
                     {
-                        bool addLarvaesFromZone = ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesEnd, null);
+                        float num = Mathf.InverseLerp(___larvaesStart.GetStageStartValue(), ___larvaesEnd.GetStageStartValue(), ___worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue());
 
-                        PlaceLarvae(___larvaesSpawned, ___radius, players, ___ignoredLayerMasks, 
-                            ___larvaesToSpawn, ___poolContainer, addLarvaesFromZone);
+                        float maxLarvaeToSpawnScaled = ___maxLarvaeToSpawn * num;
+
+                        var players = GetAllPlayerLocations();
+                        var density = LarvaeDensity(___radius, maxLarvaeToSpawnScaled);
+                        // LogInfo("Larvae; maxLarvaeToSpawnScaled = " + maxLarvaeToSpawnScaled + ", num = " + num);
+
+                        if (ShouldSpawnMoreLarvae(___larvaesSpawned.Count, density, ___radius, players))
+                        {
+                            bool addLarvaesFromZone = ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesEnd, null);
+
+                            PlaceLarvae(___larvaesSpawned, ___radius, players, ___ignoredLayerMasks,
+                                ___larvaesToSpawn, ___poolContainer, addLarvaesFromZone);
+                        }
+                        CleanFarAwayLarvae(___larvaesSpawned, 2 * ___radius, players);
                     }
-                    CleanFarAwayLarvae(___larvaesSpawned, 2 * ___radius, players);
+                } 
+                catch (Exception ex)
+                {
+                    LogError(ex);
                 }
                 yield return new WaitForSeconds(___updateInterval);
             }
