@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace ExampleModLoadSaveSupportSoft
 {
-    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.3")]
+    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.4")]
     [BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -210,6 +210,9 @@ namespace ExampleModLoadSaveSupportSoft
                 sb.Append("  Heat: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Heat)).AppendLine();
                 sb.Append("  Oxygen: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Oxygen)).AppendLine();
                 sb.Append("  Biomass: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Biomass)).AppendLine();
+                sb.Append("  Plants: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Plants)).AppendLine();
+                sb.Append("  Insects: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Insects)).AppendLine();
+                sb.Append("  Animals: " + gc.GetGroupUnitGeneration(DataConfig.WorldUnitType.Animals)).AppendLine();
 
                 var hmt = gc.GetAssociatedGameObject()?.GetComponent<HomemadeTag>();
                 if (hmt != null)
@@ -223,16 +226,25 @@ namespace ExampleModLoadSaveSupportSoft
             HashSet<string> keys = new HashSet<string>();
             foreach (var gc in FindObjectsOfType<GameObject>())
             {
-                var woa = gc.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
+                if (gc != null)
                 {
-                    var hmt = gc.GetComponentInChildren<HomemadeTag>();
-                    if (hmt != null)
+                    var woa = gc.GetComponent<WorldObjectAssociated>();
+                    if (woa != null)
                     {
-                        var str = woa.GetWorldObject().GetGroup().GetId() + " -> " + hmt.homemadeTag;
-                        if (keys.Add(str))
+                        var hmt = gc.GetComponentInChildren<HomemadeTag>();
+                        if (hmt != null)
                         {
-                            sb.AppendLine().Append(str);
+                            var wo = woa.GetWorldObject();
+                            if (wo != null) {
+                                var gr = wo.GetGroup();
+                                if (gr != null) {
+                                    var str = gr.GetId() + " -> " + hmt.homemadeTag;
+                                    if (keys.Add(str))
+                                    {
+                                        sb.AppendLine().Append(str);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
