@@ -476,6 +476,13 @@ namespace CheatAutoSequenceDNA
                 }
             }
 
+            log("    Candidate pool:");
+            foreach (var gi in candidates)
+            {
+                log("      " + gi.id + " (\"" + Readable.GetGroupName(gi) + "\") @ Chance = " + gi.GetChanceToSpawn() + " %");
+            }
+
+
             if (candidates.Count == 1)
             {
                 return candidates[0];
