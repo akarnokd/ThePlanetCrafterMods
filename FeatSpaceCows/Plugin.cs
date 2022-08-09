@@ -46,7 +46,7 @@ namespace FeatSpaceCows
 
             if (Config.Bind("General", "Enabled", true, "Enable this mod?").Value)
             {
-                debugMode = Config.Bind("General", "DebugMode", true, "Enable debugging with detailed logs (chatty!).");
+                debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
 
                 logger = Logger;
 
