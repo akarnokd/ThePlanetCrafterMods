@@ -21,7 +21,7 @@ namespace FeatSpaceCows
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.0")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
-    public partial class Plugin : BaseUnityPlugin
+    public class Plugin : BaseUnityPlugin
     {
         const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
 
@@ -393,7 +393,7 @@ namespace FeatSpaceCows
         {
             log("Clearing Cows = " + cowAroundSpreader.Count);
             cowAroundSpreader.Clear();
-            log("                Done" + cowAroundSpreader.Count);
+            log("                Done");
         }
 
         // -------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 ﻿using SpaceCraft;
 using UnityEngine;
 
-namespace FeatSpaceCows
+namespace FeatMinerDrone
 {
-    internal class SpaceCow
+    internal class Drone
     {
         internal WorldObject parent;
         internal Inventory inventory;
+        internal WorldObject shadowContainer;
+        
         internal GameObject body;
         GameObject side1;
         GameObject side2;
@@ -20,25 +22,26 @@ namespace FeatSpaceCows
 
         internal Quaternion rawRotation;
 
-        internal static SpaceCow CreateCow(Texture2D sideTexture, Color color)
+        internal static Drone CreateDrone(Texture2D sideTexture, Color color)
         {
-            var result = new SpaceCow();
+            var result = new Drone();
             result.color = color;
 
             result.body = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            result.body.name = "SpaceCow";
-            result.body.transform.localScale = new Vector3(2f, 1f, 0.5f);
+            result.body.name = "Drone";
+            result.body.transform.localScale = new Vector3(1f, 0.5f, 1f);
 
-            float scalingX = 1 * 0.7f;
-            float scalingY = 2 * 0.7f;
+            float scalingX = 1f;
+            float scalingY = 1f;
             int layer = LayerMask.NameToLayer(GameConfig.layerIgnoreRaycast);
 
             // ----------
 
-            result.side1 = new GameObject("SpaceCow-LeftSide");
+            result.side1 = new GameObject("Drone-Top");
             result.side1.transform.SetParent(result.body.transform);
             result.side1.transform.localScale = new Vector3(scalingX, scalingY, 1);
-            result.side1.transform.localPosition = new Vector3(0, 0, 0.51f);
+            result.side1.transform.localPosition = new Vector3(0, 0.26f, 0);
+            result.side1.transform.localRotation = Quaternion.Euler(0, 0, 90);
 
             SpriteRenderer sr = result.side1.AddComponent<SpriteRenderer>();
             sr.sprite = Sprite.Create(sideTexture, new Rect(0, 0, sideTexture.width, sideTexture.height), new Vector2(0.5f, 0.5f));
@@ -48,11 +51,12 @@ namespace FeatSpaceCows
 
             // ----------
 
-            result.side2 = new GameObject("SpaceCow-RightSide");
+            result.side2 = new GameObject("Drone-Bottom");
             sr = result.side2.AddComponent<SpriteRenderer>();
             result.side2.transform.SetParent(result.body.transform);
             result.side2.transform.localScale = new Vector3(scalingX, scalingY, 1);
-            result.side2.transform.localPosition = new Vector3(0, 0, -0.51f);
+            result.side2.transform.localPosition = new Vector3(0, 0.26f, 0);
+            result.side2.transform.localRotation = Quaternion.Euler(0, 0, 90);
 
             sr.sprite = Sprite.Create(sideTexture, new Rect(0, 0, sideTexture.width, sideTexture.height), new Vector2(0.5f, 0.5f));
             sr.color = color;
@@ -72,6 +76,7 @@ namespace FeatSpaceCows
             UnityEngine.Object.Destroy(side2);
             inventory = null;
             parent = null;
+            shadowContainer = null;
         }
 
         internal void SetPosition(Vector3 position, Quaternion rotation)
