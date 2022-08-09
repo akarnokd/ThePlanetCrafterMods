@@ -537,7 +537,7 @@ None.
 
 ## (Feat) Space Cows
 
-Place a Grass Spreader *(2 Water, 1 Magnesium, 1 Aluminium, 1 Lirma Seed)* and a Space Cow will appear.
+Place a Grass Spreader *(2 Water, 1 Magnesium, 1 Aluminium, 1 Lirma Seed)* and a **Space Cow** will appear.
 
 Every 2 minutes, the Space Cow will produce 1 *Water*, 1 *Astrofood* and 1 *Methane Capsule*. 
 Open her "inventory" and take them out. She won't produce more until then.
@@ -553,7 +553,6 @@ Why does it have a helmet? She dislikes your atmosphere.
 `akarnokd.theplanetcraftermods.featspacecows.cfg`
 
 ```
-
 [General]
 
 ## Is the mod enabled?
