@@ -29,10 +29,10 @@ namespace FeatMinerDrone
 
             result.body = GameObject.CreatePrimitive(PrimitiveType.Cube);
             result.body.name = "Drone";
-            result.body.transform.localScale = new Vector3(1f, 0.5f, 1f);
+            result.body.transform.localScale = new Vector3(1f, 0.125f, 1f);
 
-            float scalingX = 1f;
-            float scalingY = 1f;
+            float scalingX = 1.1f;
+            float scalingY = 1.1f;
             int layer = LayerMask.NameToLayer(GameConfig.layerIgnoreRaycast);
 
             // ----------
@@ -40,8 +40,8 @@ namespace FeatMinerDrone
             result.side1 = new GameObject("Drone-Top");
             result.side1.transform.SetParent(result.body.transform);
             result.side1.transform.localScale = new Vector3(scalingX, scalingY, 1);
-            result.side1.transform.localPosition = new Vector3(0, 0.26f, 0);
-            result.side1.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            result.side1.transform.localPosition = new Vector3(0, 0.51f, 0);
+            result.side1.transform.localRotation = Quaternion.Euler(90, 0, 0);
 
             SpriteRenderer sr = result.side1.AddComponent<SpriteRenderer>();
             sr.sprite = Sprite.Create(sideTexture, new Rect(0, 0, sideTexture.width, sideTexture.height), new Vector2(0.5f, 0.5f));
@@ -55,8 +55,8 @@ namespace FeatMinerDrone
             sr = result.side2.AddComponent<SpriteRenderer>();
             result.side2.transform.SetParent(result.body.transform);
             result.side2.transform.localScale = new Vector3(scalingX, scalingY, 1);
-            result.side2.transform.localPosition = new Vector3(0, 0.26f, 0);
-            result.side2.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            result.side2.transform.localPosition = new Vector3(0, -0.51f, 0);
+            result.side2.transform.localRotation = Quaternion.Euler(90, 0, 0);
 
             sr.sprite = Sprite.Create(sideTexture, new Rect(0, 0, sideTexture.width, sideTexture.height), new Vector2(0.5f, 0.5f));
             sr.color = color;

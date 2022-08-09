@@ -19,7 +19,7 @@ using System.Collections.Concurrent;
 
 namespace FeatMinerDrone
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Miner Drone", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featminerdrone", "(Feat) Miner Drone", "1.0.0.0")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public partial class Plugin : BaseUnityPlugin
     {
@@ -40,6 +40,8 @@ namespace FeatMinerDrone
         static int droneShadowContainerIdEnd = droneShadowContainerIdStart + 10000;
 
         static readonly Dictionary<int, Drone> drones = new();
+
+        static int droneCapacity = 12;
 
         private void Awake()
         {
@@ -144,12 +146,21 @@ namespace FeatMinerDrone
 
             foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
             {
-                if (wo.GetId() >= droneShadowContainerIdStart && wo.GetId() <= droneShadowContainerIdEnd)
+                if (wo.GetId() >= droneShadowContainerIdStart && wo.GetId() < droneShadowContainerIdEnd)
                 {
-                    droneShadowInventories[wo.GetText()] = wo;
-                    maxId = Math.Max(maxId, wo.GetId());
+                    var sId = wo.GetText();
+                    if (sId != null)
+                    {
+                        var idx = sId.IndexOf('-');
+                        if (idx > 0)
+                        {
+                            sId = sId.Substring(0, idx);
+                            droneShadowInventories[sId] = wo;
+                            maxId = Math.Max(maxId, wo.GetId());
+                        }
+                    }
                 }
-                if (wo.GetText() == droneContainerStr)
+                if (wo.GetId() >= droneShadowContainerIdEnd && wo.GetText() == droneContainerStr)
                 {
                     droneTargets.Add(wo);
                 }
@@ -165,13 +176,28 @@ namespace FeatMinerDrone
                 {
                     log("Creating shadow container for target " + DebugWorldObject(wo));
                     shadowContainer = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container1"), ++maxId);
+                    shadowContainer.SetText(woId + "-");
+                    shadowContainer.SetPositionAndRotation(new Vector3(0, 0, -1000), Quaternion.identity);
                     log("         Shadow container " + DebugWorldObject(shadowContainer));
-                    log("                inventory " + shadowContainer.GetLinkedInventoryId());
+
                 }
-                var inv = InventoriesHandler.GetInventoryById(shadowContainer.GetLinkedInventoryId());
+                Inventory inv = null;
+
+                if (shadowContainer.GetLinkedInventoryId() == 0)
+                {
+                    inv = InventoriesHandler.CreateNewInventory(droneCapacity);
+                    shadowContainer.SetLinkedInventoryId(inv.GetId());
+                    log("                inventory id " + inv.GetId());
+                }
+                else
+                {
+                    inv = InventoriesHandler.GetInventoryById(shadowContainer.GetLinkedInventoryId());
+                }
+
 
                 if (!drones.TryGetValue(id, out var drone))
                 {
+                    log("Creating drone for " + id);
                     drone = Drone.CreateDrone(droneTexture, Color.white);
                     drone.parent = wo;
                     drone.inventory = inv;
@@ -185,19 +211,28 @@ namespace FeatMinerDrone
                 ManageDrone(drone);
             }
 
+            CleanupDrones(existingTargets);
+        }
+
+        void CleanupDrones(HashSet<int> existingTargets)
+        {
             foreach (var drone in new List<KeyValuePair<int, Drone>>(drones))
             {
                 if (!existingTargets.Contains(drone.Key))
                 {
+                    log("Cleaning up drone for " + drone.Key);
                     if (drone.Value.inventory != null)
                     {
+                        log("         inventory id " + drone.Key);
                         InventoriesHandler.DestroyInventory(drone.Value.inventory.GetId());
                     }
                     if (drone.Value.shadowContainer != null)
                     {
+                        log("         shadow container " + DebugWorldObject(drone.Value.shadowContainer));
                         WorldObjectsHandler.DestroyWorldObject(drone.Value.shadowContainer);
                     }
                     drone.Value.Destroy();
+                    log("         destroyed GameObject");
                     drones.Remove(drone.Key);
                 }
             }

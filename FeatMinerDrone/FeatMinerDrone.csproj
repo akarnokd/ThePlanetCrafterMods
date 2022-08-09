@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>FeatSpaceCows</AssemblyName>
+    <AssemblyName>FeatMinerDrone</AssemblyName>
     <Description>(Feat) Miner Drone</Description>
     <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
