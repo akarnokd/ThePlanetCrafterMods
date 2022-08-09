@@ -9,7 +9,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.5.005
+## Supported Game Version: 0.5.006
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -354,6 +354,10 @@ Typical identifiers are:
 You can also make the water and methane extractors deposit remotely by naming containers:
 
 - `*WaterBottle1`, `*OxygenCapsule1`, `*MethanCapsule1`
+
+With Insects & Waterfalls update, the mod also works with Silk generators:
+
+- `*Silk`
 
 You can have as many containers as you like, but they will be filled in non-deterministically.
 If there are no renamed containers or all renamed containers are full, the machines
