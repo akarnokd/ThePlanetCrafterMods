@@ -108,7 +108,7 @@ namespace FeatMultiplayer
 
             larvaeGroupIds.Clear();
 
-            cellsInCircle.Clear();
+            cellsInCircle?.Clear();
         }
 
         void OnApplicationQuit()

@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName>UIPinRecipe</AssemblyName>
-    <Description>(UI) Pin Recipe to Screen</Description>
-    <Version>1.0.0.10</Version>
+    <AssemblyName>FeatSpaceCows</AssemblyName>
+    <Description>(Feat) Space Cows</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <Import Project="$(SolutionDir)\solution_private.targets" />
+	<Import Project="$(SolutionDir)\solution_private.targets" />
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
@@ -29,29 +29,38 @@
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="com.mijugames.miju-tools">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.InputSystem">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+	  <Reference Include="com.mijugames.miju-tools">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
+	  <Reference Include="UnityEngine.UI">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.InputSystem">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
+	  <Reference Include="Unity.TextMeshPro">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(Destination2)" />
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
+	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />

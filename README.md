@@ -36,7 +36,7 @@ by deleting the directory itself.
 
 | Cheats | UI/QoL | Other |
 |---|---|---|
-| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Auto Launch Rockets](#cheat-auto-launch-rockets)<br/>[Auto Sequence DNA](#cheat-auto-sequence-dna)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Traduzione Italiana](#ui-italian-translation)<br/>[Tłumaczenie Polskie](#ui-polish-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Overview Panel](#ui-overview-panel)<br>[Prevent Accidental Deconstruct](#ui-prevent-accidental-deconstruct)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Auto Save](#save-auto-save)<br/>[Unbrick Save](#fix-unbrick-save)<br/>[Unofficial Patches](#fix-unofficial-patches)<br/>[Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)<br/>[Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/(Misc)-Plugin-Update-Checker) |
+| [Asteroid Landing Position Override](#cheat-asteroid-landing-position-override)<br/>[Auto Consume Oxygen-Water-Food](#cheat-auto-consume-oxygen-water-food)<br/>[Auto Harvest](#cheat-auto-harvest)<br/>[Auto Launch Rockets](#cheat-auto-launch-rockets)<br/>[Auto Sequence DNA](#cheat-auto-sequence-dna)<br/>[Highlight Nearby Resources](#cheat-highlight-nearby-resources)<br/>[Inventory Stacking](#cheat-inventory-stacking)<br/>[Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)<br/>[Minimap](#cheat-minimap)<br/>[Photomode Hide Water](#cheat-photomode-hide-water)<br/>[Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable) | [Craft Equipment Inplace](#ui-craft-equipment-inplace)<br/>[Customize Inventory Sort Order](#ui-customize-inventory-sort-order)<br/>[Don't Close Craft Window](#ui-dont-close-craft-window)<br/>[Hotbar](#ui-hotbar)<br/>[Magyar Fordítás](#ui-hungarian-translation)<br/>[Traduzione Italiana](#ui-italian-translation)<br/>[Tłumaczenie Polskie](#ui-polish-translation)<br/>[Inventory Move Multiple Items](#ui-inventory-move-multiple-items)<br/>[Overview Panel](#ui-overview-panel)<br>[Prevent Accidental Deconstruct](#ui-prevent-accidental-deconstruct)<br/>[Save When Quitting](#ui-save-when-quitting)<br/>[Show Consumable Counts](#ui-show-consumable-counts)<br/>[Show Container Content Info](#ui-show-container-content-info)<br/>[Show Grab N Mine Count](#ui-show-grab-n-mine-count)<br/>[Show MultiTool Mode](#ui-show-multitool-mode)<br/>[Show Player Inventory Counts](#ui-show-player-inventory-counts)<br/>[Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)<br/>[Show Rocket Counts](#ui-show-rocket-counts)<br/>[Pin Recipe to Screen](#ui-pin-recipe-to-screen)<br/>[Sort Saves](#ui-sort-saves) | [Reduce Save Size](#perf-reduce-save-size)<br/>[Support Mods with Load n Save](#lib-support-mods-with-load-n-save)<br/>[Save Auto Backup](#save-auto-backup)<br/>[Auto Save](#save-auto-save)<br/>[Unbrick Save](#fix-unbrick-save)<br/>[Unofficial Patches](#fix-unofficial-patches)<br/>[Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)<br/>[Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/(Misc)-Plugin-Update-Checker)<br/>[Space Cows](#feat-space-cows) |
 
 
 ## (Cheat) Asteroid Landing Position Override
@@ -534,6 +534,40 @@ Current fixes:
 ### Configuration
 
 None.
+
+## (Feat) Space Cows
+
+Place a Grass Spreader *(2 Water, 1 Magnesium, 1 Aluminium, 1 Lirma Seed)* and a Space Cow will appear.
+
+Every 2 minutes, the Space Cow will produce 1 *Water*, 1 *Astrofood* and 1 *Methane Capsule*. 
+Open her "inventory" and take them out. She won't produce more until then.
+
+In addition, she will also add 60 grams to the *Animals* component of the Terraformation Index.
+
+Why does it have a helmet? She dislikes your atmosphere.
+
+:information_source: Since a Space Cow is not a machine or a grower, the various auto-gather/auto-deposit mods won't work.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.featspacecows.cfg`
+
+```
+
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable debugging with detailed logs (chatty!).
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+```
+
+
 
 ## (Perf) Reduce Save Size
 
