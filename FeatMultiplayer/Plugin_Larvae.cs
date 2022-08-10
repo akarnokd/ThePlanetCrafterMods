@@ -243,6 +243,12 @@ namespace FeatMultiplayer
                     return;
                 }
                 */
+                /*
+                foreach (var lp in ___larvaesToSpawn)
+                {
+                    LogInfo("       Spawn candidate: " + lp.id + " (" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + ") " + lp.chanceToSpawn + "%");
+                }
+                */
                 var allowedSpawnsAt = GetValidSpawns(raycastHit.point, ___larvaesToSpawn, addLarvaesFromZone);
                 var maxTries = 200;
                 var tries = 0;
@@ -418,6 +424,10 @@ namespace FeatMultiplayer
                     lzc.bounds = bounds;
                     lzc.spawns = __instance.GetLarvaesToAddToPool();
                     allLarvaeZones[str] = lzc;
+                    foreach (var lp in lzc.spawns)
+                    {
+                        LogInfo("       Spawn: " + lp.id + " (" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + ") " + lp.chanceToSpawn + "%");
+                    }
                 }
             }
         }
