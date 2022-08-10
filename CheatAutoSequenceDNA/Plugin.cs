@@ -263,7 +263,7 @@ namespace CheatAutoSequenceDNA
                             var spawnTarget = Analyze(currentItems, DataConfig.CraftableIn.CraftInsectsT1);
                             if (spawnTarget != null)
                             {
-                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() * 100 + " %)");
+                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
 
                                 incubator.SetGrowth(1f);
                                 incubator.SetLinkedGroups(new List<Group> { spawnTarget });
@@ -407,7 +407,7 @@ namespace CheatAutoSequenceDNA
                             var spawnTarget = Analyze(currentItems, DataConfig.CraftableIn.CraftGeneticT1);
                             if (spawnTarget != null)
                             {
-                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() * 100 + " %)");
+                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
 
                                 sequencer.SetGrowth(1f);
                                 sequencer.SetLinkedGroups(new List<Group> { spawnTarget });
