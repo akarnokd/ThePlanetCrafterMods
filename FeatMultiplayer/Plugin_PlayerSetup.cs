@@ -153,23 +153,38 @@ namespace FeatMultiplayer
                 if (gr is GroupItem gi)
                 {
                     string item = gi.GetId();
-                    if (item != "GoldenEffigieSpawner")
-                    {
-                        if (!item.StartsWith("Rocket") || item == "RocketReactor")
-                        {
-                            if (!item.EndsWith("Hatched") && !item.EndsWith("Growable"))
-                            {
-                                groupsToAdd.Add(gi);
-                            }
-                        }
-                    }
-                    else
+                    if (item == "GoldenEffigieSpawner")
                     {
                         foreach (var gc in gi.GetAssociatedGroups())
                         {
                             groupsToAdd.Add(GroupsHandler.GetGroupViaId(gc.id));
                         }
+                        continue;
                     }
+                    if (item.StartsWith("Rocket") && item != "RocketReactor")
+                    {
+                        continue;
+                    }
+                    if (item.EndsWith("Hatched")) {
+                        continue;
+                    }
+                    if (item.StartsWith("Algae") && item.EndsWith("Growable"))
+                    {
+                        continue;
+                    }
+                    if (item.StartsWith("Algae") && item.EndsWith("Growable"))
+                    {
+                        continue;
+                    }
+                    if (item.StartsWith("Tree") && item.EndsWith("Growable"))
+                    {
+                        continue;
+                    }
+                    if (item.StartsWith("Seed") && item.EndsWith("Growable"))
+                    {
+                        continue;
+                    }
+                    groupsToAdd.Add(gi);
                 }
             }
             groupsToAdd.Sort((a, b) =>
