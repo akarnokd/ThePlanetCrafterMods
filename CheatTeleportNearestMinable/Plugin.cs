@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace CheatTeleportNearestMinable
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.5")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -196,8 +196,8 @@ namespace CheatTeleportNearestMinable
                 else
                 if (am.TryGetComponent<WorldObjectAssociated>(out var woa))
                 {
-                    var gid = woa.GetWorldObject().GetGroup().GetId();
-                    if (resourceSet.Contains(gid))
+                    var gid = woa.GetWorldObject()?.GetGroup()?.GetId();
+                    if (gid != null && resourceSet.Contains(gid))
                     {
                         result.Add(am);
                     }
@@ -223,8 +223,8 @@ namespace CheatTeleportNearestMinable
                 else
                 if (am.TryGetComponent<WorldObjectAssociated>(out var woa))
                 {
-                    var gid = woa.GetWorldObject().GetGroup().GetId();
-                    if (larvaeSet.Contains(gid))
+                    var gid = woa.GetWorldObject()?.GetGroup()?.GetId();
+                    if (gid != null && larvaeSet.Contains(gid))
                     {
                         result.Add(am);
                     }
