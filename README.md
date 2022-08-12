@@ -373,14 +373,17 @@ None.
 
 ## (Cheat) Teleport to Nearest Minable
 
-- Press <kbd>F8</kbd> to teleport to the nearest minable resource. 
-- Press <kbd>Shift+F8</kbd> to teleport to the nearest minable resource and mine it instantly. 
-- Press <kbd>CTRL+F8</kbd> to mine the nearest resource without moving the character. 
+Locates the nearest **minable resource** or **grabable larvae** (configurable).
 
+- Press <kbd>F8</kbd> to teleport to the nearest **minable resource** or **grabable larvae**. 
+- Press <kbd>Shift+F8</kbd> to teleport to the nearest minable resource/larvae and mine/grab it instantly. 
+- Press <kbd>CTRL+F8</kbd> to mine/grab the nearest resource/larvae without moving the character. 
+- Press <kbd>V</kbd> to toggle automatic mining/grabbing in a certain radius (configurable).
 
-Note that some
-resources are out of bounds and are not normally player-reachable. You may also
+Note that some resources are out of bounds and are not normally player-reachable. You may also
 fall to your death so be careful on permadeath!
+
+:warning: Does not currently support Multiplayer-Client mode.
 
 Remark: `Uranim` is a misspelling in the vanilla game which will probably never be fixed as it would break saves.
 
@@ -395,6 +398,26 @@ Remark: `Uranim` is a misspelling in the vanilla game which will probably never 
 # Setting type: String
 # Default value: Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur,PulsarQuartz,PulsarShard
 ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridium,Alloy,Zeolite,Osmium,Sulfur,PulsarQuartz,PulsarShard
+
+## List of comma-separated larvae ids to look for.
+# Setting type: String
+# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly141Larvae,Butterfly15Larvae
+LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly141Larvae,Butterfly15Larvae
+
+## Press this key (without modifiers) to enable automatic mining/grabbing in a radius.
+# Setting type: String
+# Default value: V
+ToggleAutomatic = V
+
+## The automatic mining/grabbing radius.
+# Setting type: Single
+# Default value: 90
+Radius = 90
+
+## The delay between automatic checks in seconds
+# Setting type: Single
+# Default value: 5
+Delay = 5
 ```
 
 ## (Cheat) Minimap
