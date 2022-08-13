@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.16")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.17")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -187,13 +187,14 @@ namespace CheatMinimap
         {
             chests.Clear();
 
-            foreach (GameObject ia in UnityEngine.Object.FindObjectsOfType<GameObject>())
+            foreach (ActionOpenable ia in FindObjectsOfType<ActionOpenable>())
             {
                 try
                 {
-                    if (ia.name.Contains("WorldContainer") || ia.name.Contains("GoldenContainer") || ia.name.Contains("WorldCanister"))
+                    var go = ia.gameObject;
+                    if (go.name.Contains("WorldContainer") || go.name.Contains("GoldenContainer") || go.name.Contains("WorldCanister"))
                     {
-                        chests.Add(ia);
+                        chests.Add(go);
                     }
                 }
                 catch
