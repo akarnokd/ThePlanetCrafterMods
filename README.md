@@ -453,6 +453,11 @@ MapSize = 400
 # Default value: 350
 MapBottom = 350
 
+## Panel position from the left of the screen
+# Setting type: Int32
+# Default value: 0
+MapLeft = 150
+
 ## The zoom level
 # Setting type: Int32
 # Default value: 4
