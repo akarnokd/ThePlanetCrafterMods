@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.5")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.6")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -32,6 +32,8 @@ namespace CheatAutoHarvest
 
         static ConfigEntry<bool> harvestAlgae;
         static ConfigEntry<bool> harvestFood;
+
+        static readonly Dictionary<string, ConfigEntry<string>> depositAliases = new();
 
         static Func<List<WorldObject>, int, string, bool> isFullStacked;
 
@@ -54,6 +56,20 @@ namespace CheatAutoHarvest
             worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
+
+            depositAliases["Algae1Seed"] = Config.Bind("General", "AliasAlgae", "*Algae1Seed", "The container name to put algae into.");
+            depositAliases["Vegetable0Growable"] = Config.Bind("General", "AliasEggplant", "*Vegetable0Growable", "The container name to put eggplant into.");
+            depositAliases["Vegetable1Growable"] = Config.Bind("General", "AliasSquash", "*Vegetable1Growable", "The container name to put squash into.");
+            depositAliases["Vegetable2Growable"] = Config.Bind("General", "AliasBeans", "*Vegetable2Growable", "The container name to put beans into.");
+            depositAliases["Vegetable3Growable"] = Config.Bind("General", "AliasMushroom", "*Vegetable3Growable", "The container name to put mushroom into.");
+
+            if (debugAlgae || debugFood)
+            {
+                foreach (var kv in depositAliases) 
+                {
+                    Logger.LogInfo("  Alias " + kv.Key + " -> " + kv.Value.Value);
+                }
+            }
 
             if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
@@ -303,7 +319,7 @@ namespace CheatAutoHarvest
             foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
             {
                 string txt = wo.GetText();
-                if (txt != null && txt.Contains("*"))
+                if (txt != null && IsTargetAlias(txt))
                 {
                     if (wo.HasLinkedInventory())
                     {
@@ -319,6 +335,20 @@ namespace CheatAutoHarvest
                 }
             }
         }
+
+        static bool IsTargetAlias(string txt)
+        {
+            txt = txt.ToLower();
+            foreach (var kv in depositAliases)
+            {
+                if (txt.Contains(kv.Value.Value.ToLower()))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         static void FindObjects(Dictionary<WorldObject, GameObject> map, 
             List<WorldObject> food, 
             List<InventoryAndWorldObject> inventories, 
@@ -339,7 +369,7 @@ namespace CheatAutoHarvest
                     }
                 }
                 string txt = wo.GetText();
-                if (txt != null && txt.Contains("*"))
+                if (txt != null && IsTargetAlias(txt))
                 {
                     if (wo.HasLinkedInventory())
                     {
@@ -366,18 +396,34 @@ namespace CheatAutoHarvest
 
         static bool FindInventory(WorldObject wo, List<InventoryAndWorldObject> inventories, out Inventory inventory)
         {
-            string gid = "*" + wo.GetGroup().GetId().ToLower();
-            foreach (InventoryAndWorldObject inv in inventories)
+            var gr = wo.GetGroup().GetId();
+            if (debugAlgae || debugFood)
             {
-                string txt = inv.worldObject.GetText();
-                if (txt != null && txt.ToLower().Contains(gid))
+                logger.LogInfo("  Checking alias for " + gr);
+            }
+            if (depositAliases.TryGetValue(gr, out var gid))
+            {
+                if (debugAlgae || debugFood)
                 {
-                    if (!IsFull(inv.inventory, wo))
+                    logger.LogInfo("  Looking for inventory containing alias " + gid.Value);
+                }
+                var gidv = gid.Value.ToLower();
+                foreach (InventoryAndWorldObject inv in inventories)
+                {
+                    string txt = inv.worldObject.GetText();
+                    if (txt != null && txt.ToLower().Contains(gidv))
                     {
-                        inventory = inv.inventory;
-                        return true;
+                        if (!IsFull(inv.inventory, wo))
+                        {
+                            inventory = inv.inventory;
+                            return true;
+                        }
                     }
                 }
+            }
+            if (debugAlgae || debugFood)
+            {
+                logger.LogInfo("  No inventory for " + wo.GetGroup().GetId());
             }
             inventory = null;
             return false;

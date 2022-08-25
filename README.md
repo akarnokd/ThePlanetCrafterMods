@@ -90,7 +90,7 @@ Automatically harvest grown algae or food from their machines and deposit them i
 
 To deposit **Algae**, name any number of containers as `*Algae1Seed` (the `*` is mandatory).
 
-To deposit food, use the following naming convention:
+To deposit food, use the following default naming convention:
 
 - **Eggplant** - `*Vegetable0Growable`
 - **Squash** - `*Vegetable1Growable`
@@ -98,6 +98,8 @@ To deposit food, use the following naming convention:
 - **Mushroom** - `*Vegetable3Growable`
 
 The naming is case insensitive.
+
+It is possible to change these aliases via configuration. If customized, the `*` is no longer needed. The mod defaults to the naming convention above to remain compatible with previous versions of itself.
 
 ### Configuration
 
@@ -115,6 +117,31 @@ HarvestAlgae = true
 # Setting type: Boolean
 # Default value: true
 HarvestFood = true
+
+## The container name to put algae into.
+# Setting type: String
+# Default value: *Algae1Seed
+AliasAlgae = *Algae1Seed
+
+## The container name to put eggplant into.
+# Setting type: String
+# Default value: *Vegetable0Growable
+AliasEggplant = *Vegetable0Growable
+
+## The container name to put squash into.
+# Setting type: String
+# Default value: *Vegetable1Growable
+AliasSquash = *Vegetable1Growable
+
+## The container name to put beans into.
+# Setting type: String
+# Default value: *Vegetable2Growable
+AliasBeans = *Vegetable2Growable
+
+## The container name to put mushroom into.
+# Setting type: String
+# Default value: *Vegetable3Growable
+AliasMushroom = *Vegetable3Growable
 ```
 
 ## (Cheat) Auto Launch Rockets
