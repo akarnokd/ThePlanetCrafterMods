@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.7")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -26,6 +26,8 @@ namespace CheatMachineRemoteDeposit
 
         static bool debugMode;
 
+        static readonly Dictionary<string, string> depositAliases = new();
+
         /// <summary>
         /// Set this function to override the last phase of generating and depositing the actual ore.
         /// </summary>
@@ -37,6 +39,8 @@ namespace CheatMachineRemoteDeposit
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            ProcessAliases(Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C"));
 
             if (Chainloader.PluginInfos.TryGetValue(cheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
@@ -60,6 +64,30 @@ namespace CheatMachineRemoteDeposit
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
+
+        void ProcessAliases(ConfigEntry<string> cfe)
+        {
+            var s = cfe.Value.Trim();
+            if (s.Length != 0)
+            {
+                var i = 0;
+                foreach (var str in s.Split(','))
+                {
+                    var idalias = str.Split(':');
+                    if (idalias.Length != 2)
+                    {
+                        Logger.LogWarning("Wrong alias @ index " + i + " value " + str);
+                    }
+                    else
+                    {
+                        depositAliases[idalias[0]] = idalias[1].ToLower();
+                        log("Alias " + idalias[0] + " -> " + idalias[1]);
+                    }
+                    i++;
+                }
+            }
+        }
+
         static bool IsFull(Inventory inv, string gid)
         {
             if (isFullStacked != null)
@@ -108,6 +136,11 @@ namespace CheatMachineRemoteDeposit
             Inventory inventory = ___inventory;
             bool inventoryFound = false;
             string gid = "*" + oreId.ToLower();
+            if (depositAliases.TryGetValue(oreId, out var alias))
+            {
+                gid = alias;
+                log("  Deposit alias found: " + alias);
+            }
             foreach (WorldObject wo2 in WorldObjectsHandler.GetAllWorldObjects())
             {
                 if (wo2 != null && wo2.HasLinkedInventory())

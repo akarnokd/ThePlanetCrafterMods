@@ -365,7 +365,9 @@ Enabled = false
 
 ## (Cheat) Machines Deposit Into Remote Containers
 
-For this mod to work, you have to rename your containers. For example,
+For this mod to work, you have to rename your containers. 
+
+For the default naming convention, for example,
 to make machines deposit Iron, rename your container(s) to something that includes
 `*Iron`. For Uranium, rename them to `*Uranim` (remark: this is a misspelling in the vanilla game which will probably never be fixed as it would break saves). Note the `*` in front of the identifiers.
 Identifiers can be any case. 
@@ -376,7 +378,7 @@ Typical identifiers are:
 -`Cobalt`,`Silicon`,`Iron`,`ice`,
 `Magnesium`,`Titanium`,`Aluminium`,`Uranim`,
 `Iridium`,`Alloy`,`Zeolite`,`Osmium`,
-`Sulfur`, 
+`Sulfur`, `PulsarQuartz`
 
 You can also make the water and methane extractors deposit remotely by naming containers:
 
@@ -385,6 +387,12 @@ You can also make the water and methane extractors deposit remotely by naming co
 With Insects & Waterfalls update, the mod also works with Silk generators:
 
 - `*Silk`
+
+You can override the default naming convention via the `Aliases` configuration option by listing the resource id and the target naming:
+
+`Aliases=Iron:A,Cobalt:B,Uranim:U`
+
+The identifiers are case sensitive, the target names are case insensitive. You can have the same alias for multiple resources. With overrides, there is no need for the `*` prefix.
 
 You can have as many containers as you like, but they will be filled in non-deterministically.
 If there are no renamed containers or all renamed containers are full, the machines
@@ -396,7 +404,15 @@ Note also that machines are slow to mine resources.
 
 ### Configuration
 
-None.
+`akarnokd.theplanetcraftermods.cheatmachineremotedeposit.cfg`
+
+```
+[General]
+## A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C
+# Setting type: String
+# Default value: 
+Aliases = 
+```
 
 ## (Cheat) Teleport to Nearest Minable
 
