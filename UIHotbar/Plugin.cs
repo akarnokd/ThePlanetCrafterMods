@@ -12,6 +12,7 @@ using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
 using BepInEx.Logging;
+using System.Linq;
 
 namespace UIHotbar
 {
@@ -25,6 +26,7 @@ namespace UIHotbar
         static ConfigEntry<int> slotSize;
         static ConfigEntry<int> slotBottom;
         static ConfigEntry<int> fontSize;
+        static ConfigEntry<string> slotsLayout;
 
         static ManualLogSource logger;
 
@@ -43,6 +45,7 @@ namespace UIHotbar
             slotSize = Config.Bind("General", "SlotSize", 75, "The size of each inventory slot");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size of the slot index");
             slotBottom = Config.Bind("General", "SlotBottom", 40, "Placement of the panels relative to the bottom of the screen.");
+            slotsLayout = Config.Bind("Slots", "Layout", "", "Comma-separated list of recipe IDs assigned to slots.");
 
             logger = Logger;
 
@@ -134,6 +137,15 @@ namespace UIHotbar
             if (parent == null)
             {
                 Logger.LogInfo("Begin Creating the Hotbar");
+
+                List<Group> slotsList = slotsLayout.Value.Split(',').Select(x =>
+                {
+                    Group group = GroupsHandler.GetGroupViaId(x.Trim());
+                    if (group != null && group.GetHideInCrafter())
+                        group = null;
+                    return group;
+                }).ToList();
+
                 parent = new GameObject("HotbarCanvas");
                 Canvas canvas = parent.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -217,6 +229,7 @@ namespace UIHotbar
 
                     // -----------------------------------------------------------
                     x += s + 5;
+                    if (slotsList.Count > i && slotsList[i] != null) PinUnpinGroup(slotsList[i], i, false);
                 }
             }
         }
@@ -518,7 +531,7 @@ namespace UIHotbar
             return -1;
         }
 
-        static void PinUnpinGroup(Group group, int slot)
+        static void PinUnpinGroup(Group group, int slot, bool updateConfig = true)
         {
             if (slot >= 0 && slot < slots.Count)
             {
@@ -556,6 +569,9 @@ namespace UIHotbar
                         }
                     }
                 }
+
+                if (updateConfig)
+                    slotsLayout.Value = slots.Join(x => x.currentGroup == null ? "" : x.currentGroup.GetId());
             }
         }
 
@@ -566,6 +582,5 @@ namespace UIHotbar
             bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
         }
-
     }
 }
