@@ -27,6 +27,8 @@ namespace UIPinRecipe
         static ConfigEntry<int> panelTop;
         static ConfigEntry<string> pinnedRecipeList;
 
+        static bool isPaused = false;
+
         /// <summary>
         /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
         /// </summary>
@@ -58,7 +60,8 @@ namespace UIPinRecipe
             {
                 foreach (PinnedRecipe pr in pinnedRecipes)
                 {
-                    pr.UpdateState();
+                    if (!isPaused)
+                        pr.UpdateState();
                 }
                 yield return new WaitForSeconds(0.25f);
             }
@@ -66,6 +69,8 @@ namespace UIPinRecipe
 
         void Update()
         {
+            if (isPaused) return;
+
             if (pinnedRecipes.Count != 0) {
                 FieldInfo pi = typeof(Key).GetField(clearKey.Value.ToString().ToUpper());
                 Key k = Key.C;
@@ -372,6 +377,24 @@ namespace UIPinRecipe
 
                 PinUnpinGroup(group, false);
             };
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnOpen))]
+        static bool UiWindowPause_OnOpen()
+        {
+            isPaused = true;
+            parent?.SetActive(false);
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnClose))]
+        static bool UiWindowPause_OnClose()
+        {
+            isPaused = false;
+            parent?.SetActive(true);
+            return true;
         }
     }
 }

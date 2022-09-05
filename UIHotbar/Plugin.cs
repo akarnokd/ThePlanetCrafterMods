@@ -32,6 +32,8 @@ namespace UIHotbar
 
         static Action<Group> pinUnpinRecipe;
 
+        static bool isPaused = false;
+
         const string modCraftFromContainersGuid = "aedenthorn.CraftFromContainers";
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
         static ConfigEntry<bool> modCraftFromContainersEnabled;
@@ -251,6 +253,8 @@ namespace UIHotbar
 
         void UpdateRender(PlayerMainController player)
         {
+            if (isPaused) return;
+
             bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
 
@@ -581,6 +585,24 @@ namespace UIHotbar
         {
             bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnOpen))]
+        static bool UiWindowPause_OnOpen()
+        {
+            isPaused = true;
+            parent?.SetActive(false);
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnClose))]
+        static bool UiWindowPause_OnClose()
+        {
+            isPaused = false;
+            parent?.SetActive(true);
+            return true;
         }
     }
 }
