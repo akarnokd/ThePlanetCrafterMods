@@ -141,7 +141,7 @@ namespace UIHotbar
                 List<Group> slotsList = slotsLayout.Value.Split(',').Select(x =>
                 {
                     Group group = GroupsHandler.GetGroupViaId(x.Trim());
-                    if (group != null && group.GetHideInCrafter())
+                    if (group != null && (group.GetHideInCrafter() || group.GetRecipe() == null))
                         group = null;
                     return group;
                 }).ToList();

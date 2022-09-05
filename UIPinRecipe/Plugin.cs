@@ -361,8 +361,8 @@ namespace UIPinRecipe
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(SavedDataHandler), nameof(SavedDataHandler.LoadSavedData))]
-        static void SavedDataHandler_LoadSavedData()
+        [HarmonyPatch(typeof(TutorialHandler), nameof(TutorialHandler.StartTutorial))]
+        static void TutorialHandler_StartTutorial()
         {
             foreach (var groupId in pinnedRecipeList.Value.Split(','))
             {
