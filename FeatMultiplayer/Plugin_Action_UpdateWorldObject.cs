@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -194,6 +195,36 @@ namespace FeatMultiplayer
                 {
                     go.transform.position = st.position;
                     go.transform.rotation = st.rotation;
+                }
+            }
+        }
+
+        static void ReceiveMessageSetLinkedGroups(MessageSetLinkedGroups mslg)
+        {
+            if (worldObjectById.TryGetValue(mslg.id, out var wo))
+            {
+                if (mslg.groupIds == null || mslg.groupIds.Count == 0)
+                {
+                    wo.SetLinkedGroups(null);
+                }
+                else
+                {
+                    List<Group> groups = new();
+                    foreach (var gid in mslg.groupIds)
+                    {
+                        groups.Add(GroupsHandler.GetGroupViaId(gid));
+                    }
+                    wo.SetLinkedGroups(groups);
+                }
+                var openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                if (openedUi == DataConfig.UiType.GroupSelector)
+                {
+                    var window = (UiWindowGroupSelector)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi);
+                    var windowWo = (WorldObject)uiWindowGroupSelectorWorldObject.GetValue(window);
+                    if (windowWo != null && windowWo.GetId() == mslg.id)
+                    {
+                        window.SetWorldObject(wo);
+                    }
                 }
             }
         }

@@ -109,6 +109,7 @@ namespace FeatMultiplayer
         static FieldInfo machineGrowerIfLinkedGroupHasEnergy;
         static FieldInfo machineGrowerIfLinkedGroupWorldObject;
         static MethodInfo machineGrowerIfLinkedGroupSetInteractiveStatus;
+        static FieldInfo uiWindowGroupSelectorWorldObject;
 
         static void InitReflectiveAccessors()
         {
@@ -144,6 +145,8 @@ namespace FeatMultiplayer
                 var getMultiplayerModeField = AccessTools.Field(pi.Instance.GetType(), "getMultiplayerMode");
                 getMultiplayerModeField.SetValue(pi.Instance, new Func<string>(GetMultiplayerMode));
             }
+
+            uiWindowGroupSelectorWorldObject = AccessTools.Field(typeof(UiWindowGroupSelector), "worldObject");
         }
 
     }

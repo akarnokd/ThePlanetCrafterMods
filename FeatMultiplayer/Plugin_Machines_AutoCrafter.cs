@@ -131,5 +131,34 @@ namespace FeatMultiplayer
                 }
             }
         }
+
+        /// <summary>
+        /// The vanilla method just sets the linked groups to this single group.
+        /// 
+        /// In multiplayer, we have to notify the other party about the change
+        /// in the world object.
+        /// </summary>
+        /// <param name="___worldObject">The target world object.</param>
+        /// <param name="_group">The new group selected or null if it was cleared.</param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowGroupSelector), "OnGroupSelected")]
+        static void UiWindowGroupSelector_OnGroupSelected(WorldObject ___worldObject, Group _group)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                List<string> groupIds = null;
+                var groups = ___worldObject.GetLinkedGroups();
+                if (groups != null && groups.Count != 0)
+                {
+                    groupIds = new();
+                    foreach (var gr in groups)
+                    {
+                        groupIds.Add(gr.GetId());
+                    }
+                }
+                Send(new MessageSetLinkedGroups { id = ___worldObject.GetId(), groupIds = groupIds });
+                Signal();
+            }
+        }
     }
 }

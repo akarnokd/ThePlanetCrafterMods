@@ -255,6 +255,11 @@ namespace FeatMultiplayer
             if (MessageGeneticsAction.TryParse(message, out var mga1))
             {
                 receiveQueue.Enqueue(mga1);
+            } 
+            else
+            if (MessageSetLinkedGroups.TryParse(message, out var mslg))
+            {
+                receiveQueue.Enqueue(mslg);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -508,6 +513,11 @@ namespace FeatMultiplayer
                 case MessageGeneticsAction mga1:
                     {
                         ReceiveMessageGeneticsAction(mga1);
+                        break;
+                    }
+                case MessageSetLinkedGroups mslg:
+                    {
+                        ReceiveMessageSetLinkedGroups(mslg);
                         break;
                     }
                 case string s:
