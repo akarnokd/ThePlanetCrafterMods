@@ -51,7 +51,7 @@ namespace UIInventoryMoveMultiple
                     }
                 }
                 DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
-                if (openedUi == DataConfig.UiType.Container)
+                if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.GroupSelector)
                 {
                     Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
                     if (___inventory != null && otherInventory != null)

@@ -406,7 +406,7 @@ namespace CheatInventoryStacking
                     {
                         WorldObject wo = _eventTriggerCallbackData.worldObject;
                         DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
-                        if (openedUi == DataConfig.UiType.Container)
+                        if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.GroupSelector)
                         {
                             Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
                             if (___inventory != null && otherInventory != null)
@@ -603,8 +603,12 @@ namespace CheatInventoryStacking
                 }
                 return null;
             }
-            return GroupsHandler.GetGroupViaId(
-                        ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+            if (___groupDatas.Count != 0)
+            {
+                return GroupsHandler.GetGroupViaId(
+                            ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+            }
+            return null;
         }
 
         [HarmonyPrefix]

@@ -45,7 +45,11 @@ namespace FeatMultiplayer
                 }
                 return null;
             }
-            return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+            if (___groupDatas.Count != 0)
+            {
+                return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+            }
+            return null;
         }
 
         /// <summary>
