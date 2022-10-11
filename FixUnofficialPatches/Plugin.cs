@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 

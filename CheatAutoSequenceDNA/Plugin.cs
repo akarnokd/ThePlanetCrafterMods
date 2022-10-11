@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.1")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -81,7 +81,13 @@ namespace CheatAutoSequenceDNA
 
             }
 
-            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null);
+            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            if (worldObjectsDictionary == null)
+            {
+                // FIXME vanilla renamed this in 0.6.001
+                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
+            }
+            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)worldObjectsDictionary.GetValue(null);
 
             logger = Logger;
 

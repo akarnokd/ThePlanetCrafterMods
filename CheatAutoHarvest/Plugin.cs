@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.6")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.7")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -54,6 +54,11 @@ namespace CheatAutoHarvest
             instantiateAtRandomPosition = AccessTools.Method(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition", new Type[] { typeof(GameObject), typeof(bool) });
             machineGrowerInventory = AccessTools.Field(typeof(MachineGrower), "inventory");
             worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            if (worldObjectsDictionary == null)
+            {
+                // FIXME vanilla renamed this in 0.6.001
+                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
+            }
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
 

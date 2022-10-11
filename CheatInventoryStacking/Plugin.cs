@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.10")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.11")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -284,6 +284,11 @@ namespace CheatInventoryStacking
                         List<WorldObject> slot = slots[i];
                         WorldObject worldObject = slot[slot.Count - 1];
 
+                        if (worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed())
+                        {
+                            showDropIcon = false;
+                        }
+
                         component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
 
                         RectTransform rectTransform;
@@ -498,7 +503,8 @@ namespace CheatInventoryStacking
                         || equipType == DataConfig.EquipableType.EquipmentIncrease
                         || equipType == DataConfig.EquipableType.MultiToolMineSpeed
                         || equipType == DataConfig.EquipableType.BootsSpeed
-                        || equipType == DataConfig.EquipableType.Jetpack)
+                        || equipType == DataConfig.EquipableType.Jetpack
+                        || equipType == DataConfig.EquipableType.AirFilter)
                     {
                         expectedGroupIdToAdd = groupItem.GetId();
                         return true;
@@ -583,21 +589,45 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        static Group GenerateOre(List<GroupData> ___groupDatas,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
+        {
+            // Since 0.6.001
+            if (___setGroupsDataViaLinkedGroup)
+            {
+                var linkedGroups = ___worldObject.GetLinkedGroups();
+                if (linkedGroups != null && linkedGroups.Count != 0)
+                {
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
+                }
+                return null;
+            }
+            return GroupsHandler.GetGroupViaId(
+                        ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, List<GroupData> ___groupDatas)
+        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, 
+            List<GroupData> ___groupDatas, 
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
         {
             if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit")
                 && !Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.featmultiplayer")
             )
             {
-                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(
-                    GroupsHandler.GetGroupViaId(
-                        ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id), 0);
+                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
 
-                if (!___inventory.AddItem(worldObject))
+                if (group != null)
                 {
-                    WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+
+                    if (!___inventory.AddItem(worldObject))
+                    {
+                        WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    }
                 }
                 return false;
             }

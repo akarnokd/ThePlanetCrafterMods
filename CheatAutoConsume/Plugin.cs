@@ -6,7 +6,7 @@ using BepInEx.Configuration;
 
 namespace CheatAutoConsume
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 

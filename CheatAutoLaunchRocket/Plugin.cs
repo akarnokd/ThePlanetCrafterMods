@@ -12,7 +12,7 @@ using BepInEx.Logging;
 
 namespace CheatAutoLaunchRocket
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautolaunchrocket", "(Cheat) Auto Launch Rockets", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautolaunchrocket", "(Cheat) Auto Launch Rockets", "1.0.0.1")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -44,7 +44,14 @@ namespace CheatAutoLaunchRocket
 
             }
 
-            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null);
+            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            if (worldObjectsDictionary == null)
+            {
+                // FIXME vanilla renamed this in 0.6.001
+                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
+            }
+
+            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)(worldObjectsDictionary.GetValue(null));
 
             logger = Logger;
 

@@ -12,7 +12,7 @@ using BepInEx.Configuration;
 
 namespace UIShowPlayerInventoryCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayerinventorycount", "(UI) Show Player Inventory Counts", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayerinventorycount", "(UI) Show Player Inventory Counts", "1.0.0.3")]
     [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

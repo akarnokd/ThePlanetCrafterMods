@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.10")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 

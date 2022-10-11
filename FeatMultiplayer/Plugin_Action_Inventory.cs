@@ -646,6 +646,12 @@ namespace FeatMultiplayer
                             Managers.GetManager<CanvasCompass>().SetStatus(true);
                             break;
                         }
+                    case DataConfig.EquipableType.AirFilter:
+                        {
+                            _playerController.GetGaugesHandler().SetHasRebreather(_playerController.GetPlayerEquipment()
+                                    .GetInventory());
+                            break;
+                        }
                 }
             }
         }
@@ -703,6 +709,13 @@ namespace FeatMultiplayer
                 player.GetMultitool()
                                 .GetMultiToolMine()
                                 .SetMineTimeReducer(0);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.AirFilter))
+            {
+                // Since 0.6.001: There is no simple boolean toggle;
+                // the method checks for the existence of the rebreather in the inventory
+                // thus we fake an empty inventory
+                player.GetGaugesHandler().SetHasRebreather(new Inventory(-1, 1));
             }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;

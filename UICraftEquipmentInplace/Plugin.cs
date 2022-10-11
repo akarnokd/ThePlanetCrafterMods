@@ -7,10 +7,11 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using System.Reflection;
 using BepInEx.Logging;
+using System.Linq;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.10")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -118,8 +119,10 @@ namespace UICraftEquipmentInPlace
                 || equipType == DataConfig.EquipableType.MultiToolMineSpeed
                 || equipType == DataConfig.EquipableType.BootsSpeed
                 || equipType == DataConfig.EquipableType.Jetpack
-                || equipType == DataConfig.EquipableType.MultiToolLight)
+                || equipType == DataConfig.EquipableType.MultiToolLight
+                || equipType == DataConfig.EquipableType.AirFilter)
             {
+                logger.LogInfo("Crafting inplace: " + equipType);
                 List<Group> ingredients = new List<Group>(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
 
                 Inventory backpack = _playerController.GetPlayerBackpack().GetInventory();
@@ -133,6 +136,7 @@ namespace UICraftEquipmentInPlace
                 bool inEquipment = false;
                 for (int i = ingredients.Count - 1; i >= 0; i--)
                 {
+                    bool checkBackpack = true;
                     Group ingredient = ingredients[i];
                     for (int j = 0; j < equipments.Count; j++)
                     {
@@ -143,10 +147,12 @@ namespace UICraftEquipmentInPlace
                             equipments.RemoveAt(j);
                             fromEquipment.Add(ingredient);
                             inEquipment = true;
+                            checkBackpack = false;
+                            logger.LogInfo("Found ingredient in equipment: " + ingredient.GetId());
                             break;
                         }
                     }
-                    if (!inEquipment)
+                    if (checkBackpack)
                     {
                         for (int j = 0; j < backpacks.Count; j++)
                         {
@@ -156,6 +162,7 @@ namespace UICraftEquipmentInPlace
                                 ingredients.RemoveAt(i);
                                 backpacks.RemoveAt(j);
                                 fromBackpack.Add(ingredient);
+                                logger.LogInfo("Found ingredient in backpack: " + ingredient.GetId());
                                 break;
                             }
                         }
@@ -235,6 +242,10 @@ namespace UICraftEquipmentInPlace
                         {
                             _playerController.GetMultitool().SetCanUseLight(true, groupItem.GetGroupValue());
                         }
+                        else if (equipType == DataConfig.EquipableType.AirFilter)
+                        {
+                            _playerController.GetGaugesHandler().SetHasRebreather(equipment);
+                        }
                     }
                     else
                     {
@@ -248,6 +259,7 @@ namespace UICraftEquipmentInPlace
                 {
                     // missing ingredients, do nothing
                     __result = false;
+                    logger.LogInfo("Missing ingredients: " + string.Join(", ", ingredients.Select(g => g.GetId())));
                 }
 
                 return false;

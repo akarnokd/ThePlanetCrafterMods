@@ -7,7 +7,7 @@ using BepInEx.Logging;
 
 namespace FixUnbrickSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
