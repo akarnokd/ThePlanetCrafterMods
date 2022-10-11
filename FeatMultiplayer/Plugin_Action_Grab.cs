@@ -84,7 +84,9 @@ namespace FeatMultiplayer
 
                     ___playerSource.GetPlayerAudio().PlayGrab();
                     ___itemWorldDisplayer.Hide();
-                    __instance.grabedEvent?.Invoke(wo);
+                    var grabedEvent = __instance.grabedEvent;
+                    __instance.grabedEvent = null;
+                    grabedEvent?.Invoke(wo);
 
                     Destroy(__instance.gameObject);
                 }
@@ -131,7 +133,12 @@ namespace FeatMultiplayer
                         if (TryGetGameObject(wo, out var go))
                         {
                             var ag = go.GetComponent<ActionGrabable>();
-                            Grabed g = ag?.grabedEvent;
+                            Grabed g = null;
+                            if (ag != null)
+                            {
+                                g = ag.grabedEvent;
+                                ag.grabedEvent = null;
+                            }
 
                             TryRemoveGameObject(wo);
                             Destroy(go);
