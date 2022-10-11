@@ -1000,6 +1000,48 @@ namespace FeatMultiplayer
                     inv.SetSize(mis.size);
                 }
             }
-        } 
+        }
+
+        /// <summary>
+        /// Tries to create an item in the target inventory and if successful, notifies
+        /// the client about the new WorldObject and the inventory that got changed.
+        /// </summary>
+        /// <param name="group">The item type to create</param>
+        /// <param name="inventory">The target inventory to create into</param>
+        /// <param name="worldObjectCreated">The object created</param>
+        /// <returns>True if successful, false if the target inventory is full.</returns>
+        static bool TryCreateInInventoryAndNotify(Group group, Inventory inventory, out WorldObject worldObjectCreated)
+        {
+            var craftedWo = WorldObjectsHandler.CreateNewWorldObject(group);
+            suppressInventoryChange = true;
+            bool added;
+            try
+            {
+                added = inventory.AddItem(craftedWo);
+            }
+            finally
+            {
+                suppressInventoryChange = false;
+            }
+
+            if (added)
+            {
+                // We need to send the object first, then send the instruction that it has been
+                // Added to the target inventory.
+                SendWorldObject(craftedWo, false);
+                Send(new MessageInventoryAdded()
+                {
+                    inventoryId = inventory.GetId(),
+                    itemId = craftedWo.GetId(),
+                    groupId = craftedWo.GetGroup().GetId()
+                });
+                Signal();
+                worldObjectCreated = craftedWo;
+                return true;
+            }
+            WorldObjectsHandler.DestroyWorldObject(craftedWo);
+            worldObjectCreated = null;
+            return false;
+        }
     }
 }

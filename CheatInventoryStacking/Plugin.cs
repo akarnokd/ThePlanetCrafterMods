@@ -12,13 +12,15 @@ using UnityEngine.EventSystems;
 using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
+using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.11")]
-    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.12")]
     public class Plugin : BaseUnityPlugin
     {
+        const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+        const string cheatMachineRemoteDepositGuid = "akarnokd.theplanetcraftermods.cheatmachineremotedeposit";
 
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
@@ -618,9 +620,8 @@ namespace CheatInventoryStacking
             bool ___setGroupsDataViaLinkedGroup,
             WorldObject ___worldObject)
         {
-            if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit")
-                && !Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.featmultiplayer")
-            )
+            if (!Chainloader.PluginInfos.ContainsKey(cheatMachineRemoteDepositGuid)
+                && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
             {
                 Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
 
@@ -636,6 +637,123 @@ namespace CheatInventoryStacking
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// The vanilla method uses isFull which might be unreliable with stacking enabled,
+        /// thus we have to replace the coroutine with our fully rewritten one.
+        /// 
+        /// Consequently, the MachineAutoCrafter::CraftIfPossible consumes resources and
+        /// does not verify the crafted item can be deposited into the local inventory, thus
+        /// wasting the ingredients. Another reason to rewrite.
+        /// </summary>
+        /// <param name="__instance">The underlying MachineAutoCrafter instance to get public values from.</param>
+        /// <param name="timeRepeat">How often to craft?</param>
+        /// <param name="__result">The overridden coroutine</param>
+        /// <returns>false when running with stack size > 1 and not multiplayer, true otherwise.</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), "TryToCraft")]
+        static bool MachineAutoCrafter_TryToCraft_Patch(MachineAutoCrafter __instance, float timeRepeat, ref IEnumerator __result)
+        {
+            if (stackSize.Value > 1 && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
+            {
+                __result = MachineAutoCrafter_TryToCraft_Override(__instance, timeRepeat);
+                return false;
+            }
+            return true;
+        }
+
+        static IEnumerator MachineAutoCrafter_TryToCraft_Override(MachineAutoCrafter __instance, float timeRepeat)
+        {
+            var hasEnergyField = AccessTools.Field(typeof(MachineAutoCrafter), "hasEnergy");
+            var autoCrafterInventoryField = AccessTools.Field(typeof(MachineAutoCrafter), "autoCrafterInventory");
+            for (; ; )
+            {
+                var inv = (Inventory)autoCrafterInventoryField.GetValue(__instance);
+                if ((bool)hasEnergyField.GetValue(__instance) && inv != null)
+                {
+                    var machineWo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                    if (machineWo != null)
+                    {
+                        var linkedGroups = machineWo.GetLinkedGroups();
+                        if (linkedGroups != null && linkedGroups.Count != 0)
+                        {
+                            MachineAutoCrafter_CraftIfPossible_Override(__instance, autoCrafterInventoryField, linkedGroups[0]);
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(timeRepeat);
+            }
+        }
+
+        static void MachineAutoCrafter_CraftIfPossible_Override(MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
+        {
+            // step 1, locate all inventories within range
+
+            var range = __instance.range;
+            var thisPosition = __instance.gameObject.transform.position;
+
+            var outputInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
+            autoCrafterInventoryField.SetValue(__instance, outputInventory);
+
+            List<WorldObject> candidateWorldObjects = new();
+
+            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (Vector3.Distance(wo.GetPosition(), thisPosition) < range)
+                {
+                    var invId = wo.GetLinkedInventoryId();
+                    if (invId != 0)
+                    {
+                        var inv = InventoriesHandler.GetInventoryById(invId);
+                        if (inv != null)
+                        {
+                            candidateWorldObjects.AddRange(inv.GetInsideWorldObjects());
+                        }
+                    }
+                    else
+                    {
+                        candidateWorldObjects.Add(wo);
+                    }
+                }
+            }
+
+            List<WorldObject> toConsume = new();
+
+            List<Group> recipe = new(linkedGroup.GetRecipe().GetIngredientsGroupInRecipe());
+
+            int ingredientFound = 0;
+
+            for (int i = 0; i < recipe.Count; i++)
+            {
+                var recipeGid = recipe[i].GetId();
+
+                for (int j = 0; j < candidateWorldObjects.Count; j++)
+                {
+                    WorldObject lo = candidateWorldObjects[j];
+                    if (lo != null && lo.GetGroup().GetId() == recipeGid)
+                    {
+                        toConsume.Add(lo);
+                        candidateWorldObjects[j] = null;
+                        ingredientFound++;
+                        break;
+                    }
+                }
+            }
+
+            if (ingredientFound == recipe.Count)
+            {
+                var craftedWo = WorldObjectsHandler.CreateNewWorldObject(linkedGroup);
+                if (outputInventory.AddItem(craftedWo))
+                {
+                    WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
+                    __instance.CraftAnimation((GroupItem)linkedGroup);
+                }
+                else
+                {
+                    WorldObjectsHandler.DestroyWorldObject(craftedWo);
+                }
+            }
         }
     }
 }

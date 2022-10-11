@@ -117,35 +117,7 @@ namespace FeatMultiplayer
             }
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(oreId));
-                suppressInventoryChange = true;
-                bool added;
-                try
-                {
-                    added = inv.AddItem(wo);
-                }
-                finally
-                {
-                    suppressInventoryChange = false;
-                }
-
-                if (added)
-                {
-                    // We need to send the object first, then send the instruction that it has been
-                    // Added to the target inventory.
-                    SendWorldObject(wo, false);
-                    Send(new MessageInventoryAdded()
-                    {
-                        inventoryId = inv.GetId(),
-                        itemId = wo.GetId(),
-                        groupId = oreId
-                    });
-                    Signal();
-                }
-                else
-                {
-                    WorldObjectsHandler.DestroyWorldObject(wo);
-                }
+                TryCreateInInventoryAndNotify(GroupsHandler.GetGroupViaId(oreId), inv, out _);
                 return true;
             }
             return false;

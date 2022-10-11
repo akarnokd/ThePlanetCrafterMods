@@ -179,34 +179,13 @@ namespace FeatMultiplayer
 
                     if (hasAllIngredients || freeCraft)
                     {
-                        var wo = WorldObjectsHandler.CreateNewWorldObject(gri, 0);
-
-                        suppressInventoryChange = true;
-                        bool added;
-                        try
-                        {
-                            added = inv.AddItem(wo);
-                        } 
-                        finally 
-                        {
-                            suppressInventoryChange = false;
-                        }
-                        if (added)
+                        if (TryCreateInInventoryAndNotify(gri, inv, out _))
                         {
                             LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = true");
-                            SendWorldObject(wo, false);
-                            Send(new MessageInventoryAdded()
-                            {
-                                inventoryId = 1,
-                                itemId = wo.GetId(),
-                                groupId = mc.groupId
-                            });
-                            Signal();
                             inv.RemoveItems(recipe, true, false);
                         }
                         else
                         {
-                            WorldObjectsHandler.DestroyWorldObject(wo);
                             LogWarning("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = inventory full");
                         }
                     }
