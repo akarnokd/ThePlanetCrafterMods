@@ -16,6 +16,8 @@ using System.Reflection;
 using System.Threading;
 using System.Globalization;
 using System.IO;
+using System.Xml.Linq;
+using System.Text;
 
 namespace FeatCommandConsole
 {
@@ -61,7 +63,7 @@ namespace FeatCommandConsole
         // API
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-        public static IDisposable RegisterCommand(string name, string description, Action<List<string>> action)
+        public static IDisposable RegisterCommand(string name, string description, Func<List<string>, List<string>> action)
         {
             if (commandRegistry.TryGetValue(name, out var cre))
             {
@@ -73,7 +75,10 @@ namespace FeatCommandConsole
             commandRegistry[name] = new CommandRegistryEntry
             {
                 description = description,
-                method = action,
+                method = (list =>
+                {
+                    consoleText.AddRange(action(list));
+                }),
                 standard = false
             };
             return new RemoveCommandRegistry(name);
@@ -154,9 +159,10 @@ namespace FeatCommandConsole
         static void createWelcomeText()
         {
             consoleText.Add("Welcome to <b>Command Console</b>.");
-            consoleText.Add("Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
-            consoleText.Add("<i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
-            consoleText.Add("<i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
+            consoleText.Add("<margin=1em>Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
+            consoleText.Add("<margin=1em><i>Start typing <color=#FFFF00>/</color> and press TAB to see commands starting with those letters.</i>");
             consoleText.Add("");
         }
 
@@ -246,6 +252,8 @@ namespace FeatCommandConsole
                         commandHistoryIndex++;
                         inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
                         inputFieldText.ActivateInputField();
+                        inputFieldText.caretPosition = inputFieldText.text.Length;
+                        inputFieldText.stringPosition = inputFieldText.text.Length;
                     }
                 }
                 if (Keyboard.current[Key.DownArrow].wasPressedThisFrame)
@@ -261,6 +269,32 @@ namespace FeatCommandConsole
                         inputFieldText.text = "";
                     }
                     inputFieldText.ActivateInputField();
+                    inputFieldText.caretPosition = inputFieldText.text.Length;
+                    inputFieldText.stringPosition = inputFieldText.text.Length;
+                }
+                if (Keyboard.current[Key.Tab].wasPressedThisFrame)
+                {
+                    List<string> list = new();
+                    foreach (var k in commandRegistry.Keys)
+                    {
+                        if (k.StartsWith(inputFieldText.text))
+                        {
+                            list.Add(k);
+                        }
+                    }
+                    if (list.Count != 0)
+                    {
+                        list.Sort();
+                        Colorize(list, "#FFFF00");
+                        foreach (var k in joinPerLine(list, 10))
+                        {
+                            addLine("<margin=2em>" + k);
+                        }
+
+                        createOutputLines();
+                    }
+                    inputFieldText.ActivateInputField();
+                    inputFieldText.caretPosition = inputFieldText.text.Length;
                 }
                 return;
             }
@@ -321,6 +355,9 @@ namespace FeatCommandConsole
             log("   Set text");
             //inputFieldText.text = "example...";
             inputFieldText.enabled = true;
+            inputFieldText.caretColor = Color.white;
+            inputFieldText.selectionColor = Color.white;
+            inputFieldText.onFocusSelectAll = false;
 
             log("   Set position");
             rect = inputField.GetComponent<RectTransform>();
@@ -406,6 +443,10 @@ namespace FeatCommandConsole
                     catch (Exception ex)
                     {
                         logger.LogError(ex);
+                        foreach (var el in ex.ToString().Split('\n'))
+                        {
+                            addLine("<margin=1em><color=#FF8080>" + el);
+                        }
                     }
                 }
                 else
@@ -455,6 +496,7 @@ namespace FeatCommandConsole
             }
             else
             {
+
                 commandRegistry.TryGetValue(args[1], out var cmd);
                 if (cmd == null) {
                     commandRegistry.TryGetValue("/" + args[1], out cmd);
@@ -615,6 +657,13 @@ namespace FeatCommandConsole
                 {
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     pm.SetPlayerPlacement(pos, pm.transform.rotation);
+
+                    addLine("<margin=1em>Teleported to: <color=#00FF00>" + args[1] + "</color> at ( "
+                        + pos.x.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                        + " )"
+                    );
                 }
                 else
                 {
@@ -630,6 +679,13 @@ namespace FeatCommandConsole
 
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
+
+                addLine("<margin=1em>Teleported to: ( "
+                    + args[1]
+                    + ", " + args[2]
+                    + ", " + args[3]
+                    + " )"
+                );
             }
         }
 
@@ -684,8 +740,16 @@ namespace FeatCommandConsole
                 EnsureTeleportLocations();
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
 
-                savedTeleportLocations[args[1]] = pm.transform.position;
+                var pos = pm.transform.position;
+                savedTeleportLocations[args[1]] = pos;
                 PersistTeleportLocations();
+
+                addLine("<margin=1em>Teleport location created: <color=#00FF00>" + args[1] + "</color> at ( "
+                    + pos.x.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                    + " )"
+                );
             }
         }
 
@@ -702,11 +766,18 @@ namespace FeatCommandConsole
             else
             {
                 EnsureTeleportLocations();
-                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
 
-                if (savedTeleportLocations.Remove(args[1]))
+                var tpName = args[1];
+                if (savedTeleportLocations.TryGetValue(tpName, out var pos))
                 {
+                    savedTeleportLocations.Remove(tpName);
                     PersistTeleportLocations();
+                    addLine("<margin=1em>Teleport location removed: <color=#00FF00>" + tpName + "</color> at ( "
+                        + pos.x.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                        + " )"
+                    );
                 }
                 else
                 {
@@ -772,6 +843,680 @@ namespace FeatCommandConsole
 
                 File.WriteAllLines(filename, lines);
             }
+        }
+
+        [Command("/list-stages", "List the terraformation stages along with their Ti amounts")]
+        public void ListStages(List<string> args)
+        {
+            var tfm = Managers.GetManager<TerraformStagesHandler>();
+            foreach (var stage in tfm.GetAllTerraGlobalStages())
+            {
+                addLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
+                    + "</color> <color=#00FF00>\"" + Readable.GetTerraformStageName(stage)
+                    + "\"</color> @ <b>"
+                    + string.Format("{0:##,###}", stage.GetStageStartValue()) + "</b> " + stage.GetWorldUnitType());
+            }
+        }
+
+        [Command("/add-ti", "Adds the specified amount to the Ti value")]
+        public void AddTi(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Ti value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-ti amount</color> - Ti += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Terraformation, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Terraformation updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-heat", "Adds the specified amount to the Heat value")]
+        public void AddHeat(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Heat value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-heat amount</color> - Heat += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Heat, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Heat updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-oxygen", "Adds the specified amount to the Oxygen value")]
+        public void AddOxygen(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Oxygen value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-oxygen amount</color> - Oxygen += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Oxygen, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-pressure", "Adds the specified amount to the Pressure value")]
+        public void AddPressure(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Pressure value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-pressure amount</color> - Pressure += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Pressure, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Pressure updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-biomass", "Adds the specified amount to the Biomass value")]
+        public void AddBiomass(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Biomass value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-biomass amount</color> - Biomass += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Biomass, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Biomass updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-plants", "Adds the specified amount to the Plants value")]
+        public void AddPlants(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Plants value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-plants amount</color> - Plants += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Plants, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Plants updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-insects", "Adds the specified amount to the Insects value")]
+        public void AddInsects(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Insects value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-insects amount</color> - Insects += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-animals</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Insects, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Insects updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        [Command("/add-animals", "Adds the specified amount to the Animals value")]
+        public void AddAnimals(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Animals value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-animals amount</color> - Animals += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-insects</color>.");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Animals, float.Parse(args[1], CultureInfo.InvariantCulture));
+                addLine("<margin=1em>Animals updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+            }
+        }
+
+        float AddToWorldUnit(DataConfig.WorldUnitType wut, float amount)
+        {
+            var result = 0.0f;
+            var worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
+            var worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
+            var worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
+
+            WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
+            foreach (WorldUnit wu in wuh.GetAllWorldUnits())
+            {
+                if (wu.GetUnitType() == wut)
+                {
+                    result = (float)worldUnitCurrentTotalValue.GetValue(wu) + amount;
+                    worldUnitCurrentTotalValue.SetValue(wu, result);
+                }
+                if (wu.GetUnitType() == DataConfig.WorldUnitType.Terraformation && wut != DataConfig.WorldUnitType.Terraformation)
+                {
+                    worldUnitCurrentTotalValue.SetValue(wu, (float)worldUnitCurrentTotalValue.GetValue(wu) + amount);
+                }
+                if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass 
+                    && (wut == DataConfig.WorldUnitType.Plants 
+                    || wut == DataConfig.WorldUnitType.Insects 
+                    || wut == DataConfig.WorldUnitType.Animals))
+                {
+                    worldUnitCurrentTotalValue.SetValue(wu, (float)worldUnitCurrentTotalValue.GetValue(wu) + amount);
+                }
+            }
+            /*
+            var go = FindObjectOfType<AlertUnlockables>();
+            if (go != null)
+            {
+                AccessTools.Field(typeof(AlertUnlockables), "hasInited").SetValue(go, false);
+            }
+            */
+
+            List<GameObject> allWaterVolumes = Managers.GetManager<WaterHandler>().GetAllWaterVolumes();
+            //LogInfo("allWaterVolumes.Count = " + allWaterVolumes.Count);
+            foreach (GameObject go1 in allWaterVolumes)
+            {
+                var wup = go1.GetComponent<WorldUnitPositioning>();
+
+                //LogInfo("WorldUnitPositioning-Before: " + wup.transform.position);
+
+                worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
+                worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
+                wup.UpdateEvolutionPositioning();
+
+                //LogInfo("WorldUnitPositioning-After: " + wup.transform.position);
+            }
+            return result;
+        }
+
+        [Command("/list-microchip-tiers", "Lists all unlock tiers and unlock items of the microchips")]
+        public void ListMicrochipTiers(List<string> args)
+        {
+            UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
+
+            List<List<GroupData>> tiers = new List<List<GroupData>>
+            {
+                unlock.tier1GroupToUnlock,
+                unlock.tier2GroupToUnlock,
+                unlock.tier3GroupToUnlock,
+                unlock.tier4GroupToUnlock,
+                unlock.tier5GroupToUnlock,
+                unlock.tier6GroupToUnlock,
+                unlock.tier7GroupToUnlock,
+                unlock.tier8GroupToUnlock,
+                unlock.tier9GroupToUnlock,
+                unlock.tier10GroupToUnlock,
+            };
+
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                List<GroupData> gd = tiers[i];
+                addLine("<margin=1em><b>Tier #" + (i + 1));
+
+                if (gd.Count != 0)
+                {
+                    foreach (GroupData g in gd)
+                    {
+                        var sb = new StringBuilder();
+                        sb.Append(" <color=#FFFFFF>").Append(g.id).Append("</color> ")
+                            .Append("<color=#00FF00>\"")
+                            .Append(Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)))
+                            .Append("\"")
+                            ;
+                        addLine("<margin=2em>" + sb.ToString());
+                    }
+                }
+                else
+                {
+                    addLine("<margin=2em>None");
+                }
+            }
+
+        }
+
+        [Command("/list-microchip-unlocks", "List the identifiers of microchip unlocks; can specify prefix")]
+        public void ListMicrochipUnlocks(List<string> args)
+        {
+            UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
+
+            List<List<GroupData>> tiers = new List<List<GroupData>>
+            {
+                unlock.tier1GroupToUnlock,
+                unlock.tier2GroupToUnlock,
+                unlock.tier3GroupToUnlock,
+                unlock.tier4GroupToUnlock,
+                unlock.tier5GroupToUnlock,
+                unlock.tier6GroupToUnlock,
+                unlock.tier7GroupToUnlock,
+                unlock.tier8GroupToUnlock,
+                unlock.tier9GroupToUnlock,
+                unlock.tier10GroupToUnlock,
+            };
+
+            string prefix = "";
+            if (args.Count >= 2)
+            {
+                prefix = args[1].ToLower();
+            }
+
+            List<string> list = new();
+
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                List<GroupData> gd = tiers[i];
+
+                if (gd.Count != 0)
+                {
+                    foreach (GroupData g in gd)
+                    {
+                        if (g.id.ToLower().StartsWith(prefix))
+                        {
+                            list.Add(g.id);
+                        }
+                    }
+                }
+            }
+
+            if (list.Count == 0) 
+            {
+                addLine("<margin=1em>No microchip unlocks found.");
+            }
+            else
+            {
+                list.Sort();
+                Colorize(list, "#00FF00");
+                foreach (var line in joinPerLine(list, 5))
+                {
+                    addLine("<margin=2em>" + line);
+                }
+            }
+        }
+
+        [Command("/unlock-microchip", "Unlocks a specific microchip techology")]
+        public void UnlockMicrochip(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                addLine("<margin=1em>Unlocks a specific microchip techology");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/unlock-microchip list [prefix]</color> - lists technologies not unlocked yet");
+                addLine("<margin=2em><color=#FFFF00>/unlock-microchip identifier</color> - Unlocks the given technology");
+            }
+            else
+            {
+                if (args[1] == "list")
+                {
+                    UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
+
+                    List<GroupData> tiers = new List<GroupData>();
+                    tiers.AddRange(unlock.tier1GroupToUnlock);
+                    tiers.AddRange(unlock.tier2GroupToUnlock);
+                    tiers.AddRange(unlock.tier3GroupToUnlock);
+                    tiers.AddRange(unlock.tier4GroupToUnlock);
+                    tiers.AddRange(unlock.tier5GroupToUnlock);
+                    tiers.AddRange(unlock.tier6GroupToUnlock);
+                    tiers.AddRange(unlock.tier7GroupToUnlock);
+                    tiers.AddRange(unlock.tier8GroupToUnlock);
+                    tiers.AddRange(unlock.tier9GroupToUnlock);
+                    tiers.AddRange(unlock.tier10GroupToUnlock);
+
+                    var prefix = "";
+                    if (args.Count > 2)
+                    {
+                        prefix = args[2].ToLower();
+                    }
+                    List<string> list = new();
+                    foreach (var gd in tiers)
+                    {
+                        var g = GroupsHandler.GetGroupViaId(gd.id);
+                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower().StartsWith(prefix))
+                        {
+                            list.Add(g.id);
+                        }
+                    }
+                    if (list.Count != 0)
+                    {
+                        list.Sort();
+                        Colorize(list, "#00FF00");
+                        foreach (var line in joinPerLine(list, 5))
+                        {
+                            addLine("<margin=2em>" + line);
+                        }
+                    }
+                }
+                else
+                {
+                    var gr = GroupsHandler.GetGroupViaId(args[1]);
+                    if (gr != null)
+                    {
+                        addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
+                        GroupsHandler.UnlockGroupGlobally(gr);
+                        Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
+                    }
+                    else
+                    {
+                        addLine("<margin=1em><color=#FF0000>Unknown technology");
+                    }
+                }
+            }
+        }
+
+        [Command("/unlock", "Unlocks a specific techology")]
+        public void Unlock(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                addLine("<margin=1em>Unlocks a specific techology");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/unlock list [prefix]</color> - lists technologies not unlocked yet");
+                addLine("<margin=2em><color=#FFFF00>/unlock identifier</color> - Unlocks the given technology");
+            }
+            else
+            {
+                if (args[1] == "list")
+                {
+                    var prefix = "";
+                    if (args.Count > 2)
+                    {
+                        prefix = args[2].ToLower();
+                    }
+                    List<string> list = new();
+                    foreach (var gd in GroupsHandler.GetAllGroups())
+                    {
+                        var g = GroupsHandler.GetGroupViaId(gd.id);
+                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower().StartsWith(prefix))
+                        {
+                            list.Add(g.id);
+                        }
+                    }
+                    if (list.Count != 0)
+                    {
+                        list.Sort();
+                        Colorize(list, "#00FF00");
+                        foreach (var line in joinPerLine(list, 5))
+                        {
+                            addLine("<margin=2em>" + line);
+                        }
+                    }
+                }
+                else
+                {
+                    var gr = GroupsHandler.GetGroupViaId(args[1]);
+                    if (gr != null)
+                    {
+                        addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
+                        GroupsHandler.UnlockGroupGlobally(gr);
+                        Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
+                    }
+                    else
+                    {
+                        addLine("<margin=1em><color=#FF0000>Unknown technology");
+                    }
+                }
+            }
+        }
+
+        [Command("/list-tech", "Lists all technology identifiers; can filter via prefix")]
+        public void ListTech(List<string> args)
+        {
+            var prefix = "";
+            if (args.Count > 1)
+            {
+                prefix = args[1].ToLower();
+            }
+            List<string> list = new();
+            foreach (var gd in GroupsHandler.GetAllGroups())
+            {
+                var g = GroupsHandler.GetGroupViaId(gd.id);
+                if (g.id.ToLower().StartsWith(prefix))
+                {
+                    list.Add(g.id);
+                }
+            }
+            if (list.Count != 0)
+            {
+                list.Sort();
+                Colorize(list, "#00FF00");
+                foreach (var line in joinPerLine(list, 5))
+                {
+                    addLine("<margin=2em>" + line);
+                }
+            }
+        }
+
+        [Command("/tech-info", "Shows detailed information about a technology")]
+        public void TechInfo(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                addLine("<margin=1em>Shows detailed information about a technology");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/tech-info identifier</color> - show detailed info");
+                addLine("<margin=1em>See also <color=#FFFF00>/list-tech</color> for all identifiers");
+            }
+            else
+            {
+                var gr = GroupsHandler.GetGroupViaId(args[1]);
+                if (gr != null)
+                {
+                    addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
+                    addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
+                    addLine("<margin=1em><b>Is unlocked:</b> <color=#00FF00>" + GroupsHandler.IsGloballyUnlocked(gr));
+                    addLine("<margin=2em><b>Unlocked at:</b> <color=#00FF00>" + string.Format("{0:#,##0}", gr.GetUnlockingInfos().GetUnlockingValue()) + " " + gr.GetUnlockingInfos().GetWorldUnit());
+                    if (gr is GroupItem gi)
+                    {
+                        addLine("<margin=1em><b>Class:</b> Item");
+                        if (gi.GetUsableType() != DataConfig.UsableType.Null)
+                        {
+                            addLine("<margin=2em><b>Usable:</b> " + gi.GetUsableType());
+                        }
+                        if (gi.GetEquipableType() != DataConfig.EquipableType.Null)
+                        {
+                            addLine("<margin=2em><b>Equipable:</b> " + gi.GetEquipableType());
+                        }
+                        if (gi.GetItemCategory() != DataConfig.ItemCategory.Null)
+                        {
+                            addLine("<margin=2em><b>Category:</b> <color=#00FF00>" + gi.GetItemCategory());
+                        }
+                        if (gi.GetItemSubCategory() != DataConfig.ItemSubCategory.Null)
+                        {
+                            addLine("<margin=2em><b>Subcategory:</b> <color=#00FF00>" + gi.GetItemSubCategory());
+                        }
+                        addLine("<margin=2em><b>Value:</b> <color=#00FF00>" + gi.GetGroupValue());
+
+                        List<string> list = new();
+                        foreach (var e in Enum.GetValues(typeof(DataConfig.CraftableIn)))
+                        {
+                            if (gi.CanBeCraftedIn((DataConfig.CraftableIn)e))
+                            {
+                                list.Add(((DataConfig.CraftableIn)e).ToString());
+                            }
+                        }
+                        if (list.Count != 0)
+                        {
+                            Colorize(list, "#00FF00");
+                            addLine("<margin=2em><b>Craftable in:</b> " + String.Join(", ", list));
+                        }
+                        
+                        list = new();
+                        foreach (var e in Enum.GetValues(typeof(DataConfig.WorldUnitType)))
+                        {
+                            var v = gi.GetGroupUnitMultiplier((DataConfig.WorldUnitType)e);
+                            if (v != 0)
+                            {
+                                list.Add(v + " " + ((DataConfig.WorldUnitType)e).ToString());
+                            }
+                        }
+                        if (list.Count != 0)
+                        {
+                            Colorize(list, "#00FF00");
+                            addLine("<margin=2em><b>Unit:</b> " + string.Join(", ", list));
+                        }
+
+                        var ggi = gi.GetGrowableGroup();
+                        if (ggi != null)
+                        {
+                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi));
+                        }
+                        addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
+                        addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
+                    }
+                    else if (gr is GroupConstructible gc)
+                    {
+                        addLine("<margin=1em><b>Class:</b> Building");
+                        addLine("<margin=1em><b>Category:</b> <color=#00FF00>" + gc.GetGroupCategory());
+                        if (gc.GetWorldUnitMultiplied() != DataConfig.WorldUnitType.Null)
+                        {
+                            addLine("<margin=1em><b>Unit multiplied:</b> <color=#00FF00>" + gc.GetWorldUnitMultiplied());
+                        }
+                        List<string> list = new();
+                        foreach (var e in Enum.GetValues(typeof(DataConfig.WorldUnitType)))
+                        {
+                            var v = gc.GetGroupUnitGeneration((DataConfig.WorldUnitType)e);
+                            if (v != 0)
+                            {
+                                list.Add(v + " " + ((DataConfig.WorldUnitType)e).ToString());
+                            }
+                        }
+                        if (list.Count != 0)
+                        {
+                            Colorize(list, "#00FF00");
+                            addLine("<margin=1em><b>Unit generation:</b> " + string.Join(", ", list));
+                        }
+                    } else
+                    {
+                        addLine("<margin=1em><b>Class:</b> Unknown");
+                    }
+                    var recipe = gr.GetRecipe();
+                    if (recipe != null)
+                    {
+                        var ingr = recipe.GetIngredientsGroupInRecipe();
+                        if (ingr.Count != 0)
+                        {
+                            addLine("<margin=1em><b>Recipe:</b>");
+                            foreach (var rg in ingr)
+                            {
+                                addLine("<margin=2em><color=#00FF00>" + rg.id + " \"" + Readable.GetGroupName(rg) + "\"");
+                            }
+                        }
+                        else
+                        {
+                            addLine("<margin=1em><b>Recipe:</b> None");
+                        }
+                    }
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown technology");
+                }
+            }
+        }
+
+        [Command("/copy-to-clipboard", "Copies the console history to the system clipboard")]
+        public void CopyToClipboard(List<string> args)
+        {
+            GUIUtility.systemCopyBuffer = string.Join("\n", consoleText);
+        }
+
+        [Command("/refill", "Refills the Health, Water and Oxygen meters")]
+        public void Refill(List<string> args)
+        {
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var gh = pm.GetGaugesHandler();
+            gh.AddHealth(100);
+            gh.AddWater(100);
+            gh.AddOxygen(1000);
+            addLine("<margin=1em>Health, Water and Oxygen refilled");
+        }
+
+        [Command("/add-health", "Adds a specific Health amount to the player")]
+        public void AddHealth(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds a specific Health amount to the player");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-health amount</color> - Health += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var gh = pm.GetGaugesHandler();
+                gh.AddHealth(int.Parse(args[1]));
+            }
+        }
+
+        [Command("/add-water", "Adds a specific Water amount to the player")]
+        public void AddWater(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds a specific Water amount to the player");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-water amount</color> - Water += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-air</color>");
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var gh = pm.GetGaugesHandler();
+                gh.AddWater(int.Parse(args[1]));
+            }
+        }
+
+        [Command("/add-air", "Adds a specific Air amount to the player")]
+        public void AddAir(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds a specific Air amount to the player");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-air amount</color> - Water += amount");
+                addLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-water</color>");
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var gh = pm.GetGaugesHandler();
+                gh.AddOxygen(int.Parse(args[1]));
+            }
+        }
+
+        [Command("/die", "Kills the player")]
+        public void Die(List<string> args)
+        {
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var sm = pm.GetPlayerStatus();
+            DyingConsequencesHandler.HandleDyingConsequences(pm, GroupsHandler.GetGroupViaId(sm.canisterGroup.id));
+            sm.DieAndRespawn();
+            addLine("<margin=1em>Player died and respawned.");
+            //Managers.GetManager<WindowsHandler>().CloseAllWindows();
         }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
