@@ -486,7 +486,7 @@ namespace FeatMultiplayer
                                     woa = debrisGo.AddComponent<WorldObjectAssociated>();
                                 }
                                 woa.SetWorldObject(wo);
-                                gameObjectByWorldObject[wo] = debrisGo;
+                                wo.SetGameObject(debrisGo);
                             }
                         }
                         else

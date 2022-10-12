@@ -47,8 +47,6 @@ namespace CheatAutoSequenceDNA
 
         static Func<string> getMultiplayerMode;
 
-        static Dictionary<WorldObject, GameObject> worldObjectToGameObject;
-
         static ManualLogSource logger;
 
         private void Awake()
@@ -80,14 +78,6 @@ namespace CheatAutoSequenceDNA
                 getMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
 
             }
-
-            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
-            if (worldObjectsDictionary == null)
-            {
-                // FIXME vanilla renamed this in 0.6.001
-                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
-            }
-            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)worldObjectsDictionary.GetValue(null);
 
             logger = Logger;
 

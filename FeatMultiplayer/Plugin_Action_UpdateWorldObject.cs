@@ -223,7 +223,7 @@ namespace FeatMultiplayer
                     var windowWo = (WorldObject)uiWindowGroupSelectorWorldObject.GetValue(window);
                     if (windowWo != null && windowWo.GetId() == mslg.id)
                     {
-                        window.SetWorldObject(wo);
+                        window.SetGroupSelectorWorldObject(wo);
                     }
                 }
             }

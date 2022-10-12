@@ -24,8 +24,6 @@ namespace CheatAutoLaunchRocket
 
         static Func<string> getMultiplayerMode;
 
-        static Dictionary<WorldObject, GameObject> worldObjectToGameObject;
-
         static ManualLogSource logger;
 
         private void Awake()
@@ -43,15 +41,6 @@ namespace CheatAutoLaunchRocket
                 getMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
 
             }
-
-            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
-            if (worldObjectsDictionary == null)
-            {
-                // FIXME vanilla renamed this in 0.6.001
-                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
-            }
-
-            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)(worldObjectsDictionary.GetValue(null));
 
             logger = Logger;
 
@@ -134,33 +123,31 @@ namespace CheatAutoLaunchRocket
                         log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                         if (wo.GetIsPlaced())
                         {
-                            if (worldObjectToGameObject.TryGetValue(wo, out var go))
+                            var go = wo.GetGameObject();
+                            if (go != null)
                             {
-                                if (go != null)
+                                if (go.activeSelf)
                                 {
-                                    if (go.activeSelf)
+                                    var dist = Vector3.Distance(pos, go.transform.position);
+                                    log("           Distance to button: " + dist);
+                                    if (dist < 30f)
                                     {
-                                        var dist = Vector3.Distance(pos, go.transform.position);
-                                        log("           Distance to button: " + dist);
-                                        if (dist < 30f)
+                                        if (go.GetComponent<AutoLaunchDelay>() == null)
                                         {
-                                            if (go.GetComponent<AutoLaunchDelay>() == null)
-                                            {
-                                                Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
-                                                log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
-                                                parent.OnAction();
-                                            }
-                                            else
-                                            {
-                                                log("           Already launched");
-                                            }
+                                            Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
+                                            log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
+                                            parent.OnAction();
+                                        }
+                                        else
+                                        {
+                                            log("           Already launched");
                                         }
                                     }
                                 }
-                                else
-                                {
-                                    toRemove.Add(wo.GetId());
-                                }
+                            }
+                            else
+                            {
+                                toRemove.Add(wo.GetId());
                             }
                         }
                         else
