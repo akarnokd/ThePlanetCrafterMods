@@ -139,6 +139,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatSpaceCows", "FeatSpaceC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatMinerDrone", "FeatMinerDrone\FeatMinerDrone.csproj", "{FC902282-98E7-491C-8284-E0DF6809FF3C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatCommandConsole", "FeatCommandConsole\FeatCommandConsole.csproj", "{AFFCE215-F5B2-4DDF-A4EA-9B26F6703569}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -317,6 +319,10 @@ Global
 		{FC902282-98E7-491C-8284-E0DF6809FF3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC902282-98E7-491C-8284-E0DF6809FF3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC902282-98E7-491C-8284-E0DF6809FF3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFFCE215-F5B2-4DDF-A4EA-9B26F6703569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFFCE215-F5B2-4DDF-A4EA-9B26F6703569}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFFCE215-F5B2-4DDF-A4EA-9B26F6703569}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFFCE215-F5B2-4DDF-A4EA-9B26F6703569}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
