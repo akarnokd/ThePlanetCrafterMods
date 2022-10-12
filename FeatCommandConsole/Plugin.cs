@@ -13,6 +13,9 @@ using TMPro;
 using System;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Threading;
+using System.Globalization;
+using System.IO;
 
 namespace FeatCommandConsole
 {
@@ -50,13 +53,33 @@ namespace FeatCommandConsole
 
         static InputAction toggleAction;
 
-        class CommandRegistryEntry
+        static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = new();
+
+        static Dictionary<string, Vector3> savedTeleportLocations;
+
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        // API
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+        public static IDisposable RegisterCommand(string name, string description, Action<List<string>> action)
         {
-            internal string description;
-            internal Action<List<string>> method;
+            if (commandRegistry.TryGetValue(name, out var cre))
+            {
+                if (cre.standard)
+                {
+                    throw new InvalidOperationException("Redefining standard commands is not allowed: " + name);
+                }
+            }
+            commandRegistry[name] = new CommandRegistryEntry
+            {
+                description = description,
+                method = action,
+                standard = false
+            };
+            return new RemoveCommandRegistry(name);
         }
 
-        static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = new();
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
         void Awake()
         {
@@ -109,7 +132,8 @@ namespace FeatCommandConsole
                     commandRegistry[ca.name] = new CommandRegistryEntry
                     {
                         description = ca.description,
-                        method = (list => mi.Invoke(this, new object[] { list }))
+                        method = (list => mi.Invoke(this, new object[] { list })),
+                        standard = true
                     };
 
                     log("  " + ca.name + " - " + ca.description);
@@ -447,11 +471,30 @@ namespace FeatCommandConsole
             }
         }
 
+        void HelpListCommands()
+        {
+            addLine("Available commands:");
+            var list = new List<string>();
+            foreach (var kv in commandRegistry)
+            {
+                list.Add(kv.Key);
+            }
+            list.Sort();
+            Colorize(list, "#FFFF00");
+            Bolden(list);
+            foreach (var line in joinPerLine(list, 10))
+            {
+                addLine("<margin=2em>" + line);
+            }
+            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+        }
+
         [Command("/clear", "Clears the console history")]
         public void Clear(List<string> args)
         {
             consoleText.Clear();
         }
+
         [Command("/spawn", "Spawns an item and adds them to the player inventory.")]
         public void Spawn(List<string> args)
         {
@@ -554,24 +597,184 @@ namespace FeatCommandConsole
             }
         }
 
-        void HelpListCommands()
+        [Command("/tp", "Teleport to a user-named location or an x, y, z position")]
+        public void Teleport(List<string> args)
         {
+            if (args.Count != 2 && args.Count != 4)
+            {
+                addLine("<margin=1em>Teleport to a user-named location or an x, y, z position");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
+                addLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
+                addLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>, ");
+            }
+            else
+            if (args.Count == 2)
+            {
+                if (TryGetSavedTeleportLocation(args[1], out var pos))
+                {
+                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                    pm.SetPlayerPlacement(pos, pm.transform.rotation);
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown location.");
+                    addLine("<margin=1em>Use <b><color=#FFFF00>/tp-list</color></b> to get all known named locations.");
+                }
+            }
+            else
+            {
+                var x = float.Parse(args[1], CultureInfo.InvariantCulture);
+                var y = float.Parse(args[2], CultureInfo.InvariantCulture);
+                var z = float.Parse(args[3], CultureInfo.InvariantCulture);
 
-            addLine("Available commands:");
-            var list = new List<string>();
-            foreach (var kv in commandRegistry)
-            {
-                list.Add(kv.Key);
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
             }
-            list.Sort();
-            Colorize(list, "#FFFF00");
-            Bolden(list);
-            foreach (var line in joinPerLine(list, 10))
-            {
-                addLine("<margin=2em>" + line);
-            }
-            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
         }
+
+        [Command("/tp-list", "List all known user-named teleport locations; can specify name prefix")]
+        public void TeleportList(List<string> args)
+        {
+            EnsureTeleportLocations();
+            if (savedTeleportLocations.Count != 0)
+            {
+                List<string> tpNames = new List<string>();
+                string prefix = "";
+                if (args.Count >= 2)
+                {
+                    prefix = args[1].ToLower();
+                }
+                foreach (var n in savedTeleportLocations.Keys)
+                {
+                    if (n.ToLower().StartsWith(prefix))
+                    {
+                        tpNames.Add(n);
+                    }
+                }
+                tpNames.Sort();
+                foreach (var tpName in tpNames)
+                {
+                    var pos = savedTeleportLocations[tpName];
+                    addLine("<margin=1em><color=#00FF00>" + tpName + "</color> at ( "
+                        + pos.x.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                        + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                        + " )"
+                    );
+                }
+            }
+            else
+            {
+                addLine("<margin=1em>No user-named teleport locations known");
+                addLine("<margin=1em>Use <b><color=#FFFF00>/tp-create</color></b> to create one for the current location.");
+            }
+        }
+
+        [Command("/tp-create", "Save the current player location as a named location")]
+        public void TeleportCreate(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Save the current player location as a named location");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/tp-create location-name</color> - save the current location with the given name");
+            } else
+            {
+                EnsureTeleportLocations();
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                savedTeleportLocations[args[1]] = pm.transform.position;
+                PersistTeleportLocations();
+            }
+        }
+
+        [Command("/tp-remove", "Remove a user-named teleport location")]
+        public void TeleportRemove(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Remove the specified user-named teleport location");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/tp-remove location-name</color> - save the current location with the given name");
+                addLine("<margin=1em>See also <color=#FFFF00>/tp-list</color>.");
+            }
+            else
+            {
+                EnsureTeleportLocations();
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                if (savedTeleportLocations.Remove(args[1]))
+                {
+                    PersistTeleportLocations();
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown location");
+                }
+            }
+        }
+
+        static bool TryGetSavedTeleportLocation(string name, out Vector3 pos)
+        {
+            EnsureTeleportLocations();
+            return savedTeleportLocations.TryGetValue(name, out pos);
+        }
+
+        static void EnsureTeleportLocations()
+        {
+            if (savedTeleportLocations == null)
+            {
+                savedTeleportLocations = new();
+
+                string filename = string.Format("{0}/{1}.json", Application.persistentDataPath, "CommandConsole_Locations.txt");
+
+                if (File.Exists(filename))
+                {
+                    foreach (var line in File.ReadAllLines(filename))
+                    {
+                        string[] sep = line.Split(';');
+                        try
+                        {
+                            var p = new Vector3(
+                                float.Parse(sep[1], CultureInfo.InvariantCulture),
+                                float.Parse(sep[2], CultureInfo.InvariantCulture),
+                                float.Parse(sep[3], CultureInfo.InvariantCulture)
+                            );
+                            savedTeleportLocations[sep[0]] = p;
+                        }
+                        catch (Exception ex)
+                        {
+                            log(ex);
+                        }
+                    }
+                }
+            }
+        }
+
+        static void PersistTeleportLocations()
+        {
+            if (savedTeleportLocations != null)
+            {
+                string filename = string.Format("{0}/{1}.json", Application.persistentDataPath, "CommandConsole_Locations.txt");
+
+                List<string> lines = new();
+
+                foreach (var kv in savedTeleportLocations)
+                {
+                    var v = kv.Value;
+                    lines.Add(kv.Key
+                        + ";" + v.x.ToString(CultureInfo.InvariantCulture)
+                        + ";" + v.y.ToString(CultureInfo.InvariantCulture)
+                        + ";" + v.z.ToString(CultureInfo.InvariantCulture)
+                    );
+                }
+
+                File.WriteAllLines(filename, lines);
+            }
+        }
+
+        // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         void Colorize(List<string> list, string color)
         {
@@ -613,6 +816,30 @@ namespace FeatCommandConsole
             }
             return result;
         }
+
+        class RemoveCommandRegistry : IDisposable
+        {
+            string name;
+            internal RemoveCommandRegistry(string name)
+            {
+                this.name = name;
+            }
+
+            public void Dispose()
+            {
+                var name = Interlocked.Exchange(ref this.name, null);
+                if (name != null)
+                {
+                    commandRegistry.Remove(name);
+                }
+            }
+        }
+        class CommandRegistryEntry
+        {
+            internal string description;
+            internal Action<List<string>> method;
+            internal bool standard;
+        }
     }
 
     /// <summary>
@@ -630,4 +857,5 @@ namespace FeatCommandConsole
             this.description = description;
         }
     }
+    
 }
