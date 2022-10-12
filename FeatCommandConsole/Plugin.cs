@@ -405,6 +405,107 @@ namespace FeatCommandConsole
         {
             consoleText.Clear();
         }
+        [Command("/spawn", "Spawns an item and adds them to the player inventory.")]
+        public void Spawn(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                addLine("<margin=1em>Spawn item(s) or list items that can be possibly spawn");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/spawn list [name-prefix]</color> - list the item ids that can be spawn");
+                addLine("<margin=2em><color=#FFFF00>/spawn itemid [amount]</color> - spawn the given item by the given amount");
+            } else
+            {
+                if (args[1] == "list")
+                {
+                    var prefix = "";
+                    if (args.Count > 2)
+                    {
+                        prefix = args[2].ToLower();
+                    }
+                    List<string> possibleSpawns = new();
+                    foreach (var g in GroupsHandler.GetAllGroups())
+                    {
+                        if (g is GroupItem gi && gi.GetId().ToLower().StartsWith(prefix))
+                        {
+                            possibleSpawns.Add(gi.GetId());
+                        }
+                    }
+                    possibleSpawns.Sort();
+                    Colorize(possibleSpawns, "#00FF00");
+                    foreach (var line in joinPerLine(possibleSpawns, 5))
+                    {
+                        addLine("<margin=1em>" + line);
+                    }
+                }
+                else
+                {
+                    int count = 1;
+                    if (args.Count > 2)
+                    {
+                        try
+                        {
+                            count = int.Parse(args[2]);
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+
+                    var gid = args[1].ToLower();
+                    SpaceCraft.Group g = null;
+
+                    foreach (var gr in GroupsHandler.GetAllGroups())
+                    {
+                        if (gr.GetId().ToLower() == gid)
+                        {
+                            g = gr;
+
+                        }
+                    }
+
+                    if (g == null)
+                    {
+                        addLine("<color=#FF0000>Unknown item.");
+                    }
+                    else if (!(g is GroupItem))
+                    {
+                        addLine("<color=#FF0000>This item can't be spawned.");
+                    }
+                    else
+                    {
+                        var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                        var inv = pm.GetPlayerBackpack().GetInventory();
+                        int added = 0;
+                        for (int i = 0; i < count; i++)
+                        {
+                            var wo = WorldObjectsHandler.CreateNewWorldObject(g);
+
+                            if (!inv.AddItem(wo))
+                            {
+                                WorldObjectsHandler.DestroyWorldObject(wo);
+                                break;
+                            }
+                            added++;
+                        }
+
+                        if (added == count)
+                        {
+                            addLine("<margin=1em>Items added");
+                        }
+                        else if (added > 0)
+                        {
+                            addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
+                        }
+                        else
+                        {
+                            addLine("<margin=1em>Inventory full.");
+                        }
+                    }
+                }
+            }
+        }
 
         void HelpListCommands()
         {
@@ -416,28 +517,45 @@ namespace FeatCommandConsole
                 list.Add(kv.Key);
             }
             list.Sort();
+            Colorize(list, "#FFFFFF");
+            foreach (var line in joinPerLine(list, 10))
+            {
+                addLine("<margin=1em>" + line);
+            }
+            addLine("Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+        }
 
-            int perLine = 10;
-            string str = "";
+        void Colorize(List<string> list, string color)
+        {
             for (int i = 0; i < list.Count; i++)
+            {
+                list[i] = "<color=" + color + ">" + list[i] + "</color>";
+            }
+        }
+
+        List<string> joinPerLine(List<string> items, int perLine)
+        {
+            var result = new List<string>();
+
+            string str = "";
+            for (int i = 0; i < items.Count; i++)
             {
                 if (str.Length != 0)
                 {
                     str += ", ";
                 }
-                str += "<color=#FFFFFF>" + list[i] + "</color>";
+                str += items[i];
                 if ((i + 1) % perLine == 0)
                 {
-                    addLine(str);
+                    result.Add(str);
                     str = "";
                 }
             }
             if (str.Length != 0)
             {
-                addLine("<margin=1em>" + str);
+                result.Add(str);
             }
-
-            addLine("Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+            return result;
         }
     }
 
