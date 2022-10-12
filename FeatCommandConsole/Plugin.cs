@@ -44,6 +44,10 @@ namespace FeatCommandConsole
         static List<string> consoleText = new();
         static TMP_FontAsset fontAsset;
 
+        static int scrollOffset;
+        static int commandHistoryIndex;
+        static readonly List<string> commandHistory = new();
+
         static InputAction toggleAction;
 
         class CommandRegistryEntry
@@ -127,6 +131,8 @@ namespace FeatCommandConsole
         {
             consoleText.Add("Welcome to <b>Command Console</b>.");
             consoleText.Add("Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
+            consoleText.Add("<i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
+            consoleText.Add("<i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
             consoleText.Add("");
         }
 
@@ -194,6 +200,44 @@ namespace FeatCommandConsole
                 {
                     inputFieldText.ActivateInputField();
                 }
+                var ms = Mouse.current.scroll.ReadValue();
+                if (ms.y != 0)
+                {
+                    log(" Scrolling " + ms.y);
+                    if (ms.y > 0)
+                    {
+                        scrollOffset = Math.Min(consoleText.Count - 1, scrollOffset + 1);
+                    }
+                    else
+                    {
+                        scrollOffset = Math.Max(0, scrollOffset - 1);
+                    }
+                    createOutputLines();
+                }
+                if (Keyboard.current[Key.UpArrow].wasPressedThisFrame)
+                {
+                    log("UpArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
+                    if (commandHistoryIndex < commandHistory.Count)
+                    {
+                        commandHistoryIndex++;
+                        inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
+                        inputFieldText.ActivateInputField();
+                    }
+                }
+                if (Keyboard.current[Key.DownArrow].wasPressedThisFrame)
+                {
+                    log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
+                    commandHistoryIndex = Math.Max(0, commandHistoryIndex - 1);
+                    if (commandHistoryIndex > 0 )
+                    {
+                        inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
+                    }
+                    else
+                    {
+                        inputFieldText.text = "";
+                    }
+                    inputFieldText.ActivateInputField();
+                }
                 return;
             }
 
@@ -259,7 +303,7 @@ namespace FeatCommandConsole
             rect.localPosition = new Vector3(0, -panelHeight / 2 + (5 + fontSize.Value) / 2, 0);
             rect.sizeDelta = new Vector2(panelWidth - 10, 5 + fontSize.Value);
 
-            createOutputLines(panelWidth, panelHeight);
+            createOutputLines();
 
             log("Patch in the custom text window");
             AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
@@ -270,8 +314,11 @@ namespace FeatCommandConsole
             log("Done");
         }
 
-        void createOutputLines(int panelWidth, int panelHeight)
+        void createOutputLines()
         {
+            int panelWidth = Screen.width - consoleLeft.Value - consoleRight.Value;
+            int panelHeight = Screen.height - consoleTop.Value - consoleBottom.Value;
+
             // Clear previous lines
             foreach (var go in outputFieldLines)
             {
@@ -283,7 +330,7 @@ namespace FeatCommandConsole
             int outputY = -panelHeight / 2 + (5 + fontSize.Value) * 3 / 2;
 
             int j = 0;
-            for (int i = consoleText.Count - 1; i >= 0; i--)
+            for (int i = consoleText.Count - scrollOffset - 1; i >= 0; i--)
             {
                 string line = consoleText[i];
                 if (outputY > panelHeight / 2)
@@ -321,6 +368,7 @@ namespace FeatCommandConsole
                 return;
             }
             consoleText.Add("<color=#FFFF00><noparse>" + text.Replace("</noparse>", "") + "</noparse></color>");
+            commandHistory.Add(text);
 
             var commands = ParseConsoleCommand(text);
             if (commands.Count != 0 && commands[0].StartsWith("/"))
@@ -342,9 +390,8 @@ namespace FeatCommandConsole
                 }
 
             }
-            int panelWidth = Screen.width - consoleLeft.Value - consoleRight.Value;
-            int panelHeight = Screen.height - consoleTop.Value - consoleBottom.Value;
-            createOutputLines(panelWidth, panelHeight);
+            scrollOffset = 0;
+            createOutputLines();
 
             inputFieldText.text = "";
             inputFieldText.Select();
@@ -517,12 +564,13 @@ namespace FeatCommandConsole
                 list.Add(kv.Key);
             }
             list.Sort();
-            Colorize(list, "#FFFFFF");
+            Colorize(list, "#FFFF00");
+            Bolden(list);
             foreach (var line in joinPerLine(list, 10))
             {
-                addLine("<margin=1em>" + line);
+                addLine("<margin=2em>" + line);
             }
-            addLine("Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
         }
 
         void Colorize(List<string> list, string color)
@@ -530,6 +578,14 @@ namespace FeatCommandConsole
             for (int i = 0; i < list.Count; i++)
             {
                 list[i] = "<color=" + color + ">" + list[i] + "</color>";
+            }
+        }
+
+        void Bolden(List<string> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                list[i] = "<b>" + list[i] + "</b>";
             }
         }
 
