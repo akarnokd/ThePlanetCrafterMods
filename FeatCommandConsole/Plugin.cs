@@ -1695,23 +1695,14 @@ namespace FeatCommandConsole
                 var extents = bounds.extents;
 
                 var captureLarvaeZoneCurrentSector = "";
-                foreach (Sector sector in sectors)
+                foreach (SectorEnter sector in FindObjectsOfType<SectorEnter>())
                 {
-                    var coll = sector.GetComponent<Collider>();
-                    if (coll == null)
+                    if (sector.collider != null)
                     {
-                        coll = sector.GetComponentInChildren<Collider>();
-                    }
-                    if (coll == null)
-                    {
-                        coll = sector.GetComponentInParent<Collider>();
-                    }
-                    if (coll != null)
-                    {
-                        var sbounds = coll.bounds;
+                        var sbounds = sector.collider.bounds;
                         if (sbounds.Intersects(bounds))
                         {
-                            captureLarvaeZoneCurrentSector += sector.gameObject.name + " ";
+                            captureLarvaeZoneCurrentSector += sector.sector.gameObject.name + " ";
                         }
                     }
                 }
