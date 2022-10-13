@@ -529,7 +529,9 @@ namespace CheatMinimap
                 */
                 if (!found)
                 {
-                    Logger.LogInfo("Sector: " + name + " loading");
+                    var info = "Sector: " + name + " loading";
+                    Logger.LogInfo(info);
+                    //File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
                     loaded = false;
                     SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
 

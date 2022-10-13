@@ -19,6 +19,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Text;
 using System.Reflection.Emit;
+using UnityEngine.SceneManagement;
 
 namespace FeatCommandConsole
 {
@@ -266,7 +267,7 @@ namespace FeatCommandConsole
                 {
                     log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     commandHistoryIndex = Math.Max(0, commandHistoryIndex - 1);
-                    if (commandHistoryIndex > 0 )
+                    if (commandHistoryIndex > 0)
                     {
                         inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
                     }
@@ -486,7 +487,7 @@ namespace FeatCommandConsole
 
         static void addLine(string line)
         {
-            consoleText.Add(line);            
+            consoleText.Add(line);
         }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
@@ -1027,9 +1028,9 @@ namespace FeatCommandConsole
                 {
                     worldUnitCurrentTotalValue.SetValue(wu, (float)worldUnitCurrentTotalValue.GetValue(wu) + amount);
                 }
-                if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass 
-                    && (wut == DataConfig.WorldUnitType.Plants 
-                    || wut == DataConfig.WorldUnitType.Insects 
+                if (wu.GetUnitType() == DataConfig.WorldUnitType.Biomass
+                    && (wut == DataConfig.WorldUnitType.Plants
+                    || wut == DataConfig.WorldUnitType.Insects
                     || wut == DataConfig.WorldUnitType.Animals))
                 {
                     worldUnitCurrentTotalValue.SetValue(wu, (float)worldUnitCurrentTotalValue.GetValue(wu) + amount);
@@ -1148,7 +1149,7 @@ namespace FeatCommandConsole
                 }
             }
 
-            if (list.Count == 0) 
+            if (list.Count == 0)
             {
                 addLine("<margin=1em>No microchip unlocks found.");
             }
@@ -1368,7 +1369,7 @@ namespace FeatCommandConsole
                             Colorize(list, "#00FF00");
                             addLine("<margin=2em><b>Craftable in:</b> " + String.Join(", ", list));
                         }
-                        
+
                         list = new();
                         foreach (var e in Enum.GetValues(typeof(DataConfig.WorldUnitType)))
                         {
@@ -1639,7 +1640,7 @@ namespace FeatCommandConsole
             });
             foreach (InventoryLootStage ils in stages)
             {
-                addLine("<margin=1em><b><color=#00FFFF>" + ils.terraStage.GetTerraId() + " \"" + Readable.GetTerraformStageName(ils.terraStage) + "\"</color></b> at " 
+                addLine("<margin=1em><b><color=#00FFFF>" + ils.terraStage.GetTerraId() + " \"" + Readable.GetTerraformStageName(ils.terraStage) + "\"</color></b> at "
                     + string.Format("{0:#,##0}", ils.terraStage.GetStageStartValue()) + " Ti");
 
                 string[] titles = { "Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare" };
@@ -1667,6 +1668,79 @@ namespace FeatCommandConsole
                     }
                 }
             }
+        }
+
+        [Command("/list-larvae-zones", "Lists the larvae zones and the larvae that can spawn there.")]
+        public void ListLarvaeZones(List<string> args)
+        {
+            var sectors = FindObjectsOfType<Sector>();
+            Logger.LogInfo("Sector count: " + sectors.Length);
+            foreach (Sector sector in sectors)
+            {
+                if (sector == null || sector.gameObject == null)
+                {
+                    continue;
+                }
+                string name = sector.gameObject.name;
+                Logger.LogInfo("Sector: " + name);
+
+                SceneManager.LoadScene(name, LoadSceneMode.Additive);
+            }
+
+            foreach (LarvaeZone lz in FindObjectsOfType<LarvaeZone>())
+            {
+                var pool = lz.GetLarvaesToAddToPool();
+                var bounds = lz.GetComponent<Collider>().bounds;
+                var center = bounds.center;
+                var extents = bounds.extents;
+
+                var captureLarvaeZoneCurrentSector = "";
+                foreach (Sector sector in sectors)
+                {
+                    var coll = sector.GetComponent<Collider>();
+                    if (coll == null)
+                    {
+                        coll = sector.GetComponentInChildren<Collider>();
+                    }
+                    if (coll == null)
+                    {
+                        coll = sector.GetComponentInParent<Collider>();
+                    }
+                    if (coll != null)
+                    {
+                        var sbounds = coll.bounds;
+                        if (sbounds.Intersects(bounds))
+                        {
+                            captureLarvaeZoneCurrentSector += sector.gameObject.name + " ";
+                        }
+                    }
+                }
+
+                if (captureLarvaeZoneCurrentSector.Length == 0)
+                {
+                    captureLarvaeZoneCurrentSector = "<color=#FF0000>Unable to determine";
+                }
+
+                addLine("<margin=1em>Sector <color=#00FFFF>" + captureLarvaeZoneCurrentSector);
+
+                addLine("<margin=2em>Position = " + string.Join(", ", (int)center.x, (int)center.y, (int)center.z)
+                    + ", Extents = " + string.Join(", ", (int)extents.x, (int)extents.y, (int)extents.z));
+
+                if (pool != null && pool.Count != 0)
+                {
+                    foreach (var lp in pool)
+                    {
+                        addLine("<margin=3em><color=#00FF00>" + lp.id
+                            + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + "\"</color>, Chance = " + lp.chanceToSpawn + "%");
+                    }
+                }
+                else
+                {
+                    addLine("<margin=3em>No larvae spawn info.");
+                }
+            }
+
+            addLine("<color=#FF8080>Warning! You may want to reload this save to avoid game issues.");
         }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

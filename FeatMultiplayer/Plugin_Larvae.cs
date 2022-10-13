@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -415,7 +416,10 @@ namespace FeatMultiplayer
             var str = string.Join(",", (int)center.x, (int)center.y, (int)center.z,
                 (int)extents.x, (int)extents.y, (int)extents.z);
 
-            LogInfo("Larvae; Zone " + str + " [ " + string.Join(", ", list) + " ]");
+            string info = "Larvae; Zone " + str + " [ " + string.Join(", ", list) + " ]";
+            LogInfo(info);
+            theLogger.LogInfo(info);
+            // File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 if (!allLarvaeZones.ContainsKey(str))
@@ -426,7 +430,10 @@ namespace FeatMultiplayer
                     allLarvaeZones[str] = lzc;
                     foreach (var lp in lzc.spawns)
                     {
-                        LogInfo("       Spawn: " + lp.id + " (" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + ") " + lp.chanceToSpawn + "%");
+                        info = "       Spawn: " + lp.id + " (" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + ") " + lp.chanceToSpawn + "%";
+                        LogInfo(info);
+                        theLogger.LogInfo(info);
+                        // File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
                     }
                 }
             }

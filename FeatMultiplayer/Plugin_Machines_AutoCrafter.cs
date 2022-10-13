@@ -138,10 +138,9 @@ namespace FeatMultiplayer
         /// in the world object.
         /// </summary>
         /// <param name="___worldObject">The target world object.</param>
-        /// <param name="_group">The new group selected or null if it was cleared.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowGroupSelector), "OnGroupSelected")]
-        static void UiWindowGroupSelector_OnGroupSelected(WorldObject ___worldObject, Group _group)
+        static void UiWindowGroupSelector_OnGroupSelected(WorldObject ___worldObject)
         {
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
