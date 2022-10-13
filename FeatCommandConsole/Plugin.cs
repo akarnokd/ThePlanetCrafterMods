@@ -18,6 +18,7 @@ using System.Globalization;
 using System.IO;
 using System.Xml.Linq;
 using System.Text;
+using System.Reflection.Emit;
 
 namespace FeatCommandConsole
 {
@@ -234,13 +235,18 @@ namespace FeatCommandConsole
                 if (ms.y != 0)
                 {
                     log(" Scrolling " + ms.y);
+                    int delta = 1;
+                    if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
+                    {
+                        delta = 3;
+                    }
                     if (ms.y > 0)
                     {
-                        scrollOffset = Math.Min(consoleText.Count - 1, scrollOffset + 1);
+                        scrollOffset = Math.Min(consoleText.Count - 1, scrollOffset + delta);
                     }
                     else
                     {
-                        scrollOffset = Math.Max(0, scrollOffset - 1);
+                        scrollOffset = Math.Max(0, scrollOffset - delta);
                     }
                     createOutputLines();
                 }
@@ -854,7 +860,7 @@ namespace FeatCommandConsole
                 addLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
                     + "</color> <color=#00FF00>\"" + Readable.GetTerraformStageName(stage)
                     + "\"</color> @ <b>"
-                    + string.Format("{0:##,###}", stage.GetStageStartValue()) + "</b> " + stage.GetWorldUnitType());
+                    + string.Format("{0:#,##0}", stage.GetStageStartValue()) + "</b> " + stage.GetWorldUnitType());
             }
         }
 
@@ -872,7 +878,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Terraformation, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Terraformation updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Terraformation updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -890,7 +896,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Heat, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Heat updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Heat updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -908,7 +914,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Oxygen, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -926,7 +932,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Pressure, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Pressure updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Pressure updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -944,7 +950,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Biomass, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Biomass updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Biomass updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -962,7 +968,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Plants, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Plants updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Plants updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -980,7 +986,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Insects, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Insects updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Insects updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -998,7 +1004,7 @@ namespace FeatCommandConsole
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Animals, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Animals updated. Now at <color=#00FF00>" + string.Format("{0:##,###}", newValue));
+                addLine("<margin=1em>Animals updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1443,6 +1449,18 @@ namespace FeatCommandConsole
             GUIUtility.systemCopyBuffer = string.Join("\n", consoleText);
         }
 
+        [Command("/ctc", "Copies the console history to the system clipboard without formatting")]
+        public void CopyToClipboard2(List<string> args)
+        {
+            var str = string.Join("\n", consoleText);
+            str = str.Replace("<margin=1em>", "    ");
+            str = str.Replace("<margin=2em>", "        ");
+            str = str.Replace("<margin=3em>", "            ");
+            str = str.Replace("<margin=4em>", "                ");
+            str = str.Replace("<margin=5em>", "                    ");
+            GUIUtility.systemCopyBuffer = Regex.Replace(str, "<\\/?.*?>", "");
+        }
+
         [Command("/refill", "Refills the Health, Water and Oxygen meters")]
         public void Refill(List<string> args)
         {
@@ -1517,6 +1535,138 @@ namespace FeatCommandConsole
             sm.DieAndRespawn();
             addLine("<margin=1em>Player died and respawned.");
             //Managers.GetManager<WindowsHandler>().CloseAllWindows();
+        }
+
+        [Command("/list-larvae", "Show information about larvae sequencing; can use prefix filter")]
+        public void LarvaeSequenceInfo(List<string> args)
+        {
+            var prefix = "";
+            if (args.Count > 1)
+            {
+                prefix = args[1].ToLower();
+            }
+
+            Dictionary<string, List<string>> larvaeToSequenceInto = new();
+            foreach (var gr in GroupsHandler.GetAllGroups())
+            {
+                if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftInsectsT1))
+                {
+                    var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
+                    foreach (var rgi in recipe)
+                    {
+                        var rgid = rgi.GetId();
+                        if (rgid.StartsWith("LarvaeBase") && rgid.ToLower().StartsWith(prefix))
+                        {
+                            if (!larvaeToSequenceInto.TryGetValue(rgid, out var list))
+                            {
+                                list = new List<string>();
+                                larvaeToSequenceInto[rgid] = list;
+                            }
+                            list.Add(gi.GetId());
+                        }
+                    }
+                }
+            }
+
+            foreach (var larvaeAndOutcome in larvaeToSequenceInto)
+            {
+                var larve = GroupsHandler.GetGroupViaId(larvaeAndOutcome.Key);
+                var outcomes = larvaeAndOutcome.Value;
+
+                addLine("<margin=1em><b><color=#00FFFF>" + larve.id + " \"" + Readable.GetGroupName(larve) + "\"");
+                var ull = larve.GetUnlockingInfos();
+                if (ull.GetIsUnlocked())
+                {
+                    addLine("<margin=2em><b>Unlocked:</b> true");
+                }
+                else
+                {
+                    if (ull.GetWorldUnit() != DataConfig.WorldUnitType.Null)
+                    {
+                        addLine("<margin=2em><b>Unlocked:</b> false");
+                        addLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ull.GetUnlockingValue()) + " " + ull.GetWorldUnit());
+                    }
+                    else
+                    {
+                        addLine("<margin=2em><b>Unlocked globally:</b> " + larve.GetIsGloballyUnlocked());
+                    }
+                }
+                addLine("<margin=2em><b>Outcomes</b>");
+
+                foreach (var outcome in outcomes)
+                {
+                    var og = GroupsHandler.GetGroupViaId(outcome) as GroupItem;
+                    if (og != null) {
+                        var chance = og.GetChanceToSpawn();
+                        if (chance == 0)
+                        {
+                            chance = 100;
+                        }
+                        var ul = og.GetUnlockingInfos();
+                        if (ul.GetIsUnlocked())
+                        {
+                            addLine("<margin=3em><color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
+                        }
+                        else
+                        {
+                            addLine("<margin=3em><color=#FF0000>[Not unlocked]</color> <color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
+                        }
+                        if (ul.GetWorldUnit() != DataConfig.WorldUnitType.Null)
+                        {
+                            addLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ul.GetUnlockingValue()) + " " + ul.GetWorldUnit());
+                        }
+                        else
+                        {
+                            addLine("<margin=4em><b>Unlocked globally:</b> " + og.GetIsGloballyUnlocked());
+                        }
+                    }
+                }
+            }
+        }
+
+        [Command("/list-loot", "List chest loot information")]
+        public void ListLoot(List<string> args)
+        {
+            var stagesLH = Managers.GetManager<InventoryLootHandler>();
+            var stages = stagesLH.lootTerraStages;
+
+            logger.LogInfo("Found " + stages.Count + " stages");
+            stages.Sort((a, b) =>
+            {
+                float v1 = a.terraStage.GetStageStartValue();
+                float v2 = b.terraStage.GetStageStartValue();
+                return v1 < v2 ? -1 : (v1 > v2 ? 1 : 0);
+            });
+            foreach (InventoryLootStage ils in stages)
+            {
+                addLine("<margin=1em><b><color=#00FFFF>" + ils.terraStage.GetTerraId() + " \"" + Readable.GetTerraformStageName(ils.terraStage) + "\"</color></b> at " 
+                    + string.Format("{0:#,##0}", ils.terraStage.GetStageStartValue()) + " Ti");
+
+                string[] titles = { "Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare" };
+                List<List<GroupData>> gs = new List<List<GroupData>>()
+                {
+                    ils.commonItems, ils.unCommonItems, ils.rareItems, ils.veryRareItems, ils.ultraRareItems
+                };
+                float boostAmount = (float)AccessTools.Field(typeof(InventoryLootStage), "boostedMultiplier").GetValue(ils);
+
+                List<float> chances = new List<float>
+                {
+                    100,
+                    (float)AccessTools.Field(typeof(InventoryLootStage), "chanceUnCommon").GetValue(ils),
+                    (float)AccessTools.Field(typeof(InventoryLootStage), "chanceRare").GetValue(ils),
+                    (float)AccessTools.Field(typeof(InventoryLootStage), "chanceVeryRare").GetValue(ils),
+                    (float)AccessTools.Field(typeof(InventoryLootStage), "chanceUltraRare").GetValue(ils),
+                };
+
+                for (int i = 0; i < titles.Length; i++)
+                {
+                    addLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + boostAmount + ")");
+                    foreach (GroupData g in gs[i])
+                    {
+                        addLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)));
+                    }
+                }
+            }
         }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

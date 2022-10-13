@@ -127,7 +127,8 @@ namespace CheatNearbyResourcesHighlight
             if (p != null)
             {
                 PlayerMainController pm = p.GetActivePlayerController();
-                if (pm != null)
+                var wh = Managers.GetManager<WindowsHandler>();
+                if (pm != null && !wh.GetHasUiOpen())
                 {
                     PropertyInfo pi = typeof(Key).GetProperty(cycleResourceKey.Value.ToString().ToUpper());
                     Key k = Key.X;
