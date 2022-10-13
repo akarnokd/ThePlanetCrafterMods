@@ -686,10 +686,9 @@ namespace CheatInventoryStacking
             }
         }
 
-        static void MachineAutoCrafter_CraftIfPossible_Override(MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
+        static void MachineAutoCrafter_CraftIfPossible_Override(
+            MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
         {
-            // step 1, locate all inventories within range
-
             var range = __instance.range;
             var thisPosition = __instance.gameObject.transform.position;
 
@@ -711,7 +710,7 @@ namespace CheatInventoryStacking
                             candidateWorldObjects.AddRange(inv.GetInsideWorldObjects());
                         }
                     }
-                    else
+                    else if (wo.GetGroup() is GroupItem)
                     {
                         candidateWorldObjects.Add(wo);
                     }
