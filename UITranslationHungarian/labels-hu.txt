@@ -780,3 +780,8 @@ Message_wardenLostParadise1=… Fejlesztés alatt …
 Message_Help4=Alaposan átvizsgáltam a bolygót és valami nem stimmel. <br> Furcsa geológiai jellemzőket és inkoherens topológiai adatokat kapok a közeledben lévő helyszínről. <br><br> Próbálj meg eljutni a -248:42:93 koordinátákra. <br><br> Használd a kijelződ bal alsó sarkában megjelenített koordinátákat, hogy könnyebben navigálhass. <br>
 GROUP_DESC_AutoCrafter1=A kiválasztott termékreceptet automatikusan legyártja, amennyiben a nyersanyagok/komponensek megtalálhatók a közelben lévő tárolókban vagy közvetlenül a világban.
 GROUP_DESC_WardenKey=Ezzel a rejtélyes tárgyal talán mechanizmusokat lehet működtetni.
+AutoCrafter_inRange=Tárolók és tárgyak a hatósugárban
+UI_perimeter=Hatósugár
+GROUP_NAME_GoldenEffigie5=Aranyfigura
+GROUP_DESC_GoldenEffigie5=
+
