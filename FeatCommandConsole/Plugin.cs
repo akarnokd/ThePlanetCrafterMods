@@ -1664,7 +1664,7 @@ namespace FeatCommandConsole
                     addLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + boostAmount + ")");
                     foreach (GroupData g in gs[i])
                     {
-                        addLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)));
+                        addLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)) + "\"");
                     }
                 }
             }
