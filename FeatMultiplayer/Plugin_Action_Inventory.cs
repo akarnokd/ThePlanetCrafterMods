@@ -43,12 +43,12 @@ namespace FeatMultiplayer
                 return false;
             }
             // If it is the shadow inventory/equipment, retarget it to the standard ids for the client
-            if (hostInventoryId == shadowInventoryId)
+            if (hostInventoryId == shadowBackpack.GetId())
             {
                 clientInventoryId = 1;
             }
             else
-            if (hostInventoryId == shadowEquipmentId)
+            if (hostInventoryId == shadowEquipment.GetId())
             {
                 clientInventoryId = 2;
             }
@@ -229,7 +229,7 @@ namespace FeatMultiplayer
 
         static void ClientConsumeRecipe(GroupConstructible gc)
         {
-            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+            var inv = shadowBackpack;
 
             var toRemove = new List<Group>() { gc };
             if (inv.ContainsItems(toRemove))
@@ -246,14 +246,14 @@ namespace FeatMultiplayer
         static void ReceiveMessageInventoryAdded(MessageInventoryAdded mia)
         {
             int targetId = mia.inventoryId;
-            if (targetId == 1 && shadowInventoryId != 0)
+            if (targetId == 1 && shadowBackpack.GetId() != 0)
             {
-                targetId = shadowInventoryId;
+                targetId = shadowBackpack.GetId();
             }
             else
-            if (targetId == 2 && shadowEquipmentId != 0)
+            if (targetId == 2 && shadowEquipment.GetId() != 0)
             {
-                targetId = shadowEquipmentId;
+                targetId = shadowEquipment.GetId();
             }
             if (targetId == 2 && updateMode == MultiplayerMode.CoopClient)
             {
@@ -344,14 +344,14 @@ namespace FeatMultiplayer
         {
             //LogInfo("ReceiveMessageInventoryRemoved - Begin");
             int targetId = mia.inventoryId;
-            if (targetId == 1 && shadowInventoryId != 0)
+            if (targetId == 1 && shadowBackpack.GetId() != 0)
             {
-                targetId = shadowInventoryId;
+                targetId = shadowBackpack.GetId();
             }
             else
-            if (targetId == 2 && shadowEquipmentId != 0)
+            if (targetId == 2 && shadowEquipment.GetId() != 0)
             {
-                targetId = shadowEquipmentId;
+                targetId = shadowEquipment.GetId();
             }
             if (targetId == 2 && updateMode == MultiplayerMode.CoopClient)
             {
@@ -807,7 +807,7 @@ namespace FeatMultiplayer
                 // retarget shadow inventory
                 if (targetId == 1 && updateMode == MultiplayerMode.CoopHost)
                 {
-                    targetId = shadowInventoryId;
+                    targetId = shadowBackpack.GetId();
                 }
                 Inventory inv = InventoriesHandler.GetInventoryById(targetId);
                 if (inv != null)

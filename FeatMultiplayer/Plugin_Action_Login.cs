@@ -11,6 +11,21 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+        static string SanitizeUserName(string userName)
+        {
+            StringBuilder sb = new();
+            for (int i = 0; i < userName.Length; i++)
+            {
+                var c = userName[i];
+                if (c == ';' || c == '|' || c == '@' || c == '"')
+                {
+                    c = ' ';
+                }
+                sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
         static void ReceiveLogin(MessageLogin ml)
         {
             if (updateMode == MultiplayerMode.CoopHost)
@@ -34,7 +49,10 @@ namespace FeatMultiplayer
                         {
 
                         }
-                        PrepareShadowInventories();
+
+                        playerName = SanitizeUserName(ml.user);
+
+                        PrepareShadowInventories(playerName);
                         otherPlayer = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
                         Send("Welcome\n");
                         Signal();
@@ -43,13 +61,14 @@ namespace FeatMultiplayer
                             modeIndex = (int)GameSettingsHandler.GetGameMode()
                         });
                         Signal();
-
                         lastFullSync = Time.realtimeSinceStartup;
                         SendFullState();
                         SendTerrainLayers();
                         LaunchMeteorEventAfterLogin();
                         SendMessages();
                         SendStoryEvents();
+
+                        SendSavedPlayerPosition(playerName, shadowBackpackWorldObjectId);
                         return;
                     }
                 }

@@ -17,6 +17,9 @@ namespace FeatMultiplayer
     public partial class Plugin : BaseUnityPlugin
     {
         static string multiplayerFilename = "Survival-9999999";
+
+        static string clientJoinName;
+
         void CreateMultiplayerSaveAndEnter()
         {
 
@@ -66,6 +69,7 @@ namespace FeatMultiplayer
 
             if (updateMode == MultiplayerMode.CoopHost)
             {
+                clientJoinName = null;
                 LogInfo("Entering world as Host");
                 StartAsHost();
                 LaunchStuckRockets();
@@ -109,6 +113,8 @@ namespace FeatMultiplayer
             larvaeGroupIds.Clear();
 
             cellsInCircle?.Clear();
+
+            clientJoinName = null;
         }
 
         void OnApplicationQuit()

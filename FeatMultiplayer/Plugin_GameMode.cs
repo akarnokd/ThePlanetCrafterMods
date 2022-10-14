@@ -124,7 +124,7 @@ namespace FeatMultiplayer
                     case DataConfig.GameSettingMode.Standard:
                         {
                             LogInfo("ReceiveMessageDeath: Standard @ " + mdt.position);
-                            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                            var inv = shadowBackpack;
                             var list = inv.GetInsideWorldObjects();
 
                             var dropProbability = 50;
@@ -157,15 +157,15 @@ namespace FeatMultiplayer
                     case DataConfig.GameSettingMode.Intense:
                         {
                             LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
-                            DeathClearInventory(shadowInventoryId);
+                            DeathClearInventory(shadowBackpack);
 
                             break;
                         }
                     case DataConfig.GameSettingMode.Hardcore:
                         {
                             LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
-                            DeathClearInventory(shadowInventoryId);
-                            DeathClearInventory(shadowEquipmentId);
+                            DeathClearInventory(shadowBackpack);
+                            DeathClearInventory(shadowEquipment);
 
                             break;
                         }
@@ -173,9 +173,8 @@ namespace FeatMultiplayer
             }
         }
 
-        static void DeathClearInventory(int iid)
+        static void DeathClearInventory(Inventory inv)
         {
-            var inv = InventoriesHandler.GetInventoryById(iid);
             var list = inv.GetInsideWorldObjects();
             for (int i = list.Count - 1; i >= 0; i--)
             {

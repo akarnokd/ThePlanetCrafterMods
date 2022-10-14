@@ -67,8 +67,8 @@ namespace FeatMultiplayer
             hostLogLevel = Config.Bind("Host", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
-            clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");
-            clientPassword = Config.Bind("Client", "Password", "password", "The plaintext(!) password presented to the host when joining their game.");
+            clientName = Config.Bind("Client", "Name", "Buddy,Dude", "The list of client names to join with.");
+            clientPassword = Config.Bind("Client", "Password", "password,wordpass", "The plaintext(!) password presented to the host when joining their game.");
             clientColor = Config.Bind("Client", "Color", "0.75,0.75,1,1", "The color of the client avatar as comma-separated RGBA floats");
             clientLogLevel = Config.Bind("Client", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 

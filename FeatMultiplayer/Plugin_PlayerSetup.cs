@@ -12,10 +12,13 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
-        static int shadowInventoryWorldId = 50;
-        static int shadowInventoryId;
-        static int shadowEquipmentWorldId = 51;
-        static int shadowEquipmentId;
+        static readonly int shadowInventoryWorldIdStart = 50;
+        static readonly int maxShadowInventoryCount = 25;
+        static Inventory shadowBackpack;
+        static int shadowBackpackWorldObjectId;
+        static Inventory shadowEquipment;
+        static int shadowEquipmentWorldObjectId;
+        static string playerName;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
@@ -52,19 +55,43 @@ namespace FeatMultiplayer
             return true;
         }
 
-        static void PrepareShadowInventories()
+        static void PrepareShadowInventories(string playerName)
         {
+            string playerNamePrefix = "~" + playerName + ";";
+
+            int id;
+            int i;
+            for (i = 0; i < maxShadowInventoryCount; i += 2)
+            {
+                id = shadowInventoryWorldIdStart + i;
+                WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
+                if (wo != null && wo.GetText().StartsWith(playerNamePrefix))
+                {
+                    shadowBackpack = InventoriesHandler.GetInventoryById(id);
+                    shadowEquipment = InventoriesHandler.GetInventoryById(id + 1);
+                    break;
+                }
+                else if (wo == null)
+                {
+                    break;
+                }
+            }
+
+            id = shadowInventoryWorldIdStart + i;
             // The other player's shadow inventory
-            if (TryPrepareShadowInventory(shadowInventoryWorldId, ref shadowInventoryId))
+            if (TryPrepareShadowInventory(id, ref shadowBackpack, out var wo2))
             {
                 SetupInitialInventory();
+                wo2.SetText(playerNamePrefix);
             }
-            TryPrepareShadowInventory(shadowEquipmentWorldId, ref shadowEquipmentId);
+            TryPrepareShadowInventory(id + 1, ref shadowEquipment, out _);
+            shadowBackpackWorldObjectId = id;
+            shadowEquipmentWorldObjectId = id + 1;
         }
 
-        static bool TryPrepareShadowInventory(int id, ref int inventoryId)
+        static bool TryPrepareShadowInventory(int id, ref Inventory inventoryOut, out WorldObject wo)
         {
-            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
+            wo = WorldObjectsHandler.GetWorldObjectViaId(id);
             if (wo == null)
             {
                 LogInfo("Creating special inventory " + id);
@@ -74,21 +101,20 @@ namespace FeatMultiplayer
                 WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 Inventory inv = InventoriesHandler.CreateNewInventory(1000, 0);
                 int invId = inv.GetId();
-                inventoryId = invId;
                 wo.SetLinkedInventoryId(invId);
                 wo.SetDontSaveMe(false);
+                inventoryOut = inv;
                 return true;
             }
             else
             {
-                inventoryId = wo.GetLinkedInventoryId();
+                inventoryOut = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
             }
             return false;
         }
 
-        static void AddToInventory(int iid, Dictionary<string, int> itemsToAdd)
+        static void AddToInventory(Inventory inv, Dictionary<string, int> itemsToAdd)
         {
-            var inv = InventoriesHandler.GetInventoryById(iid);
             foreach (var kv in itemsToAdd)
             {
                 var gr = GroupsHandler.GetGroupViaId(kv.Key);
@@ -99,7 +125,7 @@ namespace FeatMultiplayer
                         var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
                         if (!inv.AddItem(wo))
                         {
-                            LogWarning("Could not add " + kv.Key + " to " + iid + ". Inventory full?!");
+                            LogWarning("Could not add " + kv.Key + " to " + inv.GetId() + ". Inventory full?!");
                         }
                         /*
                         else
@@ -126,7 +152,7 @@ namespace FeatMultiplayer
                 stacks = Math.Min(10, Math.Max(stacks, stackSize.Value));
             }
 
-            AddToInventory(shadowInventoryId, new()
+            AddToInventory(shadowBackpack, new()
             {
                 { "MultiBuild", 1 },
                 { "MultiDeconstruct", 1 },
@@ -340,7 +366,7 @@ namespace FeatMultiplayer
                         size = inv.GetSize()
                     });
 
-                    AddToInventory(inv.GetId(), dict);
+                    AddToInventory(inv, dict);
 
                     pos.y += 1f;
                 }

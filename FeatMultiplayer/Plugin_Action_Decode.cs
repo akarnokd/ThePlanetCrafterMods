@@ -89,7 +89,7 @@ namespace FeatMultiplayer
                 if (gr != null)
                 {
                     mmu.groupId = gr.GetId();
-                    var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                    var inv = shadowBackpack;
                     var microGroup = GroupsHandler.GetGroupViaId("BlueprintT1");
                     inv.RemoveItems(new List<Group>() { microGroup }, true, false);
                 }

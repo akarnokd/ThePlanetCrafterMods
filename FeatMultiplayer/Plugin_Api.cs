@@ -232,13 +232,13 @@ namespace FeatMultiplayer
         static Inventory ApiGetClientBackpack(int clientId)
         {
             // FIXME use the client id to send to the proper client.
-            return InventoriesHandler.GetInventoryById(shadowInventoryId);
+            return shadowBackpack;
         }
 
         static Inventory ApiGetClientEquipment(int clientId)
         {
             // FIXME use the client id to send to the proper client.
-            return InventoriesHandler.GetInventoryById(shadowEquipmentId);
+            return shadowEquipment;
         }
 
         static void ApiSendInventory(int clientId, Inventory inventory)

@@ -122,7 +122,7 @@ namespace FeatMultiplayer
                 }
                 if (wo != null)
                 {
-                    Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                    Inventory inv = shadowBackpack;
 
                     if (inv.AddItem(wo))
                     {

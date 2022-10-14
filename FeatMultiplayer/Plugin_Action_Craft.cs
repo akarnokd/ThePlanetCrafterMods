@@ -169,7 +169,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                Inventory inv = shadowBackpack;
                 GroupItem gri = GroupsHandler.GetGroupViaId(mc.groupId) as GroupItem;
                 var recipe = gri.GetRecipe().GetIngredientsGroupInRecipe();
                 if (gri != null)
@@ -205,7 +205,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                Inventory inv = shadowBackpack;
                 GroupItem gri = GroupsHandler.GetGroupViaId(mcw.groupId) as GroupItem;
                 var recipe = gri.GetRecipe().GetIngredientsGroupInRecipe();
                 if (gri != null)

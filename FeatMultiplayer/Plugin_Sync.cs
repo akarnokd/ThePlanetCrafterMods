@@ -3,9 +3,9 @@ using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FeatMultiplayer
 {
@@ -40,7 +40,7 @@ namespace FeatMultiplayer
                 if (!wo.GetDontSaveMe() || larvaeGroupIds.Contains(wo.GetGroup().GetId()))
                 {
                     int id = wo.GetId();
-                    if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
+                    if (id != shadowBackpackWorldObjectId && id != shadowEquipmentWorldObjectId)
                     {
                         sb.Append("|");
                         MessageWorldObject.AppendWorldObject(sb, ';', wo, false);
@@ -65,13 +65,13 @@ namespace FeatMultiplayer
 
             // Send player equimpent first
 
-            Inventory inv = InventoriesHandler.GetInventoryById(shadowEquipmentId);
+            Inventory inv = shadowEquipment;
             sb.Append("|");
             MessageInventories.Append(sb, inv, 2);
 
             // Send player inventory next
 
-            inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+            inv = shadowBackpack;
             sb.Append("|");
             MessageInventories.Append(sb, inv, 1);
 
@@ -81,7 +81,7 @@ namespace FeatMultiplayer
                 int id = inv2.GetId();
 
                 // Ignore Host's own inventory/equipment
-                if (id != 1 && id != 2 && id != shadowInventoryId && id != shadowEquipmentId)
+                if (id != 1 && id != 2 && id != shadowBackpack.GetId() && id != shadowEquipment.GetId())
                 {
                     sb.Append("|");
                     MessageInventories.Append(sb, inv2, id);
@@ -143,6 +143,70 @@ namespace FeatMultiplayer
                         wos.RemoveAt(i);
                     }
                 }
+            }
+        }
+
+        static void SendSavedPlayerPosition(string playerName, int backpackWoId)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(backpackWoId);
+
+            if (wo != null)
+            {
+                string[] data = wo.GetText().Split(';');
+                if (data.Length >= 2)
+                {
+                    string[] coords = data[1].Split(',');
+                    if (coords.Length == 3)
+                    {
+                        var pos = new Vector3(
+                            float.Parse(coords[0], CultureInfo.InvariantCulture),
+                            float.Parse(coords[1], CultureInfo.InvariantCulture),
+                            float.Parse(coords[2], CultureInfo.InvariantCulture)
+                        );
+
+                        var msg = new MessageMovePlayer()
+                        {
+                            position = pos
+                        };
+                        Send(msg);
+                        Signal();
+                    }
+                }
+            }
+            else
+            {
+                LogInfo("Warning, no backpack info for " + playerName + " (" + backpackWoId + ")");
+            }
+        }
+
+        static void StorePlayerPosition(string playerName, int backpackWoId, Vector3 pos)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(backpackWoId);
+
+            if (wo != null)
+            {
+                var posStr = pos.x.ToString(CultureInfo.InvariantCulture)
+                        + "," + pos.y.ToString(CultureInfo.InvariantCulture)
+                        + "," + pos.y.ToString(CultureInfo.InvariantCulture);
+
+                string[] data = wo.GetText().Split(';');
+                if (data.Length >= 2)
+                {
+                    data[1] = posStr;
+                }
+                else
+                {
+                    var dataNew = new string[2];
+                    dataNew[0] = data[0];
+                    dataNew[1] = posStr;
+                    data = dataNew;
+                }
+
+                wo.SetText(string.Join(";", data));
+            }
+            else
+            {
+                LogInfo("Warning, no backpack info for " + playerName + " (" + backpackWoId + ")");
             }
         }
     }

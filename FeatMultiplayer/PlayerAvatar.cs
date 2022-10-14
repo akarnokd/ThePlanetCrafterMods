@@ -40,6 +40,7 @@ namespace FeatMultiplayer
             }
         }
 
+
         //static readonly Color avatarDefaultColor = new Color(1f, 0.75f, 0, 1f);
 
         internal static PlayerAvatar CreateAvatar(Color color, bool host, PlayerMainController player)

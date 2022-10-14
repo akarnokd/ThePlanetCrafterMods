@@ -130,6 +130,14 @@ namespace FeatMultiplayer
         static void ReceivePlayerLocation(MessagePlayerPosition mpp)
         {
             otherPlayer?.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (shadowBackpack != null)
+                {
+                    StorePlayerPosition(playerName, shadowBackpackWorldObjectId, mpp.position);
+                }
+            }
         }
 
         /// <summary>
@@ -253,5 +261,14 @@ namespace FeatMultiplayer
             LogInfo("Sector_UnloadSector " + __instance.gameObject.name + ", Decoys = " + ___decoyGameObjects.Count);
         }
         */
+
+        public void ReceiveMessageMovePlayer(MessageMovePlayer mmp)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                PlayerMainController pm = GetPlayerMainController();
+                pm.transform.position = mmp.position;
+            }
+        }
     }
 }

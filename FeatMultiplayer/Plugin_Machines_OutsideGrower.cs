@@ -402,7 +402,7 @@ namespace FeatMultiplayer
                                             + mgr.spawnId + " -> " + DebugWorldObject(woSpawn));
 
                                         SendWorldObject(woSpawn, false);
-                                        Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                                        Inventory inv = shadowBackpack;
                                         if (inv.AddItem(woSpawn))
                                         {
                                             woSpawn.SetDontSaveMe(false);

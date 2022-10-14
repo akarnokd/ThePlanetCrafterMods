@@ -262,6 +262,11 @@ namespace FeatMultiplayer
                 receiveQueue.Enqueue(mslg);
             }
             else
+            if (MessageMovePlayer.TryParse(message, out var mmp))
+            {
+                receiveQueue.Enqueue(mmp);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -518,6 +523,11 @@ namespace FeatMultiplayer
                 case MessageSetLinkedGroups mslg:
                     {
                         ReceiveMessageSetLinkedGroups(mslg);
+                        break;
+                    }
+                case MessageMovePlayer mmp:
+                    {
+                        ReceiveMessageMovePlayer(mmp);
                         break;
                     }
                 case string s:

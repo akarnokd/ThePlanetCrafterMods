@@ -31,8 +31,8 @@ namespace FeatMultiplayer
 
         static GameObject clientModeText;
         static GameObject clientTargetAddressText;
-        static GameObject clientNameText;
-        static GameObject clientJoinButton;
+        static readonly List<GameObject> clientJoinButton = new();
+        static readonly List<string> playerNames = new();
 
         static volatile string externalIP;
         static volatile string externalMap;
@@ -133,19 +133,21 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            clientNameText = CreateText("    Client Name = " + clientName.Value, fs);
+            var clientNames = clientName.Value.Split(',');
 
-            rectTransform = clientNameText.GetComponent<Text>().GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
+            foreach (var clientName in clientNames) {
 
-            dy -= fs + 10;
+                var joinBtn = CreateText("  [ Click Here to Join Game ] ", fs, true);
 
-            clientJoinButton = CreateText("  [ Click Here to Join Game ] ", fs, true);
+                rectTransform = joinBtn.GetComponent<Text>().GetComponent<RectTransform>();
+                rectTransform.localPosition = new Vector2(dx, dy);
+                rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
-            rectTransform = clientJoinButton.GetComponent<Text>().GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
+                clientJoinButton.Add(joinBtn);
+                playerNames.Add(clientName);
+
+                dy -= fs + 10;
+            }
         }
 
         static string GetHostModeString()
@@ -255,18 +257,28 @@ namespace FeatMultiplayer
                         hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
                         hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
                     }
-                    if (IsWithin(clientJoinButton, mouse))
+                    for (int i = 0; i < clientJoinButton.Count; i++)
                     {
-                        hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                        updateMode = MultiplayerMode.CoopClient;
-                        File.Delete(Application.persistentDataPath + "\\Player_Client.log");
-                        clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
-                        CreateMultiplayerSaveAndEnter();
+                        GameObject joinBtn = clientJoinButton[i];
+                        if (IsWithin(joinBtn, mouse))
+                        {
+                            clientJoinName = playerNames[i];
+
+                            hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                            updateMode = MultiplayerMode.CoopClient;
+                            File.Delete(Application.persistentDataPath + "\\Player_Client.log");
+                            File.Delete(Application.persistentDataPath + "\\Player_Client_ " + clientJoinName + ".log");
+                            joinBtn.GetComponent<Text>().text = " !!! Joining a game !!!";
+                            CreateMultiplayerSaveAndEnter();
+                        }
                     }
                 }
                 hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
                 upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
-                clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+                foreach (var joinBtn in clientJoinButton)
+                {
+                    joinBtn.GetComponent<Text>().color = IsWithin(joinBtn, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+                }
 
                 var eip = externalIP;
                 if (eip != null)
