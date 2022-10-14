@@ -17,14 +17,7 @@ namespace FeatMultiplayer
 
             // =========================================================
 
-            MessageUnlocks mu = new MessageUnlocks();
-            List<Group> grs = GroupsHandler.GetUnlockedGroups();
-            mu.groupIds = new List<string>(grs.Count + 1);
-            foreach (Group g in grs)
-            {
-                mu.groupIds.Add(g.GetId());
-            }
-            SendAllClients(mu);
+            SendMessageUnlocks();
 
             // =========================================================
 
@@ -32,6 +25,77 @@ namespace FeatMultiplayer
 
             // =========================================================
 
+            SendAllObjects();
+
+            // =========================================================
+
+            UnborkInventories();
+
+            // =========================================================
+
+            SendAllInventories();
+
+            // -----------------------------------------------------
+
+            SignalAllClients();
+        }
+
+        static void SendAllInventories()
+        {
+            HashSet<int> ignoreInventories = new();
+            ignoreInventories.Add(1);
+            ignoreInventories.Add(2);
+            foreach (var cc in _clientConnections.Values)
+            {
+                if (cc.shadowBackpack != null)
+                {
+                    ignoreInventories.Add(cc.shadowBackpack.GetId());
+                }
+                if (cc.shadowEquipment != null)
+                {
+                    ignoreInventories.Add(cc.shadowEquipment.GetId());
+                }
+            }
+
+            foreach (var cc in _clientConnections.Values)
+            {
+                if (cc.shadowBackpack != null && cc.shadowEquipment != null)
+                {
+                    var sb = new StringBuilder();
+                    sb.Append("Inventories");
+
+                    // Send player equimpent first
+
+                    Inventory inv = cc.shadowEquipment;
+                    sb.Append("|");
+                    MessageInventories.Append(sb, inv, 2);
+
+                    // Send player inventory next
+
+                    inv = cc.shadowBackpack;
+                    sb.Append("|");
+                    MessageInventories.Append(sb, inv, 1);
+
+                    // Send all the other inventories after
+                    foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
+                    {
+                        int id = inv2.GetId();
+
+                        // Ignore Host's own inventory/equipment and any other shadow inventory
+                        if (!ignoreInventories.Contains(id))
+                        {
+                            sb.Append("|");
+                            MessageInventories.Append(sb, inv2, id);
+                        }
+                    }
+                    sb.Append('\n');
+                    cc.Send(sb.ToString());
+                }
+            }
+        }
+
+        static void SendAllObjects()
+        {
             StringBuilder sb = new StringBuilder();
             sb.Append("AllObjects");
             int count = 0;
@@ -55,56 +119,18 @@ namespace FeatMultiplayer
             }
             sb.Append('\n');
             SendAllClients(sb.ToString());
+        }
 
-            // =========================================================
-
-            UnborkInventories();
-
-            HashSet<int> ignoreInventories = new();
-            ignoreInventories.Add(1);
-            ignoreInventories.Add(2);
-            foreach (var cc in _clientConnections.Values)
+        static void SendMessageUnlocks()
+        {
+            MessageUnlocks mu = new MessageUnlocks();
+            List<Group> grs = GroupsHandler.GetUnlockedGroups();
+            mu.groupIds = new List<string>(grs.Count + 1);
+            foreach (Group g in grs)
             {
-                ignoreInventories.Add(cc.shadowBackpack.GetId());
-                ignoreInventories.Add(cc.shadowEquipment.GetId());
+                mu.groupIds.Add(g.GetId());
             }
-
-                foreach (var cc in _clientConnections.Values)
-            {
-                sb = new StringBuilder();
-                sb.Append("Inventories");
-
-                // Send player equimpent first
-
-                Inventory inv = cc.shadowEquipment;
-                sb.Append("|");
-                MessageInventories.Append(sb, inv, 2);
-
-                // Send player inventory next
-
-                inv = cc.shadowBackpack;
-                sb.Append("|");
-                MessageInventories.Append(sb, inv, 1);
-
-                // Send all the other inventories after
-                foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
-                {
-                    int id = inv2.GetId();
-
-                    // Ignore Host's own inventory/equipment and any other shadow inventory
-                    if (!ignoreInventories.Contains(id))
-                    {
-                        sb.Append("|");
-                        MessageInventories.Append(sb, inv2, id);
-                    }
-                }
-                sb.Append('\n');
-                cc.Send(sb.ToString());
-            }
-
-            // -----------------------------------------------------
-
-            SignalAllClients();
+            SendAllClients(mu);
         }
 
         static void SendPeriodicState()

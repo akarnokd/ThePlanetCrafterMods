@@ -140,6 +140,7 @@ namespace FeatMultiplayer
             StringBuilder sb = new StringBuilder();
             sb.Append("UpdateWorldObject|");
             MessageWorldObject.AppendWorldObject(sb, '|', worldObject, makeGrabable);
+            sb.Append('\n');
             return sb.ToString();
         }
 
