@@ -164,14 +164,17 @@ namespace FeatMultiplayer
                             float.Parse(coords[2], CultureInfo.InvariantCulture)
                         );
 
+                        LogInfo("Moving " + playerName + " to its saved position at " + pos);
                         var msg = new MessageMovePlayer()
                         {
                             position = pos
                         };
                         Send(msg);
                         Signal();
+                        return;
                     }
                 }
+                LogInfo("Player " + playerName + " has no saved position info");
             }
             else
             {
@@ -187,7 +190,7 @@ namespace FeatMultiplayer
             {
                 var posStr = pos.x.ToString(CultureInfo.InvariantCulture)
                         + "," + pos.y.ToString(CultureInfo.InvariantCulture)
-                        + "," + pos.y.ToString(CultureInfo.InvariantCulture);
+                        + "," + pos.z.ToString(CultureInfo.InvariantCulture);
 
                 string[] data = wo.GetText().Split(';');
                 if (data.Length >= 2)

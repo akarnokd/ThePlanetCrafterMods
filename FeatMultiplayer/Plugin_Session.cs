@@ -19,6 +19,7 @@ namespace FeatMultiplayer
         static string multiplayerFilename = "Survival-9999999";
 
         static string clientJoinName;
+        static string clientJoinPassword;
 
         void CreateMultiplayerSaveAndEnter()
         {
@@ -70,6 +71,7 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 clientJoinName = null;
+                clientJoinPassword = null;
                 LogInfo("Entering world as Host");
                 StartAsHost();
                 LaunchStuckRockets();
@@ -115,6 +117,7 @@ namespace FeatMultiplayer
             cellsInCircle?.Clear();
 
             clientJoinName = null;
+            clientJoinPassword = null;
         }
 
         void OnApplicationQuit()

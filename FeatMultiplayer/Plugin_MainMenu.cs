@@ -31,8 +31,9 @@ namespace FeatMultiplayer
 
         static GameObject clientModeText;
         static GameObject clientTargetAddressText;
-        static readonly List<GameObject> clientJoinButton = new();
+        static readonly List<GameObject> clientJoinButtons = new();
         static readonly List<string> playerNames = new();
+        static readonly List<string> playerPasswords = new();
 
         static volatile string externalIP;
         static volatile string externalMap;
@@ -51,6 +52,13 @@ namespace FeatMultiplayer
             updateMode = MultiplayerMode.MainMenu;
 
             int rows = 9;
+
+            clientJoinButtons.Clear();
+
+            playerNames.Clear();
+            playerNames.AddRange(clientName.Value.Split(','));
+            playerPasswords.Clear();
+            playerPasswords.AddRange(clientPassword.Value.Split(','));
 
             parent = new GameObject("MultiplayerMenu");
             Canvas canvas = parent.AddComponent<Canvas>();
@@ -133,18 +141,15 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            var clientNames = clientName.Value.Split(',');
+            foreach (var clientName in playerNames) {
 
-            foreach (var clientName in clientNames) {
-
-                var joinBtn = CreateText("  [ Click Here to Join Game ] ", fs, true);
+                var joinBtn = CreateText("  [ Join as " + clientName + " ] ", fs, true);
 
                 rectTransform = joinBtn.GetComponent<Text>().GetComponent<RectTransform>();
                 rectTransform.localPosition = new Vector2(dx, dy);
                 rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
-                clientJoinButton.Add(joinBtn);
-                playerNames.Add(clientName);
+                clientJoinButtons.Add(joinBtn);
 
                 dy -= fs + 10;
             }
@@ -257,12 +262,13 @@ namespace FeatMultiplayer
                         hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
                         hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
                     }
-                    for (int i = 0; i < clientJoinButton.Count; i++)
+                    for (int i = 0; i < clientJoinButtons.Count; i++)
                     {
-                        GameObject joinBtn = clientJoinButton[i];
+                        GameObject joinBtn = clientJoinButtons[i];
                         if (IsWithin(joinBtn, mouse))
                         {
                             clientJoinName = playerNames[i];
+                            clientJoinPassword = playerPasswords[i];
 
                             hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
                             updateMode = MultiplayerMode.CoopClient;
@@ -275,7 +281,7 @@ namespace FeatMultiplayer
                 }
                 hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
                 upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
-                foreach (var joinBtn in clientJoinButton)
+                foreach (var joinBtn in clientJoinButtons)
                 {
                     joinBtn.GetComponent<Text>().color = IsWithin(joinBtn, mouse) ? interactiveColorHighlight2 : interactiveColor2;
                 }

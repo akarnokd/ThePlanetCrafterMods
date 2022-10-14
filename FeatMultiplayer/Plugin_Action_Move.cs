@@ -266,8 +266,9 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
+                LogInfo("Moved by host to " + mmp.position);
                 PlayerMainController pm = GetPlayerMainController();
-                pm.transform.position = mmp.position;
+                pm.transform.position = mmp.position + new Vector3(0, 0.1f, 0);
             }
         }
     }

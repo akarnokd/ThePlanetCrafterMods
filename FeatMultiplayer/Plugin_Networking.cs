@@ -66,8 +66,8 @@ namespace FeatMultiplayer
 
                     _sendQueue.Enqueue(new MessageLogin
                     {
-                        user = clientName.Value,
-                        password = clientPassword.Value
+                        user = clientJoinName,
+                        password = clientJoinPassword
                     });
                     Signal();
                 }

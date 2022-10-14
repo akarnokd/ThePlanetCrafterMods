@@ -27,7 +27,7 @@ namespace FeatMultiplayer
 
         public static bool TryParse(string str, out MessageMovePlayer message)
         {
-            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 4, out string[] parts))
+            if (MessageHelper.TryParseMessage("MovePlayer|", str, 4, out string[] parts))
             {
                 try
                 {
