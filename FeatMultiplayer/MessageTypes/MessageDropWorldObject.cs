@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageDropWorldObject : MessageStringProvider
+    internal class MessageDropWorldObject : MessageBase
     {
         internal int id;
         internal string groupId;
@@ -40,7 +40,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("DropWorldObject|");

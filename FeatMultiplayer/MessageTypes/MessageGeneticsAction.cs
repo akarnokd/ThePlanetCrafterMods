@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageGeneticsAction : MessageStringProvider
+    internal class MessageGeneticsAction : MessageBase
     {
         internal int machineId;
         internal string groupId;
@@ -31,7 +31,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "GeneticsAction|" + machineId + "|" + groupId + "\n";
         }

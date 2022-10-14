@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageGameMode : MessageStringProvider
+    internal class MessageGameMode : MessageBase
     {
         internal int modeIndex;
 
@@ -29,7 +29,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "GameMode|" + modeIndex + "\n";
         }

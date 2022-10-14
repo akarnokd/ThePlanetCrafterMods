@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageGrowAdd : MessageStringProvider
+    internal class MessageGrowAdd : MessageBase
     {
         internal int machineId;
         internal int spawnId;
@@ -44,7 +44,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "GrowAdd|" + machineId
                 + "|" + spawnId

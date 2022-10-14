@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using FeatMultiplayer.MessageTypes;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace FeatMultiplayer
 
         static void ReceiveLogin(MessageLogin ml)
         {
+            var cc = ml.sender;
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 string[] users = hostAcceptName.Value.Split(',');
@@ -39,7 +41,6 @@ namespace FeatMultiplayer
                     {
                         LogInfo("User login success: " + ml.user);
                         NotifyUser("User joined: " + ml.user);
-                        otherPlayer?.Destroy();
                         Color color = Color.white;
                         try
                         {
@@ -50,17 +51,19 @@ namespace FeatMultiplayer
 
                         }
 
-                        playerName = SanitizeUserName(ml.user);
+                        cc.clientName = SanitizeUserName(ml.user);
 
-                        PrepareShadowInventories(playerName);
-                        otherPlayer = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
-                        Send("Welcome\n");
-                        Signal();
-                        Send(new MessageGameMode()
+                        PrepareShadowInventories(cc);
+                        var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+
+                        cc.Send("Welcome\n");
+                        cc.Signal();
+                        cc.Send(new MessageGameMode()
                         {
                             modeIndex = (int)GameSettingsHandler.GetGameMode()
                         });
-                        Signal();
+                        cc.Signal();
+
                         lastFullSync = Time.realtimeSinceStartup;
                         SendFullState();
                         SendTerrainLayers();
@@ -68,20 +71,19 @@ namespace FeatMultiplayer
                         SendMessages();
                         SendStoryEvents();
 
-                        SendSavedPlayerPosition(playerName, shadowBackpackWorldObjectId);
+                        SendSavedPlayerPosition(cc);
                         return;
                     }
                 }
 
                 LogInfo("User login failed: " + ml.user);
-                _sendQueue.Enqueue(EAccessDenied);
-                Signal();
+                cc.Send(EAccessDenied);
+                cc.Signal();
             }
         }
 
         static void ReceiveWelcome()
         {
-            otherPlayer?.Destroy();
             Color color = Color.white;
             try
             {
@@ -91,26 +93,35 @@ namespace FeatMultiplayer
             {
 
             }
-            otherPlayer = PlayerAvatar.CreateAvatar(color, true, GetPlayerMainController());
+            var avatar = PlayerAvatar.CreateAvatar(color, true, GetPlayerMainController());
+            playerAvatars[""] = avatar; // host is always ""
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;
         }
 
-        static void ReceiveDisconnected()
+        static void ReceiveMessageClientDisconnected(MessageClientDisconnected mcd)
         {
-            LogInfo("Disconnected");
-            otherPlayer?.Destroy();
-            otherPlayer = null;
-            clientConnected = false;
-            _sendQueue.Clear();
-            receiveQueue.Clear();
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                NotifyUserFromBackground("Client disconnected");
-            }
-            else
+                var clientName = mcd.sender.clientName;
+                if (clientName != null)
+                {
+                    if (playerAvatars.TryGetValue(clientName, out var avatar))
+                    {
+                        LogInfo("Client disconnected: " + clientName);
+                        avatar.Destroy();
+                        playerAvatars.Remove(clientName);
+
+                        var msg = new MessagePlayerLeft();
+                        msg.playerName = clientName;
+
+                        SendAllClients(msg, true);
+                    }
+                }
+            } else
             {
                 NotifyUserFromBackground("Host disconnected");
+                DestroyAvatars();
             }
         }
     }

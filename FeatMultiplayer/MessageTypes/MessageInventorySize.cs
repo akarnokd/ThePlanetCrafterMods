@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageInventorySize : MessageStringProvider
+    internal class MessageInventorySize : MessageBase
     {
         internal int inventoryId;
         internal int size;
@@ -31,7 +31,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "InventorySize|" + inventoryId + "|" + size + "\n";
         }

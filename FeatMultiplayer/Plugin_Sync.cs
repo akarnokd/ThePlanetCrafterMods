@@ -24,7 +24,7 @@ namespace FeatMultiplayer
             {
                 mu.groupIds.Add(g.GetId());
             }
-            _sendQueue.Enqueue(mu);
+            SendAllClients(mu);
 
             // =========================================================
 
@@ -40,7 +40,7 @@ namespace FeatMultiplayer
                 if (!wo.GetDontSaveMe() || larvaeGroupIds.Contains(wo.GetGroup().GetId()))
                 {
                     int id = wo.GetId();
-                    if (id != shadowBackpackWorldObjectId && id != shadowEquipmentWorldObjectId)
+                    if (id >= shadowInventoryWorldIdStart + 2 * maxShadowInventoryCount)
                     {
                         sb.Append("|");
                         MessageWorldObject.AppendWorldObject(sb, ';', wo, false);
@@ -54,51 +54,63 @@ namespace FeatMultiplayer
                 sb.Append("|");
             }
             sb.Append('\n');
-            _sendQueue.Enqueue(sb.ToString());
+            SendAllClients(sb.ToString());
 
             // =========================================================
 
             UnborkInventories();
 
-            sb = new StringBuilder();
-            sb.Append("Inventories");
-
-            // Send player equimpent first
-
-            Inventory inv = shadowEquipment;
-            sb.Append("|");
-            MessageInventories.Append(sb, inv, 2);
-
-            // Send player inventory next
-
-            inv = shadowBackpack;
-            sb.Append("|");
-            MessageInventories.Append(sb, inv, 1);
-
-            // Send all the other inventories after
-            foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
+            HashSet<int> ignoreInventories = new();
+            ignoreInventories.Add(1);
+            ignoreInventories.Add(2);
+            foreach (var cc in _clientConnections.Values)
             {
-                int id = inv2.GetId();
-
-                // Ignore Host's own inventory/equipment
-                if (id != 1 && id != 2 && id != shadowBackpack.GetId() && id != shadowEquipment.GetId())
-                {
-                    sb.Append("|");
-                    MessageInventories.Append(sb, inv2, id);
-                }
+                ignoreInventories.Add(cc.shadowBackpack.GetId());
+                ignoreInventories.Add(cc.shadowEquipment.GetId());
             }
-            sb.Append('\n');
-            _sendQueue.Enqueue(sb.ToString());
+
+                foreach (var cc in _clientConnections.Values)
+            {
+                sb = new StringBuilder();
+                sb.Append("Inventories");
+
+                // Send player equimpent first
+
+                Inventory inv = cc.shadowEquipment;
+                sb.Append("|");
+                MessageInventories.Append(sb, inv, 2);
+
+                // Send player inventory next
+
+                inv = cc.shadowBackpack;
+                sb.Append("|");
+                MessageInventories.Append(sb, inv, 1);
+
+                // Send all the other inventories after
+                foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
+                {
+                    int id = inv2.GetId();
+
+                    // Ignore Host's own inventory/equipment and any other shadow inventory
+                    if (!ignoreInventories.Contains(id))
+                    {
+                        sb.Append("|");
+                        MessageInventories.Append(sb, inv2, id);
+                    }
+                }
+                sb.Append('\n');
+                cc.Send(sb.ToString());
+            }
 
             // -----------------------------------------------------
 
-            Signal();
+            SignalAllClients();
         }
 
         static void SendPeriodicState()
         {
             SendTerraformState();
-            Signal();
+            SignalAllClients();
         }
 
         /// <summary>
@@ -146,8 +158,11 @@ namespace FeatMultiplayer
             }
         }
 
-        static void SendSavedPlayerPosition(string playerName, int backpackWoId)
+        static void SendSavedPlayerPosition(ClientConnection cc)
         {
+            string playerName = cc.clientName;
+            int backpackWoId = cc.shadowBackpackWorldObjectId;
+
             WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(backpackWoId);
 
             if (wo != null)
@@ -169,8 +184,8 @@ namespace FeatMultiplayer
                         {
                             position = pos
                         };
-                        Send(msg);
-                        Signal();
+                        cc.Send(msg);
+                        cc.Signal();
                         return;
                     }
                 }

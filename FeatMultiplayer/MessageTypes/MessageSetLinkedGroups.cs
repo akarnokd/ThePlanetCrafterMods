@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageSetLinkedGroups : MessageStringProvider
+    internal class MessageSetLinkedGroups : MessageBase
     {
         internal int id;
         internal List<string> groupIds;
@@ -47,7 +47,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new();
             sb.Append("SetLinkedGroups|");

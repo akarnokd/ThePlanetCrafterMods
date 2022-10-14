@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    public class MessageMovePlayer : MessageStringProvider
+    public class MessageMovePlayer : MessageBase
     {
         internal Vector3 position;
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("MovePlayer|");

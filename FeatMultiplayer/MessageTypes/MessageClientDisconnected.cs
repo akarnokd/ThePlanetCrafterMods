@@ -4,15 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FeatMultiplayer
+namespace FeatMultiplayer.MessageTypes
 {
-    internal class MessageCustom : MessageBase
+    internal class MessageClientDisconnected : MessageBase
     {
-        internal object o;
-
         public override string GetString()
         {
-            return o.ToString();
+            throw new NotImplementedException();
         }
     }
 }

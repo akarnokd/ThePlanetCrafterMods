@@ -51,11 +51,6 @@ namespace FeatMultiplayer
         static float lastSmallSync;
 
         /// <summary>
-        /// The player's avatar, also doubles as the other player presence indicator.
-        /// </summary>
-        internal static PlayerAvatar otherPlayer;
-
-        /// <summary>
         /// The main update, called by Unity on each frame.
         /// </summary>
         void Update()
@@ -72,13 +67,15 @@ namespace FeatMultiplayer
                 WindowsHandler wh = Managers.GetManager<WindowsHandler>();
                 if (ap != null && wh != null && !wh.GetHasUiOpen() && ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey())
                 {
-                    /* */
+                    /*
+                    FIXME Which player?
                     if (otherPlayer != null && Keyboard.current.tKey.wasPressedThisFrame)
                     {
                         LogInfo("Teleporting to the other player");
                         var apc = GetPlayerMainController();
                         apc.SetPlayerPlacement(otherPlayer.avatar.transform.position, apc.transform.rotation);
                     }
+                     */
                     if (updateMode == MultiplayerMode.CoopHost && Keyboard.current.iKey.wasPressedThisFrame)
                     {
                         SetupHostInventory();
@@ -132,7 +129,7 @@ namespace FeatMultiplayer
         {
             var now = Time.realtimeSinceStartup;
 
-            if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
+            if (updateMode == MultiplayerMode.CoopHost && !_clientConnections.IsEmpty)
             {
                 try
                 {
@@ -155,14 +152,10 @@ namespace FeatMultiplayer
             if (now - lastNeworkSync >= 1f / networkFrequency.Value)
             {
                 lastNeworkSync = now;
-                // TODO send out state messages
-                if (otherPlayer != null)
-                {
-                    SendPlayerLocation();
-                }
+                SendPlayerLocation();
 
                 // Receive and apply commands
-                while (receiveQueue.TryDequeue(out var message))
+                while (_receiveQueue.TryDequeue(out var message))
                 {
                     try
                     {

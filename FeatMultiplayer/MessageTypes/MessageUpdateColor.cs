@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageUpdateColor : MessageStringProvider
+    internal class MessageUpdateColor : MessageBase
     {
         internal int id;
         internal Color color;
@@ -39,7 +39,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "UpdateColor|" + id + "|" + MessageHelper.ColorToString(color) + "\n";
         }

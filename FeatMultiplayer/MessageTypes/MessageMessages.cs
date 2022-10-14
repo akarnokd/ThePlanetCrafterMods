@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageMessages : MessageStringProvider
+    internal class MessageMessages : MessageBase
     {
         internal readonly List<string> messages = new();
 
@@ -25,7 +25,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("Messages|");

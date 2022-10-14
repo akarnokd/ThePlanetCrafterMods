@@ -179,13 +179,12 @@ namespace FeatMultiplayer
                         }
                         currentMeteorEventStart = ___timeNewMeteoSet;
 
-                        Send(new MessageMeteorEvent()
+                        SendAllClients(new MessageMeteorEvent()
                         {
                             eventIndex = currentMeteorEventIndex,
                             startTime = 0,
                             isRocket = currentMeteorEventIsRocket
-                        });
-                        Signal();
+                        }, true);
                     }
                 } catch (Exception ex)
                 {
@@ -299,8 +298,7 @@ namespace FeatMultiplayer
                         isRocket = mei.isRocket
                     };
 
-                    Send(mas);
-                    Signal();
+                    SendAllClients(mas, true);
                 }
 
                 return false;
@@ -334,14 +332,13 @@ namespace FeatMultiplayer
                         if (worldObject.GetIsPlaced())
                         {
                             worldObject.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
-                            Send(new MessageSetTransform()
+                            SendAllClients(new MessageSetTransform()
                             {
                                 id = worldObject.GetId(),
                                 mode = MessageSetTransform.Mode.Both,
                                 position = worldObject.GetPosition(),
                                 rotation = worldObject.GetRotation()
-                            });
-                            Signal();
+                            }, true);
                         }
                         yield return new WaitForSeconds(debrisUpdateDelay);
                     }
@@ -609,13 +606,12 @@ namespace FeatMultiplayer
             if (currentMeteorEventIndex >= 0)
             {
                 LogInfo("LaunchMeteorEventAfterLogin: " + currentMeteorEventIndex + (currentMeteorEventIsRocket ? " (rocket)" : "random") + ", T = " + (Time.time - currentMeteorEventStart));
-                Send(new MessageMeteorEvent()
+                SendAllClients(new MessageMeteorEvent()
                 {
                     eventIndex = currentMeteorEventIndex,
                     startTime = Time.time - currentMeteorEventStart,
                     isRocket = currentMeteorEventIsRocket
-                });
-                Signal();
+                }, true);
             }
         }
 

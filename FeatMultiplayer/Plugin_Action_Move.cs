@@ -68,12 +68,19 @@ namespace FeatMultiplayer
             for (; ; )
             {
                 var localPosition = GetPlayerMainController().transform.position;
-                var otherPosition = otherPlayer != null ? otherPlayer.rawPosition : localPosition;
 
                 if (collider != null && door1 != null && door2 != null)
                 {
                     var localInRange = collider.bounds.Contains(localPosition);
-                    var otherInRange = collider.bounds.Contains(otherPosition);
+                    var otherInRange = false;
+                    foreach (var avatar in playerAvatars)
+                    {
+                        if (collider.bounds.Contains(avatar.Value.rawPosition))
+                        {
+                            otherInRange = true;
+                            break;
+                        }
+                    }
 
                     if (!entered && (localInRange || otherInRange))
                     {
@@ -120,22 +127,51 @@ namespace FeatMultiplayer
                 {
                     position = player.position,
                     rotation = camera.m_Camera.transform.rotation,
-                    lightMode = lightMode
+                    lightMode = lightMode,
+                    clientName = "" // not used when sending
                 };
-                Send(mpp);
-                Signal();
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(mpp, true);
+                }
+                else
+                {
+                    SendHost(mpp, true);
+                }
             }
         }
 
         static void ReceivePlayerLocation(MessagePlayerPosition mpp)
         {
-            otherPlayer?.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                var clientName = mpp.sender.clientName;
+                if (clientName != null)
+                {
+                    if (playerAvatars.TryGetValue(clientName, out var avatar))
+                    {
+                        avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+
+                        mpp.clientName = clientName;
+
+                        SendAllClientsExcept(mpp.sender.id, mpp, true);
+                    }
+                }
+            }
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                if (playerAvatars.TryGetValue(mpp.clientName, out var avatar))
+                {
+                    avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+                }
+            }
 
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (shadowBackpack != null)
+                if (mpp.sender.shadowBackpack != null)
                 {
-                    StorePlayerPosition(playerName, shadowBackpackWorldObjectId, mpp.position);
+                    StorePlayerPosition(mpp.sender.clientName, mpp.sender.shadowBackpackWorldObjectId, mpp.position);
                 }
             }
         }
@@ -176,15 +212,24 @@ namespace FeatMultiplayer
             bool otherEntered = false;
             for (; ; )
             {
-                if (updateMode == MultiplayerMode.CoopHost && otherPlayer != null)
+                if (updateMode == MultiplayerMode.CoopHost && playerAvatars.Count != 0)
                 {
                     string name = ___sector.gameObject.name;
-                    if (___collider.bounds.Contains(otherPlayer.rawPosition))
+                    bool found = false;
+                    foreach (var avatar in playerAvatars)
+                    {
+                        if (___collider.bounds.Contains(avatar.Value.rawPosition))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found)
                     {
                         if (!otherEntered)
                         {
                             otherEntered = true;
-                            LogInfo("SectorEnter_TrackOtherPlayer: other player entered " + name);
+                            LogInfo("SectorEnter_TrackOtherPlayer: any other player entered " + name);
                         }
                         Scene scene = SceneManager.GetSceneByName(name);
                         if (!scene.IsValid())
@@ -200,7 +245,7 @@ namespace FeatMultiplayer
                         if (otherEntered)
                         {
                             otherEntered = false;
-                            LogInfo("SectorEnter_TrackOtherPlayer: other player exited " + name);
+                            LogInfo("SectorEnter_TrackOtherPlayer: all other players exited " + name);
                         }
                     }
 

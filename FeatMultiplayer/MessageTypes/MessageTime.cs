@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageTime : MessageStringProvider
+    internal class MessageTime : MessageBase
     {
         internal float time;
 
@@ -30,7 +30,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "Time|" + time.ToString(CultureInfo.InvariantCulture) + "\n";
         }

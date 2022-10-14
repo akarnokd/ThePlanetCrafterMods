@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageUpdateText : MessageStringProvider
+    internal class MessageUpdateText : MessageBase
     {
         internal int id;
         internal string text;
@@ -38,7 +38,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "UpdateText|" + id + "|" + text + "\n";
         }

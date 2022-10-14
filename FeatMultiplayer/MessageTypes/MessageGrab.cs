@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageGrab : MessageStringProvider
+    internal class MessageGrab : MessageBase
     {
         internal int id;
         internal string groupId;
@@ -31,7 +31,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "Grab|" + id + "|" + groupId + "\n";
         }

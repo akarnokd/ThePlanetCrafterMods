@@ -25,6 +25,7 @@ namespace FeatMultiplayer
         static ConfigEntry<string> hostAcceptPassword;
         static ConfigEntry<string> hostColor;
         static ConfigEntry<int> hostLogLevel;
+        static ConfigEntry<int> maxClients;
 
         // client side properties
         static ConfigEntry<string> hostAddress;
@@ -65,6 +66,7 @@ namespace FeatMultiplayer
             hostColor = Config.Bind("Host", "Color", "1,1,1,1", "The color of the host avatar as comma-separated RGBA floats");
             hostServiceAddress = Config.Bind("Host", "ServiceAddress", "default", "The local IP address the host would listen, '' for auto address, 'default' for first IPv4 local address, 'defaultv6' for first IPv6 local address");
             hostLogLevel = Config.Bind("Host", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
+            maxClients = Config.Bind("Host", "MaxClients", 4, "Number of clients that can join at a time");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
             clientName = Config.Bind("Client", "Name", "Buddy,Dude", "The list of client names to join with.");

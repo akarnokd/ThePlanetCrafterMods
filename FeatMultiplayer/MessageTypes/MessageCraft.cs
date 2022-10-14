@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageCraft : MessageStringProvider
+    internal class MessageCraft : MessageBase
     {
         internal string groupId;
 
@@ -22,7 +22,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "Craft|" + groupId + "\n";
         }

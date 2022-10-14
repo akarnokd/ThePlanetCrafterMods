@@ -21,6 +21,8 @@ namespace FeatMultiplayer
         static string clientJoinName;
         static string clientJoinPassword;
 
+        static Dictionary<string, PlayerAvatar> playerAvatars = new();
+
         void CreateMultiplayerSaveAndEnter()
         {
 
@@ -65,8 +67,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start()
         {
-            _sendQueue.Clear();
-            receiveQueue.Clear();
+            _receiveQueue.Clear();
 
             if (updateMode == MultiplayerMode.CoopHost)
             {
@@ -94,12 +95,13 @@ namespace FeatMultiplayer
         static void UiWindowPause_OnQuit()
         {
             stopNetwork?.Cancel();
-            Signal();
+            UnblockNetwork();
+
             updateMode = MultiplayerMode.MainMenu;
-            otherPlayer?.Destroy();
-            otherPlayer = null;
-            _sendQueue.Clear();
-            receiveQueue.Clear();
+
+            DestroyAvatars();
+
+            _receiveQueue.Clear();
 
             inventorySpawning.Clear();
 
@@ -124,12 +126,55 @@ namespace FeatMultiplayer
         {
             LogInfo("Application quit");
             stopNetwork?.Cancel();
-            Signal();
-            for (int i = 0; i < 20 && networkConnected; i++)
+            UnblockNetwork();
+            WaitForNetwork();
+        }
+
+        static void UnblockNetwork()
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
             {
+                SignalAllClients();
+            }
+            else if (updateMode == MultiplayerMode.CoopClient)
+            {
+                SignalHost();
+            }
+        }
+
+        static void WaitForNetwork()
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    if (_clientConnections.IsEmpty)
+                    {
+                        break;
+                    }
+                }
+                else if (updateMode == MultiplayerMode.CoopClient)
+                {
+                    if (_towardsHost == null)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
                 Thread.Sleep(100);
             }
         }
 
+        static void DestroyAvatars()
+        {
+            foreach (var otherPlayer in playerAvatars)
+            {
+                otherPlayer.Value.Destroy();
+            }
+            playerAvatars.Clear();
+        }
     }
 }

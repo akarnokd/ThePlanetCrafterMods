@@ -14,11 +14,6 @@ namespace FeatMultiplayer
     {
         static readonly int shadowInventoryWorldIdStart = 50;
         static readonly int maxShadowInventoryCount = 25;
-        static Inventory shadowBackpack;
-        static int shadowBackpackWorldObjectId;
-        static Inventory shadowEquipment;
-        static int shadowEquipmentWorldObjectId;
-        static string playerName;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]
@@ -55,8 +50,9 @@ namespace FeatMultiplayer
             return true;
         }
 
-        static void PrepareShadowInventories(string playerName)
+        static void PrepareShadowInventories(ClientConnection cc)
         {
+            string playerName = cc.clientName;
             string playerNamePrefix = "~" + playerName + ";";
 
             int id;
@@ -67,8 +63,8 @@ namespace FeatMultiplayer
                 WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
                 if (wo != null && wo.GetText().StartsWith(playerNamePrefix))
                 {
-                    shadowBackpack = InventoriesHandler.GetInventoryById(id);
-                    shadowEquipment = InventoriesHandler.GetInventoryById(id + 1);
+                    cc.shadowBackpack = InventoriesHandler.GetInventoryById(id);
+                    cc.shadowEquipment = InventoriesHandler.GetInventoryById(id + 1);
                     break;
                 }
                 else if (wo == null)
@@ -79,14 +75,14 @@ namespace FeatMultiplayer
 
             id = shadowInventoryWorldIdStart + i;
             // The other player's shadow inventory
-            if (TryPrepareShadowInventory(id, ref shadowBackpack, out var wo2))
+            if (TryPrepareShadowInventory(id, ref cc.shadowBackpack, out var wo2))
             {
-                SetupInitialInventory();
+                SetupInitialInventory(cc);
                 wo2.SetText(playerNamePrefix);
             }
-            TryPrepareShadowInventory(id + 1, ref shadowEquipment, out _);
-            shadowBackpackWorldObjectId = id;
-            shadowEquipmentWorldObjectId = id + 1;
+            TryPrepareShadowInventory(id + 1, ref cc.shadowEquipment, out _);
+            cc.shadowBackpackWorldObjectId = id;
+            cc.shadowEquipmentWorldObjectId = id + 1;
         }
 
         static bool TryPrepareShadowInventory(int id, ref Inventory inventoryOut, out WorldObject wo)
@@ -142,7 +138,7 @@ namespace FeatMultiplayer
             }
         }
 
-        static void SetupInitialInventory()
+        static void SetupInitialInventory(ClientConnection cc)
         {
             LogInfo("SetupInitialInventory");
 
@@ -152,7 +148,7 @@ namespace FeatMultiplayer
                 stacks = Math.Min(10, Math.Max(stacks, stackSize.Value));
             }
 
-            AddToInventory(shadowBackpack, new()
+            AddToInventory(cc.shadowBackpack, new()
             {
                 { "MultiBuild", 1 },
                 { "MultiDeconstruct", 1 },
@@ -360,7 +356,7 @@ namespace FeatMultiplayer
                     inv.SetSize(perChest);
 
                     SendWorldObject(wo, false);
-                    Send(new MessageInventorySize()
+                    SendAllClients(new MessageInventorySize()
                     {
                         inventoryId = inv.GetId(),
                         size = inv.GetSize()

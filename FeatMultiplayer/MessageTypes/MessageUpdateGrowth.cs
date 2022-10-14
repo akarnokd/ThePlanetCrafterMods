@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageUpdateGrowth : MessageStringProvider
+    internal class MessageUpdateGrowth : MessageBase
     {
         internal int machineId;
         internal float growth;
@@ -34,7 +34,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "UpdateGrowth|" + machineId + "|" + growth.ToString(CultureInfo.InvariantCulture) + "|" + vegetableId + "\n";
         }

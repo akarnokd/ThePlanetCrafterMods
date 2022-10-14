@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageLogin : MessageStringProvider
+    internal class MessageLogin : MessageBase
     {
         internal string user;
         internal string password;
 
-        public string GetString()
+        public override string GetString()
         {
             return "Login|" + user + "|" + password + "\n";
         }

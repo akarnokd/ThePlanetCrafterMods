@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessagePanelChanged : MessageStringProvider
+    internal class MessagePanelChanged : MessageBase
     {
         internal int itemId;
         internal int panelId;
@@ -38,7 +38,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "PanelChanged|" + itemId + "|" + panelId + "|" + panelType + "|" + panelGroupId + "\n";
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageAllObjects
+    internal class MessageAllObjects : MessageBase
     {
         internal List<MessageWorldObject> worldObjects = new();
         
@@ -42,6 +42,11 @@ namespace FeatMultiplayer
             }
             mc = null;
             return false;
+        }
+
+        public override string GetString()
+        {
+            throw new NotImplementedException();
         }
     }
 }
