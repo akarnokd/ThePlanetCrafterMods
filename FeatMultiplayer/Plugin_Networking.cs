@@ -17,25 +17,97 @@ namespace FeatMultiplayer
         static readonly byte[] ENoClientSlotBytes = Encoding.UTF8.GetBytes("ENoClientSlot\n");
         static readonly byte[] EAccessDenied = Encoding.UTF8.GetBytes("EAccessDenied\n");
 
-        static readonly ConcurrentQueue<object> _sendQueue = new ConcurrentQueue<object>();
-        static readonly AutoResetEvent _sendQueueBlock = new AutoResetEvent(false);
-        static readonly ConcurrentQueue<object> receiveQueue = new ConcurrentQueue<object>();
+        static readonly ConcurrentQueue<object> receiveQueue = new();
 
         static CancellationTokenSource stopNetwork;
         static volatile bool clientConnected;
         static volatile bool networkConnected;
 
-        static void Send(object message)
+        static int _uniqueClientId;
+        static readonly ConcurrentDictionary<int, ClientConnection> _clientConnections = new();
+
+        static volatile ClientConnection _towardsHost;
+
+        static void SendHost(object obj)
         {
-            if (otherPlayer != null)
+            _towardsHost?.Send(obj);
+        }
+
+        static void SendClient(int clientId, object obj)
+        {
+            if (_clientConnections.TryGetValue(clientId, out var cc))
             {
-                _sendQueue.Enqueue(message);
+                cc.Send(obj);
+            }
+            else
+            {
+                LogWarning("Unknown client or client already disconnected: " + clientId);
             }
         }
-        static void Signal()
+
+        static void SendAllClients(object obj)
         {
-            _sendQueueBlock.Set();
+            foreach (var kv in _clientConnections)
+            {
+                kv.Value.Send(obj);
+            }
         }
+
+        /// <summary>
+        /// Send a message to all clients, except one client.
+        /// Typically used when dispatching a message from one
+        /// client to the rest of the clients on the host.
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <param name="obj"></param>
+        static void SendAllClientsExcept(int clientId, object obj)
+        {
+            foreach (var kv in _clientConnections)
+            {
+                if (kv.Key != clientId)
+                {
+                    kv.Value.Send(obj);
+                }
+            }
+        }
+
+        static void SignalHost()
+        {
+            _towardsHost?.Signal();
+        }
+
+        static void SignalClient(int clientId)
+        {
+            if (_clientConnections.TryGetValue(clientId, out var cc))
+            {
+                cc.Signal();
+            }
+            else
+            {
+                LogWarning("Unknown client or client already disconnected: " + clientId);
+            }
+        }
+
+        static void SignalAllClients()
+        {
+            foreach (var kv in _clientConnections)
+            {
+                kv.Value.Signal();
+            }
+        }
+
+        static void SignalAllClientsExcept(int clientId)
+        {
+            foreach (var kv in _clientConnections)
+            {
+                if (kv.Key != clientId)
+                {
+                    kv.Value.Signal();
+                }
+            }
+        }
+
+
         static void StartAsHost()
         {
             stopNetwork = new CancellationTokenSource();
@@ -61,15 +133,20 @@ namespace FeatMultiplayer
                         networkConnected = false;
                         client.Close();
                     });
-                    Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+                    var cc = new ClientConnection(0);
+                    _towardsHost = cc;
+                    cc.tcpClient = client;
+
+                    Task.Factory.StartNew(SenderLoop, cc, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                     Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-                    _sendQueue.Enqueue(new MessageLogin
+                    cc.Send(new MessageLogin
                     {
                         user = clientJoinName,
                         password = clientJoinPassword
                     });
-                    Signal();
+                    cc.Signal();
                 }
                 catch (Exception ex)
                 {
@@ -167,9 +244,10 @@ namespace FeatMultiplayer
             {
                 LogInfo("New Client from " + client.Client.RemoteEndPoint);
                 clientConnected = true;
-                _sendQueue.Clear();
-                receiveQueue.Clear();
-                Task.Factory.StartNew(SenderLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+                var cc = CreateNewClient();
+                cc.tcpClient = client;
+                Task.Factory.StartNew(SenderLoop, cc, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 Task.Factory.StartNew(ReceiveLoop, client, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
         }
@@ -177,7 +255,10 @@ namespace FeatMultiplayer
         static void SenderLoop(object clientObj)
         {
             LogInfo("SenderLoop begin");
-            var client = (TcpClient)clientObj;
+            var clientConnection = (ClientConnection)clientObj;
+            var client = clientConnection.tcpClient;
+            var _sendQueue = clientConnection._sendQueue;
+            var _sendQueueBlock = clientConnection._sendQueueBlock;
             try
             {
                 try
@@ -249,6 +330,14 @@ namespace FeatMultiplayer
             }
             receiveQueue.Enqueue("Disconnected");
             networkConnected = false;
+            if (clientConnection == _towardsHost)
+            {
+                _towardsHost = null;
+            }
+            else
+            {
+                RemoveClient(clientConnection);
+            }
         }
 
         static void ReceiveLoop(object clientObj)
@@ -297,6 +386,56 @@ namespace FeatMultiplayer
             }
             receiveQueue.Enqueue("Disconnected");
             networkConnected = false;
+        }
+
+        static ClientConnection CreateNewClient()
+        {
+            int id = Interlocked.Increment(ref _uniqueClientId);
+            var cc = new ClientConnection(id);
+            _clientConnections[id] = cc;
+            return cc;
+        }
+
+        static void RemoveClient(ClientConnection cc)
+        {
+            if (!_clientConnections.TryRemove(cc.id, out _))
+            {
+                LogWarning("Client " + cc.id + " not found among the connections!");
+            }
+        }
+
+        /// <summary>
+        /// Represents the dedicated sender queue towards a specific client.
+        /// 
+        /// The receiver queue is shared.
+        /// </summary>
+        internal class ClientConnection
+        {
+            internal readonly int id;
+
+            internal TcpClient tcpClient;
+
+            internal PlayerAvatar otherPlayer;
+
+            internal readonly ConcurrentQueue<object> _sendQueue = new ConcurrentQueue<object>();
+            internal readonly AutoResetEvent _sendQueueBlock = new AutoResetEvent(false);
+
+            public ClientConnection(int id)
+            {
+                this.id = id;
+            }
+
+            internal void Send(object message)
+            {
+                if (otherPlayer != null)
+                {
+                    _sendQueue.Enqueue(message);
+                }
+            }
+            internal void Signal()
+            {
+                _sendQueueBlock.Set();
+            }
         }
     }
 }
