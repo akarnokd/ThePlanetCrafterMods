@@ -10,10 +10,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using System.Linq;
+using static SpaceCraft.DataConfig;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.2")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -225,71 +226,143 @@ namespace CheatAutoSequenceDNA
 
                     if (incubator.GetGrowth() == 0)
                     {
-                        log("    Collecting ingredients");
-                        bool hasLarvae = false;
-                        bool hasMutagen = false;
-                        bool hasFertilizer = false;
+                        log("    Picking Recipe");
 
-                        foreach (var wo in currentItems)
+                        var spawnTarget = PickRecipe(DataConfig.CraftableIn.CraftInsectsT1);
+
+                        if (spawnTarget != null)
                         {
-                            var gid = wo.GetGroup().GetId();
-                            if (gid.StartsWith("LarvaeBase"))
+                            log("    Picked: " + spawnTarget.id + " (\"" + Readable.GetGroupName(spawnTarget) + "\") @ Chance = " + spawnTarget.GetChanceToSpawn() + " %");
+
+                            List<Group> ingredients = new(spawnTarget.GetRecipe().GetIngredientsGroupInRecipe());
+                            List<WorldObject> available = new(currentItems);
+                            List<Group> missing = new();
+
+                            int ingredientsFulfilled = 0;
+
+                            log("    Checking inventory for ingredients");
+                            // check each ingredient
+                            foreach (var ingredient in ingredients)
                             {
-                                hasLarvae = true;
-                            }
-                            hasMutagen |= gid == "Mutagen1";
-                            hasFertilizer |= gid == "Fertilizer1";
-                        }
-
-                        if (!hasLarvae)
-                        {
-                            hasLarvae = TryCollect(incubatorInv, "LarvaeBase", itemCategories, "Larvae");
-                        }
-                        if (!hasMutagen)
-                        {
-                            hasMutagen = TryCollect(incubatorInv, "Mutagen1", itemCategories, "Mutagen");
-                        }
-                        if (!hasFertilizer)
-                        {
-                            hasFertilizer = TryCollect(incubatorInv, "Fertilizer1", itemCategories, "Fertilizer");
-                        }
-
-                        if (hasLarvae && hasMutagen && hasFertilizer)
-                        {
-                            var spawnTarget = Analyze(currentItems, DataConfig.CraftableIn.CraftInsectsT1);
-                            if (spawnTarget != null)
-                            {
-                                log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
-
-                                incubator.SetGrowth(1f);
-                                incubator.SetLinkedGroups(new List<Group> { spawnTarget });
-
-                                var t = Time.time + 0.01f;
-                                foreach (WorldObject wo in incubatorInv.GetInsideWorldObjects())
+                                var igid = ingredient.GetId();
+                                bool found = false;
+                                // do we have it already in the inventory
+                                for (int i = 0; i < available.Count; i++)
                                 {
-                                    wo.SetLockInInventoryTime(t);
+                                    WorldObject curr = available[i];
+                                    if (curr != null && curr.GetGroup().GetId() == igid)
+                                    {
+                                        available[i] = null;
+                                        found = true;
+                                        break;
+                                    }
                                 }
-                                StartCoroutine(RefreshDisplayer(0.1f, incubatorInv));
+                                if (!found)
+                                {
+                                    log("      Not in inventory: " + ingredient.id);
+                                    missing.Add(ingredient);
+                                }
+                                else
+                                {
+                                    ingredientsFulfilled++;
+                                    log("      Found in inventory: " + ingredient.id);
+                                }
                             }
+
+                            List<IngredientSource> toTransfer = new();
+
+                            if (missing.Count != 0)
+                            {
+                                log("    Checking containers for missing ingredients");
+                                Dictionary<string, List<IngredientSource>> sourcesPerCategory = new();
+
+                                foreach (var m in missing)
+                                {
+                                    var cat = GetCategoryFor(m.id);
+                                    if (!sourcesPerCategory.TryGetValue(cat, out var sources))
+                                    {
+                                        List<IngredientSource> ingredientSources = new();
+                                        FindIngredientsIn(m.id, itemCategories, cat, ingredientSources);
+
+                                        sourcesPerCategory[cat] = ingredientSources;
+                                    }
+                                }
+
+                                foreach (var m in missing)
+                                {
+                                    var cat = GetCategoryFor(m.id);
+                                    var sources = sourcesPerCategory[cat];
+                                    bool found = false;
+                                    for (int i = 0; i < sources.Count; i++)
+                                    {
+                                        var source = sources[i];
+                                        if (source != null && source.ingredient == m.id)
+                                        {
+                                            sources[i] = null;
+                                            toTransfer.Add(source);
+                                            ingredientsFulfilled++;
+                                            found = true;
+                                            log("      Ingredient Found " + m.id);
+                                            break;
+                                        }
+                                    }
+                                    if (!found)
+                                    {
+                                        log("      No source for ingredient " + m.id);
+                                    }
+                                }
+                            }
+
+                            log("    Recipe check: Found = " + ingredientsFulfilled + ", Required = " + ingredients.Count);
+                            if (ingredientsFulfilled == ingredients.Count)
+                            {
+                                bool transferSuccess = true;
+                                if (toTransfer.Count != 0)
+                                {
+                                    log("      Transferring ingredients");
+                                    foreach (var tt in toTransfer)
+                                    {
+                                        if (incubatorInv.AddItem(tt.wo))
+                                        {
+                                            log("        From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " SUCCESS");
+                                            tt.source.RemoveItem(tt.wo);
+                                        }
+                                        else
+                                        {
+                                            log("        From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " FAILED: inventory full");
+                                            transferSuccess = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (transferSuccess)
+                                {
+                                    log("    Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
+
+                                    incubator.SetGrowth(1f);
+                                    incubator.SetLinkedGroups(new List<Group> { spawnTarget });
+
+                                    var t = Time.time + 0.01f;
+                                    foreach (WorldObject wo in incubatorInv.GetInsideWorldObjects())
+                                    {
+                                        wo.SetLockInInventoryTime(t);
+                                    }
+                                    StartCoroutine(RefreshDisplayer(0.1f, incubatorInv));
+                                }
+                                else
+                                {
+                                    log("    Sequencing not possible: could not transfer all ingredients into the inventory");
+                                }
+                            } 
                             else
                             {
-                                log("    Sequencing: No applicable DNA sequence found");
+                                log("    Sequencing: Ingredients still missing");
                             }
-                        }
+                        } 
                         else
                         {
-                            if (!hasLarvae)
-                            {
-                                log("      Missing Larvae ingredient");
-                            }
-                            if (!hasMutagen)
-                            {
-                                log("      Missing Mutagen ingredient");
-                            }
-                            if (!hasFertilizer)
-                            {
-                                log("      Missing Fertilizer ingredient");
-                            }
+                            log("    Sequencing: No applicable DNA sequence found");
                         }
                     }
                     else
@@ -303,6 +376,50 @@ namespace CheatAutoSequenceDNA
                 log("  No incubators found.");
             }
             log("Done<Incubators>");
+        }
+
+        static string GetCategoryFor(string ingredientGroupId)
+        {
+            if (ingredientGroupId.StartsWith("LarvaeBase"))
+            {
+                return "Larvae";
+            }
+            else if (ingredientGroupId.StartsWith("Mutagen"))
+            {
+                return "Mutagen";
+            }
+            else if (ingredientGroupId.StartsWith("Fertilizer"))
+            {
+                return "Fertilizer";
+            }
+            return "";
+        }
+
+        static bool CheckCanCraftWith(string gid, DataConfig.CraftableIn craftableIn, HashSet<string> ingredientSet)
+        {
+            var gr = GroupsHandler.GetGroupViaId(gid);
+            if (gr.GetUnlockingInfos().GetIsUnlocked())
+            {
+                foreach (var gi in GroupsHandler.GetGroupsItem())
+                {
+                    if (gi.CanBeCraftedIn(craftableIn) && gi.GetUnlockingInfos().GetIsUnlocked())
+                    {
+                        var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
+                        foreach (var rgi in recipe)
+                        {
+                            if (rgi.id == gid)
+                            {
+                                foreach (var rgi2 in recipe)
+                                {
+                                    ingredientSet.Add(rgi2.id);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return ingredientSet.Count != 0;
         }
 
         void HandleSequencers()
@@ -449,6 +566,20 @@ namespace CheatAutoSequenceDNA
             log("Done<Sequencers>");
         }
 
+        GroupItem PickRecipe(DataConfig.CraftableIn craftableIn)
+        {
+            List<GroupItem> candidates = new();
+            foreach (var gi in GroupsHandler.GetGroupsItem())
+            {
+                if (gi.CanBeCraftedIn(craftableIn) && gi.GetUnlockingInfos().GetIsUnlocked())
+                {
+                    candidates.Add(gi);
+                }
+            }
+
+            return PickRandomCandidate(candidates);
+        }
+
         GroupItem Analyze(List<WorldObject> currentItems, DataConfig.CraftableIn craftableIn)
         {
             List<Group> inputGroups = new();
@@ -472,6 +603,11 @@ namespace CheatAutoSequenceDNA
                 }
             }
 
+            return PickRandomCandidate(candidates);
+        }
+
+        GroupItem PickRandomCandidate(List<GroupItem> candidates)
+        {
             log("    Candidate pool:");
             foreach (var gi in candidates)
             {
@@ -493,7 +629,7 @@ namespace CheatAutoSequenceDNA
                     int index = UnityEngine.Random.Range(0, set.Count);
                     var candidate = set[index];
 
-                    if (candidate.GetChanceToSpawn() == 0f 
+                    if (candidate.GetChanceToSpawn() == 0f
                         || candidate.GetChanceToSpawn() >= UnityEngine.Random.Range(0, 100))
                     {
                         return candidate;
@@ -535,6 +671,38 @@ namespace CheatAutoSequenceDNA
                 return;
             }
             log("        Into      : Failed - no target containers found");
+        }
+
+        class IngredientSource
+        {
+            internal string ingredient;
+            internal Inventory source;
+            internal WorldObject wo;
+        }
+        
+        void FindIngredientsIn(string gid, Dictionary<string, List<WorldObject>> itemCategories, string itemKey, List<IngredientSource> result)
+        {
+            if (itemCategories.TryGetValue(itemKey, out var containers))
+            {
+                foreach (var container in containers)
+                {
+                    Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
+
+                    foreach (var wo in inv.GetInsideWorldObjects())
+                    {
+                        var woGid = wo.GetGroup().GetId();
+                        if (woGid == gid)
+                        {
+                            result.Add(new IngredientSource
+                            {
+                                ingredient = woGid,
+                                source = inv,
+                                wo = wo
+                            });
+                        }
+                    }
+                }
+            }
         }
 
         bool TryCollect(Inventory destination, string gid, 
