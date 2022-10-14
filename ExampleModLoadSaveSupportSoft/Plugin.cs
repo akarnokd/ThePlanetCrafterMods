@@ -53,7 +53,7 @@ namespace ExampleModLoadSaveSupportSoft
 
             logger = Logger;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            //Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         void OnDestroy()
