@@ -62,11 +62,10 @@ namespace FeatMultiplayer
             {
                 if (gameSettingMode != DataConfig.GameSettingMode.Chill)
                 {
-                    Send(new MessageDeath()
+                    SendHost(new MessageDeath()
                     {
                         position = _playerMainController.transform.position
-                    });
-                    Signal();
+                    }, true);
 
                     if (gameSettingMode == DataConfig.GameSettingMode.Standard)
                     {
@@ -124,7 +123,7 @@ namespace FeatMultiplayer
                     case DataConfig.GameSettingMode.Standard:
                         {
                             LogInfo("ReceiveMessageDeath: Standard @ " + mdt.position);
-                            var inv = shadowBackpack;
+                            var inv = mdt.sender.shadowBackpack;
                             var list = inv.GetInsideWorldObjects();
 
                             var dropProbability = 50;
@@ -149,23 +148,23 @@ namespace FeatMultiplayer
 
                                 // make the chest disappear upon emptying it
                                 mdt.chestId = chestId;
-                                Send(mdt);
-                                Signal();
+                                mdt.sender.Send(mdt);
+                                mdt.sender.Signal();
                             }
                             break;
                         }
                     case DataConfig.GameSettingMode.Intense:
                         {
                             LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
-                            DeathClearInventory(shadowBackpack);
+                            DeathClearInventory(mdt.sender.shadowBackpack);
 
                             break;
                         }
                     case DataConfig.GameSettingMode.Hardcore:
                         {
                             LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
-                            DeathClearInventory(shadowBackpack);
-                            DeathClearInventory(shadowEquipment);
+                            DeathClearInventory(mdt.sender.shadowBackpack);
+                            DeathClearInventory(mdt.sender.shadowEquipment);
 
                             break;
                         }
@@ -226,13 +225,12 @@ namespace FeatMultiplayer
             ddc.inventory = inv;
             ddc.BeginTrack();
 
-            SendWorldObject(wo, false);
-            Send(new MessageInventorySize()
+            SendWorldObjectToClients(wo, false);
+            SendAllClients(new MessageInventorySize()
             {
                 inventoryId = inv.GetId(),
                 size = inv.GetSize()
-            });
-            Signal();
+            }, true);
             chestId = wo.GetId();
             return inv;
         }

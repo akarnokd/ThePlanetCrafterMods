@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageInventoryAdded : MessageBase
+    internal class MessageInventoryAdded : MessageInventoryChanged
     {
-        internal int inventoryId;
-        internal int itemId;
         internal string groupId;
 
         internal static bool TryParse(string str, out MessageInventoryAdded mia)

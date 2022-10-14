@@ -12,8 +12,15 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+        /// <summary>
+        /// The id at which the shadow inventory world objects start.
+        /// </summary>
         static readonly int shadowInventoryWorldIdStart = 50;
         static readonly int maxShadowInventoryCount = 25;
+        /// <summary>
+        /// The id at which the shadow inventory world objects end + 1.
+        /// </summary>
+        static readonly int shadowInventoryWorldIdEnd = shadowInventoryWorldIdStart + 2 * maxShadowInventoryCount;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GaugesConsumptionHandler), nameof(GaugesConsumptionHandler.GetThirstConsumptionRate))]

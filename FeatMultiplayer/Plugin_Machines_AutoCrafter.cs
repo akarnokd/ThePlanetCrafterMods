@@ -119,7 +119,7 @@ namespace FeatMultiplayer
 
             if (ingredientFound == recipe.Count)
             {
-                if (TryCreateInInventoryAndNotify(linkedGroup, outputInventory, out _))
+                if (TryCreateInInventoryAndNotify(linkedGroup, outputInventory, null, out _))
                 {
                     WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
                     __instance.CraftAnimation((GroupItem)linkedGroup);
@@ -154,8 +154,15 @@ namespace FeatMultiplayer
                         groupIds.Add(gr.GetId());
                     }
                 }
-                Send(new MessageSetLinkedGroups { id = ___worldObject.GetId(), groupIds = groupIds });
-                Signal();
+                var msg = new MessageSetLinkedGroups { id = ___worldObject.GetId(), groupIds = groupIds };
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(msg, true);
+                }
+                else
+                {
+                    SendHost(msg, true);
+                }
             }
         }
     }

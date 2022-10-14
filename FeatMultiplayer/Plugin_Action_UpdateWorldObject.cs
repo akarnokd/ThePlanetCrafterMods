@@ -125,23 +125,32 @@ namespace FeatMultiplayer
             }
         }
 
-        static void SendWorldObject(WorldObject worldObject, bool makeGrabable)
+        static void SendWorldObjectToClients(WorldObject worldObject, bool makeGrabable)
+        {
+            SendAllClients(CreateUpdateWorldObject(worldObject, makeGrabable), true);
+        }
+
+        static void SendWorldObjectToHost(WorldObject worldObject, bool makeGrabable)
+        {
+            SendHost(CreateUpdateWorldObject(worldObject, makeGrabable), true);
+        }
+
+        static string CreateUpdateWorldObject(WorldObject worldObject, bool makeGrabable)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("UpdateWorldObject|");
             MessageWorldObject.AppendWorldObject(sb, '|', worldObject, makeGrabable);
-
-            LogInfo("Sending> " + sb.ToString());
-
-            sb.Append("\r");
-            Send(sb.ToString());
-            Signal();
+            return sb.ToString();
         }
 
         static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
         {
             LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
             UpdateWorldObject(mc.worldObject);
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                SendAllClientsExcept(mc.sender.id, mc);
+            }
         }
 
         static void UpdatePanelsOn(WorldObject wo)
@@ -225,6 +234,11 @@ namespace FeatMultiplayer
                     {
                         window.SetGroupSelectorWorldObject(wo);
                     }
+                }
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClientsExcept(mslg.sender.id, mslg);
                 }
             }
         }

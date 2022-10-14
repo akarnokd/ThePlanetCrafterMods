@@ -30,8 +30,7 @@ namespace FeatMultiplayer
                 __instance.containerList.SetActive(false);
                 if (updateMode == MultiplayerMode.CoopClient)
                 {
-                    Send(new MessageMicrochipUnlock());
-                    Signal();
+                    SendHost(new MessageMicrochipUnlock(), true);
                 }
                 else
                 {
@@ -42,11 +41,10 @@ namespace FeatMultiplayer
                         GetPlayerMainController().GetPlayerBackpack().GetInventory()
                             .RemoveItems(new List<Group> { ___groupChip }, true, true);
 
-                        Send(new MessageMicrochipUnlock()
+                        SendAllClients(new MessageMicrochipUnlock()
                         {
                             groupId = unlocked.GetId()
-                        });
-                        Signal();
+                        }, true);
                     }
                     else
                     {
@@ -89,7 +87,7 @@ namespace FeatMultiplayer
                 if (gr != null)
                 {
                     mmu.groupId = gr.GetId();
-                    var inv = shadowBackpack;
+                    var inv = mmu.sender.shadowBackpack;
                     var microGroup = GroupsHandler.GetGroupViaId("BlueprintT1");
                     inv.RemoveItems(new List<Group>() { microGroup }, true, false);
                 }
@@ -97,8 +95,7 @@ namespace FeatMultiplayer
                 {
                     mmu.groupId = "";
                 }
-                Send(mmu);
-                Signal();
+                SendAllClients(mmu, true);
             }
             else
             {

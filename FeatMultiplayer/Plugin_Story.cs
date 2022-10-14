@@ -44,11 +44,10 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Send(new MessageMessageAdd()
+                SendAllClients(new MessageMessageAdd()
                 {
                     messageId = _messageData.stringId
-                });
-                Signal();
+                }, true);
             }
         }
 
@@ -62,7 +61,7 @@ namespace FeatMultiplayer
             {
                 mm.messages.Add(m.GetMessageData().stringId);
             }
-            Send(mm);
+            SendAllClients(mm);
         }
 
         static void SendStoryEvents()
