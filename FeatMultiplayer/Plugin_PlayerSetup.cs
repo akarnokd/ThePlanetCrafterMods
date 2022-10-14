@@ -362,7 +362,7 @@ namespace FeatMultiplayer
                     var inv = go.GetComponent<InventoryAssociated>().GetInventory();
                     inv.SetSize(perChest);
 
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
                     SendAllClients(new MessageInventorySize()
                     {
                         inventoryId = inv.GetId(),

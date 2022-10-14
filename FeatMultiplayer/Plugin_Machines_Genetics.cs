@@ -138,15 +138,20 @@ namespace FeatMultiplayer
                 LockInventory(__instance, ___inventoryRight);
                 __instance.StartCoroutine(GetUpdateUiCoroutine(__instance));
 
-                Send(new MessageGeneticsAction()
+                var msg = new MessageGeneticsAction()
                 {
                     machineId = ___worldObject.GetId(),
                     groupId = ___matchingGroup.GetId()
-                });
-                Signal();
+                };
+
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
-                    SendWorldObject(___worldObject, false);
+                    SendAllClients(msg, true);
+                    SendWorldObjectToClients(___worldObject, false);
+                }
+                else
+                {
+                    SendHost(msg, true);
                 }
                 return false;
             }
@@ -174,23 +179,21 @@ namespace FeatMultiplayer
 
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Send(new MessageGeneticsAction()
+                SendAllClients(new MessageGeneticsAction()
                 {
                     machineId = ___worldObject.GetId(),
                     groupId = ""
-                });
-                Signal();
-                SendWorldObject(___worldObject, false);
+                }, true);
+                SendWorldObjectToClients(___worldObject, false);
             }
             else
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                Send(new MessageGeneticsAction()
+                SendHost(new MessageGeneticsAction()
                 {
                     machineId = ___worldObject.GetId(),
                     groupId = ""
-                });
-                Signal();
+                }, true);
             }
         }
 
@@ -261,7 +264,7 @@ namespace FeatMultiplayer
                             {
                                 machineGrowerIfLinkedGroupSetInteractiveStatus.Invoke(instance, new object[] { true, false });
                             }
-                            SendWorldObject(machineWo, false);
+                            SendWorldObjectToClients(machineWo, false);
                         }
                         else
                         {
@@ -317,11 +320,11 @@ namespace FeatMultiplayer
                                 ___inventory.RemoveItem(innerWo, true);
                             }
                             WorldObject product = WorldObjectsHandler.CreateNewWorldObject(groupItem, 0);
-                            SendWorldObject(product, false);
+                            SendWorldObjectToClients(product, false);
                             ___inventory.AddItem(product);
                             ___worldObject.SetGrowth(0f);
                             ___worldObject.SetLinkedGroups(null);
-                            SendWorldObject(___worldObject, false);
+                            SendWorldObjectToClients(___worldObject, false);
                         }
                     }
                 }
@@ -356,7 +359,7 @@ namespace FeatMultiplayer
                             inv.RefreshDisplayerContent();
                             if (updateMode == MultiplayerMode.CoopHost)
                             {
-                                SendWorldObject(machineWo, false);
+                                SendWorldObjectToClients(machineWo, false);
                             }
                         }
                         else
@@ -370,7 +373,7 @@ namespace FeatMultiplayer
                                     machineWo.SetLinkedGroups(new List<Group> { gr });
                                     if (updateMode == MultiplayerMode.CoopHost)
                                     {
-                                        SendWorldObject(machineWo, false);
+                                        SendWorldObjectToClients(machineWo, false);
                                     }
 
                                     LockInventory(invAssoc, inv);

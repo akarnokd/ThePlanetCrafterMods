@@ -55,6 +55,7 @@ namespace FeatMultiplayer
 
                         PrepareShadowInventories(cc);
                         var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+                        playerAvatars[cc.clientName] = avatar;
 
                         cc.Send("Welcome\n");
                         cc.Signal();
@@ -70,6 +71,7 @@ namespace FeatMultiplayer
                         LaunchMeteorEventAfterLogin();
                         SendMessages();
                         SendStoryEvents();
+                        SignalOtherPlayers(cc);
 
                         SendSavedPlayerPosition(cc);
                         return;
@@ -82,12 +84,14 @@ namespace FeatMultiplayer
             }
         }
 
-        static void ReceiveWelcome()
+        static void ReceiveWelcome(MessagePlayerWelcome mpw)
         {
             Color color = Color.white;
+            Color myColor = Color.white;
             try
             {
                 color = MessageHelper.StringToColor(hostColor.Value);
+                myColor = MessageHelper.StringToColor(clientColor.Value);
             }
             catch (Exception)
             {
@@ -97,6 +101,7 @@ namespace FeatMultiplayer
             playerAvatars[""] = avatar; // host is always ""
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;
+            SendHost(new MessagePlayerColor { playerName = "", color = myColor }, true);
         }
 
         static void ReceiveMessageClientDisconnected(MessageClientDisconnected mcd)

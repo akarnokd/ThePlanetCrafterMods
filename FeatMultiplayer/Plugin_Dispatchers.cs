@@ -266,6 +266,11 @@ namespace FeatMultiplayer
                 Receive(cc, mpl);
             }
             else
+            if (MessagePlayerColor.TryParse(message, out var mpc2))
+            {
+                Receive(cc, mpc2);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -531,7 +536,12 @@ namespace FeatMultiplayer
                     }
                 case MessagePlayerWelcome mpw:
                     {
-                        ReceiveMessagePlayerWelcome();
+                        ReceiveWelcome(mpw);
+                        break;
+                    }
+                case MessagePlayerColor mpc1:
+                    {
+                        ReceiveMessagePlayerColor(mpc1);
                         break;
                     }
                 default:

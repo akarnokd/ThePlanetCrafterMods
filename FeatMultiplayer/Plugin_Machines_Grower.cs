@@ -172,12 +172,11 @@ namespace FeatMultiplayer
                             growth = Mathf.RoundToInt(goMockup.transform.localScale.x * 100f);
                             growerMachine.SetGrowth(growth);
 
-                            Send(new MessageUpdateGrowth()
+                            SendAllClients(new MessageUpdateGrowth()
                             {
                                 machineId = growerMachine.GetId(),
                                 growth = growth
-                            });
-                            Signal();
+                            }, true);
                         }
                         else
                         {
@@ -190,13 +189,13 @@ namespace FeatMultiplayer
                                 var vegetableWo = WorldObjectsHandler.CreateNewWorldObject(vegetableGroup);
                                 vegetableWo.SetPositionAndRotation(instance.spawnPoint.transform.position, goMockup.transform.rotation);
 
-                                SendWorldObject(vegetableWo, true);
-                                Send(new MessageUpdateGrowth()
+                                SendWorldObjectToClients(vegetableWo, true);
+                                SendAllClients(new MessageUpdateGrowth()
                                 {
                                     machineId = growerMachine.GetId(),
                                     growth = growth,
                                     vegetableId = vegetableWo.GetId()
-                                }); ;
+                                }, true);
 
                                 var vegetableGo = WorldObjectsHandler.InstantiateWorldObject(vegetableWo, false);
 
@@ -218,13 +217,12 @@ namespace FeatMultiplayer
                             }
                             else
                             {
-                                Send(new MessageUpdateGrowth()
+                                SendAllClients(new MessageUpdateGrowth()
                                 {
                                     machineId = growerMachine.GetId(),
                                     growth = 100f,
                                     vegetableId = -1 // nothing to spawn when fully grown
-                                });
-                                Signal();
+                                }, true);
                             }
                         }
                     }

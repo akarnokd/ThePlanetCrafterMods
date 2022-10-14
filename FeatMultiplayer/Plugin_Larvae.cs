@@ -189,8 +189,9 @@ namespace FeatMultiplayer
         static List<Vector3> GetAllPlayerLocations()
         {
             List<Vector3> transforms = new();
+
             transforms.Add(GetPlayerMainController().transform.position);
-            if (otherPlayer != null)
+            foreach (var otherPlayer in playerAvatars.Values)
             {
                 transforms.Add(otherPlayer.rawPosition);
             }
@@ -281,7 +282,7 @@ namespace FeatMultiplayer
 
                         LogInfo("Larvae; Spawning new [" + ___larvaesSpawned.Count + "] chance = " + spawnCandidate.chanceToSpawn + ", " + DebugWorldObject(larvaeWo));
 
-                        SendWorldObject(larvaeWo, false);
+                        SendWorldObjectToClients(larvaeWo, false);
 
                         break;
                     }
@@ -325,7 +326,7 @@ namespace FeatMultiplayer
                                 {
                                     LogInfo("Larvae; Removing " + DebugWorldObject(wo));
                                     wo.ResetPositionAndRotation();
-                                    SendWorldObject(wo, false);
+                                    SendWorldObjectToClients(wo, false);
 
                                     WorldObjectsHandler.DestroyWorldObject(wo);
                                 }

@@ -188,7 +188,7 @@ namespace FeatMultiplayer
                     ___instantiatedGameObjects.Add(spawn);
 
                     LogInfo("MachineOutsideGrower: Spawn new " + spi.machineId + ", " + id);
-                    Send(new MessageGrowAdd()
+                    SendAllClients(new MessageGrowAdd()
                     {
                         machineId = spi.machineId,
                         spawnId = id,
@@ -197,8 +197,7 @@ namespace FeatMultiplayer
                         growSize = ___growSize,
                         position = spawn.transform.position,
                         rotation = spawn.transform.rotation,
-                    });
-                    Signal();
+                    }, true);
                 }
 
                 return false;
@@ -208,12 +207,11 @@ namespace FeatMultiplayer
 
         static void OnGrabSpawn(int machineId, int spawnId, Action respawn)
         {
-            Send(new MessageGrowRemove()
+            SendAllClients(new MessageGrowRemove()
             {
                 machineId = machineId,
                 spawnId = spawnId,
-            });
-            Signal();
+            }, true);
             respawn();
         }
 
@@ -275,7 +273,7 @@ namespace FeatMultiplayer
 
                             var spi = spawn.GetComponent<OutsideGrowerSpawnInfo>();
 
-                            Send(new MessageGrowAdd()
+                            SendAllClients(new MessageGrowAdd()
                             {
                                 machineId = ___worldObjectGrower.GetId(),
                                 spawnId = spi.spawnId,
@@ -287,7 +285,7 @@ namespace FeatMultiplayer
                             });
                         }
                     }
-                    Signal();
+                    SignalAllClients();
                     if (allFullGrown)
                     {
                         ___worldObjectGrower.SetGrowth(100f);
@@ -401,13 +399,13 @@ namespace FeatMultiplayer
                                         LogWarning("ReceiveMessageGrowRemove: Grabbing: " + mgr.machineId + " -> "
                                             + mgr.spawnId + " -> " + DebugWorldObject(woSpawn));
 
-                                        SendWorldObject(woSpawn, false);
-                                        Inventory inv = shadowBackpack;
+                                        SendWorldObjectToClients(woSpawn, false);
+                                        Inventory inv = mgr.sender.shadowBackpack;
                                         if (inv.AddItem(woSpawn))
                                         {
                                             woSpawn.SetDontSaveMe(false);
-                                            Send(mgr);
-                                            Signal();
+                                            mgr.sender.Send(mgr);
+                                            mgr.sender.Signal();
 
                                             sid.doRespawn?.Invoke();
                                             Destroy(spawn.gameObject);

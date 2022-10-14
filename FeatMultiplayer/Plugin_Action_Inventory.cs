@@ -1069,7 +1069,7 @@ namespace FeatMultiplayer
         /// </summary>
         /// <param name="group">The item type to create</param>
         /// <param name="inventory">The target inventory to create into</param>
-        /// <param name="cc">The client whose inventory is targeted</param>
+        /// <param name="cc">The client whose inventory is targeted or null for all clients</param>
         /// <param name="worldObjectCreated">The object created</param>
         /// <returns>True if successful, false if the target inventory is full.</returns>
         static bool TryCreateInInventoryAndNotify(Group group, Inventory inventory, 

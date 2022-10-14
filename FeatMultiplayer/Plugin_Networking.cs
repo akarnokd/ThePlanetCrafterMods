@@ -155,6 +155,7 @@ namespace FeatMultiplayer
                     });
 
                     var cc = new ClientConnection(0);
+                    cc.clientName = ""; // host is always ""
                     _towardsHost = cc;
                     cc.tcpClient = client;
 

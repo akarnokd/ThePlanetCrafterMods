@@ -196,14 +196,40 @@ namespace FeatMultiplayer
             {
                 throw new ArgumentNullException(nameof(o));
             }
-            // FIXME use the client id to send to the proper client.
-            Send(new MessageCustom() { o = o });
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(new MessageCustom() { o = o });
+                }
+                else
+                {
+                    SendHost(new MessageCustom() { o = o });
+                }
+            }
+            else
+            {
+                SendClient(clientId, o);
+            }
         }
 
         static void ApiSignal(int clientId)
         {
-            // FIXME use the client id to signal the proper network stack.
-            Signal();
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SignalAllClients();
+                }
+                else
+                {
+                    SignalHost();
+                }
+            }
+            else
+            {
+                SignalClient(clientId);
+            }
         }
 
         static void ApiSendWorldObject(int clientId, WorldObject wo)
@@ -212,8 +238,17 @@ namespace FeatMultiplayer
             {
                 throw new ArgumentNullException(nameof(wo));
             }
-            // FIXME use the client id to send to the proper client.
-            SendWorldObject(wo, false);
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendWorldObjectToClients(wo, false);
+                }
+                else
+                {
+                    SendWorldObjectToHost(wo, false);
+                }
+            }
         }
 
         static void ApiSuppressInventoryChangeWhile(object o, Action<object> action)
@@ -231,24 +266,52 @@ namespace FeatMultiplayer
 
         static Inventory ApiGetClientBackpack(int clientId)
         {
-            // FIXME use the client id to send to the proper client.
-            return shadowBackpack;
+            if (_clientConnections.TryGetValue(clientId, out var cc))
+            {
+                return cc.shadowBackpack;
+            }
+            return null;
         }
 
         static Inventory ApiGetClientEquipment(int clientId)
         {
-            // FIXME use the client id to send to the proper client.
-            return shadowEquipment;
+            if (_clientConnections.TryGetValue(clientId, out var cc))
+            {
+                return cc.shadowEquipment;
+            }
+            return null;
         }
 
         static void ApiSendInventory(int clientId, Inventory inventory)
         {
             // FIXME use the client id to send to the proper client.
-            Send(new MessageInventorySize()
+            if (clientId == 0)
             {
-                inventoryId = inventory.GetId(),
-                size = inventory.GetSize()
-            });
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(new MessageInventorySize()
+                    {
+                        inventoryId = inventory.GetId(),
+                        size = inventory.GetSize()
+                    });
+                }
+                else
+                {
+                    SendHost(new MessageInventorySize()
+                    {
+                        inventoryId = inventory.GetId(),
+                        size = inventory.GetSize()
+                    });
+                }
+            }
+            else
+            {
+                SendClient(clientId, new MessageInventorySize()
+                {
+                    inventoryId = inventory.GetId(),
+                    size = inventory.GetSize()
+                });
+            }
             // FIXME send inventory content too
         }
 

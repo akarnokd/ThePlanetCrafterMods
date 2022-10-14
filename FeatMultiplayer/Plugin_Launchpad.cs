@@ -55,8 +55,7 @@ namespace FeatMultiplayer
                 if (TryFindRocket(___locationGameObject.transform.position, 1, out var rocketWo, out _))
                 {
                     LogInfo("ActionSendInSpace_OnAction: Request Launch " + DebugWorldObject(rocketWo));
-                    Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                    Signal();
+                    SendHost(new MessageLaunch() { rocketId = rocketWo.GetId() }, true);
                 }
                 else
                 {
@@ -78,8 +77,7 @@ namespace FeatMultiplayer
                         rocketGo.AddComponent<RocketAlreadyLaunched>();
 
                         LogInfo("LaunchRocket: Launch " + DebugWorldObject(rocketWo));
-                        Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                        Signal();
+                        SendAllClients(new MessageLaunch() { rocketId = rocketWo.GetId() }, true);
 
                         var machineRocket = rocketGo.GetComponent<MachineRocket>();
                         if (machineRocket == null)
@@ -143,7 +141,7 @@ namespace FeatMultiplayer
                 {
                     yield return new WaitForSeconds(updateWorldObjectPositionDelay);
                     rocketWo.SetPositionAndRotation(rocket.transform.position, rocket.transform.rotation);
-                    SendWorldObject(rocketWo, false);
+                    SendWorldObjectToClients(rocketWo, false);
                 }
                 else
                 {
@@ -152,7 +150,7 @@ namespace FeatMultiplayer
             }
             LogInfo("RocketLaunchTracker:   Orbit reached: " + DebugWorldObject(rocketWo));
             rocketWo.ResetPositionAndRotation();
-            SendWorldObject(rocketWo, false);
+            SendWorldObjectToClients(rocketWo, false);
         }
 
         /// <summary>
@@ -264,8 +262,7 @@ namespace FeatMultiplayer
                         }
                         if (updateMode == MultiplayerMode.CoopHost)
                         {
-                            Send(new MessageLaunch() { rocketId = rocketWo.GetId() });
-                            Signal();
+                            SendAllClients(new MessageLaunch() { rocketId = rocketWo.GetId() }, true);
                         }
                         machineRocket.Ignite();
                         PlayerMainController pm = GetPlayerMainController();

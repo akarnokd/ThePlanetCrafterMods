@@ -465,7 +465,7 @@ namespace FeatMultiplayer
                             {
                                 var groupItem = _asteroid.GetAssociatedGroups()[UnityEngine.Random.Range(0, _asteroid.GetAssociatedGroups().Count)];
                                 GameObject resourceTemplateGo = groupItem.GetAssociatedGameObject();
-                                debrisGo = UnityEngine.Object.Instantiate<GameObject>(resourceTemplateGo);
+                                debrisGo = Instantiate<GameObject>(resourceTemplateGo);
                                 CapsuleCollider componentInChildren = debrisGo.GetComponentInChildren<CapsuleCollider>();
                                 if (componentInChildren != null)
                                 {
@@ -543,7 +543,7 @@ namespace FeatMultiplayer
                             {
                                 wo.SetPositionAndRotation(debrisGo.transform.position, debrisGo.transform.rotation);
 
-                                SendWorldObject(wo, false);
+                                SendWorldObjectToClients(wo, false);
 
                                 // setup the position tracker
                                 var dt = debrisGo.AddComponent<DebrisResourceTracker>();

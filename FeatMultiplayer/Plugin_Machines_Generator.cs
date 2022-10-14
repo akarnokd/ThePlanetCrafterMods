@@ -117,7 +117,7 @@ namespace FeatMultiplayer
             }
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                TryCreateInInventoryAndNotify(GroupsHandler.GetGroupViaId(oreId), inv, out _);
+                TryCreateInInventoryAndNotify(GroupsHandler.GetGroupViaId(oreId), inv, null, out _);
                 return true;
             }
             return false;

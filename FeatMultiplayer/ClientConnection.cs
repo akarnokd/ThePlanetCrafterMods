@@ -16,7 +16,11 @@ namespace FeatMultiplayer
 
         internal TcpClient tcpClient;
 
-        internal string clientName;
+        /// <summary>
+        /// Contains the client's sanitized name if the login was successful.
+        /// Null until then.
+        /// </summary>
+        internal volatile string clientName;
 
         internal Inventory shadowBackpack;
         internal int shadowBackpackWorldObjectId;
@@ -33,7 +37,10 @@ namespace FeatMultiplayer
 
         internal void Send(object message)
         {
-            _sendQueue.Enqueue(message);
+            if (clientName != null)
+            {
+                _sendQueue.Enqueue(message);
+            }
         }
         internal void Signal()
         {

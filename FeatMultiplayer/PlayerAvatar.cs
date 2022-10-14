@@ -40,6 +40,11 @@ namespace FeatMultiplayer
             }
         }
 
+        internal void SetColor(Color color)
+        {
+            avatarFront.GetComponent<SpriteRenderer>().color = color;
+            avatarBack.GetComponent<SpriteRenderer>().color = color;
+        }
 
         //static readonly Color avatarDefaultColor = new Color(1f, 0.75f, 0, 1f);
 

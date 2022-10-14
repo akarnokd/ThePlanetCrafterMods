@@ -13,6 +13,27 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+
+        static void SignalOtherPlayers(ClientConnection cc)
+        {
+            // tell everyone else this player joined
+            foreach (var conn in _clientConnections.Values)
+            {
+                if (conn.id != cc.id)
+                {
+                    // successfully joined clients
+                    if (conn.clientName != null)
+                    {
+                        conn.Send(new MessagePlayerJoined { playerName = cc.clientName });
+                        conn.Signal();
+
+                        cc.Send(new MessagePlayerJoined { playerName = conn.clientName });
+                    }
+                }
+            }
+            cc.Signal();
+        }
+
         static void ReceiveMessagePlayerJoined(MessagePlayerJoined mpj)
         {
             if (updateMode != MultiplayerMode.CoopClient)
@@ -52,6 +73,26 @@ namespace FeatMultiplayer
                 LogInfo("Player left: " + mpl.playerName);
                 playerAvatar.Destroy();
                 playerAvatars.Remove(mpl.playerName);
+            }
+        }
+
+        static void ReceiveMessagePlayerColor(MessagePlayerColor mpc)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                if (playerAvatars.TryGetValue(mpc.sender.clientName, out var playerAvatar))
+                {
+                    playerAvatar.SetColor(mpc.color);
+                }
+                mpc.playerName = mpc.sender.clientName;
+                SendAllClientsExcept(mpc.sender.id, mpc, true);
+            }
+            else
+            {
+                if (playerAvatars.TryGetValue(mpc.playerName, out var playerAvatar))
+                {
+                    playerAvatar.SetColor(mpc.color);
+                }
             }
         }
     }
