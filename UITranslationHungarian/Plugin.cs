@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace UITranslationHungarian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.12")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.14")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "hungarian";
@@ -23,6 +23,7 @@ namespace UITranslationHungarian
         static Dictionary<string, string> labels = new Dictionary<string, string>();
 
         static ConfigEntry<bool> checkMissing;
+        static ConfigEntry<bool> dumpLabels;
 
         static string currentLanguage;
 
@@ -36,6 +37,7 @@ namespace UITranslationHungarian
             logger = Logger;
 
             checkMissing = Config.Bind("General", "CheckMissing", false, "If enabled, the new language's keys are checked against the english keys to find missing translations. See the logs afterwards.");
+            dumpLabels = Config.Bind("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
 
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
@@ -83,6 +85,7 @@ namespace UITranslationHungarian
                             }
                         }
                     }
+                    ExportLocalization();
                     yield break;
                 }
             }
@@ -145,5 +148,40 @@ namespace UITranslationHungarian
                 }
             }
         }
+
+        static void ExportLocalization()
+        {
+            if (dumpLabels.Value)
+            {
+                Localization.GetLocalizedString("");
+                FieldInfo fi = AccessTools.Field(typeof(Localization), "localizationDictionary");
+                Dictionary<string, Dictionary<string, string>> dic = (Dictionary<string, Dictionary<string, string>>)fi.GetValue(null);
+                if (dic != null)
+                {
+                    logger.LogInfo("Found localizationDictionary");
+
+                    foreach (KeyValuePair<string, Dictionary<string, string>> kvp in dic)
+                    {
+                        Dictionary<string, string> dic2 = kvp.Value;
+                        if (dic2 != null)
+                        {
+                            logger.LogInfo("Found " + kvp.Key + " labels");
+                            StringBuilder sb = new StringBuilder();
+                            foreach (KeyValuePair<string, string> kv in dic2)
+                            {
+
+                                sb.Append(kv.Key).Append("=").Append(kv.Value);
+                                sb.AppendLine();
+                            }
+
+                            Assembly me = Assembly.GetExecutingAssembly();
+                            string dir = Path.GetDirectoryName(me.Location);
+                            File.WriteAllText(dir + "\\labels." + kvp.Key + ".txt", sb.ToString());
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

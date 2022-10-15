@@ -784,4 +784,7 @@ AutoCrafter_inRange=Tárolók és tárgyak a hatósugárban
 UI_perimeter=Hatósugár
 GROUP_NAME_GoldenEffigie5=Aranyfigura
 GROUP_DESC_GoldenEffigie5=
-
+GROUP_NAME_RocketInsects1=Rovarszóró rakéta
+GROUP_DESC_RocketInsects1=Növeli a rovarok terjedési sebességét űrből szórt lárvák segítségével
+GROUP_NAME_ButterflyFarm2=Lepke farm t2
+GROUP_DESC_ButterflyFarm2=Lepke lárva behelyezésével növeli a rovarok szintjét
