@@ -305,7 +305,10 @@ namespace FeatCommandConsole
                 }
                 return;
             }
-
+            if (wh.GetHasUiOpen() && toggleAction.WasPressedThisFrame() && background == null)
+            {
+                return;
+            }
             if (!toggleAction.WasPressedThisFrame() || background != null)
             {
                 return;
