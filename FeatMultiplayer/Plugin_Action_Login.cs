@@ -102,6 +102,11 @@ namespace FeatMultiplayer
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;
             SendHost(new MessagePlayerColor { playerName = "", color = myColor }, true);
+            var h = _towardsHost;
+            if (h != null)
+            {
+                h.loginSuccess = true;
+            }
         }
 
         static void ReceiveMessageClientDisconnected(MessageClientDisconnected mcd)
@@ -128,6 +133,12 @@ namespace FeatMultiplayer
                 NotifyUserFromBackground("Host disconnected");
                 DestroyAvatars();
             }
+        }
+
+        static void ReceiveMessageHostDisconnected()
+        {
+            NotifyUserFromBackground("Host disconnected");
+            DestroyAvatars();
         }
     }
 }

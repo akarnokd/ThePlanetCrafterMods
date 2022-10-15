@@ -19,28 +19,35 @@ namespace FeatMultiplayer
 
         static void StorageRestoreClient(ClientConnection cc)
         {
+            LogInfo("Restoring storage for client " + cc.clientName);
             var wo = WorldObjectsHandler.GetWorldObjectViaId(cc.shadowEquipmentWorldObjectId);
             cc.storage.Clear();
             StorageHelper.StorageDecodeData(wo.GetText(), cc.storage);
+            LogInfo("Restoring storage for client " + cc.clientName + " - Done");
         }
 
         static void StorageSaveClient(ClientConnection cc)
         {
+            LogInfo("Persisting storage for client " + cc.clientName);
             var wo = WorldObjectsHandler.GetWorldObjectViaId(cc.shadowEquipmentWorldObjectId);
             wo.SetText(StorageHelper.StorageEncodeData(cc.storage));
+            LogInfo("Persisting storage for client " + cc.clientName + " - Done");
         }
 
         static void StorageNotifyClient(ClientConnection cc)
         {
+            LogInfo("Sending storage to client " + cc.clientName);
             var msg = new MessageUpdateAllStorage();
 
             foreach (var kv in cc.storage)
             {
+                LogInfo("    " + kv.Key + " = " + kv.Value);
                 msg.storage.Add(kv.Key, kv.Value);
             }
 
             cc.Send(msg);
             cc.Signal();
+            LogInfo("  Done");
         }
 
         static void SetAndSendDataToHost(string key, string value)
@@ -48,6 +55,7 @@ namespace FeatMultiplayer
             var h = _towardsHost;
             if (h != null)
             {
+                LogInfo("UpdateStorage: " + key + " = " + value);
                 h.storage[key] = value;
                 h.Send(new MessageUpdateStorage
                 {
@@ -80,13 +88,16 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
+                LogInfo("ReceiveMessageUpdateAllStorage - Begin");
                 var h = _towardsHost;
                 h.storage.Clear();
                 foreach (var kv in muas.storage)
                 {
+                    LogInfo("    " + kv.Key + " = " + kv.Value);
                     h.storage.Add(kv.Key, kv.Value);
                 }
 
+                LogInfo("ReceiveMessageUpdateAllStorage - Notify listeners (" + storageOnClientDataReady.Count + ")");
                 // notify about the storage info being available now
                 foreach (var a in storageOnClientDataReady)
                 {
@@ -99,6 +110,8 @@ namespace FeatMultiplayer
                         LogError(ex);
                     }
                 }
+
+                LogInfo("ReceiveMessageUpdateAllStorage - Done");
             }
         }
     }

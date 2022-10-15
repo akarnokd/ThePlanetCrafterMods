@@ -158,6 +158,15 @@ namespace FeatMultiplayer
         /// </summary>
         public static Action<Action> apiClientRegisterDataReady;
 
+        /// <summary>
+        /// Check the connection status to the host:
+        /// "none" - connection not even started yet
+        /// "connected" - connected, waiting for login success, 
+        /// "active" - login success,
+        /// "disconnected" - disconnected
+        /// </summary>
+        public static Func<string> apiGetHostState;
+
         #region - Api Setup -
 
         /// <summary>
@@ -183,6 +192,7 @@ namespace FeatMultiplayer
             apiClientGetData = ApiClientGetData;
             apiClientSetData = ApiClientSetData;
             apiClientRegisterDataReady = ApiClientRegisterDataReady;
+            apiGetHostState = ApiGetHostState;
         }
 
         static int ApiGetCountByGroupId(string groupId)
@@ -375,14 +385,36 @@ namespace FeatMultiplayer
 
         static void ApiClientRegisterDataReady(Action onReady)
         {
+            if (onReady == null)
+            {
+                throw new ArgumentNullException(nameof(onReady));
+            }
+            storageOnClientDataReady.Add(onReady);
+        }
+
+        static string ApiGetHostState()
+        {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                if (onReady == null)
+                var h = _towardsHost;
+                if (h == null)
                 {
-                    throw new ArgumentNullException(nameof(onReady));
+                    return "None";
                 }
-                storageOnClientDataReady.Add(onReady);
+                if (h.disconnected)
+                {
+                    return "Disconnected";
+                }
+                if (h.loginSuccess)
+                {
+                    return "Active";
+                }
+                if (h.clientName != null)
+                {
+                    return "Connected";
+                }
             }
+            return "Host";
         }
 
         #endregion - Api Setup -

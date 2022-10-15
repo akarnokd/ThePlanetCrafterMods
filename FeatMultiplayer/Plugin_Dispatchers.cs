@@ -271,6 +271,16 @@ namespace FeatMultiplayer
                 Receive(cc, mpc2);
             }
             else
+            if (MessageUpdateStorage.TryParse(message, out var mus))
+            {
+                Receive(cc, mus);
+            }
+            else
+            if (MessageUpdateAllStorage.TryParse(message, out var muas))
+            {
+                Receive(cc, muas);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -542,6 +552,21 @@ namespace FeatMultiplayer
                 case MessagePlayerColor mpc1:
                     {
                         ReceiveMessagePlayerColor(mpc1);
+                        break;
+                    }
+                case MessageDisconnected md:
+                    {
+                        ReceiveMessageHostDisconnected();
+                        break;
+                    }
+                case MessageUpdateStorage mus:
+                    {
+                        ReceiveMessageUpdateStorage(mus);
+                        break;
+                    }
+                case MessageUpdateAllStorage muas:
+                    {
+                        ReceiveMessageUpdateAllStorage(muas);
                         break;
                     }
                 default:

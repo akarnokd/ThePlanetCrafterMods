@@ -348,6 +348,8 @@ namespace FeatMultiplayer
                     LogError(ex);
                 }
             }
+            clientConnection.disconnected = true;
+
             if (clientConnection == _towardsHost)
             {
                 _towardsHost = null;
@@ -403,7 +405,7 @@ namespace FeatMultiplayer
                     LogError(ex);
                 }
             }
-            _receiveQueue.Enqueue("Disconnected");
+            _receiveQueue.Enqueue(MessageDisconnected.Instance);
         }
 
         static ClientConnection CreateNewClient()

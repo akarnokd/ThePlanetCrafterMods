@@ -16,11 +16,14 @@ using BepInEx.Logging;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.12")]
-    [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.13")]
+    [BepInDependency(modUiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string uiCraftEquipmentInPlaceGuid = "akarnokd.theplanetcraftermods.uicraftequipmentinplace";
+        const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
+        const string modUiCraftEquipmentInPlaceGuid = "akarnokd.theplanetcraftermods.uicraftequipmentinplace";
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
@@ -32,6 +35,18 @@ namespace UIPinRecipe
         static bool craftInPlaceEnabled;
 
         static readonly int shadowContainerId = 6000;
+
+        static Func<string> mpGetMode;
+
+        static Action<Action> mpRegisterDataReady;
+
+        static Func<string, string> mpGetData;
+
+        static Action<string, string> mpSetData;
+
+        static Func<string> mpHostState;
+
+        static Action<object> mpLogInfo;
 
         static ManualLogSource logger;
 
@@ -45,9 +60,27 @@ namespace UIPinRecipe
             panelTop = Config.Bind("General", "PanelTop", 150, "Panel position from the top of the screen.");
             clearKey = Config.Bind("General", "ClearKey", "C", "The key to press to clear all pinned recipes");
 
-            craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
+            craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(modUiCraftEquipmentInPlaceGuid);
 
             logger = Logger;
+
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
+            {
+                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", pinned recipes will be saved/restored on the host");
+
+                mpGetMode = GetApi<Func<string>>(pi, "apiGetMultiplayerMode");
+                mpGetData = GetApi<Func<string, string>>(pi, "apiClientGetData");
+                mpSetData = GetApi<Action<string, string>>(pi, "apiClientSetData");
+                mpRegisterDataReady = GetApi<Action<Action>>(pi, "apiClientRegisterDataReady");
+                mpHostState = GetApi<Func<string>>(pi, "apiGetHostState");
+                mpLogInfo = GetApi<Action<object>>(pi, "apiLogInfo");
+
+                mpRegisterDataReady(RestorePinnedRecipesMultiplayer);
+            }
+            else
+            {
+                Logger.LogInfo("Not Found " + modFeatMultiplayerGuid);
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -396,33 +429,84 @@ namespace UIPinRecipe
         static void SavePinnedRecipes()
         {
             var wo = EnsureHiddenContainer();
-            wo.SetText(string.Join(",", pinnedRecipes.Select(slot => {
+            var str = string.Join(",", pinnedRecipes.Select(slot =>
+            {
                 var g = slot.group;
                 if (g == null)
                 {
                     return "";
                 }
                 return g.id;
-            })));
+            }));
+            wo.SetText(str);
+            SavePinnedRecipesMultiplayer(str);
+        }
+
+        static void SavePinnedRecipesMultiplayer(string data)
+        {
+            if (mpGetMode != null && mpGetMode() == "CoopClient")
+            {
+                if (mpHostState() == "Active")
+                {
+                    mpLogInfo("SavePinnedRecipesMultiplayer: " + data);
+                    mpSetData(modUiPinRecipeGuid + ".recipes", data);
+                }
+                else
+                {
+                    mpLogInfo("SavePinnedRecipesMultiplayer not active");
+                }
+            }
+        }
+
+        static void RestorePinnedRecipesMultiplayer()
+        {
+            mpLogInfo("RestorePinnedRecipesMultiplayer");
+            var data = mpGetData(modUiPinRecipeGuid + ".recipes");
+            mpLogInfo("RestorePinnedRecipesMultiplayer: " + data);
+            ClearPinnedRecipes();
+            ResorePinnedRecipesFromString(data);
+            mpLogInfo("RestorePinnedRecipesMultiplayer - Done");
         }
 
         static void RestorePinnedRecipes()
         {
             var wo = EnsureHiddenContainer();
-            ClearPinnedRecipes();
+            if (mpGetMode() != "CoopClient")
+            {
+                ClearPinnedRecipes();
 
-            var current = wo.GetText().Split(',');
+                ResorePinnedRecipesFromString(wo.GetText());
 
-            logger.LogInfo("Restoring pinned recipes: " + wo.GetText());
+                logger.LogInfo("Restoring pinned recipes: " + wo.GetText());
+            }
+        }
 
+        static void ResorePinnedRecipesFromString(string s)
+        {
+            if (s == null || s.Length == 0)
+            {
+                ClearPinnedRecipes();
+                return;
+            }
+            var current = s.Split(',');
             foreach (var gid in current)
             {
                 var g = GroupsHandler.GetGroupViaId(gid);
-                if (g != null) 
+                if (g != null)
                 {
                     PinUnpinInternal(g);
                 }
             }
+        }
+
+        private static T GetApi<T>(BepInEx.PluginInfo pi, string name)
+        {
+            var fi = AccessTools.Field(pi.Instance.GetType(), name);
+            if (fi == null)
+            {
+                throw new NullReferenceException("Missing field " + pi.Instance.GetType() + "." + name);
+            }
+            return (T)fi.GetValue(null);
         }
     }
 }

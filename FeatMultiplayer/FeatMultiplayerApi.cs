@@ -40,6 +40,7 @@ namespace FeatMultiplayer
         private Func<string, string> apiClientGetData;
         private Action<string, string> apiClientSetData;
         private Action<Action> apiClientRegisterDataReady;
+        private Func<string> apiGetHostState;
 
         /// <summary>
         /// Enumeration for the state of the multiplayer mod.
@@ -66,6 +67,33 @@ namespace FeatMultiplayer
             /// Playing as a client of a multiplayer game.
             /// </summary>
             CoopClient
+        }
+
+        /// <summary>
+        /// For the client, it represents the connection progress towards the client.
+        /// </summary>
+        public enum HostState
+        {
+            /// <summary>
+            /// Not yet connected
+            /// </summary>
+            None,
+            /// <summary>
+            /// Connected, waiting for login success
+            /// </summary>
+            Connected,
+            /// <summary>
+            /// Login success, messages can be safely sent.
+            /// </summary>
+            Active,
+            /// <summary>
+            /// Disconnected from the host.
+            /// </summary>
+            Disconnected,
+            /// <summary>
+            /// When called on the host side
+            /// </summary>
+            Host,
         }
 
         /// <summary>
@@ -122,6 +150,8 @@ namespace FeatMultiplayer
                 result.apiClientSetData = GetApi<Action<string, string>>(pi, "apiClientSetData");
 
                 result.apiClientRegisterDataReady = GetApi<Action<Action>>(pi, "apiClientRegisterDataReady");
+
+                result.apiGetHostState = GetApi<Func<string>>(pi, "apiGetHostState");
 
             }
             return result;
@@ -260,6 +290,19 @@ namespace FeatMultiplayer
         {
             ThrowIfUnavailable();
             apiClientRegisterDataReady(action);
+        }
+
+        public HostState GetHostState()
+        {
+            ThrowIfUnavailable();
+            return apiGetHostState() switch
+            {
+                "Connected" => HostState.Connected,
+                "Active" => HostState.Active,
+                "Disconnected" => HostState.Disconnected,
+                "Host" => HostState.Host,
+                _ => HostState.None
+            };
         }
 
         private void ThrowIfUnavailable()

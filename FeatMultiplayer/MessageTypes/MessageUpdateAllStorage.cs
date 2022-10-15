@@ -37,7 +37,7 @@ namespace FeatMultiplayer
                 else
                 {
                     result = new MessageUpdateAllStorage();
-                    int cnt = int.Parse(parts[1]) + 2;
+                    int cnt = int.Parse(parts[1]) * 2 + 2;
                     for (int i = 2; i < cnt; i += 2)
                     {
                         var key = StorageHelper.StorageDecodeString(parts[i]);

@@ -23,6 +23,16 @@ namespace FeatMultiplayer
         /// </summary>
         internal volatile string clientName;
 
+        /// <summary>
+        /// Set on the client after the MessageWelcome has been processed.
+        /// </summary>
+        internal bool loginSuccess;
+
+        /// <summary>
+        /// Set to true when the receive loop ends.
+        /// </summary>
+        internal volatile bool disconnected;
+
         internal Inventory shadowBackpack;
         internal int shadowBackpackWorldObjectId;
         internal Inventory shadowEquipment;
