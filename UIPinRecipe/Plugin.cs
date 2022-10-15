@@ -11,10 +11,12 @@ using System;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
+using System.Linq;
+using BepInEx.Logging;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.11")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uipinrecipe", "(UI) Pin Recipe to Screen", "1.0.0.12")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -28,6 +30,11 @@ namespace UIPinRecipe
         /// If the UICraftEquipmentInPlace plugin is also present, count the equipment too
         /// </summary>
         static bool craftInPlaceEnabled;
+
+        static readonly int shadowContainerId = 6000;
+
+        static ManualLogSource logger;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -39,6 +46,8 @@ namespace UIPinRecipe
             clearKey = Config.Bind("General", "ClearKey", "C", "The key to press to clear all pinned recipes");
 
             craftInPlaceEnabled = Chainloader.PluginInfos.ContainsKey(uiCraftEquipmentInPlaceGuid);
+
+            logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -73,6 +82,7 @@ namespace UIPinRecipe
                 if (Keyboard.current[k].isPressed && wh != null && !wh.GetHasUiOpen())
                 {
                     ClearPinnedRecipes();
+                    SavePinnedRecipes();
                 }
             }
         }
@@ -233,6 +243,12 @@ namespace UIPinRecipe
 
         static void PinUnpinGroup(Group group)
         {
+            PinUnpinInternal(group);
+            SavePinnedRecipes();
+        }
+
+        static void PinUnpinInternal(Group group)
+        {
             if (parent == null)
             {
                 parent = new GameObject("PinRecipeCanvas");
@@ -343,11 +359,70 @@ namespace UIPinRecipe
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start()
+        {
+            PlayersManager playersManager = Managers.GetManager<PlayersManager>();
+            if (playersManager != null)
+            {
+                PlayerMainController player = playersManager.GetActivePlayerController();
+                if (player != null)
+                {
+                    RestorePinnedRecipes();
+                }
+            }
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
         static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
             bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
+        }
+
+        static WorldObject EnsureHiddenContainer()
+        {
+            var wo = WorldObjectsHandler.GetWorldObjectViaId(shadowContainerId);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerId);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static void SavePinnedRecipes()
+        {
+            var wo = EnsureHiddenContainer();
+            wo.SetText(string.Join(",", pinnedRecipes.Select(slot => {
+                var g = slot.group;
+                if (g == null)
+                {
+                    return "";
+                }
+                return g.id;
+            })));
+        }
+
+        static void RestorePinnedRecipes()
+        {
+            var wo = EnsureHiddenContainer();
+            ClearPinnedRecipes();
+
+            var current = wo.GetText().Split(',');
+
+            logger.LogInfo("Restoring pinned recipes: " + wo.GetText());
+
+            foreach (var gid in current)
+            {
+                var g = GroupsHandler.GetGroupViaId(gid);
+                if (g != null) 
+                {
+                    PinUnpinInternal(g);
+                }
+            }
         }
     }
 }

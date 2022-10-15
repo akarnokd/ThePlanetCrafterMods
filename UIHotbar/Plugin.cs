@@ -12,10 +12,11 @@ using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
 using BepInEx.Logging;
+using System.Linq;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.10")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.11")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -34,6 +35,8 @@ namespace UIHotbar
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
         static ConfigEntry<bool> modCraftFromContainersEnabled;
         static ConfigEntry<float> modCraftFromContainersRange;
+
+        static readonly int shadowContainerId = 4000;
 
         private void Awake()
         {
@@ -218,6 +221,8 @@ namespace UIHotbar
                     // -----------------------------------------------------------
                     x += s + 5;
                 }
+
+                RestoreHotbar();
             }
         }
 
@@ -482,6 +487,7 @@ namespace UIHotbar
                 if (slot >= 0)
                 {
                     PinUnpinGroup(eventTriggerCallbackData.group, slot);
+                    SaveHotbar();
                     return false;
                 }
             }
@@ -547,16 +553,22 @@ namespace UIHotbar
                         hotbarSlot = slots[i];
                         if (hotbarSlot.currentGroup != null && hotbarSlot.currentGroup.GetId() == group.GetId())
                         {
-                            logger.LogInfo("Unpinning to slot " + slot);
-                            hotbarSlot.currentGroup = null;
-                            image = hotbarSlot.image.GetComponent<Image>();
-                            image.sprite = null;
-                            image.color = new Color(0f, 0f, 0f, 0f);
-                            hotbarSlot.buildCount.GetComponent<Text>().text = "";
+                            ClearSlot(i);
                         }
                     }
                 }
             }
+        }
+
+        static void ClearSlot(int slotId)
+        {
+            var hotbarSlot = slots[slotId];
+            logger.LogInfo("Unpinning to slot " + slotId);
+            hotbarSlot.currentGroup = null;
+            var image = hotbarSlot.image.GetComponent<Image>();
+            image.sprite = null;
+            image.color = new Color(0f, 0f, 0f, 0f);
+            hotbarSlot.buildCount.GetComponent<Text>().text = "";
         }
 
         [HarmonyPostfix]
@@ -567,5 +579,49 @@ namespace UIHotbar
             parent?.SetActive(active);
         }
 
+        static WorldObject EnsureHiddenContainer()
+        {
+            var wo = WorldObjectsHandler.GetWorldObjectViaId(shadowContainerId);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerId);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static void SaveHotbar()
+        {
+            var wo = EnsureHiddenContainer();
+            wo.SetText(string.Join(",", slots.Select(slot => {
+                var g = slot.currentGroup;
+                if (g == null)
+                {
+                    return "";
+                }
+                return g.id;
+            })));
+        }
+
+        static void RestoreHotbar()
+        {
+            var wo = EnsureHiddenContainer();
+            var current = wo.GetText().Split(',');
+
+            for (int i = 0; i < slotCount; i++)
+            {
+                ClearSlot(i);
+                if (i < current.Length)
+                {
+                    var gid = current[i];
+                    var g = GroupsHandler.GetGroupViaId(gid);
+                    if (g != null)
+                    {
+                        PinUnpinGroup(g, i);
+                    }
+                }
+            }
+        }
     }
 }
