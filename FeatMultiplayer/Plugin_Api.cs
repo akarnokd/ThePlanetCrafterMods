@@ -142,6 +142,22 @@ namespace FeatMultiplayer
         /// </summary>
         public static Action<object> apiLogError;
 
+        /// <summary>
+        /// Get data from a key-value store for this client from the host.
+        /// </summary>
+        public static Func<string, string> apiClientGetData;
+
+        /// <summary>
+        /// Set data for in a key-value store for this client on the host.
+        /// </summary>
+        public static Action<string, string> apiClientSetData;
+
+        /// <summary>
+        /// Register the given action to be called after a successful
+        /// login on the host and after receiving the saved key-value store.
+        /// </summary>
+        public static Action<Action> apiClientRegisterDataReady;
+
         #region - Api Setup -
 
         /// <summary>
@@ -164,6 +180,9 @@ namespace FeatMultiplayer
             apiLogInfo = LogInfo;
             apiLogWarning = LogWarning;
             apiLogError = LogError;
+            apiClientGetData = ApiClientGetData;
+            apiClientSetData = ApiClientSetData;
+            apiClientRegisterDataReady = ApiClientRegisterDataReady;
         }
 
         static int ApiGetCountByGroupId(string groupId)
@@ -284,7 +303,6 @@ namespace FeatMultiplayer
 
         static void ApiSendInventory(int clientId, Inventory inventory)
         {
-            // FIXME use the client id to send to the proper client.
             if (clientId == 0)
             {
                 if (updateMode == MultiplayerMode.CoopHost)
@@ -313,6 +331,58 @@ namespace FeatMultiplayer
                 });
             }
             // FIXME send inventory content too
+        }
+
+        static string ApiClientGetData(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                var h = _towardsHost;
+                if (h != null)
+                {
+                    if (h.storage.TryGetValue(key, out var v))
+                    {
+                        return v;
+                    }
+                }
+                else
+                {
+                    ThrowMissingHostConnection();
+                }
+            }
+            return null;
+        }
+
+        static void ApiClientSetData(string key, string value)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                SetAndSendDataToHost(key, value);
+            }
+        }
+
+        static void ApiClientRegisterDataReady(Action onReady)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                if (onReady == null)
+                {
+                    throw new ArgumentNullException(nameof(onReady));
+                }
+                storageOnClientDataReady.Add(onReady);
+            }
         }
 
         #endregion - Api Setup -

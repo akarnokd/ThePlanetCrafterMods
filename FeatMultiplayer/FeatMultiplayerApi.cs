@@ -3,6 +3,7 @@ using HarmonyLib;
 using SpaceCraft;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace FeatMultiplayer
 {
@@ -36,6 +37,9 @@ namespace FeatMultiplayer
         private Action<object> apiLogInfo;
         private Action<object> apiLogWarning;
         private Action<object> apiLogError;
+        private Func<string, string> apiClientGetData;
+        private Action<string, string> apiClientSetData;
+        private Action<Action> apiClientRegisterDataReady;
 
         /// <summary>
         /// Enumeration for the state of the multiplayer mod.
@@ -112,6 +116,12 @@ namespace FeatMultiplayer
                 result.apiLogWarning = GetApi<Action<object>>(pi, "apiLogWarning");
 
                 result.apiLogError = GetApi<Action<object>>(pi, "apiLogError");
+
+                result.apiClientGetData = GetApi<Func<string, string>>(pi, "apiClientGetData");
+
+                result.apiClientSetData = GetApi<Action<string, string>>(pi, "apiClientSetData");
+
+                result.apiClientRegisterDataReady = GetApi<Action<Action>>(pi, "apiClientRegisterDataReady");
 
             }
             return result;
@@ -232,6 +242,24 @@ namespace FeatMultiplayer
         {
             ThrowIfUnavailable();
             apiLogError(obj);
+        }
+
+        public string GetClientData(string key)
+        {
+            ThrowIfUnavailable();
+            return apiClientGetData(key);
+        }
+
+        public void SetClientData(string key, string value)
+        {
+            ThrowIfUnavailable();
+            apiClientSetData(key, value);
+        }
+
+        public void RegisterClientDataReady(Action action)
+        {
+            ThrowIfUnavailable();
+            apiClientRegisterDataReady(action);
         }
 
         private void ThrowIfUnavailable()

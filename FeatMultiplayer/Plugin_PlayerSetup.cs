@@ -90,6 +90,9 @@ namespace FeatMultiplayer
             TryPrepareShadowInventory(id + 1, ref cc.shadowEquipment, out _);
             cc.shadowBackpackWorldObjectId = id;
             cc.shadowEquipmentWorldObjectId = id + 1;
+
+            StorageRestoreClient(cc);
+            StorageNotifyClient(cc);
         }
 
         static bool TryPrepareShadowInventory(int id, ref Inventory inventoryOut, out WorldObject wo)
@@ -100,6 +103,7 @@ namespace FeatMultiplayer
                 LogInfo("Creating special inventory " + id);
 
                 wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), id);
+                wo.SetText("");
                 wo.SetPositionAndRotation(new Vector3(-500, -500, -450), Quaternion.identity);
                 WorldObjectsHandler.InstantiateWorldObject(wo, true);
                 Inventory inv = InventoriesHandler.CreateNewInventory(1000, 0);

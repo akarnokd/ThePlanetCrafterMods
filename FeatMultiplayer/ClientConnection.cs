@@ -1,5 +1,6 @@
 ﻿using SpaceCraft;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -27,6 +28,8 @@ namespace FeatMultiplayer
         internal Inventory shadowEquipment;
         internal int shadowEquipmentWorldObjectId;
 
+        internal readonly Dictionary<string, string> storage = new();
+
         internal readonly ConcurrentQueue<object> _sendQueue = new ConcurrentQueue<object>();
         internal readonly AutoResetEvent _sendQueueBlock = new AutoResetEvent(false);
 
@@ -45,6 +48,20 @@ namespace FeatMultiplayer
         internal void Signal()
         {
             _sendQueueBlock.Set();
+        }
+
+        internal string GetData(string key)
+        {
+            if (storage.TryGetValue(key, out var v))
+            {
+                return v;
+            }
+            return null;
+        }
+
+        internal void SetData(string key, string value)
+        {
+            storage[key] = value;
         }
     }
 }

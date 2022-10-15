@@ -18,15 +18,12 @@ namespace FeatMultiplayer
 
         public static bool TryParse(string str, out MessageLogin result)
         {
-            if (MessageHelper.TryParseMessage("Login|", str, out string[] parts))
+            if (MessageHelper.TryParseMessage("Login|", str, 3, out string[] parts))
             {
-                if (parts.Length == 3)
-                {
-                    result = new MessageLogin();
-                    result.user = parts[1];
-                    result.password = parts[2];
-                    return true;
-                }
+                result = new MessageLogin();
+                result.user = parts[1];
+                result.password = parts[2];
+                return true;
             }
             result = null;
             return false;
