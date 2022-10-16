@@ -17,6 +17,8 @@ namespace FeatMultiplayer
 
         internal TcpClient tcpClient;
 
+        internal volatile bool disconnecting;
+
         /// <summary>
         /// Contains the client's sanitized name if the login was successful.
         /// Null until then.
@@ -57,6 +59,12 @@ namespace FeatMultiplayer
         }
         internal void Signal()
         {
+            _sendQueueBlock.Set();
+        }
+
+        internal void Disconnect()
+        {
+            disconnecting = true;
             _sendQueueBlock.Set();
         }
 

@@ -149,15 +149,16 @@ namespace FeatMultiplayer
                     client.Connect(hostAddress.Value, port.Value);
                     LogInfo("Client connection success");
                     NotifyUserFromBackground("Connecting to Host...Success");
-                    stopNetwork.Token.Register(() =>
-                    {
-                        client.Close();
-                    });
 
                     var cc = new ClientConnection(0);
                     cc.clientName = ""; // host is always ""
                     _towardsHost = cc;
                     cc.tcpClient = client;
+
+                    stopNetwork.Token.Register(() =>
+                    {
+                        client.Close();
+                    });
 
                     Task.Factory.StartNew(SenderLoop, cc, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                     Task.Factory.StartNew(ReceiveLoop, cc, stopNetwork.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -326,6 +327,10 @@ namespace FeatMultiplayer
                             }
                             else
                             {
+                                if (clientConnection.disconnecting)
+                                {
+                                    break;
+                                }
                                 _sendQueueBlock.WaitOne(1000);
                             }
                         }
@@ -343,7 +348,9 @@ namespace FeatMultiplayer
             }
             catch (Exception ex)
             {
-                if (!stopNetwork.IsCancellationRequested && !(ex is ObjectDisposedException))
+                if (!stopNetwork.IsCancellationRequested
+                    && !clientConnection.disconnecting
+                    && !(ex is ObjectDisposedException))
                 {
                     LogError(ex);
                 }
@@ -400,7 +407,9 @@ namespace FeatMultiplayer
             }
             catch (Exception ex)
             {
-                if (!stopNetwork.IsCancellationRequested && !(ex is ObjectDisposedException))
+                if (!stopNetwork.IsCancellationRequested
+                    && !clientConnection.disconnecting
+                    && !(ex is ObjectDisposedException))
                 {
                     LogError(ex);
                 }

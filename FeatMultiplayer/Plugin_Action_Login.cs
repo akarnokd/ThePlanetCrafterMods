@@ -39,48 +39,58 @@ namespace FeatMultiplayer
                 {
                     if (users[i] == ml.user && passwords[i] == ml.password)
                     {
-                        LogInfo("User login success: " + ml.user);
-                        NotifyUser("User joined: " + ml.user);
-                        Color color = Color.white;
-                        try
-                        {
-                            color = MessageHelper.StringToColor(clientColor.Value);
-                        }
-                        catch (Exception)
-                        {
-
-                        }
-
                         cc.clientName = SanitizeUserName(ml.user);
 
-                        PrepareShadowInventories(cc);
-                        var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
-                        playerAvatars[cc.clientName] = avatar;
-
-                        cc.Send("Welcome\n");
-                        cc.Signal();
-                        cc.Send(new MessageGameMode()
+                        if (!playerAvatars.ContainsKey(cc.clientName))
                         {
-                            modeIndex = (int)GameSettingsHandler.GetGameMode()
-                        });
-                        cc.Signal();
+                            LogInfo("User login success: " + ml.user);
+                            NotifyUser("User joined: " + ml.user);
+                            Color color = Color.white;
+                            try
+                            {
+                                color = MessageHelper.StringToColor(clientColor.Value);
+                            }
+                            catch (Exception)
+                            {
 
-                        lastFullSync = Time.realtimeSinceStartup;
-                        SendFullState();
-                        SendTerrainLayers();
-                        LaunchMeteorEventAfterLogin();
-                        SendMessages();
-                        SendStoryEvents();
-                        SignalOtherPlayers(cc);
+                            }
 
-                        SendSavedPlayerPosition(cc);
-                        return;
+
+                            PrepareShadowInventories(cc);
+                            var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+                            playerAvatars[cc.clientName] = avatar;
+
+                            cc.Send("Welcome\n");
+                            cc.Signal();
+                            cc.Send(new MessageGameMode()
+                            {
+                                modeIndex = (int)GameSettingsHandler.GetGameMode()
+                            });
+                            cc.Signal();
+
+                            lastFullSync = Time.realtimeSinceStartup;
+                            SendFullState();
+                            SendTerrainLayers();
+                            LaunchMeteorEventAfterLogin();
+                            SendMessages();
+                            SendStoryEvents();
+                            SignalOtherPlayers(cc);
+
+                            SendSavedPlayerPosition(cc);
+                            return;
+                        }
+                        else
+                        {
+                            LogInfo("User already logged in: " + ml.user);
+                            NotifyUser("User already logged in: " + ml.user);
+                        }
                     }
                 }
 
                 LogInfo("User login failed: " + ml.user);
                 cc.Send(EAccessDenied);
                 cc.Signal();
+                cc.Disconnect();
             }
         }
 
