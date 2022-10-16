@@ -16,7 +16,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.14")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.15")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -261,7 +261,7 @@ namespace CheatInventoryStacking
                 VisualsResourcesHandler manager2 = Managers.GetManager<VisualsResourcesHandler>();
                 GameObject inventoryBlock = manager2.GetInventoryBlock();
 
-                bool showDropIcon = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ___inventory;
+                bool showDropIconAtAll = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ___inventory;
 
                 List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
                 Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
@@ -288,6 +288,7 @@ namespace CheatInventoryStacking
                         List<WorldObject> slot = slots[i];
                         WorldObject worldObject = slot[slot.Count - 1];
 
+                        var showDropIcon = showDropIconAtAll;
                         if (worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed())
                         {
                             showDropIcon = false;
