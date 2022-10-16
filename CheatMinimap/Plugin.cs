@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.18")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.19")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -529,7 +529,9 @@ namespace CheatMinimap
                 */
                 if (!found)
                 {
-                    Logger.LogInfo("Sector: " + name + " loading");
+                    var info = "Sector: " + name + " loading";
+                    Logger.LogInfo(info);
+                    //File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
                     loaded = false;
                     SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageInventories
+    internal class MessageInventories : MessageBase
     {
         internal List<WorldInventory> inventories = new List<WorldInventory> ();
 
@@ -64,6 +64,11 @@ namespace FeatMultiplayer
             }
             minv = null;
             return false;
+        }
+
+        public override string GetString()
+        {
+            throw new NotImplementedException();
         }
     }
 

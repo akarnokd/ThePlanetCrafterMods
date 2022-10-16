@@ -12,13 +12,15 @@ using UnityEngine.EventSystems;
 using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
+using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.10")]
-    [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorycapacity", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.14")]
     public class Plugin : BaseUnityPlugin
     {
+        const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+        const string cheatMachineRemoteDepositGuid = "akarnokd.theplanetcraftermods.cheatmachineremotedeposit";
 
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
@@ -264,6 +266,8 @@ namespace CheatInventoryStacking
                 List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
                 Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
 
+                __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<PlayModeHandler>().GetIsFreePlay());
+
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback("OnImageClicked", __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback("OnDropClicked", __instance);
 
@@ -283,6 +287,11 @@ namespace CheatInventoryStacking
                     {
                         List<WorldObject> slot = slots[i];
                         WorldObject worldObject = slot[slot.Count - 1];
+
+                        if (worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed())
+                        {
+                            showDropIcon = false;
+                        }
 
                         component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
 
@@ -401,7 +410,7 @@ namespace CheatInventoryStacking
                     {
                         WorldObject wo = _eventTriggerCallbackData.worldObject;
                         DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
-                        if (openedUi == DataConfig.UiType.Container)
+                        if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.GroupSelector)
                         {
                             Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
                             if (___inventory != null && otherInventory != null)
@@ -498,7 +507,9 @@ namespace CheatInventoryStacking
                         || equipType == DataConfig.EquipableType.EquipmentIncrease
                         || equipType == DataConfig.EquipableType.MultiToolMineSpeed
                         || equipType == DataConfig.EquipableType.BootsSpeed
-                        || equipType == DataConfig.EquipableType.Jetpack)
+                        || equipType == DataConfig.EquipableType.Jetpack
+                        || equipType == DataConfig.EquipableType.AirFilter
+                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
                     {
                         expectedGroupIdToAdd = groupItem.GetId();
                         return true;
@@ -583,25 +594,168 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        static Group GenerateOre(List<GroupData> ___groupDatas,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
+        {
+            // Since 0.6.001
+            if (___setGroupsDataViaLinkedGroup)
+            {
+                var linkedGroups = ___worldObject.GetLinkedGroups();
+                if (linkedGroups != null && linkedGroups.Count != 0)
+                {
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
+                }
+                return null;
+            }
+            if (___groupDatas.Count != 0)
+            {
+                return GroupsHandler.GetGroupViaId(
+                            ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+            }
+            return null;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, List<GroupData> ___groupDatas)
+        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, 
+            List<GroupData> ___groupDatas, 
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
         {
-            if (!Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.cheatmachineremotedeposit")
-                && !Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.featmultiplayer")
-            )
+            if (!Chainloader.PluginInfos.ContainsKey(cheatMachineRemoteDepositGuid)
+                && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
             {
-                WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(
-                    GroupsHandler.GetGroupViaId(
-                        ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id), 0);
+                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
 
-                if (!___inventory.AddItem(worldObject))
+                if (group != null)
                 {
-                    WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+
+                    if (!___inventory.AddItem(worldObject))
+                    {
+                        WorldObjectsHandler.DestroyWorldObject(worldObject);
+                    }
                 }
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// The vanilla method uses isFull which might be unreliable with stacking enabled,
+        /// thus we have to replace the coroutine with our fully rewritten one.
+        /// 
+        /// Consequently, the MachineAutoCrafter::CraftIfPossible consumes resources and
+        /// does not verify the crafted item can be deposited into the local inventory, thus
+        /// wasting the ingredients. Another reason to rewrite.
+        /// </summary>
+        /// <param name="__instance">The underlying MachineAutoCrafter instance to get public values from.</param>
+        /// <param name="timeRepeat">How often to craft?</param>
+        /// <param name="__result">The overridden coroutine</param>
+        /// <returns>false when running with stack size > 1 and not multiplayer, true otherwise.</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), "TryToCraft")]
+        static bool MachineAutoCrafter_TryToCraft_Patch(MachineAutoCrafter __instance, float timeRepeat, ref IEnumerator __result)
+        {
+            if (stackSize.Value > 1 && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
+            {
+                __result = MachineAutoCrafter_TryToCraft_Override(__instance, timeRepeat);
+                return false;
+            }
+            return true;
+        }
+
+        static IEnumerator MachineAutoCrafter_TryToCraft_Override(MachineAutoCrafter __instance, float timeRepeat)
+        {
+            var hasEnergyField = AccessTools.Field(typeof(MachineAutoCrafter), "hasEnergy");
+            var autoCrafterInventoryField = AccessTools.Field(typeof(MachineAutoCrafter), "autoCrafterInventory");
+            for (; ; )
+            {
+                var inv = (Inventory)autoCrafterInventoryField.GetValue(__instance);
+                if ((bool)hasEnergyField.GetValue(__instance) && inv != null)
+                {
+                    var machineWo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                    if (machineWo != null)
+                    {
+                        var linkedGroups = machineWo.GetLinkedGroups();
+                        if (linkedGroups != null && linkedGroups.Count != 0)
+                        {
+                            MachineAutoCrafter_CraftIfPossible_Override(__instance, autoCrafterInventoryField, linkedGroups[0]);
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(timeRepeat);
+            }
+        }
+
+        static void MachineAutoCrafter_CraftIfPossible_Override(
+            MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
+        {
+            var range = __instance.range;
+            var thisPosition = __instance.gameObject.transform.position;
+
+            var outputInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
+            autoCrafterInventoryField.SetValue(__instance, outputInventory);
+
+            List<WorldObject> candidateWorldObjects = new();
+
+            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (Vector3.Distance(wo.GetPosition(), thisPosition) < range)
+                {
+                    var invId = wo.GetLinkedInventoryId();
+                    if (invId != 0)
+                    {
+                        var inv = InventoriesHandler.GetInventoryById(invId);
+                        if (inv != null)
+                        {
+                            candidateWorldObjects.AddRange(inv.GetInsideWorldObjects());
+                        }
+                    }
+                    else if (wo.GetGroup() is GroupItem)
+                    {
+                        candidateWorldObjects.Add(wo);
+                    }
+                }
+            }
+
+            List<WorldObject> toConsume = new();
+
+            List<Group> recipe = new(linkedGroup.GetRecipe().GetIngredientsGroupInRecipe());
+
+            int ingredientFound = 0;
+
+            for (int i = 0; i < recipe.Count; i++)
+            {
+                var recipeGid = recipe[i].GetId();
+
+                for (int j = 0; j < candidateWorldObjects.Count; j++)
+                {
+                    WorldObject lo = candidateWorldObjects[j];
+                    if (lo != null && lo.GetGroup().GetId() == recipeGid)
+                    {
+                        toConsume.Add(lo);
+                        candidateWorldObjects[j] = null;
+                        ingredientFound++;
+                        break;
+                    }
+                }
+            }
+
+            if (ingredientFound == recipe.Count)
+            {
+                var craftedWo = WorldObjectsHandler.CreateNewWorldObject(linkedGroup);
+                if (outputInventory.AddItem(craftedWo))
+                {
+                    WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
+                    __instance.CraftAnimation((GroupItem)linkedGroup);
+                }
+                else
+                {
+                    WorldObjectsHandler.DestroyWorldObject(craftedWo);
+                }
+            }
         }
     }
 }

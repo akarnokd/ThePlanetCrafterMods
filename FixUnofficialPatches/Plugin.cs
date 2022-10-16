@@ -7,10 +7,12 @@ using BepInEx.Logging;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Reflection;
+using System.IO;
+using System;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -102,5 +104,21 @@ namespace FixUnofficialPatches
             }
         }
         */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WindowsHandler), "OpenDevBranch")]
+        static bool WindowsHandler_OpenDevBranch()
+        {
+            if (GameConfig.IsDevBranch)
+            {
+                string once = Application.persistentDataPath + "/devbranch-warning-once.txt";
+                if (File.Exists(once))
+                {
+                    return false;
+                }
+                File.WriteAllText(once, DateTime.UtcNow.ToString("o"));
+            }
+            return true;
+        }
     }
 }

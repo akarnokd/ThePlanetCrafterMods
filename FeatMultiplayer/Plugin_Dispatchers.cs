@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using FeatMultiplayer.MessageTypes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace FeatMultiplayer
             {
                 try
                 {
-                    if (f(clientId, str, receiveQueue))
+                    if (f(clientId, str, _receiveQueue))
                     {
                         return true;
                     }
@@ -56,205 +57,228 @@ namespace FeatMultiplayer
             return false;
         }
 
-        static void DispatchMessageString(string s)
-        {
-            if (s == "Welcome")
-            {
-                ReceiveWelcome();
-            }
-            else if (s == "Disconnected")
-            {
-                ReceiveDisconnected();
-            }
-        }
-
-        static void NetworkParseMessage(string message)
+        static void NetworkParseMessage(string message, ClientConnection cc)
         {
             if (MessagePlayerPosition.TryParse(message, out var mpp))
             {
-                receiveQueue.Enqueue(mpp);
+                Receive(cc, mpp);
             }
             else
             if (MessageLogin.TryParse(message, out var ml))
             {
                 LogInfo("Login attempt: " + ml.user);
-                receiveQueue.Enqueue(ml);
+                Receive(cc, ml);
             }
             else
             if (MessageAllObjects.TryParse(message, out var mc))
             {
                 //LogInfo(message);
-                receiveQueue.Enqueue(mc);
+                Receive(cc, mc);
             }
             else
             if (MessageMined.TryParse(message, out var mm1))
             {
-                receiveQueue.Enqueue(mm1);
+                Receive(cc, mm1);
             }
             else
             if (MessageInventoryAdded.TryParse(message, out var mim))
             {
-                receiveQueue.Enqueue(mim);
+                Receive(cc, mim);
             }
             else
             if (MessageInventoryRemoved.TryParse(message, out var mir))
             {
-                receiveQueue.Enqueue(mir);
+                Receive(cc, mir);
             }
             else
             if (MessageInventories.TryParse(message, out var minv))
             {
-                receiveQueue.Enqueue(minv);
+                Receive(cc, minv);
             }
             else
             if (MessagePlaceConstructible.TryParse(message, out var mpc))
             {
-                receiveQueue.Enqueue(mpc);
+                Receive(cc, mpc);
             }
             else
             if (MessageUpdateWorldObject.TryParse(message, out var mc1))
             {
-                receiveQueue.Enqueue(mc1);
+                Receive(cc, mc1);
             }
             else
             if (MessagePanelChanged.TryParse(message, out var mpc1))
             {
-                receiveQueue.Enqueue(mpc1);
+                Receive(cc, mpc1);
             }
             else
             if (MessageSetTransform.TryParse(message, out var mst))
             {
-                receiveQueue.Enqueue(mst);
+                Receive(cc, mst);
             }
             else
             if (MessageDropWorldObject.TryParse(message, out var mdwo))
             {
-                receiveQueue.Enqueue(mdwo);
+                Receive(cc, mdwo);
             }
             else
             if (MessageUnlocks.TryParse(message, out var mu))
             {
-                receiveQueue.Enqueue(mu);
+                Receive(cc, mu);
             }
             else
             if (MessageTerraformState.TryParse(message, out var mts))
             {
-                receiveQueue.Enqueue(mts);
+                Receive(cc, mts);
             }
             else
             if (MessageUpdateText.TryParse(message, out var mut1))
             {
-                receiveQueue.Enqueue(mut1);
+                Receive(cc, mut1);
             }
             else
             if (MessageUpdateColor.TryParse(message, out var muc1))
             {
-                receiveQueue.Enqueue(muc1);
+                Receive(cc, muc1);
             }
             else
             if (MessageMicrochipUnlock.TryParse(message, out var mmu))
             {
-                receiveQueue.Enqueue(mmu);
+                Receive(cc, mmu);
             }
             else
             if (MessageSortInventory.TryParse(message, out var msi))
             {
-                receiveQueue.Enqueue(msi);
+                Receive(cc, msi);
             }
             else
             if (MessageGrab.TryParse(message, out var mg))
             {
-                receiveQueue.Enqueue(mg);
+                Receive(cc, mg);
             }
             else
             if (MessageCraft.TryParse(message, out var mc2))
             {
-                receiveQueue.Enqueue(mc2);
+                Receive(cc, mc2);
             }
             else
             if (MessageCraftWorld.TryParse(message, out var mcw))
             {
-                receiveQueue.Enqueue(mcw);
+                Receive(cc, mcw);
             }
             else
             if (MessageUpdateGrowth.TryParse(message, out var mug))
             {
-                receiveQueue.Enqueue(mug);
+                Receive(cc, mug);
             }
             else
             if (MessageInventorySpawn.TryParse(message, out var mis))
             {
-                receiveQueue.Enqueue(mis);
+                Receive(cc, mis);
             }
             else
             if (MessageInventorySize.TryParse(message, out var mis2))
             {
-                receiveQueue.Enqueue(mis2);
+                Receive(cc, mis2);
             }
             else
             if (MessageLaunch.TryParse(message, out var ml2)) 
             {
-                receiveQueue.Enqueue(ml2);
+                Receive(cc, ml2);
             }
             else
             if (MessageAsteroidSpawn.TryParse(message, out var mas))
             {
-                receiveQueue.Enqueue(mas);
+                Receive(cc, mas);
             }
             else
             if (MessageGrowAdd.TryParse(message, out var mga))
             {
-                receiveQueue.Enqueue(mga);
+                Receive(cc, mga);
             }
             else
             if (MessageGrowRemove.TryParse(message, out var mgr))
             {
-                receiveQueue.Enqueue(mgr);
+                Receive(cc, mgr);
             }
             else
             if (MessageMeteorEvent.TryParse(message, out var mme))
             {
-                receiveQueue.Enqueue(mme);
+                Receive(cc, mme);
             }
             else
             if (MessageTime.TryParse(message, out var mt))
             {
-                receiveQueue.Enqueue(mt);
+                Receive(cc, mt);
             }
             else
             if (MessageDeconstruct.TryParse(message, out var md))
             {
-                receiveQueue.Enqueue(md);
+                Receive(cc, md);
             }
             else
             if (MessageGameMode.TryParse(message, out var mgm))
             {
-                receiveQueue.Enqueue(mgm);
+                Receive(cc, mgm);
             }
             else
             if (MessageDeath.TryParse(message, out var mdt))
             {
-                receiveQueue.Enqueue(mdt);
+                Receive(cc, mdt);
             }
             else
             if (MessageMessages.TryParse(message, out var mm))
             {
-                receiveQueue.Enqueue(mm);
+                Receive(cc, mm);
             }
             else
             if (MessageMessageAdd.TryParse(message, out var mma))
             {
-                receiveQueue.Enqueue(mma);
+                Receive(cc, mma);
             }
             else
             if (MessageTerrainLayers.TryParse(message, out var mtl))
             {
-                receiveQueue.Enqueue(mtl);
+                Receive(cc, mtl);
             }
             else
             if (MessageGeneticsAction.TryParse(message, out var mga1))
             {
-                receiveQueue.Enqueue(mga1);
+                Receive(cc, mga1);
+            } 
+            else
+            if (MessageSetLinkedGroups.TryParse(message, out var mslg))
+            {
+                Receive(cc, mslg);
+            }
+            else
+            if (MessageMovePlayer.TryParse(message, out var mmp))
+            {
+                Receive(cc, mmp);
+            }
+            else
+            if (MessagePlayerJoined.TryParse(message, out var mpj))
+            {
+                Receive(cc, mpj);
+            }
+            else
+            if (MessagePlayerLeft.TryParse(message, out var mpl))
+            {
+                Receive(cc, mpl);
+            }
+            else
+            if (MessagePlayerColor.TryParse(message, out var mpc2))
+            {
+                Receive(cc, mpc2);
+            }
+            else
+            if (MessageUpdateStorage.TryParse(message, out var mus))
+            {
+                Receive(cc, mus);
+            }
+            else
+            if (MessageUpdateAllStorage.TryParse(message, out var muas))
+            {
+                Receive(cc, muas);
             }
             else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
@@ -269,10 +293,10 @@ namespace FeatMultiplayer
             else
             if (message == "Welcome" && updateMode == MultiplayerMode.CoopClient)
             {
-                receiveQueue.Enqueue("Welcome");
+                Receive(cc, new MessagePlayerWelcome());
             }
             else
-            if (!TryMessageParsers(1, message)) // FIXME use the proper client id once manyplayer is supported
+            if (!TryMessageParsers(cc.id, message))
             {
                 LogInfo("ParseMessage: Unknown message?\r\n" + message);
             }
@@ -281,15 +305,22 @@ namespace FeatMultiplayer
 
         void UIDispatchMessage(object message)
         {
-            if (otherPlayer == null)
+            if (message is NotifyUserMessage num1)
+            {
+                NotifyUser(num1.message, num1.duration);
+                return;
+            }
+            if (message is MessageClientDisconnected mcd)
+            {
+                ReceiveMessageClientDisconnected(mcd);
+                return;
+            }
+            if (updateMode == MultiplayerMode.CoopHost 
+                && message is MessageBase mb 
+                && mb.sender.clientName == null)
             {
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
-                    if (message is NotifyUserMessage num)
-                    {
-                        NotifyUser(num.message, num.duration);
-                    }
-                    else
                     if (message is MessageLogin ml)
                     {
                         ReceiveLogin(ml);
@@ -297,23 +328,6 @@ namespace FeatMultiplayer
                     else
                     {
                         LogWarning("MessageLogin not yet received: " + message);
-                    }
-                }
-                else
-                if (updateMode == MultiplayerMode.CoopClient)
-                {
-                    if (message is NotifyUserMessage num)
-                    {
-                        NotifyUser(num.message, num.duration);
-                    } 
-                    else
-                    if (message is string s)
-                    {
-                        DispatchMessageString(s);
-                    }
-                    else
-                    {
-                        LogWarning("Welcome not yet received: " + message);
                     }
                 }
                 return;
@@ -510,9 +524,49 @@ namespace FeatMultiplayer
                         ReceiveMessageGeneticsAction(mga1);
                         break;
                     }
-                case string s:
+                case MessageSetLinkedGroups mslg:
                     {
-                        DispatchMessageString(s);
+                        ReceiveMessageSetLinkedGroups(mslg);
+                        break;
+                    }
+                case MessageMovePlayer mmp:
+                    {
+                        ReceiveMessageMovePlayer(mmp);
+                        break;
+                    }
+                case MessagePlayerJoined mpj:
+                    {
+                        ReceiveMessagePlayerJoined(mpj);
+                        break;
+                    }
+                case MessagePlayerLeft mpl:
+                    {
+                        ReceiveMessagePlayerLeft(mpl);
+                        break;
+                    }
+                case MessagePlayerWelcome mpw:
+                    {
+                        ReceiveWelcome(mpw);
+                        break;
+                    }
+                case MessagePlayerColor mpc1:
+                    {
+                        ReceiveMessagePlayerColor(mpc1);
+                        break;
+                    }
+                case MessageDisconnected md:
+                    {
+                        ReceiveMessageHostDisconnected();
+                        break;
+                    }
+                case MessageUpdateStorage mus:
+                    {
+                        ReceiveMessageUpdateStorage(mus);
+                        break;
+                    }
+                case MessageUpdateAllStorage muas:
+                    {
+                        ReceiveMessageUpdateAllStorage(muas);
                         break;
                     }
                 default:

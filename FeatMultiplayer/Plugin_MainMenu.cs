@@ -31,8 +31,9 @@ namespace FeatMultiplayer
 
         static GameObject clientModeText;
         static GameObject clientTargetAddressText;
-        static GameObject clientNameText;
-        static GameObject clientJoinButton;
+        static readonly List<GameObject> clientJoinButtons = new();
+        static readonly List<string> playerNames = new();
+        static readonly List<string> playerPasswords = new();
 
         static volatile string externalIP;
         static volatile string externalMap;
@@ -51,6 +52,13 @@ namespace FeatMultiplayer
             updateMode = MultiplayerMode.MainMenu;
 
             int rows = 9;
+
+            clientJoinButtons.Clear();
+
+            playerNames.Clear();
+            playerNames.AddRange(clientName.Value.Split(','));
+            playerPasswords.Clear();
+            playerPasswords.AddRange(clientPassword.Value.Split(','));
 
             parent = new GameObject("MultiplayerMenu");
             Canvas canvas = parent.AddComponent<Canvas>();
@@ -133,19 +141,18 @@ namespace FeatMultiplayer
 
             dy -= fs + 10;
 
-            clientNameText = CreateText("    Client Name = " + clientName.Value, fs);
+            foreach (var clientName in playerNames) {
 
-            rectTransform = clientNameText.GetComponent<Text>().GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
+                var joinBtn = CreateText("  [ Join as " + clientName + " ] ", fs, true);
 
-            dy -= fs + 10;
+                rectTransform = joinBtn.GetComponent<Text>().GetComponent<RectTransform>();
+                rectTransform.localPosition = new Vector2(dx, dy);
+                rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
-            clientJoinButton = CreateText("  [ Click Here to Join Game ] ", fs, true);
+                clientJoinButtons.Add(joinBtn);
 
-            rectTransform = clientJoinButton.GetComponent<Text>().GetComponent<RectTransform>();
-            rectTransform.localPosition = new Vector2(dx, dy);
-            rectTransform.sizeDelta = new Vector2(dw, fs + 5);
+                dy -= fs + 10;
+            }
         }
 
         static string GetHostModeString()
@@ -255,18 +262,29 @@ namespace FeatMultiplayer
                         hostExternalIPText.GetComponent<Text>().text = GetExternalAddressString();
                         hostExternalMappingText.GetComponent<Text>().text = GetExternalMappingString();
                     }
-                    if (IsWithin(clientJoinButton, mouse))
+                    for (int i = 0; i < clientJoinButtons.Count; i++)
                     {
-                        hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
-                        updateMode = MultiplayerMode.CoopClient;
-                        File.Delete(Application.persistentDataPath + "\\Player_Client.log");
-                        clientJoinButton.GetComponent<Text>().text = " !!! Joining a game !!!";
-                        CreateMultiplayerSaveAndEnter();
+                        GameObject joinBtn = clientJoinButtons[i];
+                        if (IsWithin(joinBtn, mouse))
+                        {
+                            clientJoinName = playerNames[i];
+                            clientJoinPassword = playerPasswords[i];
+
+                            hostModeCheckbox.GetComponent<Text>().text = GetHostModeString();
+                            updateMode = MultiplayerMode.CoopClient;
+                            File.Delete(Application.persistentDataPath + "/Player_Client.log");
+                            File.Delete(Application.persistentDataPath + "/Player_Client_" + clientJoinName + ".log");
+                            joinBtn.GetComponent<Text>().text = " !!! Joining a game !!!";
+                            CreateMultiplayerSaveAndEnter();
+                        }
                     }
                 }
                 hostModeCheckbox.GetComponent<Text>().color = IsWithin(hostModeCheckbox, mouse) ? interactiveColorHighlight : interactiveColor;
                 upnpCheckBox.GetComponent<Text>().color = IsWithin(upnpCheckBox, mouse) ? interactiveColorHighlight : interactiveColor;
-                clientJoinButton.GetComponent<Text>().color = IsWithin(clientJoinButton, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+                foreach (var joinBtn in clientJoinButtons)
+                {
+                    joinBtn.GetComponent<Text>().color = IsWithin(joinBtn, mouse) ? interactiveColorHighlight2 : interactiveColor2;
+                }
 
                 var eip = externalIP;
                 if (eip != null)

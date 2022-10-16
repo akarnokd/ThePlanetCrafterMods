@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace ExampleModLoadSaveSupportSoft
 {
-    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.4")]
+    [BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.5")]
     [BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -53,7 +53,7 @@ namespace ExampleModLoadSaveSupportSoft
 
             logger = Logger;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            //Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         void OnDestroy()

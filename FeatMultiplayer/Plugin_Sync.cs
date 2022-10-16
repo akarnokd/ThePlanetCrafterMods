@@ -3,9 +3,9 @@ using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FeatMultiplayer
 {
@@ -17,14 +17,7 @@ namespace FeatMultiplayer
 
             // =========================================================
 
-            MessageUnlocks mu = new MessageUnlocks();
-            List<Group> grs = GroupsHandler.GetUnlockedGroups();
-            mu.groupIds = new List<string>(grs.Count + 1);
-            foreach (Group g in grs)
-            {
-                mu.groupIds.Add(g.GetId());
-            }
-            _sendQueue.Enqueue(mu);
+            SendMessageUnlocks();
 
             // =========================================================
 
@@ -32,6 +25,77 @@ namespace FeatMultiplayer
 
             // =========================================================
 
+            SendAllObjects();
+
+            // =========================================================
+
+            UnborkInventories();
+
+            // =========================================================
+
+            SendAllInventories();
+
+            // -----------------------------------------------------
+
+            SignalAllClients();
+        }
+
+        static void SendAllInventories()
+        {
+            HashSet<int> ignoreInventories = new();
+            ignoreInventories.Add(1);
+            ignoreInventories.Add(2);
+            foreach (var cc in _clientConnections.Values)
+            {
+                if (cc.shadowBackpack != null)
+                {
+                    ignoreInventories.Add(cc.shadowBackpack.GetId());
+                }
+                if (cc.shadowEquipment != null)
+                {
+                    ignoreInventories.Add(cc.shadowEquipment.GetId());
+                }
+            }
+
+            foreach (var cc in _clientConnections.Values)
+            {
+                if (cc.shadowBackpack != null && cc.shadowEquipment != null)
+                {
+                    var sb = new StringBuilder();
+                    sb.Append("Inventories");
+
+                    // Send player equimpent first
+
+                    Inventory inv = cc.shadowEquipment;
+                    sb.Append("|");
+                    MessageInventories.Append(sb, inv, 2);
+
+                    // Send player inventory next
+
+                    inv = cc.shadowBackpack;
+                    sb.Append("|");
+                    MessageInventories.Append(sb, inv, 1);
+
+                    // Send all the other inventories after
+                    foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
+                    {
+                        int id = inv2.GetId();
+
+                        // Ignore Host's own inventory/equipment and any other shadow inventory
+                        if (!ignoreInventories.Contains(id))
+                        {
+                            sb.Append("|");
+                            MessageInventories.Append(sb, inv2, id);
+                        }
+                    }
+                    sb.Append('\n');
+                    cc.Send(sb.ToString());
+                }
+            }
+        }
+
+        static void SendAllObjects()
+        {
             StringBuilder sb = new StringBuilder();
             sb.Append("AllObjects");
             int count = 0;
@@ -40,7 +104,7 @@ namespace FeatMultiplayer
                 if (!wo.GetDontSaveMe() || larvaeGroupIds.Contains(wo.GetGroup().GetId()))
                 {
                     int id = wo.GetId();
-                    if (id != shadowInventoryWorldId && id != shadowEquipmentWorldId)
+                    if (id >= shadowInventoryWorldIdStart + 2 * maxShadowInventoryCount)
                     {
                         sb.Append("|");
                         MessageWorldObject.AppendWorldObject(sb, ';', wo, false);
@@ -54,51 +118,25 @@ namespace FeatMultiplayer
                 sb.Append("|");
             }
             sb.Append('\n');
-            _sendQueue.Enqueue(sb.ToString());
+            SendAllClients(sb.ToString());
+        }
 
-            // =========================================================
-
-            UnborkInventories();
-
-            sb = new StringBuilder();
-            sb.Append("Inventories");
-
-            // Send player equimpent first
-
-            Inventory inv = InventoriesHandler.GetInventoryById(shadowEquipmentId);
-            sb.Append("|");
-            MessageInventories.Append(sb, inv, 2);
-
-            // Send player inventory next
-
-            inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
-            sb.Append("|");
-            MessageInventories.Append(sb, inv, 1);
-
-            // Send all the other inventories after
-            foreach (Inventory inv2 in InventoriesHandler.GetAllInventories())
+        static void SendMessageUnlocks()
+        {
+            MessageUnlocks mu = new MessageUnlocks();
+            List<Group> grs = GroupsHandler.GetUnlockedGroups();
+            mu.groupIds = new List<string>(grs.Count + 1);
+            foreach (Group g in grs)
             {
-                int id = inv2.GetId();
-
-                // Ignore Host's own inventory/equipment
-                if (id != 1 && id != 2 && id != shadowInventoryId && id != shadowEquipmentId)
-                {
-                    sb.Append("|");
-                    MessageInventories.Append(sb, inv2, id);
-                }
+                mu.groupIds.Add(g.GetId());
             }
-            sb.Append('\n');
-            _sendQueue.Enqueue(sb.ToString());
-
-            // -----------------------------------------------------
-
-            Signal();
+            SendAllClients(mu);
         }
 
         static void SendPeriodicState()
         {
             SendTerraformState();
-            Signal();
+            SignalAllClients();
         }
 
         /// <summary>
@@ -143,6 +181,76 @@ namespace FeatMultiplayer
                         wos.RemoveAt(i);
                     }
                 }
+            }
+        }
+
+        static void SendSavedPlayerPosition(ClientConnection cc)
+        {
+            string playerName = cc.clientName;
+            int backpackWoId = cc.shadowBackpackWorldObjectId;
+
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(backpackWoId);
+
+            if (wo != null)
+            {
+                string[] data = wo.GetText().Split(';');
+                if (data.Length >= 2)
+                {
+                    string[] coords = data[1].Split(',');
+                    if (coords.Length == 3)
+                    {
+                        var pos = new Vector3(
+                            float.Parse(coords[0], CultureInfo.InvariantCulture),
+                            float.Parse(coords[1], CultureInfo.InvariantCulture),
+                            float.Parse(coords[2], CultureInfo.InvariantCulture)
+                        );
+
+                        LogInfo("Moving " + playerName + " to its saved position at " + pos);
+                        var msg = new MessageMovePlayer()
+                        {
+                            position = pos
+                        };
+                        cc.Send(msg);
+                        cc.Signal();
+                        return;
+                    }
+                }
+                LogInfo("Player " + playerName + " has no saved position info");
+            }
+            else
+            {
+                LogInfo("Warning, no backpack info for " + playerName + " (" + backpackWoId + ")");
+            }
+        }
+
+        static void StorePlayerPosition(string playerName, int backpackWoId, Vector3 pos)
+        {
+            WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(backpackWoId);
+
+            if (wo != null)
+            {
+                var posStr = pos.x.ToString(CultureInfo.InvariantCulture)
+                        + "," + pos.y.ToString(CultureInfo.InvariantCulture)
+                        + "," + pos.z.ToString(CultureInfo.InvariantCulture);
+
+                string[] data = wo.GetText().Split(';');
+                if (data.Length >= 2)
+                {
+                    data[1] = posStr;
+                }
+                else
+                {
+                    var dataNew = new string[2];
+                    dataNew[0] = data[0];
+                    dataNew[1] = posStr;
+                    data = dataNew;
+                }
+
+                wo.SetText(string.Join(";", data));
+            }
+            else
+            {
+                LogInfo("Warning, no backpack info for " + playerName + " (" + backpackWoId + ")");
             }
         }
     }

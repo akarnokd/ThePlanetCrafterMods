@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -124,23 +125,33 @@ namespace FeatMultiplayer
             }
         }
 
-        static void SendWorldObject(WorldObject worldObject, bool makeGrabable)
+        static void SendWorldObjectToClients(WorldObject worldObject, bool makeGrabable)
+        {
+            SendAllClients(CreateUpdateWorldObject(worldObject, makeGrabable), true);
+        }
+
+        static void SendWorldObjectToHost(WorldObject worldObject, bool makeGrabable)
+        {
+            SendHost(CreateUpdateWorldObject(worldObject, makeGrabable), true);
+        }
+
+        static string CreateUpdateWorldObject(WorldObject worldObject, bool makeGrabable)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("UpdateWorldObject|");
             MessageWorldObject.AppendWorldObject(sb, '|', worldObject, makeGrabable);
-
-            LogInfo("Sending> " + sb.ToString());
-
-            sb.Append("\r");
-            Send(sb.ToString());
-            Signal();
+            sb.Append('\n');
+            return sb.ToString();
         }
 
         static void ReceiveMessageUpdateWorldObject(MessageUpdateWorldObject mc)
         {
             LogInfo("ReceiveMessageUpdateWorldObject: " + mc.worldObject.id + ", " + mc.worldObject.groupId);
             UpdateWorldObject(mc.worldObject);
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                SendAllClientsExcept(mc.sender.id, mc);
+            }
         }
 
         static void UpdatePanelsOn(WorldObject wo)
@@ -194,6 +205,41 @@ namespace FeatMultiplayer
                 {
                     go.transform.position = st.position;
                     go.transform.rotation = st.rotation;
+                }
+            }
+        }
+
+        static void ReceiveMessageSetLinkedGroups(MessageSetLinkedGroups mslg)
+        {
+            if (worldObjectById.TryGetValue(mslg.id, out var wo))
+            {
+                if (mslg.groupIds == null || mslg.groupIds.Count == 0)
+                {
+                    wo.SetLinkedGroups(null);
+                }
+                else
+                {
+                    List<Group> groups = new();
+                    foreach (var gid in mslg.groupIds)
+                    {
+                        groups.Add(GroupsHandler.GetGroupViaId(gid));
+                    }
+                    wo.SetLinkedGroups(groups);
+                }
+                var openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                if (openedUi == DataConfig.UiType.GroupSelector)
+                {
+                    var window = (UiWindowGroupSelector)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi);
+                    var windowWo = (WorldObject)uiWindowGroupSelectorWorldObject.GetValue(window);
+                    if (windowWo != null && windowWo.GetId() == mslg.id)
+                    {
+                        window.SetGroupSelectorWorldObject(wo);
+                    }
+                }
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClientsExcept(mslg.sender.id, mslg);
                 }
             }
         }

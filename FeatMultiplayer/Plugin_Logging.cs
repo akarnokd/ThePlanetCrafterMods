@@ -55,7 +55,14 @@ namespace FeatMultiplayer
                 int logLevel;
                 if (updateMode == MultiplayerMode.CoopClient)
                 {
-                    fileName += "Client.log";
+                    if (clientJoinName != null)
+                    {
+                        fileName += "Client_" + clientJoinName + ".log";
+                    }
+                    else
+                    {
+                        fileName += "Client.log";
+                    }
                     logLevel = clientLogLevel.Value;
                 } else
                 {
@@ -87,7 +94,14 @@ namespace FeatMultiplayer
             string fileName = Application.persistentDataPath + "\\Player_";
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                fileName += "Client.log";
+                if (clientJoinName != null)
+                {
+                    fileName += "Client_" + clientJoinName + ".log";
+                }
+                else
+                {
+                    fileName += "Client.log";
+                }
             }
             else
             {

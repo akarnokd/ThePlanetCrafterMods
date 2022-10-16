@@ -37,12 +37,11 @@ namespace FeatMultiplayer
                     var wo = component.GetWorldObject();
 
                     LogInfo("ActionDeconstructible_FinalyDestroy: " + DebugWorldObject(wo));
-                    Send(new MessageDeconstruct()
+                    SendHost(new MessageDeconstruct()
                     {
                         id = wo.GetId(),
                         groupId = wo.GetGroup().GetId()
-                    });
-                    Signal();
+                    }, true);
                 }
                 return false;
             }
@@ -57,7 +56,7 @@ namespace FeatMultiplayer
                     LogInfo("ActionDeconstructible_FinalyDestroy: " + DebugWorldObject(wo));
 
                     wo.ResetPositionAndRotation();
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
                 }
             }
             return true;
@@ -105,7 +104,7 @@ namespace FeatMultiplayer
                 if (updateMode == MultiplayerMode.CoopHost && isSceneObject)
                 {
                     wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(md.groupId), md.id);
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
                 }
             }
             if (wo != null)
@@ -133,12 +132,17 @@ namespace FeatMultiplayer
                         foreach (var g in ingredients)
                         {
                             var dwo = WorldObjectsHandler.CreateNewWorldObject(g, 0);
-                            SendWorldObject(dwo, false);
+                            SendWorldObjectToClients(dwo, false);
                             md.itemIds.Add(dwo.GetId());
                         }
                         LogInfo("ReceiveMessageDeconstruct: Deconstructing " + DebugWorldObject(wo) + ", Ingredients = " + ingredients.Count);
-                        Send(md);
-                        Signal();
+                        md.sender.Send(md);
+                        md.sender.Signal();
+
+                        // everyone else just gets the destruction notification
+                        var mdRest = new MessageDeconstruct();
+                        mdRest.id = md.id;
+                        SendAllClientsExcept(md.sender.id, mdRest, true);
 
                         if (go.GetComponent<WorldObjectFromScene>() != null)
                         {

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace UIInventoryMoveMultiple
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -51,7 +51,7 @@ namespace UIInventoryMoveMultiple
                     }
                 }
                 DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
-                if (openedUi == DataConfig.UiType.Container)
+                if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.GroupSelector)
                 {
                     Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
                     if (___inventory != null && otherInventory != null)

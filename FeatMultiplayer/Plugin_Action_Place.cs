@@ -61,8 +61,7 @@ namespace FeatMultiplayer
                                 };
                                 PlayBuildGhost();
                                 LogInfo("Place: Change Panel " + pc.itemId + ", " + idx + ", " + newPanelType);
-                                Send(pc);
-                                Signal();
+                                SendHost(pc, true);
                                 break;
                             }
                             idx++;
@@ -82,8 +81,7 @@ namespace FeatMultiplayer
                         };
                         PlayBuildGhost();
                         LogInfo("Place: Construct " + mpc.groupId + "; " + mpc.position + "; " + mpc.rotation);
-                        Send(mpc);
-                        Signal();
+                        SendHost(mpc, true);
                     }
                     Destroy(__instance.gameObject);
                     __result = null;
@@ -130,7 +128,7 @@ namespace FeatMultiplayer
                             {
                                 wo.SetText(wtext.GetText());
                             }
-                            SendWorldObject(wo, false);
+                            SendWorldObjectToClients(wo, false);
                             return;
                         }
                     }
@@ -238,8 +236,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                SendWorldObject(___worldObjectAssociated, false);
-                Signal();
+                SendWorldObjectToClients(___worldObjectAssociated, false);
             }
         }
 
@@ -263,9 +260,9 @@ namespace FeatMultiplayer
                     wo.SetText(wtext.GetText());
                 }
 
-                SendWorldObject(wo, false);
+                SendWorldObjectToClients(wo, false);
 
-                ClientConsumeRecipe(gc);
+                ClientConsumeRecipe(gc, mpc.sender.shadowBackpack);
             }
             else
             {
@@ -295,9 +292,9 @@ namespace FeatMultiplayer
                     UpdatePanelsOn(wo);
 
                     GroupConstructible gc = (GroupConstructible)GroupsHandler.GetGroupViaId(mpc.panelGroupId);
-                    ClientConsumeRecipe(gc);
+                    ClientConsumeRecipe(gc, mpc.sender.shadowBackpack);
 
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
                 }
                 else
                 {

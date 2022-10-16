@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageDeath : MessageStringProvider
+    internal class MessageDeath : MessageBase
     {
         internal Vector3 position;
         internal int chestId;
@@ -31,7 +31,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "Death|" + DataTreatments.Vector3ToString(position)
                 + "|" + chestId

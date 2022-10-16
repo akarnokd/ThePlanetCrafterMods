@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.7")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -127,7 +127,8 @@ namespace CheatNearbyResourcesHighlight
             if (p != null)
             {
                 PlayerMainController pm = p.GetActivePlayerController();
-                if (pm != null)
+                var wh = Managers.GetManager<WindowsHandler>();
+                if (pm != null && !wh.GetHasUiOpen())
                 {
                     PropertyInfo pi = typeof(Key).GetProperty(cycleResourceKey.Value.ToString().ToUpper());
                     Key k = Key.X;

@@ -57,11 +57,10 @@ namespace FeatMultiplayer
                     LogWarning("fullPhaseTimeReached: " + AccessTools.Field(typeof(EnvironmentDayNightCycle), "fullPhaseTimeReached").GetValue(__instance));
                     LogWarning("previousLerpValue: " + AccessTools.Field(typeof(EnvironmentDayNightCycle), "previousLerpValue").GetValue(__instance));
                     */
-                    Send(new MessageTime()
+                    SendAllClients(new MessageTime()
                     {
                         time = dn
-                    });
-                    Signal();
+                    }, true);
                 }
                 else
                 if (updateMode == MultiplayerMode.CoopClient)
@@ -103,8 +102,7 @@ namespace FeatMultiplayer
                 mtl.layers.Add(layer);
             }
             LogInfo("SendTerrainLayers: " + mtl.layers.Count);
-            Send(mtl);
-            Signal();
+            SendAllClients(mtl, true);
         }
 
         static void ReceiveMessageTerrainLayers(MessageTerrainLayers mtl)
@@ -140,7 +138,7 @@ namespace FeatMultiplayer
             mts.insects = wuh.GetUnit(DataConfig.WorldUnitType.Insects).GetValue();
             mts.animals = wuh.GetUnit(DataConfig.WorldUnitType.Animals).GetValue();
 
-            _sendQueue.Enqueue(mts);
+            SendAllClients(mts);
         }
 
         /// <summary>

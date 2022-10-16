@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -8,13 +9,14 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    public class MessagePlayerPosition : MessageStringProvider
+    public class MessagePlayerPosition : MessageBase
     {
         internal Vector3 position;
         internal Quaternion rotation;
         internal int lightMode;
+        internal string clientName;
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("PlayerPosition|");
@@ -33,13 +35,15 @@ namespace FeatMultiplayer
             sb.Append(rotation.w.ToString(CultureInfo.InvariantCulture));
             sb.Append('|');
             sb.Append(lightMode);
+            sb.Append('|');
+            sb.Append(clientName);
             sb.Append('\n');
             return sb.ToString();
         }
 
         public static bool TryParse(string str, out MessagePlayerPosition message)
         {
-            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 9, out string[] parts))
+            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 10, out string[] parts))
             {
                 try
                 {
@@ -54,6 +58,7 @@ namespace FeatMultiplayer
                     message.rotation.w = float.Parse(parts[7], CultureInfo.InvariantCulture);
 
                     message.lightMode = int.Parse(parts[8]);
+                    message.clientName = parts[9];
                     return true;
                 }
                 catch (Exception ex)

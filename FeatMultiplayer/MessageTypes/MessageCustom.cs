@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageCustom : MessageStringProvider
+    internal class MessageCustom : MessageBase
     {
         internal object o;
 
-        public string GetString()
+        public override string GetString()
         {
             return o.ToString();
         }

@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.6")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.7")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -24,7 +24,6 @@ namespace CheatAutoHarvest
         static MethodInfo updateGrowing;
         static MethodInfo instantiateAtRandomPosition;
         static FieldInfo machineGrowerInventory;
-        static FieldInfo worldObjectsDictionary;
 
         static ManualLogSource logger;
         static bool debugAlgae = false;
@@ -53,7 +52,6 @@ namespace CheatAutoHarvest
             updateGrowing = AccessTools.Method(typeof(MachineOutsideGrower), "UpdateGrowing", new Type[] { typeof(float) });
             instantiateAtRandomPosition = AccessTools.Method(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition", new Type[] { typeof(GameObject), typeof(bool) });
             machineGrowerInventory = AccessTools.Field(typeof(MachineGrower), "inventory");
-            worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
 
@@ -236,13 +234,12 @@ namespace CheatAutoHarvest
 
             logFood("Edible: begin search");
             int deposited = 0;
-            Dictionary<WorldObject, GameObject> map = (Dictionary<WorldObject, GameObject>)worldObjectsDictionary.GetValue(null);
 
             List<MachineGrower> allMachineGrowers = new List<MachineGrower>();
             List<WorldObject> food = new List<WorldObject>();
             List<InventoryAndWorldObject> inventories = new List<InventoryAndWorldObject>();
 
-            FindObjects(map, food, inventories, allMachineGrowers);
+            FindObjects(food, inventories, allMachineGrowers);
             logFood("  Enumerated food: " + food.Count);
             logFood("  Enumerated inventories: " + inventories.Count);
             logFood("  Enumerated machine growers: " + allMachineGrowers.Count);
@@ -266,9 +263,10 @@ namespace CheatAutoHarvest
                             if (inv.AddItem(wo))
                             {
                                 logFood("  Adding to target inventory");
-                                if (map.TryGetValue(wo, out GameObject go) && go != null)
+                                var go = wo.GetGameObject();
+                                if (go != null)
                                 {
-                                    UnityEngine.Object.Destroy(go);
+                                    Destroy(go);
                                 }
 
                                 // readd seed
@@ -349,7 +347,7 @@ namespace CheatAutoHarvest
             return false;
         }
 
-        static void FindObjects(Dictionary<WorldObject, GameObject> map, 
+        static void FindObjects(
             List<WorldObject> food, 
             List<InventoryAndWorldObject> inventories, 
             List<MachineGrower> growers)
@@ -359,7 +357,8 @@ namespace CheatAutoHarvest
                 GroupItem g = wo.GetGroup() as GroupItem;
                 if (g != null && g.GetUsableType() == DataConfig.UsableType.Eatable)
                 {
-                    if (map.TryGetValue(wo, out GameObject go) && go != null)
+                    GameObject go = wo.GetGameObject();
+                    if (go != null)
                     {
                         ActionGrabable ag = go.GetComponent<ActionGrabable>();
                         if (ag != null)
@@ -383,7 +382,8 @@ namespace CheatAutoHarvest
                         }
                     }
                 }
-                if (map.TryGetValue(wo, out GameObject goConstr) && goConstr != null)
+                var goConstr = wo.GetGameObject();
+                if (goConstr != null)
                 {
                     MachineGrower goMg = goConstr.GetComponent<MachineGrower>();
                     if (goMg != null)

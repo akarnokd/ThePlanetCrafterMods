@@ -70,8 +70,7 @@ namespace FeatMultiplayer
                         __result = true;
 
                         LogInfo("SendMessageCraft: " + groupItem.GetId());
-                        Send(new MessageCraft() { groupId = groupItem.GetId() });
-                        Signal();
+                        SendHost(new MessageCraft() { groupId = groupItem.GetId() }, true);
                     }
                 }
                 else
@@ -134,13 +133,12 @@ namespace FeatMultiplayer
                             suppressInventoryChange = false;
                         }
 
-                        Send(new MessageCraftWorld()
+                        SendHost(new MessageCraftWorld()
                         {
                             groupId = groupItem.GetId(),
                             position = _sourceCrafter.GetSpawnPosition(),
                             craftTime = _sourceCrafter.GetCraftTime()
-                        });
-                        Signal();
+                        }, true);
                     }
                     else
                     {
@@ -152,7 +150,7 @@ namespace FeatMultiplayer
                         go.AddComponent<ShowMeAfterDelay>().SetDelay(_sourceCrafter.GetCraftTime());
 
                         // FIXME this won't animate on the client
-                        SendWorldObject(wo, false);
+                        SendWorldObjectToClients(wo, false);
                     }
                 }
                 else
@@ -169,7 +167,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                Inventory inv = mc.sender.shadowBackpack;
                 GroupItem gri = GroupsHandler.GetGroupViaId(mc.groupId) as GroupItem;
                 var recipe = gri.GetRecipe().GetIngredientsGroupInRecipe();
                 if (gri != null)
@@ -179,34 +177,13 @@ namespace FeatMultiplayer
 
                     if (hasAllIngredients || freeCraft)
                     {
-                        var wo = WorldObjectsHandler.CreateNewWorldObject(gri, 0);
-
-                        suppressInventoryChange = true;
-                        bool added;
-                        try
-                        {
-                            added = inv.AddItem(wo);
-                        } 
-                        finally 
-                        {
-                            suppressInventoryChange = false;
-                        }
-                        if (added)
+                        if (TryCreateInInventoryAndNotify(gri, inv, mc.sender, out _))
                         {
                             LogInfo("ReceiveMessageCraft: " + mc.groupId + ", success = true");
-                            SendWorldObject(wo, false);
-                            Send(new MessageInventoryAdded()
-                            {
-                                inventoryId = 1,
-                                itemId = wo.GetId(),
-                                groupId = mc.groupId
-                            });
-                            Signal();
                             inv.RemoveItems(recipe, true, false);
                         }
                         else
                         {
-                            WorldObjectsHandler.DestroyWorldObject(wo);
                             LogWarning("ReceiveMessageCraft: " + mc.groupId + ", success = false, reason = inventory full");
                         }
                     }
@@ -226,7 +203,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                Inventory inv = mcw.sender.shadowBackpack;
                 GroupItem gri = GroupsHandler.GetGroupViaId(mcw.groupId) as GroupItem;
                 var recipe = gri.GetRecipe().GetIngredientsGroupInRecipe();
                 if (gri != null)
@@ -245,7 +222,7 @@ namespace FeatMultiplayer
 
                         LogInfo("ReceiveMessageCraftWorld: " + DebugWorldObject(wo) + ", success = true");
                         // FIXME this won't animate properly on the client
-                        SendWorldObject(wo, false);
+                        SendWorldObjectToClients(wo, false);
                     }
                     else
                     {

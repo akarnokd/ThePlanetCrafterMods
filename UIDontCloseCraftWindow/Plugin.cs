@@ -8,7 +8,7 @@ using MijuTools;
 
 namespace UIDontCloseCraftWindow
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 

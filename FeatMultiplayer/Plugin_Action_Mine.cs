@@ -34,13 +34,21 @@ namespace FeatMultiplayer
                     WorldObject worldObject = woa.GetWorldObject();
                     if (worldObject != null)
                     {
-                        SendWorldObject(worldObject, false);
-
                         int woid = worldObject.GetId();
                         string groupId = worldObject.GetGroup().GetId();
                         LogInfo("Mined: " + woid + " of " + groupId + " at " + woa.gameObject.transform.position);
-                        Send(new MessageMined() {  id = woid, groupId = groupId });
-                        Signal();
+                        var msg = new MessageMined() { id = woid, groupId = groupId };
+
+                        if (updateMode == MultiplayerMode.CoopHost)
+                        {
+                            SendWorldObjectToClients(worldObject, false);
+                            SendAllClients(msg, true);
+                        }
+                        else
+                        {
+                            SendWorldObjectToHost(worldObject, false);
+                            SendHost(msg, true);
+                        }
                     }
                 }
             }
@@ -48,7 +56,7 @@ namespace FeatMultiplayer
 
         static void ReceiveMessageMined(MessageMined mm)
         {
-            LogInfo("ReceiveMessageMined: OtherPlayer mined " + mm.id + ", " + mm.groupId);
+            LogInfo("ReceiveMessageMined: [" + mm.sender.clientName + "] mined " + mm.id + ", " + mm.groupId);
 
             WorldObject wo1 = WorldObjectsHandler.GetWorldObjectViaId(mm.id);
 
@@ -74,7 +82,15 @@ namespace FeatMultiplayer
                 LogInfo("ReceiveMessageMined: Hiding WorldObject " + mm.id + ", " + mm.groupId);
                 wo1.ResetPositionAndRotation();
                 wo1.SetDontSaveMe(false);
-                SendWorldObject(wo1, false);
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendWorldObjectToClients(wo1, false);
+                }
+                else
+                {
+                    SendWorldObjectToHost(wo1, false);
+                }
 
                 if (TryGetGameObject(wo1, out var go))
                 {

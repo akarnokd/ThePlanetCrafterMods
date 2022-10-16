@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageUnlocks : MessageStringProvider
+    internal class MessageUnlocks : MessageBase
     {
         internal List<string> groupIds;
 
@@ -41,7 +41,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("Unlocks");

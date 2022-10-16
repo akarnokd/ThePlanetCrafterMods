@@ -62,11 +62,10 @@ namespace FeatMultiplayer
             {
                 if (gameSettingMode != DataConfig.GameSettingMode.Chill)
                 {
-                    Send(new MessageDeath()
+                    SendHost(new MessageDeath()
                     {
                         position = _playerMainController.transform.position
-                    });
-                    Signal();
+                    }, true);
 
                     if (gameSettingMode == DataConfig.GameSettingMode.Standard)
                     {
@@ -124,7 +123,7 @@ namespace FeatMultiplayer
                     case DataConfig.GameSettingMode.Standard:
                         {
                             LogInfo("ReceiveMessageDeath: Standard @ " + mdt.position);
-                            var inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                            var inv = mdt.sender.shadowBackpack;
                             var list = inv.GetInsideWorldObjects();
 
                             var dropProbability = 50;
@@ -149,23 +148,23 @@ namespace FeatMultiplayer
 
                                 // make the chest disappear upon emptying it
                                 mdt.chestId = chestId;
-                                Send(mdt);
-                                Signal();
+                                mdt.sender.Send(mdt);
+                                mdt.sender.Signal();
                             }
                             break;
                         }
                     case DataConfig.GameSettingMode.Intense:
                         {
                             LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
-                            DeathClearInventory(shadowInventoryId);
+                            DeathClearInventory(mdt.sender.shadowBackpack);
 
                             break;
                         }
                     case DataConfig.GameSettingMode.Hardcore:
                         {
                             LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
-                            DeathClearInventory(shadowInventoryId);
-                            DeathClearInventory(shadowEquipmentId);
+                            DeathClearInventory(mdt.sender.shadowBackpack);
+                            DeathClearInventory(mdt.sender.shadowEquipment);
 
                             break;
                         }
@@ -173,9 +172,8 @@ namespace FeatMultiplayer
             }
         }
 
-        static void DeathClearInventory(int iid)
+        static void DeathClearInventory(Inventory inv)
         {
-            var inv = InventoriesHandler.GetInventoryById(iid);
             var list = inv.GetInsideWorldObjects();
             for (int i = list.Count - 1; i >= 0; i--)
             {
@@ -227,13 +225,12 @@ namespace FeatMultiplayer
             ddc.inventory = inv;
             ddc.BeginTrack();
 
-            SendWorldObject(wo, false);
-            Send(new MessageInventorySize()
+            SendWorldObjectToClients(wo, false);
+            SendAllClients(new MessageInventorySize()
             {
                 inventoryId = inv.GetId(),
                 size = inv.GetSize()
-            });
-            Signal();
+            }, true);
             chestId = wo.GetId();
             return inv;
         }

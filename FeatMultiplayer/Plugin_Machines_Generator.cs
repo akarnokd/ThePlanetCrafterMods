@@ -24,6 +24,35 @@ namespace FeatMultiplayer
         static bool modMachineRemoteDeposit;
 
         /// <summary>
+        /// With 0.6.001, some machines can now generate items from the linked groups of the
+        /// machine's world object.
+        /// </summary>
+        /// <param name="___groupDatas">The location's generator list</param>
+        /// <param name="___setGroupsDataViaLinkedGroup">Should the linked groups used for generating ore?</param>
+        /// <param name="___worldObject">The machine's world object</param>
+        /// <returns>The generated ore id or null if nothing is generated</returns>
+        static string GenerateOre(List<GroupData> ___groupDatas,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
+        {
+            // Since 0.6.001
+            if (___setGroupsDataViaLinkedGroup)
+            {
+                var linkedGroups = ___worldObject.GetLinkedGroups();
+                if (linkedGroups != null && linkedGroups.Count != 0)
+                {
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].GetId();
+                }
+                return null;
+            }
+            if (___groupDatas.Count != 0)
+            {
+                return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// The vanilla game's machines, such as the miners, the water collectors and the gas
         /// extractors use MachineGenerator::GenerateAnObject to generate an object and add it
         /// to the machine's own inventory.
@@ -41,7 +70,11 @@ namespace FeatMultiplayer
         /// <returns>True in singleplayer and if the mod is installed so it can run, false otherwise.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(List<GroupData> ___groupDatas, Inventory ___inventory)
+        static bool MachineGenerator_GenerateAnObject(
+            List<GroupData> ___groupDatas, 
+            Inventory ___inventory,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
         {
             if (!modMachineRemoteDeposit)
             {
@@ -54,7 +87,7 @@ namespace FeatMultiplayer
                         LogInfo("MachineGenerator_GenerateAnObject:   " + gr.id);
                     }
                     */
-                    string oreId = ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+                    string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
                     LogInfo("MachineGenerator_GenerateAnObject: Generated " + oreId);
                     GenerateAnObjectAndDepositInto(___inventory, oreId);
                     return false;
@@ -84,35 +117,7 @@ namespace FeatMultiplayer
             }
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(oreId));
-                suppressInventoryChange = true;
-                bool added;
-                try
-                {
-                    added = inv.AddItem(wo);
-                }
-                finally
-                {
-                    suppressInventoryChange = false;
-                }
-
-                if (added)
-                {
-                    // We need to send the object first, then send the instruction that it has been
-                    // Added to the target inventory.
-                    SendWorldObject(wo, false);
-                    Send(new MessageInventoryAdded()
-                    {
-                        inventoryId = inv.GetId(),
-                        itemId = wo.GetId(),
-                        groupId = oreId
-                    });
-                    Signal();
-                }
-                else
-                {
-                    WorldObjectsHandler.DestroyWorldObject(wo);
-                }
+                TryCreateInInventoryAndNotify(GroupsHandler.GetGroupViaId(oreId), inv, null, out _);
                 return true;
             }
             return false;

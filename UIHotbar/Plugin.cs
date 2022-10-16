@@ -12,15 +12,18 @@ using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
 using BepInEx.Logging;
+using System.Linq;
 
 namespace UIHotbar
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uihotbar", "(UI) Hotbar", "1.0.0.9")]
+    [BepInPlugin(modUiHotbarGuid, "(UI) Hotbar", "1.0.0.12")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
-
+    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiHotbarGuid = "akarnokd.theplanetcraftermods.uihotbar";
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
 
         static ConfigEntry<int> slotSize;
         static ConfigEntry<int> slotBottom;
@@ -34,6 +37,22 @@ namespace UIHotbar
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
         static ConfigEntry<bool> modCraftFromContainersEnabled;
         static ConfigEntry<float> modCraftFromContainersRange;
+
+        static readonly int shadowContainerId = 4000;
+
+        static string deferredRestore;
+
+        static Func<string> mpGetMode;
+
+        static Action<Action> mpRegisterDataReady;
+
+        static Func<string, string> mpGetData;
+
+        static Action<string, string> mpSetData;
+
+        static Func<string> mpHostState;
+
+        static Action<object> mpLogInfo;
 
         private void Awake()
         {
@@ -74,6 +93,25 @@ namespace UIHotbar
             {
                 Logger.LogInfo("Not Found " + modCraftFromContainersGuid);
             }
+
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out pi))
+            {
+                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", hotbar will be saved/restored on the host");
+                
+                mpGetMode = GetApi<Func<string>>(pi, "apiGetMultiplayerMode");
+                mpGetData = GetApi<Func<string, string>>(pi, "apiClientGetData");
+                mpSetData = GetApi<Action<string, string>>(pi, "apiClientSetData");
+                mpRegisterDataReady = GetApi<Action<Action>>(pi, "apiClientRegisterDataReady");
+                mpHostState = GetApi<Func<string>>(pi, "apiGetHostState");
+                mpLogInfo = GetApi<Action<object>>(pi, "apiLogInfo");
+
+                mpRegisterDataReady(RestoreHotbarMultiplayer);
+            }
+            else
+            {
+                Logger.LogInfo("Not Found " + modFeatMultiplayerGuid);
+            }
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -134,6 +172,7 @@ namespace UIHotbar
             if (parent == null)
             {
                 Logger.LogInfo("Begin Creating the Hotbar");
+                mpLogInfo?.Invoke("Begin Creating the Hotbar");
                 parent = new GameObject("HotbarCanvas");
                 Canvas canvas = parent.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -218,6 +257,8 @@ namespace UIHotbar
                     // -----------------------------------------------------------
                     x += s + 5;
                 }
+
+                RestoreHotbar();
             }
         }
 
@@ -482,6 +523,7 @@ namespace UIHotbar
                 if (slot >= 0)
                 {
                     PinUnpinGroup(eventTriggerCallbackData.group, slot);
+                    SaveHotbar();
                     return false;
                 }
             }
@@ -547,16 +589,22 @@ namespace UIHotbar
                         hotbarSlot = slots[i];
                         if (hotbarSlot.currentGroup != null && hotbarSlot.currentGroup.GetId() == group.GetId())
                         {
-                            logger.LogInfo("Unpinning to slot " + slot);
-                            hotbarSlot.currentGroup = null;
-                            image = hotbarSlot.image.GetComponent<Image>();
-                            image.sprite = null;
-                            image.color = new Color(0f, 0f, 0f, 0f);
-                            hotbarSlot.buildCount.GetComponent<Text>().text = "";
+                            ClearSlot(i);
                         }
                     }
                 }
             }
+        }
+
+        static void ClearSlot(int slotId)
+        {
+            var hotbarSlot = slots[slotId];
+            logger.LogInfo("Unpinning to slot " + slotId);
+            hotbarSlot.currentGroup = null;
+            var image = hotbarSlot.image.GetComponent<Image>();
+            image.sprite = null;
+            image.color = new Color(0f, 0f, 0f, 0f);
+            hotbarSlot.buildCount.GetComponent<Text>().text = "";
         }
 
         [HarmonyPostfix]
@@ -567,5 +615,115 @@ namespace UIHotbar
             parent?.SetActive(active);
         }
 
+        static WorldObject EnsureHiddenContainer()
+        {
+            var wo = WorldObjectsHandler.GetWorldObjectViaId(shadowContainerId);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerId);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static void SaveHotbar()
+        {
+            var wo = EnsureHiddenContainer();
+            var str = string.Join(",", slots.Select(slot =>
+            {
+                var g = slot.currentGroup;
+                if (g == null)
+                {
+                    return "";
+                }
+                return g.id;
+            }));
+            wo.SetText(str);
+            SaveHotbarMultiplayer(str);
+        }
+
+        static void SaveHotbarMultiplayer(string data)
+        {
+            if (mpGetMode != null && mpGetMode() == "CoopClient")
+            {
+                if (mpHostState() == "Active")
+                {
+                    mpLogInfo("SaveHotbarMultiplayer: " + data);
+                    mpSetData(modUiHotbarGuid + ".slots", data);
+                }
+                else
+                {
+                    mpLogInfo("SaveHotbarMultiplayer not active");
+                }
+            }
+        }
+
+        static void RestoreHotbarMultiplayer()
+        {
+            mpLogInfo("RestoreHotbarMultiplayer");
+            var data = mpGetData(modUiHotbarGuid + ".slots");
+            mpLogInfo("RestoreHotbarMultiplayer: " + data);
+            if (slots.Count != slotCount)
+            {
+                deferredRestore = data;
+                mpLogInfo("RestoreHotbarMultiplayer - deferring restore");
+                return;
+            }
+            RestoreHotbarFromString(data);
+            mpLogInfo("RestoreHotbarMultiplayer - Done");
+        }
+
+        static void RestoreHotbar()
+        {
+            var wo = EnsureHiddenContainer();
+            var dr = deferredRestore;
+            if (dr != null)
+            {
+                deferredRestore = null;
+                RestoreHotbarFromString(dr);
+            }
+            else
+            {
+                RestoreHotbarFromString(wo.GetText());
+            }
+        }
+
+        static void RestoreHotbarFromString(string s)
+        {
+            if (s == null || s.Length == 0)
+            {
+                for (int i = 0; i < slotCount; i++)
+                {
+                    ClearSlot(i);
+                }
+                return;
+            }
+            var current = s.Split(',');
+
+            for (int i = 0; i < slotCount; i++)
+            {
+                ClearSlot(i);
+                if (i < current.Length)
+                {
+                    var gid = current[i];
+                    var g = GroupsHandler.GetGroupViaId(gid);
+                    if (g != null)
+                    {
+                        PinUnpinGroup(g, i);
+                    }
+                }
+            }
+        }
+
+        private static T GetApi<T>(BepInEx.PluginInfo pi, string name)
+        {
+            var fi = AccessTools.Field(pi.Instance.GetType(), name);
+            if (fi == null)
+            {
+                throw new NullReferenceException("Missing field " + pi.Instance.GetType() + "." + name);
+            }
+            return (T)fi.GetValue(null);
+        }
     }
 }

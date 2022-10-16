@@ -8,7 +8,7 @@ using MijuTools;
 
 namespace UIPhotomodeHideWater
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 

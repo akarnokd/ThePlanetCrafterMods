@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.8")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -105,13 +105,37 @@ namespace CheatMachineRemoteDeposit
             }
         }
 
+        static string GenerateOre(List<GroupData> ___groupDatas,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject)
+        {
+            // Since 0.6.001
+            if (___setGroupsDataViaLinkedGroup)
+            {
+                var linkedGroups = ___worldObject.GetLinkedGroups();
+                if (linkedGroups != null && linkedGroups.Count != 0)
+                {
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].GetId();
+                }
+                return null;
+            }
+            if (___groupDatas.Count != 0)
+            {
+                return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+            }
+            return null;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, List<GroupData> ___groupDatas)
+        static bool MachineGenerator_GenerateAnObject(
+            Inventory ___inventory, List<GroupData> ___groupDatas,
+            bool ___setGroupsDataViaLinkedGroup,
+            WorldObject ___worldObject
+        )
         {
             log("GenerateAnObject start");
-            int index = UnityEngine.Random.Range(0, ___groupDatas.Count);
-            string oreId = ___groupDatas[index].id;
+            string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
 
             log("  Ore detected: " + oreId);
             // If Lathrey's OreExtractorTweaks are installed, intertwine its logic

@@ -142,6 +142,31 @@ namespace FeatMultiplayer
         /// </summary>
         public static Action<object> apiLogError;
 
+        /// <summary>
+        /// Get data from a key-value store for this client from the host.
+        /// </summary>
+        public static Func<string, string> apiClientGetData;
+
+        /// <summary>
+        /// Set data for in a key-value store for this client on the host.
+        /// </summary>
+        public static Action<string, string> apiClientSetData;
+
+        /// <summary>
+        /// Register the given action to be called after a successful
+        /// login on the host and after receiving the saved key-value store.
+        /// </summary>
+        public static Action<Action> apiClientRegisterDataReady;
+
+        /// <summary>
+        /// Check the connection status to the host:
+        /// "none" - connection not even started yet
+        /// "connected" - connected, waiting for login success, 
+        /// "active" - login success,
+        /// "disconnected" - disconnected
+        /// </summary>
+        public static Func<string> apiGetHostState;
+
         #region - Api Setup -
 
         /// <summary>
@@ -164,6 +189,10 @@ namespace FeatMultiplayer
             apiLogInfo = LogInfo;
             apiLogWarning = LogWarning;
             apiLogError = LogError;
+            apiClientGetData = ApiClientGetData;
+            apiClientSetData = ApiClientSetData;
+            apiClientRegisterDataReady = ApiClientRegisterDataReady;
+            apiGetHostState = ApiGetHostState;
         }
 
         static int ApiGetCountByGroupId(string groupId)
@@ -196,14 +225,40 @@ namespace FeatMultiplayer
             {
                 throw new ArgumentNullException(nameof(o));
             }
-            // FIXME use the client id to send to the proper client.
-            Send(new MessageCustom() { o = o });
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(new MessageCustom() { o = o });
+                }
+                else
+                {
+                    SendHost(new MessageCustom() { o = o });
+                }
+            }
+            else
+            {
+                SendClient(clientId, o);
+            }
         }
 
         static void ApiSignal(int clientId)
         {
-            // FIXME use the client id to signal the proper network stack.
-            Signal();
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SignalAllClients();
+                }
+                else
+                {
+                    SignalHost();
+                }
+            }
+            else
+            {
+                SignalClient(clientId);
+            }
         }
 
         static void ApiSendWorldObject(int clientId, WorldObject wo)
@@ -212,8 +267,17 @@ namespace FeatMultiplayer
             {
                 throw new ArgumentNullException(nameof(wo));
             }
-            // FIXME use the client id to send to the proper client.
-            SendWorldObject(wo, false);
+            if (clientId == 0)
+            {
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendWorldObjectToClients(wo, false);
+                }
+                else
+                {
+                    SendWorldObjectToHost(wo, false);
+                }
+            }
         }
 
         static void ApiSuppressInventoryChangeWhile(object o, Action<object> action)
@@ -231,25 +295,126 @@ namespace FeatMultiplayer
 
         static Inventory ApiGetClientBackpack(int clientId)
         {
-            // FIXME use the client id to send to the proper client.
-            return InventoriesHandler.GetInventoryById(shadowInventoryId);
+            if (_clientConnections.TryGetValue(clientId, out var cc))
+            {
+                return cc.shadowBackpack;
+            }
+            return null;
         }
 
         static Inventory ApiGetClientEquipment(int clientId)
         {
-            // FIXME use the client id to send to the proper client.
-            return InventoriesHandler.GetInventoryById(shadowEquipmentId);
+            if (_clientConnections.TryGetValue(clientId, out var cc))
+            {
+                return cc.shadowEquipment;
+            }
+            return null;
         }
 
         static void ApiSendInventory(int clientId, Inventory inventory)
         {
-            // FIXME use the client id to send to the proper client.
-            Send(new MessageInventorySize()
+            if (clientId == 0)
             {
-                inventoryId = inventory.GetId(),
-                size = inventory.GetSize()
-            });
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(new MessageInventorySize()
+                    {
+                        inventoryId = inventory.GetId(),
+                        size = inventory.GetSize()
+                    });
+                }
+                else
+                {
+                    SendHost(new MessageInventorySize()
+                    {
+                        inventoryId = inventory.GetId(),
+                        size = inventory.GetSize()
+                    });
+                }
+            }
+            else
+            {
+                SendClient(clientId, new MessageInventorySize()
+                {
+                    inventoryId = inventory.GetId(),
+                    size = inventory.GetSize()
+                });
+            }
             // FIXME send inventory content too
+        }
+
+        static string ApiClientGetData(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                var h = _towardsHost;
+                if (h != null)
+                {
+                    if (h.storage.TryGetValue(key, out var v))
+                    {
+                        return v;
+                    }
+                }
+                else
+                {
+                    ThrowMissingHostConnection();
+                }
+            }
+            return null;
+        }
+
+        static void ApiClientSetData(string key, string value)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                SetAndSendDataToHost(key, value);
+            }
+        }
+
+        static void ApiClientRegisterDataReady(Action onReady)
+        {
+            if (onReady == null)
+            {
+                throw new ArgumentNullException(nameof(onReady));
+            }
+            storageOnClientDataReady.Add(onReady);
+        }
+
+        static string ApiGetHostState()
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                var h = _towardsHost;
+                if (h == null)
+                {
+                    return "None";
+                }
+                if (h.disconnected)
+                {
+                    return "Disconnected";
+                }
+                if (h.loginSuccess)
+                {
+                    return "Active";
+                }
+                if (h.clientName != null)
+                {
+                    return "Connected";
+                }
+            }
+            return "Host";
         }
 
         #endregion - Api Setup -

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageTerraformState : MessageStringProvider
+    internal class MessageTerraformState : MessageBase
     {
         internal float oxygen;
         internal float heat;
@@ -41,7 +41,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "TerraformState|" 
                 + oxygen.ToString(CultureInfo.InvariantCulture)

@@ -25,6 +25,7 @@ namespace FeatMultiplayer
         static ConfigEntry<string> hostAcceptPassword;
         static ConfigEntry<string> hostColor;
         static ConfigEntry<int> hostLogLevel;
+        static ConfigEntry<int> maxClients;
 
         // client side properties
         static ConfigEntry<string> hostAddress;
@@ -65,10 +66,11 @@ namespace FeatMultiplayer
             hostColor = Config.Bind("Host", "Color", "1,1,1,1", "The color of the host avatar as comma-separated RGBA floats");
             hostServiceAddress = Config.Bind("Host", "ServiceAddress", "default", "The local IP address the host would listen, '' for auto address, 'default' for first IPv4 local address, 'defaultv6' for first IPv6 local address");
             hostLogLevel = Config.Bind("Host", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
+            maxClients = Config.Bind("Host", "MaxClients", 4, "Number of clients that can join at a time");
 
             hostAddress = Config.Bind("Client", "HostAddress", "", "The IP address where the Host can be located from the client.");
-            clientName = Config.Bind("Client", "Name", "Buddy", "The name show to the host when a client joins.");
-            clientPassword = Config.Bind("Client", "Password", "password", "The plaintext(!) password presented to the host when joining their game.");
+            clientName = Config.Bind("Client", "Name", "Buddy,Dude", "The list of client names to join with.");
+            clientPassword = Config.Bind("Client", "Password", "password,wordpass", "The plaintext(!) password presented to the host when joining their game.");
             clientColor = Config.Bind("Client", "Color", "0.75,0.75,1,1", "The color of the client avatar as comma-separated RGBA floats");
             clientLogLevel = Config.Bind("Client", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 
@@ -109,10 +111,20 @@ namespace FeatMultiplayer
         static FieldInfo machineGrowerIfLinkedGroupHasEnergy;
         static FieldInfo machineGrowerIfLinkedGroupWorldObject;
         static MethodInfo machineGrowerIfLinkedGroupSetInteractiveStatus;
+        static FieldInfo uiWindowGroupSelectorWorldObject;
+        /// <summary>
+        /// PlayerEquipment.hasCleanConstructionChip
+        /// </summary>
+        static FieldInfo playerEquipmentHasCleanConstructionChip;
 
         static void InitReflectiveAccessors()
         {
-            gameObjectByWorldObject = (Dictionary<WorldObject, GameObject>)(AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null));
+            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
+            if (worldObjectsDictionary == null)
+            {
+                // FIXME vanilla renamed this in 0.6.001
+                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
+            }
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
             worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
             worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
@@ -138,6 +150,11 @@ namespace FeatMultiplayer
                 var getMultiplayerModeField = AccessTools.Field(pi.Instance.GetType(), "getMultiplayerMode");
                 getMultiplayerModeField.SetValue(pi.Instance, new Func<string>(GetMultiplayerMode));
             }
+
+            uiWindowGroupSelectorWorldObject = AccessTools.Field(typeof(UiWindowGroupSelector), "worldObject");
+
+            playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+
         }
 
     }

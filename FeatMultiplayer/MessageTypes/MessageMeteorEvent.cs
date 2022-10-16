@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageMeteorEvent : MessageStringProvider
+    internal class MessageMeteorEvent : MessageBase
     {
         internal int eventIndex;
         internal float startTime;
@@ -33,7 +33,7 @@ namespace FeatMultiplayer
             mme = null;
             return false;
         }
-        public string GetString()
+        public override string GetString()
         {
             return "MeteorEvent|" + eventIndex
                 + "|" + startTime.ToString(CultureInfo.InvariantCulture)

@@ -33,7 +33,7 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 LogInfo("Dropping: " + DebugWorldObject(_worldObject));
-                SendWorldObject(_worldObject, true);
+                SendWorldObjectToClients(_worldObject, true);
                 if (TryGetGameObject(_worldObject, out var go))
                 {
                     go.GetComponent<WorldObjectAssociated>()
@@ -46,7 +46,7 @@ namespace FeatMultiplayer
                 // Let the host animate it
                 if (TryGetGameObject(_worldObject, out var go))
                 {
-                    UnityEngine.Object.Destroy(go);
+                    Destroy(go);
                     _worldObject.ResetPositionAndRotation();
                 }
 
@@ -58,8 +58,7 @@ namespace FeatMultiplayer
                     position = _position,
                     dropSize = _dropSize
                 };
-                Send(msg);
-                Signal();
+                SendHost(msg, true);
             }
         }
 
@@ -86,8 +85,7 @@ namespace FeatMultiplayer
                     position = _position,
                     dropSize = _dropSize
                 };
-                Send(msg);
-                Signal();
+                SendHost(msg, true);
                 return false;
             }
             return true;
@@ -110,8 +108,7 @@ namespace FeatMultiplayer
                             rotation = go.transform.rotation,
                             mode = MessageSetTransform.Mode.GameObjectOnly
                         };
-                        Send(messageSetTransform);
-                        Signal();
+                        SendAllClients(messageSetTransform, true);
                     }
                     else
                     {
@@ -150,7 +147,7 @@ namespace FeatMultiplayer
                 if (wo != null)
                 {
                     WorldObjectsHandler.DropOnFloor(wo, mdwo.position, mdwo.dropSize);
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
                     if (TryGetGameObject(wo, out var go))
                     {
                         go.GetComponent<WorldObjectAssociated>()

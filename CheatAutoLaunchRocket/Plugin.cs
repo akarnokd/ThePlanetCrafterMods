@@ -12,7 +12,7 @@ using BepInEx.Logging;
 
 namespace CheatAutoLaunchRocket
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautolaunchrocket", "(Cheat) Auto Launch Rockets", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautolaunchrocket", "(Cheat) Auto Launch Rockets", "1.0.0.1")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -23,8 +23,6 @@ namespace CheatAutoLaunchRocket
         static ConfigEntry<bool> debugMode;
 
         static Func<string> getMultiplayerMode;
-
-        static Dictionary<WorldObject, GameObject> worldObjectToGameObject;
 
         static ManualLogSource logger;
 
@@ -43,8 +41,6 @@ namespace CheatAutoLaunchRocket
                 getMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
 
             }
-
-            worldObjectToGameObject = (Dictionary<WorldObject, GameObject>)AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects").GetValue(null);
 
             logger = Logger;
 
@@ -127,33 +123,31 @@ namespace CheatAutoLaunchRocket
                         log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                         if (wo.GetIsPlaced())
                         {
-                            if (worldObjectToGameObject.TryGetValue(wo, out var go))
+                            var go = wo.GetGameObject();
+                            if (go != null)
                             {
-                                if (go != null)
+                                if (go.activeSelf)
                                 {
-                                    if (go.activeSelf)
+                                    var dist = Vector3.Distance(pos, go.transform.position);
+                                    log("           Distance to button: " + dist);
+                                    if (dist < 30f)
                                     {
-                                        var dist = Vector3.Distance(pos, go.transform.position);
-                                        log("           Distance to button: " + dist);
-                                        if (dist < 30f)
+                                        if (go.GetComponent<AutoLaunchDelay>() == null)
                                         {
-                                            if (go.GetComponent<AutoLaunchDelay>() == null)
-                                            {
-                                                Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
-                                                log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
-                                                parent.OnAction();
-                                            }
-                                            else
-                                            {
-                                                log("           Already launched");
-                                            }
+                                            Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
+                                            log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
+                                            parent.OnAction();
+                                        }
+                                        else
+                                        {
+                                            log("           Already launched");
                                         }
                                     }
                                 }
-                                else
-                                {
-                                    toRemove.Add(wo.GetId());
-                                }
+                            }
+                            else
+                            {
+                                toRemove.Add(wo.GetId());
                             }
                         }
                         else

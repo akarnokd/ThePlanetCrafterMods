@@ -42,12 +42,11 @@ namespace FeatMultiplayer
                     ___playerSource.GetPlayerAudio().PlayGrab();
 
                     LogInfo("Request Grab Outside " + spi.machineId + ", " + spi.spawnId);
-                    Send(new MessageGrowRemove()
+                    SendHost(new MessageGrowRemove()
                     {
                         machineId = spi.machineId,
                         spawnId = spi.spawnId,
-                    });
-                    Signal();
+                    }, true);
                 }
                 else
                 {
@@ -63,8 +62,7 @@ namespace FeatMultiplayer
                             groupId = wo.GetGroup().GetId()
                         };
                         LogInfo("Request Grab " + DebugWorldObject(wo));
-                        Send(mg);
-                        Signal();
+                        SendHost(mg, true);
                     }
                 }
 
@@ -80,11 +78,13 @@ namespace FeatMultiplayer
                     var wo = woa.GetWorldObject();
                     ___playerSource.GetPlayerBackpack().GetInventory().AddItem(wo);
                     wo.SetDontSaveMe(_dontSaveMe: false);
-                    SendWorldObject(wo, false);
+                    SendWorldObjectToClients(wo, false);
 
                     ___playerSource.GetPlayerAudio().PlayGrab();
                     ___itemWorldDisplayer.Hide();
-                    __instance.grabedEvent?.Invoke(wo);
+                    var grabedEvent = __instance.grabedEvent;
+                    __instance.grabedEvent = null;
+                    grabedEvent?.Invoke(wo);
 
                     Destroy(__instance.gameObject);
                 }
@@ -111,7 +111,7 @@ namespace FeatMultiplayer
                     {
                         LogInfo("ReceiveMessageGrab: Creating scene item " + mg.id + ", " + mg.groupId);
                         wo = WorldObjectsHandler.CreateNewWorldObject(g, mg.id);
-                        SendWorldObject(wo, false);
+                        SendWorldObjectToClients(wo, false);
                     }
                     else
                     {
@@ -120,18 +120,26 @@ namespace FeatMultiplayer
                 }
                 if (wo != null)
                 {
-                    Inventory inv = InventoriesHandler.GetInventoryById(shadowInventoryId);
+                    Inventory inv = mg.sender.shadowBackpack;
 
                     if (inv.AddItem(wo))
                     {
                         LogInfo("ReceiveMessageGrab: Confirm Grab " + DebugWorldObject(wo));
-                        Send(mg);
-                        Signal();
+                        mg.sender.Send(mg);
+                        mg.sender.Signal();
+
+                        // this should delete the object from client's views
+                        SendWorldObjectToClients(wo, false);
 
                         if (TryGetGameObject(wo, out var go))
                         {
                             var ag = go.GetComponent<ActionGrabable>();
-                            Grabed g = ag?.grabedEvent;
+                            Grabed g = null;
+                            if (ag != null)
+                            {
+                                g = ag.grabedEvent;
+                                ag.grabedEvent = null;
+                            }
 
                             TryRemoveGameObject(wo);
                             Destroy(go);

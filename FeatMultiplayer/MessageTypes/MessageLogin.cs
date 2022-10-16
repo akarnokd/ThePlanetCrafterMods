@@ -6,27 +6,24 @@ using System.Threading.Tasks;
 
 namespace FeatMultiplayer
 {
-    internal class MessageLogin : MessageStringProvider
+    internal class MessageLogin : MessageBase
     {
         internal string user;
         internal string password;
 
-        public string GetString()
+        public override string GetString()
         {
             return "Login|" + user + "|" + password + "\n";
         }
 
         public static bool TryParse(string str, out MessageLogin result)
         {
-            if (MessageHelper.TryParseMessage("Login|", str, out string[] parts))
+            if (MessageHelper.TryParseMessage("Login|", str, 3, out string[] parts))
             {
-                if (parts.Length == 3)
-                {
-                    result = new MessageLogin();
-                    result.user = parts[1];
-                    result.password = parts[2];
-                    return true;
-                }
+                result = new MessageLogin();
+                result.user = parts[1];
+                result.password = parts[2];
+                return true;
             }
             result = null;
             return false;

@@ -24,7 +24,7 @@ namespace FeatMultiplayer
                 message = message,
                 duration = duration
             };
-            receiveQueue.Enqueue(msg);
+            _receiveQueue.Enqueue(msg);
         }
 
         static void ToggleConsumption()

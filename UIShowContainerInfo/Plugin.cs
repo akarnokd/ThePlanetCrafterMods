@@ -10,7 +10,7 @@ using BepInEx.Configuration;
 
 namespace UIShowContainerInfo
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.3")]
     [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

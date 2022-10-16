@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FeatMultiplayer
 {
-    internal class MessageAsteroidSpawn : MessageStringProvider
+    internal class MessageAsteroidSpawn : MessageBase
     {
         internal string rocketGroupId;
         internal int eventIndex;
@@ -39,7 +39,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        public string GetString()
+        public override string GetString()
         {
             return "AsteroidSpawn|" + rocketGroupId
                 + "|" + eventIndex
