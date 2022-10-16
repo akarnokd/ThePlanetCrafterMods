@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.10")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.11")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -28,6 +28,8 @@ namespace UICraftEquipmentInPlace
         /// The ActionCrafter object the Mobile Crafter mod uses
         /// </summary>
         static ActionCrafter mobileCrafterTestss;
+
+        static FieldInfo playerEquipmentHasCleanConstructionChip;
 
         private void Awake()
         {
@@ -66,6 +68,8 @@ namespace UICraftEquipmentInPlace
             {
                 Logger.LogInfo(mobileCrafterGuid + " not found.");
             }
+
+            playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -120,7 +124,8 @@ namespace UICraftEquipmentInPlace
                 || equipType == DataConfig.EquipableType.BootsSpeed
                 || equipType == DataConfig.EquipableType.Jetpack
                 || equipType == DataConfig.EquipableType.MultiToolLight
-                || equipType == DataConfig.EquipableType.AirFilter)
+                || equipType == DataConfig.EquipableType.AirFilter
+                || equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
             {
                 logger.LogInfo("Crafting inplace: " + equipType);
                 List<Group> ingredients = new List<Group>(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
@@ -245,6 +250,11 @@ namespace UICraftEquipmentInPlace
                         else if (equipType == DataConfig.EquipableType.AirFilter)
                         {
                             _playerController.GetGaugesHandler().SetHasRebreather(equipment);
+                        }
+                        else if (equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
+                        {
+                            playerEquipmentHasCleanConstructionChip.SetValue(
+                                _playerController.GetPlayerEquipment(), true);
                         }
                     }
                     else

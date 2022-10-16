@@ -16,7 +16,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.12")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.13")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -506,7 +506,8 @@ namespace CheatInventoryStacking
                         || equipType == DataConfig.EquipableType.MultiToolMineSpeed
                         || equipType == DataConfig.EquipableType.BootsSpeed
                         || equipType == DataConfig.EquipableType.Jetpack
-                        || equipType == DataConfig.EquipableType.AirFilter)
+                        || equipType == DataConfig.EquipableType.AirFilter
+                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
                     {
                         expectedGroupIdToAdd = groupItem.GetId();
                         return true;

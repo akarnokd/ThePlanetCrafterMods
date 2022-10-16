@@ -112,6 +112,10 @@ namespace FeatMultiplayer
         static FieldInfo machineGrowerIfLinkedGroupWorldObject;
         static MethodInfo machineGrowerIfLinkedGroupSetInteractiveStatus;
         static FieldInfo uiWindowGroupSelectorWorldObject;
+        /// <summary>
+        /// PlayerEquipment.hasCleanConstructionChip
+        /// </summary>
+        static FieldInfo playerEquipmentHasCleanConstructionChip;
 
         static void InitReflectiveAccessors()
         {
@@ -148,6 +152,9 @@ namespace FeatMultiplayer
             }
 
             uiWindowGroupSelectorWorldObject = AccessTools.Field(typeof(UiWindowGroupSelector), "worldObject");
+
+            playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+
         }
 
     }

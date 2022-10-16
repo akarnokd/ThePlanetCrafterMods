@@ -713,6 +713,12 @@ namespace FeatMultiplayer
                                     .GetInventory());
                             break;
                         }
+                    case DataConfig.EquipableType.MultiToolCleanConstruction:
+                        {
+                            playerEquipmentHasCleanConstructionChip.SetValue(
+                                _playerController.GetPlayerEquipment(), true);
+                            break;
+                        }
                 }
             }
         }
@@ -777,6 +783,12 @@ namespace FeatMultiplayer
                 // the method checks for the existence of the rebreather in the inventory
                 // thus we fake an empty inventory
                 player.GetGaugesHandler().SetHasRebreather(new Inventory(-1, 1));
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolCleanConstruction))
+            {
+                // Since 0.6.006: there is no publicly accessible field to set or method to call
+                playerEquipmentHasCleanConstructionChip.SetValue(
+                    player.GetPlayerEquipment(), true);
             }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;

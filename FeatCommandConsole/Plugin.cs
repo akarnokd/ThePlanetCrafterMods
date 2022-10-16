@@ -1418,6 +1418,11 @@ namespace FeatCommandConsole
                             Colorize(list, "#00FF00");
                             addLine("<margin=1em><b>Unit generation:</b> " + string.Join(", ", list));
                         }
+                        var ng = gc.GetNextTierGroup();
+                        if (ng != null)
+                        {
+                            addLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
+                        }
                     } else
                     {
                         addLine("<margin=1em><b>Class:</b> Unknown");
