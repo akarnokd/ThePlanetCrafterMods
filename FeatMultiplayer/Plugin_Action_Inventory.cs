@@ -301,8 +301,23 @@ namespace FeatMultiplayer
                 {
                     targetInventory = mc.sender.shadowEquipment;
                 }
-                else if (mc.inventoryId >= shadowInventoryWorldIdStart)
+                else
                 {
+                    foreach (var cc in _clientConnections.Values)
+                    {
+                        var inv = cc.shadowBackpack;
+                        if (inv != null && inv.GetId() == mc.inventoryId)
+                        {
+                            LogWarning("Trying to access the shadow backpack of " + cc.clientName + " - " + mc.inventoryId);
+                            return;
+                        }
+                        inv = cc.shadowEquipment;
+                        if (inv != null && inv.GetId() == mc.inventoryId)
+                        {
+                            LogWarning("Trying to access a shadow equipment of " + cc.clientName + " - " + mc.inventoryId);
+                            return;
+                        }
+                    }
                     targetInventory = InventoriesHandler.GetInventoryById(mc.inventoryId);
                 }
             }
@@ -375,7 +390,7 @@ namespace FeatMultiplayer
                         if (!InventoryContainsId(targetInventory, wo.GetId()))
                         {
                             targetInventory.AddItem(wo);
-                            LogInfo("ReceiveMessageInventoryAdded: " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
+                            LogInfo("ReceiveMessageOtherInventoryAdded: " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
                             targetInventory.RefreshDisplayerContent();
                         }
                     }
@@ -385,17 +400,17 @@ namespace FeatMultiplayer
                     }
                     if (inventorySpawning.Remove(targetInventory.GetId()))
                     {
-                        LogInfo("ReceiveMessageInventoryAdded: Clearing inventorySpawning marker " + mia.inventoryId);
+                        LogInfo("ReceiveMessageOtherInventoryAdded: Clearing inventorySpawning marker " + mia.inventoryId);
                     }
                 }
                 else
                 {
-                    LogWarning("ReceiveMessageInventoryAdded: Uknown WorldObject " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
+                    LogWarning("ReceiveMessageOtherInventoryAdded: Uknown WorldObject " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
                 }
             }
             else
             {
-                LogWarning("ReceiveMessageInventoryAdded: Uknown inventory " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
+                LogWarning("ReceiveMessageOtherInventoryAdded: Uknown inventory " + mia.inventoryId + " <= " + mia.itemId + ", " + mia.groupId);
             }
         }
 
@@ -455,7 +470,7 @@ namespace FeatMultiplayer
                     try
                     {
                         targetInventory.RemoveItem(wo, mir.destroy);
-                        LogInfo("ReceiveMessageInventoryRemoved: " + mir.inventoryId + " <= " + mir.itemId + ", " + wo.GetGroup().GetId());
+                        LogInfo("ReceiveMessageOtherInventoryRemoved: " + mir.inventoryId + " <= " + mir.itemId + ", " + wo.GetGroup().GetId());
                     }
                     finally
                     {
@@ -464,12 +479,12 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    LogWarning("ReceiveMessageInventoryRemoved: Unknown item " + mir.inventoryId + " <= " + mir.itemId);
+                    LogWarning("ReceiveMessageOtherInventoryRemoved: Unknown item " + mir.inventoryId + " <= " + mir.itemId);
                 }
             }
             else
             {
-                LogWarning("ReceiveMessageInventoryRemoved: Unknown inventory " + mir.inventoryId + " <= " + mir.itemId);
+                LogWarning("ReceiveMessageOtherInventoryRemoved: Unknown inventory " + mir.inventoryId + " <= " + mir.itemId);
             }
         }
 

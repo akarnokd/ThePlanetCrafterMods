@@ -119,12 +119,6 @@ namespace FeatMultiplayer
 
         static void InitReflectiveAccessors()
         {
-            var worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "worldObjects");
-            if (worldObjectsDictionary == null)
-            {
-                // FIXME vanilla renamed this in 0.6.001
-                worldObjectsDictionary = AccessTools.Field(typeof(WorldObjectsHandler), "gameObjects");
-            }
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
             worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
             worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
