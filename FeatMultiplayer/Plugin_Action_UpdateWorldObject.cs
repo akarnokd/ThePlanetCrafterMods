@@ -135,6 +135,12 @@ namespace FeatMultiplayer
             SendHost(CreateUpdateWorldObject(worldObject, makeGrabable), true);
         }
 
+        static void SendWorldObjectTo(WorldObject worldObject, bool makeGrabable, ClientConnection cc)
+        {
+            cc.Send(CreateUpdateWorldObject(worldObject, makeGrabable));
+            cc.Signal();
+        }
+
         static string CreateUpdateWorldObject(WorldObject worldObject, bool makeGrabable)
         {
             StringBuilder sb = new StringBuilder();

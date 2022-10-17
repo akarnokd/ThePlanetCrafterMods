@@ -313,7 +313,7 @@ namespace FeatMultiplayer
             {
                 LogInfo("Moved by host to " + mmp.position);
                 PlayerMainController pm = GetPlayerMainController();
-                pm.transform.position = mmp.position + new Vector3(0, 0.1f, 0);
+                pm.SetPlayerPlacement(mmp.position, pm.transform.rotation);
             }
         }
     }

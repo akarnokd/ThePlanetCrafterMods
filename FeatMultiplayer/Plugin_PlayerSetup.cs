@@ -62,34 +62,46 @@ namespace FeatMultiplayer
             string playerName = cc.clientName;
             string playerNamePrefix = "~" + playerName + ";";
 
+            int createNewAt = -1;
             int id;
-            int i;
-            for (i = 0; i < maxShadowInventoryCount; i += 2)
+            for (id = shadowInventoryWorldIdStart; id < shadowInventoryWorldIdEnd; id += 2)
             {
-                id = shadowInventoryWorldIdStart + i;
                 WorldObject wo = WorldObjectsHandler.GetWorldObjectViaId(id);
-                if (wo != null && wo.GetText().StartsWith(playerNamePrefix))
+                if (wo != null && wo.GetText() != null && wo.GetText().StartsWith(playerNamePrefix))
                 {
-                    cc.shadowBackpack = InventoriesHandler.GetInventoryById(id);
-                    cc.shadowEquipment = InventoriesHandler.GetInventoryById(id + 1);
+                    LogInfo("Found shadow world objects for " + playerName + " at id " + id);
+                    createNewAt = -1;
                     break;
                 }
-                else if (wo == null)
+                else if (wo == null || (wo.GetText() != null && wo.GetText().Length == 0))
                 {
-                    break;
+                    if (createNewAt < 0)
+                    {
+                        createNewAt = id;
+                    }
                 }
             }
 
-            id = shadowInventoryWorldIdStart + i;
-            // The other player's shadow inventory
+            if (createNewAt >= 0)
+            {
+                id = createNewAt;
+                LogInfo("Creating new set of shadow world objects for " + playerName + " at " + id);
+            }
+
             if (TryPrepareShadowInventory(id, ref cc.shadowBackpack, out var wo2))
             {
                 SetupInitialInventory(cc);
                 wo2.SetText(playerNamePrefix);
             }
             TryPrepareShadowInventory(id + 1, ref cc.shadowEquipment, out _);
+
             cc.shadowBackpackWorldObjectId = id;
             cc.shadowEquipmentWorldObjectId = id + 1;
+
+            LogInfo("ReceiveLogin: Player " + playerName + " has " + cc.shadowBackpack.GetInsideWorldObjects().Count + " items in its backpack");
+            LogInfo("  backpack inventory  id " + cc.shadowBackpack.GetId());
+            LogInfo("ReceiveLogin: Player " + playerName + " has " + cc.shadowEquipment.GetInsideWorldObjects().Count + " items in its equipment");
+            LogInfo("  equipment inventory id " + cc.shadowEquipment.GetId());
 
             StorageRestoreClient(cc);
             StorageNotifyClient(cc);
@@ -120,7 +132,7 @@ namespace FeatMultiplayer
             return false;
         }
 
-        static void AddToInventory(Inventory inv, Dictionary<string, int> itemsToAdd)
+        static void AddToInventory(Inventory inv, Dictionary<string, int> itemsToAdd, ClientConnection cc)
         {
             foreach (var kv in itemsToAdd)
             {
@@ -130,6 +142,14 @@ namespace FeatMultiplayer
                     for (int i = 0; i < kv.Value; i++)
                     {
                         var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
+                        if (cc != null)
+                        {
+                            SendWorldObjectTo(wo, false, cc);
+                        }
+                        else
+                        {
+                            SendWorldObjectToClients(wo, false);
+                        }
                         if (!inv.AddItem(wo))
                         {
                             LogWarning("Could not add " + kv.Key + " to " + inv.GetId() + ". Inventory full?!");
@@ -173,7 +193,7 @@ namespace FeatMultiplayer
                 { "OxygenCapsule1", stacks },
                 { "WaterBottle1", stacks },
                 { "astrofood", stacks }
-            });
+            }, cc);
         }
 
         static void SetupHostInventory()
@@ -373,7 +393,7 @@ namespace FeatMultiplayer
                         size = inv.GetSize()
                     });
 
-                    AddToInventory(inv, dict);
+                    AddToInventory(inv, dict, null);
 
                     pos.y += 1f;
                 }
