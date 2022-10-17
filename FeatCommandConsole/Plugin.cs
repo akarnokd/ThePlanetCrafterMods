@@ -364,9 +364,8 @@ namespace FeatCommandConsole
             inputFieldText.pointSize = fontSize.Value;
             log("   Set text");
             //inputFieldText.text = "example...";
-            inputFieldText.enabled = true;
             inputFieldText.caretColor = Color.white;
-            inputFieldText.selectionColor = Color.white;
+            inputFieldText.selectionColor = Color.gray;
             inputFieldText.onFocusSelectAll = false;
 
             log("   Set position");
@@ -380,6 +379,9 @@ namespace FeatCommandConsole
             AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
 
             log("Activating the field");
+            inputFieldText.enabled = false;
+            inputFieldText.enabled = true;
+
             inputFieldText.Select();
             inputFieldText.ActivateInputField();
             log("Done");
