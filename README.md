@@ -1189,6 +1189,120 @@ TBD
 
 Only diagnostic options. Not relevant for the player.
 
+## (UI) Menu Shortcut Keys
+
+Adds (configurable) keyboard shortcuts to the player's backpack screen, container screens (chests) and certain machine screens (to be expanded later).
+
+The available shortcuts are displayed at the bottom of the screen.
+
+Currently, the following shortcuts are supported:
+
+- Backpack screen
+  - Sort backpack (default <kbd>G</kbd>)
+  - Sort equipment (default <kbd>T</kbd>)
+- Construction screen
+  - Toggle tier filter (default <kbd>F</kbd>). (Reminder: there is a new microchip that hides low tier machines if equipped. This key toggles this feature without the need to remove the chip).
+- Container screens
+  - Take All (default <kbd>R</kbd>) (Not all inventories allow this).
+  - Sort backpack (default <kbd>G</kbd>)
+  - Sort equipment (default <kbd>T</kbd>)
+- Sequencer and Incubator
+  - Sort backpack (default <kbd>G</kbd>)
+
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uimenushortcutkeys.cfg`
+
+```
+[General]
+
+## The font size
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
+
+## Toggle the tier-filter microchip's effect in the build screen
+# Setting type: String
+# Default value: F
+BuildToggleFilter = <Keyboard>/F
+
+## Take everything from the currently open container
+# Setting type: String
+# Default value: R
+ContainerTakeAll = <Keyboard>/R
+
+## Sort the player's inventory
+# Setting type: String
+# Default value: G
+SortPlayerInventory = <Keyboard>/G
+
+## Sort the other inventory
+# Setting type: String
+# Default value: T
+SortOtherInventory = <Keyboard>/T
+```
+
+## (Feat) Command Console
+
+When pressing <kbd>Enter</kbd> (configurable), a command window is shown where you can type in commands.
+
+Only accessible if no other ingame dialogs are open.
+
+Type in `/help` to see a list of commands. Type `/help [name]` to show a short description of that command. Most commands give you an usage example if run without parameters.
+
+Notable commands:
+- `/tp` - teleport
+- `/spawn` - add an item to your inventory
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.featcommandconsole.cfg`
+
+```
+[General]
+
+## Enable this mod
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable the detailed logging of this mod
+# Setting type: Boolean
+# Default value: false
+DebugMode = true
+
+## Key to open the console
+# Setting type: String
+# Default value: <Keyboard>/enter
+ToggleKey = <Keyboard>/enter
+
+## Console window's position relative to the top of the screen.
+# Setting type: Int32
+# Default value: 200
+ConsoleTop = 100
+
+## Console window's position relative to the left of the screen.
+# Setting type: Int32
+# Default value: 300
+ConsoleLeft = 400
+
+## Console window's position relative to the right of the screen.
+# Setting type: Int32
+# Default value: 200
+ConsoleRight = 200
+
+## Console window's position relative to the bottom of the screen.
+# Setting type: Int32
+# Default value: 200
+ConsoleBottom = 200
+
+## The font size in the console
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
+```
+
 ## (Feat) Multiplayer
 
 [See the wiki](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
