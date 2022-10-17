@@ -292,10 +292,11 @@ namespace FeatMultiplayer
                 int iid = inv.GetId();
                 if (iid == _inventoryId)
                 {
-                    WorldObjectsHandler.DestroyWorldObjects(inv.GetInsideWorldObjects());
-
                     ___allWorldInventories.RemoveAt(i);
                     inventoryById.Remove(iid);
+
+                    WorldObjectsHandler.DestroyWorldObjects(inv.GetInsideWorldObjects());
+
                     break;
                 }
             }
