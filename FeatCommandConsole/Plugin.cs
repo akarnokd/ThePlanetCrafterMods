@@ -27,7 +27,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -160,7 +160,8 @@ namespace FeatCommandConsole
 
         static void createWelcomeText()
         {
-            consoleText.Add("Welcome to <b>Command Console</b>.");
+            var ver = typeof(Plugin).GetCustomAttribute<BepInPlugin>().Version;
+            consoleText.Add("Welcome to <b>Command Console</b> version <color=#00FF00>" + ver + "</color>.");
             consoleText.Add("<margin=1em>Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
             consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
             consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
@@ -508,26 +509,47 @@ namespace FeatCommandConsole
             }
             else
             {
-
-                commandRegistry.TryGetValue(args[1], out var cmd);
-                if (cmd == null) {
-                    commandRegistry.TryGetValue("/" + args[1], out cmd);
-                }
-                if (cmd != null)
+                if (args[1] == "*")
                 {
-                    log("Help for " + args[1] + " - " + cmd.description);
-                    addLine("<margin=1em>" + cmd.description);
+                    addLine("<margin=1em>Available commands:");
+                    var list = new List<string>();
+                    foreach (var kv in commandRegistry)
+                    {
+                        list.Add(kv.Key);
+                    }
+                    list.Sort();
+
+                    foreach (var cmd in list)
+                    {
+                        var reg = commandRegistry[cmd];
+                        addLine("<margin=2em><color=#FFFF00>" + cmd + "</color> - " + reg.description);
+                    }
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FFFF00>Unknown command");
+                    commandRegistry.TryGetValue(args[1], out var cmd);
+                    if (cmd == null)
+                    {
+                        commandRegistry.TryGetValue("/" + args[1], out cmd);
+                    }
+                    if (cmd != null)
+                    {
+                        log("Help for " + args[1] + " - " + cmd.description);
+                        addLine("<margin=1em>" + cmd.description);
+                    }
+                    else
+                    {
+                        addLine("<margin=1em><color=#FFFF00>Unknown command");
+                    }
                 }
             }
         }
 
         void HelpListCommands()
         {
-            addLine("Available commands:");
+            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+            addLine("<margin=1em>Type <b><color=#FFFF00>/help *</color></b> to list all commands with their description.");
+            addLine("<margin=1em>Available commands:");
             var list = new List<string>();
             foreach (var kv in commandRegistry)
             {
@@ -540,7 +562,6 @@ namespace FeatCommandConsole
             {
                 addLine("<margin=2em>" + line);
             }
-            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
         }
 
         [Command("/clear", "Clears the console history")]
