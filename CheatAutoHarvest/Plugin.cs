@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.8")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.9")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -131,11 +131,14 @@ namespace CheatAutoHarvest
 
                 bool restartCoroutine = false;
 
+                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " < " + ___spawNumber);
+
                 List<InventoryAndWorldObject> inventories = inventoriesCache;
                 int frame = inventoriesCacheFrame;
                 int currentFrame = Time.frameCount;
                 if (inventories == null || frame != currentFrame)
                 {
+                    logAlgae("  Grower lookup all inventories this frame.");
                     inventories = new List<InventoryAndWorldObject>();
                     FindInventories(inventories);
                     
@@ -143,7 +146,7 @@ namespace CheatAutoHarvest
                     inventoriesCacheFrame = currentFrame;
                 }
 
-                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " < " + ___spawNumber);
+                logAlgae("  Grower Inventory lookup time: " + (now.ElapsedTicks / 10000f) + " ms");
                 foreach (GameObject go in new List<GameObject>(___instantiatedGameObjects))
                 {
                     if (go != null)
@@ -321,7 +324,7 @@ namespace CheatAutoHarvest
 
         static void FindInventories(List<InventoryAndWorldObject> inventories)
         {
-            foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
             {
                 string txt = wo.GetText();
                 if (txt != null && IsTargetAlias(txt))
