@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
 	<plugin guid="akarnokd.theplanetcraftermods.cheatasteroidlandingposition"
-	   description="(Cheat) Asteroid Landing Position Override"
-	   discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
-	   method="CsprojVersionTag"
-	   link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            description="(Cheat) Asteroid Landing Position Override"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
 	<plugin guid="akarnokd.theplanetcraftermods.cheatautoconsume"
             description="(Cheat) Auto Consume Oxygen-Water-Food"
@@ -69,6 +69,18 @@
 	<plugin guid="akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft"
             description="(Example) Soft Dependency on ModLoadSaveSupport"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/ExampleModLoadSaveSupportSoft/ExampleModLoadSaveSupportSoft.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+	<plugin guid="akarnokd.theplanetcraftermods.featcommandconsole"
+            description="(Feat) Command Console"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatCommandConsole/FeatCommandConsole.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+	<plugin guid="akarnokd.theplanetcraftermods.featminerdrone"
+            description="(Feat) Miner Drone"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatMinerDrone/FeatMinerDrone.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
@@ -162,6 +174,12 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
+	<plugin guid="akarnokd.theplanetcraftermods.uimenushortcutkeys"
+            description="(UI) Menu Shortcut Keys"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIMenuShortcutKeys/UIMenuShortcutKeys.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
 	<plugin guid="akarnokd.theplanetcraftermods.uioverviewpanel"
             description="(UI) Overview Panel"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIOverviewPanel/UIOverviewPanel.csproj"
@@ -240,7 +258,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-    <!--
+	<!--
     We can include some other repository info source.
         <include url="https://raw.githubusercontent.com/somemodder987/ThePlanetCrafterMods/main/their_version_info_repository.xml" />
     -->
