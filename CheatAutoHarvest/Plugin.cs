@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.7")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.8")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -26,8 +26,8 @@ namespace CheatAutoHarvest
         static FieldInfo machineGrowerInventory;
 
         static ManualLogSource logger;
-        static bool debugAlgae = false;
-        static bool debugFood = false;
+        static ConfigEntry<bool> debugAlgae;
+        static ConfigEntry<bool> debugFood;
 
         static ConfigEntry<bool> harvestAlgae;
         static ConfigEntry<bool> harvestFood;
@@ -54,6 +54,8 @@ namespace CheatAutoHarvest
             machineGrowerInventory = AccessTools.Field(typeof(MachineGrower), "inventory");
             harvestAlgae = Config.Bind("General", "HarvestAlgae", true, "Enable auto harvesting for algae.");
             harvestFood = Config.Bind("General", "HarvestFood", true, "Enable auto harvesting for food.");
+            debugAlgae = Config.Bind("General", "DebugAlgae", false, "Enable debug log for algae (chatty!)");
+            debugFood = Config.Bind("General", "DebugFood", false, "Enable debug log for food (chatty!)");
 
             depositAliases["Algae1Seed"] = Config.Bind("General", "AliasAlgae", "*Algae1Seed", "The container name to put algae into.");
             depositAliases["Vegetable0Growable"] = Config.Bind("General", "AliasEggplant", "*Vegetable0Growable", "The container name to put eggplant into.");
@@ -61,7 +63,7 @@ namespace CheatAutoHarvest
             depositAliases["Vegetable2Growable"] = Config.Bind("General", "AliasBeans", "*Vegetable2Growable", "The container name to put beans into.");
             depositAliases["Vegetable3Growable"] = Config.Bind("General", "AliasMushroom", "*Vegetable3Growable", "The container name to put mushroom into.");
 
-            if (debugAlgae || debugFood)
+            if (debugAlgae.Value || debugFood.Value)
             {
                 foreach (var kv in depositAliases) 
                 {
@@ -80,14 +82,14 @@ namespace CheatAutoHarvest
 
         static void logAlgae(string s)
         {
-            if (debugAlgae)
+            if (debugAlgae.Value)
             {
                 logger.LogInfo(s);
             }
         }
         static void logFood(string s)
         {
-            if (debugFood)
+            if (debugFood.Value)
             {
                 logger.LogInfo(s);
             }
@@ -124,6 +126,9 @@ namespace CheatAutoHarvest
             }
             if (___instantiatedGameObjects != null)
             {
+                var now = new Stopwatch();
+                now.Start();
+
                 bool restartCoroutine = false;
 
                 List<InventoryAndWorldObject> inventories = inventoriesCache;
@@ -189,7 +194,7 @@ namespace CheatAutoHarvest
                         }
                     }
                 }
-                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " ---- DONE");
+                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " ---- DONE in " + (now.ElapsedTicks / 10000f) + " ms");
 
                 if (restartCoroutine)
                 {
@@ -233,6 +238,8 @@ namespace CheatAutoHarvest
             }
 
             logFood("Edible: begin search");
+            var now = new Stopwatch();
+            now.Start();
             int deposited = 0;
 
             List<MachineGrower> allMachineGrowers = new List<MachineGrower>();
@@ -294,7 +301,7 @@ namespace CheatAutoHarvest
                     }
                 }
             }
-            logFood("Edible deposited: " + deposited);
+            logFood("Edible deposited: " + deposited + " in " + (now.ElapsedTicks / 10000f) + " ms");
         }
 
         static bool IsFull(Inventory inv, WorldObject wo)
@@ -397,13 +404,13 @@ namespace CheatAutoHarvest
         static bool FindInventory(WorldObject wo, List<InventoryAndWorldObject> inventories, out Inventory inventory)
         {
             var gr = wo.GetGroup().GetId();
-            if (debugAlgae || debugFood)
+            if (debugAlgae.Value || debugFood.Value)
             {
                 logger.LogInfo("  Checking alias for " + gr);
             }
             if (depositAliases.TryGetValue(gr, out var gid))
             {
-                if (debugAlgae || debugFood)
+                if (debugAlgae.Value || debugFood.Value)
                 {
                     logger.LogInfo("  Looking for inventory containing alias " + gid.Value);
                 }
@@ -421,7 +428,7 @@ namespace CheatAutoHarvest
                     }
                 }
             }
-            if (debugAlgae || debugFood)
+            if (debugAlgae.Value || debugFood.Value)
             {
                 logger.LogInfo("  No inventory for " + wo.GetGroup().GetId());
             }
