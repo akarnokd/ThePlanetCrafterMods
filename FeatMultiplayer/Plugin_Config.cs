@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace FeatMultiplayer
 {
@@ -36,12 +37,17 @@ namespace FeatMultiplayer
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> slowdownConsumption;
+        internal static ConfigEntry<int> playerNameFontSize;
+        static ConfigEntry<string> emoteKey;
+        static InputAction emoteAction;
 
         internal static Texture2D astronautFront;
         internal static Texture2D astronautBack;
 
         internal static Texture2D astronautFrontHost;
         internal static Texture2D astronautBackHost;
+
+        internal static readonly Dictionary<string, List<Sprite>> emoteSprites = new();
 
         static readonly object logLock = new object();
 
@@ -58,6 +64,8 @@ namespace FeatMultiplayer
             fullSyncDelay = Config.Bind("General", "SyncDelay", 3000, "Delay between full sync from the host to the client, in milliseconds");
             smallSyncDelay = Config.Bind("General", "SyncDelaySmall", 500, "Delay between small sync from the host to the client, in milliseconds");
             slowdownConsumption = Config.Bind("General", "SlowdownConsumption", false, "Slows down health/food/water consumption rate");
+            playerNameFontSize = Config.Bind("General", "PlayerNameFontSize", 20, "Font size used to display the player's names above their avatar.");
+            emoteKey = Config.Bind("General", "EmoteKey", "G", "The key to bring up the emote wheel.");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
@@ -88,6 +96,8 @@ namespace FeatMultiplayer
             TryInstallMachineOverrides();
 
             ApiSetup();
+
+            EmoteSetup();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

@@ -58,7 +58,9 @@ namespace FeatMultiplayer
             }
 
             LogInfo("Player joined: " + mpj.playerName);
-            playerAvatars[mpj.playerName] = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+            var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+            avatar.SetName(mpj.playerName);
+            playerAvatars[mpj.playerName] = avatar;
         }
 
         static void ReceiveMessagePlayerLeft(MessagePlayerLeft mpl)

@@ -70,13 +70,15 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(Destination1)" />
 
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(Destination2)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
@@ -84,6 +86,7 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(ForZip)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
@@ -91,6 +94,7 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(ForZipAll)" />
 
 	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"

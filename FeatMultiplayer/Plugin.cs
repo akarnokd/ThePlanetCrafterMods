@@ -91,6 +91,7 @@ namespace FeatMultiplayer
                     }
                     CheckLogKeys();
                 }
+                HandleEmoting();
             }
             else
             {

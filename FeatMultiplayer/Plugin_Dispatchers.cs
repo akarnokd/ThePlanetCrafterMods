@@ -281,6 +281,11 @@ namespace FeatMultiplayer
                 Receive(cc, muas);
             }
             else
+            if (MessageEmote.TryParse(message, out var mee))
+            {
+                Receive(cc, mee);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -567,6 +572,11 @@ namespace FeatMultiplayer
                 case MessageUpdateAllStorage muas:
                     {
                         ReceiveMessageUpdateAllStorage(muas);
+                        break;
+                    }
+                case MessageEmote mee:
+                    {
+                        ReceiveMessageEmote(mee);
                         break;
                     }
                 default:

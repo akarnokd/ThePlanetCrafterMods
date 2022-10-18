@@ -58,6 +58,7 @@ namespace FeatMultiplayer
 
                             PrepareShadowInventories(cc);
                             var avatar = PlayerAvatar.CreateAvatar(color, false, GetPlayerMainController());
+                            avatar.SetName(cc.clientName);
                             playerAvatars[cc.clientName] = avatar;
 
                             cc.Send("Welcome\n");
@@ -108,6 +109,7 @@ namespace FeatMultiplayer
 
             }
             var avatar = PlayerAvatar.CreateAvatar(color, true, GetPlayerMainController());
+            avatar.SetName("< Host >");
             playerAvatars[""] = avatar; // host is always ""
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;
