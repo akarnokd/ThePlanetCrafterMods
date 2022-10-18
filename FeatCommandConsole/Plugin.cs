@@ -16,10 +16,9 @@ using System.Reflection;
 using System.Threading;
 using System.Globalization;
 using System.IO;
-using System.Xml.Linq;
 using System.Text;
-using System.Reflection.Emit;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 namespace FeatCommandConsole
 {
@@ -27,7 +26,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -60,6 +59,8 @@ namespace FeatCommandConsole
         static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = new();
 
         static Dictionary<string, Vector3> savedTeleportLocations;
+
+        const int similarLimit = 3;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -632,11 +633,26 @@ namespace FeatCommandConsole
 
                     if (g == null)
                     {
-                        addLine("<color=#FF0000>Unknown item.");
+                        List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups().Where(g => g is GroupItem).Select(g => g.id.ToLower()));
+                        if (similar.Count != 0)
+                        {
+                            similar.Sort();
+                            Colorize(similar, "#00FF00");
+
+                            addLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
+                            foreach (var line in joinPerLine(similar, 5))
+                            {
+                                addLine("<margin=2em>" + line);
+                            }
+                        }
+                        else
+                        {
+                            addLine("<margin=1em><color=#FF0000>Unknown item.</color>");
+                        }
                     }
                     else if (!(g is GroupItem))
                     {
-                        addLine("<color=#FF0000>This item can't be spawned.");
+                        addLine("<margin=1em><color=#FF0000>This item can't be spawned.");
                     }
                     else
                     {
@@ -1765,6 +1781,132 @@ namespace FeatCommandConsole
             addLine("<color=#FF8080>Warning! You may want to reload this save to avoid game issues.");
         }
 
+        [Command("/build", "Build a structure. The ingredients are automatically added to the inventory first.")]
+        public void Build(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                addLine("<margin=1em>Build a structure. The ingredients are automatically added to the inventory first.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/build list [name-prefix]</color> - list the item ids that can be built");
+                addLine("<margin=2em><color=#FFFF00>/build itemid</color> - get the ingredients and start building it by showing the ghost");
+            }
+            else
+            {
+                if (args[1] == "list")
+                {
+                    var prefix = "";
+                    if (args.Count > 2)
+                    {
+                        prefix = args[2].ToLower();
+                    }
+                    List<string> possibleStructures = new();
+                    foreach (var g in GroupsHandler.GetAllGroups())
+                    {
+                        if (g is GroupConstructible gc)
+                        {
+                            var gci = gc.GetId().ToLower();
+                            if (gci.StartsWith(prefix) && !gci.StartsWith("SpaceMultiplier"))
+                            {
+                                possibleStructures.Add(gc.GetId());
+                            }
+                        }
+                    }
+                    possibleStructures.Sort();
+                    Colorize(possibleStructures, "#00FF00");
+                    foreach (var line in joinPerLine(possibleStructures, 5))
+                    {
+                        addLine("<margin=1em>" + line);
+                    }
+                }
+                else
+                {
+                    var gid = args[1].ToLower();
+                    SpaceCraft.Group g = null;
+
+                    foreach (var gr in GroupsHandler.GetAllGroups())
+                    {
+                        var gci = gr.GetId().ToLower();
+                        if (gci == gid && !gci.StartsWith("SpaceMultiplier"))
+                        {
+                            g = gr;
+
+                        }
+                    }
+
+                    if (g == null)
+                    {
+                        List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
+                            .Where(g => g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
+                            .Select(g => g.id.ToLower()));
+                        if (similar.Count != 0)
+                        {
+                            similar.Sort();
+                            Colorize(similar, "#00FF00");
+
+                            addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
+                            foreach (var line in joinPerLine(similar, 5))
+                            {
+                                addLine("<margin=2em>" + line);
+                            }
+                        }
+                        else
+                        {
+                            addLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
+                        }
+                    }
+                    else if (!(g is GroupConstructible))
+                    {
+                        addLine("<color=#FF0000>This item can't be built.");
+                    }
+                    else
+                    {
+                        var player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                        var inv = player.GetPlayerBackpack().GetInventory();
+                        var gc = (GroupConstructible)g;
+
+                        var recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
+
+                        var full = false;
+                        foreach (var ri in recipe)
+                        {
+                            var wo = WorldObjectsHandler.CreateNewWorldObject(ri);
+                            if (!inv.AddItem(wo))
+                            {
+                                WorldObjectsHandler.DestroyWorldObject(wo);
+                                full = true;
+                                break;
+                            }
+                        }
+
+                        if (full)
+                        {
+                            addLine("<color=#FF0000>Inventory full.");
+                        } 
+                        else 
+                        {
+                            DestroyConsoleGUI();
+                            var wh = Managers.GetManager<WindowsHandler>();
+                            wh.CloseAllWindows();
+
+                            PlayerBuilder pb = player.GetPlayerBuilder();
+
+                            player.GetMultitool().SetState(DataConfig.MultiToolState.Build);
+
+                            if (pb.GetIsGhostExisting())
+                            {
+                                Logger.LogInfo("Cancelling previous ghost");
+                                pb.InputOnCancelAction();
+                            }
+
+                            Logger.LogInfo("Activating ghost for " + gc.GetId());
+                            pb.SetNewGhost(gc);
+                        }
+                    }
+                }
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         void Colorize(List<string> list, string color)
@@ -1804,6 +1946,19 @@ namespace FeatCommandConsole
             if (str.Length != 0)
             {
                 result.Add(str);
+            }
+            return result;
+        }
+
+        static List<string> FindSimilar(string userText, IEnumerable<string> texts)
+        {
+            List<string> result = new();
+            foreach (var text in texts)
+            {
+                if (text.StartsWith(userText) || text.Contains(userText))
+                {
+                    result.Add(text);
+                }
             }
             return result;
         }

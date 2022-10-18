@@ -19,7 +19,7 @@ using System.Collections.Concurrent;
 
 namespace FeatSpaceCows
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.3")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -290,18 +290,25 @@ namespace FeatSpaceCows
                 AddToInventory(inv, "astrofood");
                 AddToInventory(inv, "MethanCapsule1");
             }
+            AddToWorldUnit(DataConfig.WorldUnitType.Animals, DataConfig.WorldUnitType.Biomass, DataConfig.WorldUnitType.Terraformation);
+        }
 
+        void AddToWorldUnit(params DataConfig.WorldUnitType[] wut)
+        {
             var wuh = Managers.GetManager<WorldUnitsHandler>();
             if (wuh != null)
             {
-                var wu = wuh.GetUnit(DataConfig.WorldUnitType.Animals);
+                foreach (var w in wut)
+                {
+                    var wu = wuh.GetUnit(w);
 
-                var before = wu.GetValue();
-                var after = before + animalUnitsPerTick;
+                    var before = wu.GetValue();
+                    var after = before + animalUnitsPerTick;
 
-                log("         Producing WorldUnit(Animals): " + before + " -> " + after);
+                    log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
 
-                AccessTools.Field(typeof(WorldUnit), "currentTotalValue").SetValue(wu, after);
+                    AccessTools.Field(typeof(WorldUnit), "currentTotalValue").SetValue(wu, after);
+                }
             }
         }
 
