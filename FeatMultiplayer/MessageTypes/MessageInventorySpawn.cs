@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace FeatMultiplayer
+namespace FeatMultiplayer.MessageTypes
 {
     /// <summary>
     /// Sent by the client to ask the host to generate inventory for a pre-placed chest or

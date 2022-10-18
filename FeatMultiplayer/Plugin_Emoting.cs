@@ -265,7 +265,7 @@ namespace FeatMultiplayer
             emoteCanvas = null;
             emoteClose = null;
             Array.Clear(emoteWheelSlotBackgrounds, 0, emoteWheelSlotBackgrounds.Length);
-            Cursor.visible = false;
+            //Cursor.visible = false;
             var wh = Managers.GetManager<WindowsHandler>();
             AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.Null;
         }
