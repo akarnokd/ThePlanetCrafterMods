@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.2.0.6</Version>
+    <Version>0.2.0.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -71,6 +71,10 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_yes.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_no.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(Destination1)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
@@ -79,6 +83,10 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(Destination2)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_yes.png" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_no.png" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(Destination2)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(Destination2)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
@@ -87,6 +95,10 @@
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZip)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_yes.png" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_no.png" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(ForZip)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(ForZip)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
@@ -95,6 +107,10 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back_Host.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_hello.png" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_yes.png" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_no.png" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(ForZipAll)" />
 
 	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
