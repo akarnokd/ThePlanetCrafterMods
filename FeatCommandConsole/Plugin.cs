@@ -765,8 +765,8 @@ namespace FeatCommandConsole
             {
                 addLine("<margin=1em>Teleport relative to the current location");
                 addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tpr x y z</color> - teleport to a specific coordinate");
-                addLine("<margin=2em><color=#FFFF00>/tpr x:y:z</color> - teleport to a specific coordinate described by the colon format");
+                addLine("<margin=2em><color=#FFFF00>/tpr x y z</color> - teleport with the specified deltas");
+                addLine("<margin=2em><color=#FFFF00>/tpr x:y:z</color> - teleport with the specified deltas described by the colon format");
             }
             else
             if (args.Count == 2)
