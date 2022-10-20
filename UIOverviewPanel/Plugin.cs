@@ -13,7 +13,7 @@ using System;
 
 namespace UIOverviewPanel
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -137,9 +137,9 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(14, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(17, "GoldenContainer"));
 
-                AddTextRow("Unique larvae found", CreateButterflyCount(15));
+                AddTextRow("Unique larvae found", CreateButterflyCount(18));
 
                 AddTextRow("Resources mined", CreateSceneCounter(0, 
                     "Cobalt",
