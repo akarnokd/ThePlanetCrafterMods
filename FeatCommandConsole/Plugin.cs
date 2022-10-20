@@ -26,7 +26,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -444,6 +444,7 @@ namespace FeatCommandConsole
             }
             consoleText.Add("<color=#FFFF00><noparse>" + text.Replace("</noparse>", "") + "</noparse></color>");
             commandHistory.Add(text);
+            commandHistoryIndex = 0;
 
             var commands = ParseConsoleCommand(text);
             if (commands.Count != 0 && commands[0].StartsWith("/"))
@@ -697,11 +698,30 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Usage:");
                 addLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
                 addLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
+                addLine("<margin=2em><color=#FFFF00>/tp x:y:z</color> - teleport to a specific coordinate described by the colon format");
                 addLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>, ");
             }
             else
             if (args.Count == 2)
             {
+                var m = Regex.Match(args[1], "([-+]?[0-9]*\\.?[0-9]*):([-+]?[0-9]*\\.?[0-9]*):([-+]?[0-9]*\\.?[0-9]*)");
+                if (m.Success)
+                {
+                    var x = float.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
+                    var y = float.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+                    var z = float.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture);
+
+                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                    pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
+
+                    addLine("<margin=1em>Teleported to: ( "
+                        + m.Groups[1].Value
+                        + ", " + m.Groups[2].Value
+                        + ", " + m.Groups[3].Value
+                        + " )"
+                    );
+                }
+                else
                 if (TryGetSavedTeleportLocation(args[1], out var pos))
                 {
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
@@ -733,6 +753,62 @@ namespace FeatCommandConsole
                     + args[1]
                     + ", " + args[2]
                     + ", " + args[3]
+                    + " )"
+                );
+            }
+        }
+
+        [Command("/tpr", "Teleport relative to the current location")]
+        public void TeleportRelative(List<string> args)
+        {
+            if (args.Count != 2 && args.Count != 4)
+            {
+                addLine("<margin=1em>Teleport relative to the current location");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/tpr x y z</color> - teleport to a specific coordinate");
+                addLine("<margin=2em><color=#FFFF00>/tpr x:y:z</color> - teleport to a specific coordinate described by the colon format");
+            }
+            else
+            if (args.Count == 2)
+            {
+                var m = Regex.Match(args[1], "([-+]?[0-9]*\\.?[0-9]*):([-+]?[0-9]*\\.?[0-9]*):([-+]?[0-9]*\\.?[0-9]*)");
+                if (m.Success)
+                {
+
+                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                    var x = float.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) + pm.transform.position.x;
+                    var y = float.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture) + pm.transform.position.y;
+                    var z = float.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture) + pm.transform.position.z;
+
+                    pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
+
+                    addLine("<margin=1em>Teleported to: ( "
+                        + x.ToString(CultureInfo.InvariantCulture)
+                        + ", " + y.ToString(CultureInfo.InvariantCulture)
+                        + ", " + z.ToString(CultureInfo.InvariantCulture)
+                        + " )"
+                    );
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Invalid relative offset(s).");
+                }
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                var x = float.Parse(args[1], CultureInfo.InvariantCulture) + pm.transform.position.x;
+                var y = float.Parse(args[2], CultureInfo.InvariantCulture) + pm.transform.position.y;
+                var z = float.Parse(args[3], CultureInfo.InvariantCulture) + pm.transform.position.z;
+
+                pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
+
+                addLine("<margin=1em>Teleported to: ( "
+                    + x.ToString(CultureInfo.InvariantCulture)
+                    + ", " + y.ToString(CultureInfo.InvariantCulture)
+                    + ", " + z.ToString(CultureInfo.InvariantCulture)
                     + " )"
                 );
             }

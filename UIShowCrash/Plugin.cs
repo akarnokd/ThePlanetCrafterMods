@@ -21,7 +21,7 @@ using System.Diagnostics.Eventing.Reader;
 
 namespace UIShowCrash
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -40,6 +40,8 @@ namespace UIShowCrash
         static readonly CancellationTokenSource cancel = new();
 
         Task backgroundTask;
+
+        static bool oncePerFrame;
 
         private void Awake()
         {
@@ -63,12 +65,27 @@ namespace UIShowCrash
 
         void OnGUI()
         {
+            oncePerFrame = !oncePerFrame;
+
+            if (oncePerFrame && modEnabled.Value && !testMode.Value && Keyboard.current[Key.F12].wasPressedThisFrame)
+            {
+                logger.LogInfo("Turning off error log display.");
+                modEnabled.Value = false;
+                return;
+            }
+            if (oncePerFrame && !modEnabled.Value && !testMode.Value && Keyboard.current[Key.F12].wasPressedThisFrame)
+            {
+                logger.LogInfo("Turning on error log display.");
+                modEnabled.Value = true;
+                return;
+            }
+
             if (!modEnabled.Value)
             {
                 return;
             }
 
-            if (testMode.Value && !panelVisible && Keyboard.current[Key.F12].wasPressedThisFrame)
+            if (oncePerFrame && testMode.Value && !panelVisible && Keyboard.current[Key.F12].wasPressedThisFrame)
             {
                 logger.LogInfo("Testing error log detection");
                 try
@@ -102,7 +119,7 @@ namespace UIShowCrash
                 return;
             }
 
-            GUI.depth = 100;
+            GUI.depth = -100;
 
             var px = 50;
             var py = 50;
