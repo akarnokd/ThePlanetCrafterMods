@@ -12,14 +12,18 @@ using System;
 using System.Linq;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using BepInEx.Bootstrap;
+using System.Reflection;
 
 namespace UIContinue
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.1")]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationitalian", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
 
         static GameObject continueButton;
         static GameObject lastSaveInfo;
@@ -29,11 +33,17 @@ namespace UIContinue
         static string lastSaveInfoText;
         static string lastSaveDateText;
 
+        static MethodInfo multiplayerContinue;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
+            {
+                multiplayerContinue = AccessTools.Method(pi.Instance.GetType(), "MainMenuContinue");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -181,6 +191,10 @@ namespace UIContinue
             {
                 Managers.GetManager<SavedDataHandler>().SetSaveFileName(Path.GetFileNameWithoutExtension(lastSave));
                 lastSave = null;
+                if (multiplayerContinue != null)
+                {
+                    multiplayerContinue.Invoke(null, new object[0]);
+                }
                 SceneManager.LoadScene("OpenWorldTest");
             }
         }

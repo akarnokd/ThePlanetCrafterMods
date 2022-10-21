@@ -26,7 +26,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -391,6 +391,10 @@ namespace FeatCommandConsole
 
         void createOutputLines()
         {
+            if (background == null)
+            {
+                return;
+            }
             int panelWidth = Screen.width - consoleLeft.Value - consoleRight.Value;
             int panelHeight = Screen.height - consoleTop.Value - consoleBottom.Value;
 

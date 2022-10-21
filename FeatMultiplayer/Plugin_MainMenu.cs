@@ -353,6 +353,14 @@ namespace FeatMultiplayer
         static void SaveFilesSelector_SelectedSaveFile(string _fileName)
         {
             parent.SetActive(false);
+            MainMenuContinue();
+        }
+
+        /// <summary>
+        /// Sets the update mode when loading as save or clicking on continue.
+        /// </summary>
+        public static void MainMenuContinue()
+        {
             if (hostMode.Value)
             {
                 updateMode = MultiplayerMode.CoopHost;
