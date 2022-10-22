@@ -18,6 +18,7 @@ using System.Reflection;
 using UnityEngine.UI;
 using TMPro;
 using static UnityEngine.ParticleSystem;
+using UnityEngine.TextCore;
 
 namespace FeatTechniciansExile
 {
@@ -91,6 +92,8 @@ namespace FeatTechniciansExile
         static MessageData technicianMessage;
         static MessageData technicianMessage2;
 
+        static TMP_FontAsset fontAsset;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -128,6 +131,19 @@ namespace FeatTechniciansExile
                 senderStringId = "TechniciansExile_Name",
                 yearSent = "Today"
             };
+
+            Font osFont = null;
+
+            foreach (var fp in Font.GetPathsToOSFonts())
+            {
+                if (fp.ToLower().Contains("arial.ttf"))
+                {
+                    osFont = new Font(fp);
+                    break;
+                }
+            }
+
+            fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -628,7 +644,7 @@ namespace FeatTechniciansExile
             else if (choice.id == "NicePod")
             {
                 choice.visible = false;
-                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_3_Nice_Pod_Long", talk);
                 AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_Thanks", talk);
 
                 ShowChoice(dialogChoices["Status"]);
@@ -686,7 +702,9 @@ namespace FeatTechniciansExile
             var wu = Managers.GetManager<WorldUnitsHandler>();
             var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
 
-            return wut.GetIncreaseValuePersSec() >= wut.GetDecreaseValuePersSec();
+            var excess = wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec();
+            logger.LogInfo("CheckPower " + excess);
+            return excess >= 0f;
         }
 
         static void NotifyRemoved(Group group)
@@ -869,6 +887,8 @@ namespace FeatTechniciansExile
                 ShowChoice(dialogChoices["NicePod"]);
                 SaveState();
                 SetVisibilityViaCurrentPhase();
+                var mh = Managers.GetManager<MessagesHandler>();
+                mh.AddNewReceivedMessage(technicianMessage2);
             }
         }
 
@@ -1117,16 +1137,18 @@ namespace FeatTechniciansExile
         [HarmonyPatch(typeof(WorldUnit), "SetIncreaseAndDecreaseForWorldObjects")]
         static void WorldUnit_SetIncreaseAndDecreaseForWorldObjects(bool __result, 
             DataConfig.WorldUnitType ___unitType,
-            ref float increaseValuePerSec)
+            ref float ___increaseValuePerSec)
         {
             if (__result && questPhase == QuestPhase.Operating)
             {
-                var gid = GameConfig.spaceGlobalMultipliersGroupIds[___unitType];
-                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(___unitType, out var gid))
                 {
-                    if (wo.GetGroup().GetId() == gid)
+                    foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
                     {
-                        increaseValuePerSec *= 1.1f;        
+                        if (wo.GetGroup().GetId() == gid)
+                        {
+                            ___increaseValuePerSec *= 1.1f;
+                        }
                     }
                 }
             }
@@ -1143,12 +1165,18 @@ namespace FeatTechniciansExile
                 List<WorldUnit> allWorldUnits = Managers.GetManager<WorldUnitsHandler>().GetAllWorldUnits();
                 var lines = ___gridGenerationRockets.GetComponentsInChildren<UiGroupLine>();
 
-                int j = 0;
+                logger.LogInfo("Rocket lines: " + lines.Length);
+                foreach (var ln in lines)
+                {
+                    logger.LogInfo("  " + ln.label.text);
+                }
 
                 foreach (var gd in ___rocketsGenerationGroups)
                 {
+                    logger.LogInfo("  group " + gd.id);
                     var groupViaId = GroupsHandler.GetGroupViaId(gd.id);
                     var allWorldObjectsOfGroup = WorldObjectsHandler.GetAllWorldObjectsOfGroup(groupViaId);
+                    logger.LogInfo("  wo count " + allWorldObjectsOfGroup.Count);
                     if (allWorldObjectsOfGroup.Count != 0)
                     {
                         foreach (WorldUnit worldUnit in allWorldUnits)
@@ -1156,9 +1184,19 @@ namespace FeatTechniciansExile
                             DataConfig.WorldUnitType unitType = worldUnit.GetUnitType();
                             if (((GroupItem)groupViaId).GetGroupUnitMultiplier(unitType) != 0f)
                             {
-                                lines[j].label.text = Readable.GetWorldUnitLabel(unitType) 
-                                    + " +" + (1100 * allWorldObjectsOfGroup.Count).ToString() + "%";
-                                j++;
+                                logger.LogInfo("  unit " + unitType + " 1100 * ");
+                                var unitLabel = Readable.GetWorldUnitLabel(unitType);
+
+                                for (int j = 0; j < lines.Length; j++)
+                                {
+                                    var ln = lines[j];
+                                    if (ln.label.text.StartsWith(unitLabel))
+                                    {
+                                        ln.label.text = unitLabel
+                                            + " +" + (1100 * allWorldObjectsOfGroup.Count).ToString() + "%";
+                                    }
+                                }
+                                break;
                             }
                         }
                     }
@@ -1359,6 +1397,7 @@ namespace FeatTechniciansExile
                 conversationName.transform.SetParent(conversationDialogCanvas.transform);
 
                 var text = conversationName.AddComponent<TextMeshProUGUI>();
+                text.font = fontAsset;
                 text.fontSize = fontSize;
                 text.horizontalAlignment = HorizontalAlignmentOptions.Center;
                 text.enableWordWrapping = false;
@@ -1384,6 +1423,7 @@ namespace FeatTechniciansExile
                     var tmp = he.AddComponent<TextMeshProUGUI>();
                     tmp.text = "example..." + i;
                     tmp.fontSize = fontSize;
+                    tmp.font = fontAsset;
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
                     tmp.enableWordWrapping = false;
                     tmp.overflowMode = TextOverflowModes.Overflow;
@@ -1422,6 +1462,7 @@ namespace FeatTechniciansExile
 
                     var tmp = he.AddComponent<TextMeshProUGUI>();
                     tmp.text = "choice..." + i;
+                    tmp.font = fontAsset;
                     tmp.fontSize = fontSize;
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
                     tmp.enableWordWrapping = false;

@@ -26,7 +26,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.6")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -476,6 +476,11 @@ namespace FeatCommandConsole
             }
             scrollOffset = 0;
             createOutputLines();
+
+            if (background == null)
+            {
+                return;
+            }
 
             inputFieldText.text = "";
             inputFieldText.Select();
