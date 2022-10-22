@@ -17,6 +17,7 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using UnityEngine.UI;
 using TMPro;
+using static UnityEngine.ParticleSystem;
 
 namespace FeatTechniciansExile
 {
@@ -395,15 +396,283 @@ namespace FeatTechniciansExile
             }
         }
 
+        static void PrepareDialogChoices()
+        {
+            AddChoice("WhoAreYou", "TechniciansExile_Dialog_1_Who_Are_You");
+            AddChoice("WhatsYourName", "TechniciansExile_Dialog_1_Whats_Your_Name");
+            AddChoice("NotConvict", "TechniciansExile_Dialog_1_You_Not_Convict");
+            AddChoice("WhatDone", "TechniciansExile_Dialog_1_What_Done");
+            AddChoice("Needs", "TechniciansExile_Dialog_1_What_Do_You_Need");
+            AddChoice("Supplies", "TechniciansExile_Dialog_1_Supplies_Avail");
+            AddChoice("Satellite", "TechniciansExile_Dialog_2_Task");
+            AddChoice("AWhat", "TechniciansExile_Dialog_2_Terminal");
+            AddChoice("Supplies2", "TechniciansExile_Dialog_2_Supplies_Avail");
+            AddChoice("Great", "TechniciansExile_Dialog_2_Great");
+        }
+
         static void DoConversationStart(ActionTalk talk)
         {
+            foreach (var k in dialogChoices.Keys)
+            {
+                logger.LogInfo(k);
+            }
+
             talk.currentImage = avatar.avatarFront.GetComponent<SpriteRenderer>().sprite;
-            talk.currentName = "???";
+            if (dialogChoices["WhoAreYou"].picked)
+            {
+                talk.currentName = Localization.GetLocalizedString("TechniciansExile_Name");
+            }
+            else
+            {
+                talk.currentName = "???";
+            }
+
+            talk.currentHistory.Clear();
+            talk.currentHistory.AddRange(conversationHistory);
+
+            UpdateSuppliesParams();
+            UpdateSupplies2Params();
+            SyncChoices(talk);
         }
 
         static void DoConversationChoice(ActionTalk talk, DialogChoice choice)
         {
+            if (choice.id == "WhoAreYou")
+            {
+                talk.currentName = Localization.GetLocalizedString("TechniciansExile_Name");
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                if (choice.picked)
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Identify_Again", talk);
+                }
+                else
+                {
+                    choice.picked = true;
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Identify", talk);
+                }
+                ShowChoice(dialogChoices["WhatsYourName"]);
+                ShowChoice(dialogChoices["NotConvict"]);
+                ShowChoice(dialogChoices["Needs"]);
+                SyncChoices(talk);
+            }
+            else if (choice.id == "WhatsYourName")
+            {
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                if (choice.picked)
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Name_Again", talk);
+                }
+                else
+                {
+                    choice.picked = true;
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Name", talk);
+                }
+            }
+            else if (choice.id == "NotConvict")
+            {
+                choice.picked = true;
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Explain", talk);
 
+                ShowChoice(dialogChoices["WhatDone"]);
+                SyncChoices(talk);
+            }
+            else if (choice.id == "WhatDone")
+            {
+                choice.picked = true;
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Reason", talk);
+            }
+            else if (choice.id == "Needs")
+            {
+                choice.picked = true;
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Supplies", talk);
+
+                dialogChoices["WhoAreYou"].visible = false;
+                ShowChoice(dialogChoices["Supplies"]);
+                UpdateSuppliesParams();
+                SyncChoices(talk);
+            }
+            else if (choice.id == "Supplies")
+            {
+                choice.visible = false;
+                AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_1_Supplies_Given", talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_Job", talk);
+
+                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory().GetInsideWorldObjects();
+
+                int foodCounter = 0;
+                int waterCounter = 0;
+                for (int i = inv.Count - 1; i >= 0; i--)
+                {
+                    var wo = inv[i];
+                    if (wo.GetGroup().GetId() == "astrofood" && foodCounter < 5)
+                    {
+                        foodCounter++;
+                        inv.RemoveAt(i);
+                        NotifyRemoved(wo.GetGroup());
+                    }
+                    else if (wo.GetGroup().GetId() == "WaterBottle1" && waterCounter < 5)
+                    {
+                        waterCounter++;
+                        inv.RemoveAt(i);
+                        NotifyRemoved(wo.GetGroup());
+                    }
+                }
+
+                ShowChoice(dialogChoices["Satellite"]);
+                SyncChoices(talk);
+            }
+            else if (choice.id == "Satellite")
+            {
+                choice.visible = false;
+
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_Accept", talk);
+                
+                ShowChoice(dialogChoices["AWhat"]);
+                SyncChoices(talk);
+            }
+            else if (choice.id == "AWhat")
+            {
+                choice.visible = false;
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_Supplies", talk);
+
+                ShowChoice(dialogChoices["Supplies2"]);
+                UpdateSupplies2Params();
+                SyncChoices(talk);
+            }
+            else if (choice.id == "Supplies2")
+            {
+                choice.visible = false;
+                AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_2_Supplies_Given", talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_How_Long", talk);
+
+                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory().GetInsideWorldObjects();
+
+                int alloyCounter = 0;
+                for (int i = inv.Count - 1; i >= 0; i--)
+                {
+                    var wo = inv[i];
+                    if (wo.GetGroup().GetId() == "alloy" && alloyCounter < 10)
+                    {
+                        alloyCounter++;
+                        inv.RemoveAt(i);
+                        NotifyRemoved(wo.GetGroup());
+                    }
+                }
+
+                SyncChoices(talk);
+                ShowChoice(dialogChoices["Great"]);
+            }
+            else if (choice.id == "Great")
+            {
+                questPhase = QuestPhase.Base_Setup;
+                talk.DestroyTalkDialog();
+            }
+
+            SaveState();
+            talk.UpdateCurrents();
+        }
+
+        static void NotifyRemoved(Group group)
+        {
+            string text = Readable.GetGroupName(group);
+            InformationsDisplayer informationsDisplayer = Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer();
+            informationsDisplayer.AddInformation(2f, text, DataConfig.UiInformationsType.OutInventory, group.GetImage());
+        }
+
+        static void SyncChoices(ActionTalk talk)
+        {
+            talk.currentChoices.Clear();
+            foreach (var dc in dialogChoices.Values)
+            {
+                if (dc.visible)
+                {
+                    talk.currentChoices.Add(dc);
+                }
+            }
+        }
+
+        static DialogChoice WithEnabled(DialogChoice dc)
+        {
+            dc.enabled = true;
+            return dc;
+        }
+        static DialogChoice WithVisible(DialogChoice dc)
+        {
+            dc.visible = true;
+            return dc;
+        }
+
+        static void UpdateSuppliesParams()
+        {
+            var ch = dialogChoices["Supplies"];
+            ch.parameters = new object[2];
+
+            var backpack = GetPlayerMainController().GetPlayerBackpack().GetInventory();
+
+            int food = 0;
+            int water = 0;
+
+            foreach (var wo in backpack.GetInsideWorldObjects())
+            {
+                if (wo.GetGroup().GetId() == "astrofood")
+                {
+                    food++;
+                }
+                else if (wo.GetGroup().GetId() == "WaterBottle1")
+                {
+                    water++;
+                }
+            }
+            ch.parameters = new object[]
+            {
+                Math.Min(5, food),
+                Math.Min(5, water)
+            };
+            ch.enabled = food >= 5 && water >= 5;
+        }
+        static void UpdateSupplies2Params()
+        {
+            var ch = dialogChoices["Supplies"];
+            ch.parameters = new object[2];
+
+            var backpack = GetPlayerMainController().GetPlayerBackpack().GetInventory();
+
+            int alloy = 0;
+
+            foreach (var wo in backpack.GetInsideWorldObjects())
+            {
+                if (wo.GetGroup().GetId() == "alloy")
+                {
+                    alloy++;
+                }
+            }
+            ch.parameters = new object[]
+            {
+                Math.Min(10, alloy),
+            };
+            ch.enabled = alloy >= 10;
+        }
+
+        static internal void ShowChoice(DialogChoice dc)
+        {
+            dc.visible = true;
+            dc.enabled = true;
+        }
+
+        static internal void AddResponseLabel(string owner, string labelId, ActionTalk talk)
+        {
+            var resp = new ConversationEntry
+            {
+                owner = owner,
+                labelId = labelId
+            };
+            conversationHistory.Add(resp);
+            talk.currentHistory.Add(resp);
         }
 
         void CheckStartConditions()
@@ -460,6 +729,7 @@ namespace FeatTechniciansExile
                 {
                     asteroid = null;
                     questPhase = QuestPhase.Initial_Help;
+                    ShowChoice(dialogChoices["WhoAreYou"]);
                     SaveState();
                     SetVisibilityViaCurrentPhase();
                 }
@@ -468,12 +738,19 @@ namespace FeatTechniciansExile
 
         void CheckInitialHelp()
         {
-
+            // mostly dialogue
         }
 
         void CheckBaseSetup()
         {
+            var pm = GetPlayerMainController();
 
+            if (Vector3.Distance(pm.transform.position, technicianDropLocation) >= 300)
+            {
+                questPhase = QuestPhase.Operating;
+                SaveState();
+                SetVisibilityViaCurrentPhase();
+            }
         }
 
         void CheckOperating()
@@ -524,6 +801,7 @@ namespace FeatTechniciansExile
                 case QuestPhase.Initial_Help:
                     {
                         avatar.SetVisible(true);
+                        avatar.SetPosition(technicianLocation1, technicianRotation1);
                         escapePod.GetGameObject().SetActive(true);
 
                         foreach (var wo in baseComponents)
@@ -546,6 +824,7 @@ namespace FeatTechniciansExile
                 case QuestPhase.Operating:
                     {
                         avatar.SetVisible(true);
+                        avatar.SetPosition(technicianLocation2, technicianRotation2);
                         escapePod.GetGameObject().SetActive(true);
 
                         foreach (var wo in baseComponents)
@@ -620,7 +899,7 @@ namespace FeatTechniciansExile
                                 {
                                     dc.visible = "1" == pars[1];
                                     dc.enabled = "1" == pars[2];
-                                    dc.enabled = "1" == pars[3];
+                                    dc.picked = "1" == pars[3];
                                 }
                                 else
                                 {
@@ -639,9 +918,9 @@ namespace FeatTechniciansExile
 
         static string GetColorForOwner(string owner)
         {
-            if (owner == "player")
+            if (owner == "TechniciansExile_Convict")
             {
-                return "#FFFFFF";
+                return "#00FF00";
             }
             return "#FFFF00";
         }
@@ -672,16 +951,12 @@ namespace FeatTechniciansExile
             escapePod.SetText(sb.ToString());
         }
 
-        static void PrepareDialogChoices()
+        static void AddChoice(string id, string labelId)
         {
-
-        }
-
-        static void AddChoice(string labelId)
-        {
-            dialogChoices[labelId] = new DialogChoice
+            dialogChoices[id] = new DialogChoice
             {
-                    labelId = labelId
+                id = id,
+                labelId = labelId
             };
         }
 
@@ -710,13 +985,13 @@ namespace FeatTechniciansExile
         }
 
 
-        class ConversationEntry
+        internal class ConversationEntry
         {
             internal string owner;
             internal string labelId;
         }
 
-        class DialogChoice
+        internal class DialogChoice
         {
             internal string id;
             internal string labelId;
@@ -724,9 +999,10 @@ namespace FeatTechniciansExile
             internal bool visible;
             internal bool picked;
             internal bool enabled;
+            internal bool highlighted;
         }
 
-        class ActionTalk : Actionnable
+        internal class ActionTalk : Actionnable
         {
             GameObject conversationDialogCanvas;
 
@@ -789,10 +1065,51 @@ namespace FeatTechniciansExile
                         }
                         UpdateCurrents();
                     }
+
+                    var mp = Mouse.current.position.ReadValue();
+
+                    for (int i = 0; i < currentChoices.Count; i++)
+                    {
+                        var ch = currentChoices[i];
+                        var txt = dialogChoiceLines[i].GetComponent<TextMeshProUGUI>();
+                        var rect = dialogChoiceLines[i].GetComponent<RectTransform>();
+
+                        if (ch.enabled)
+                        {
+                            var t = txt.text;
+                            if (IsWithin(rect, mp)) {
+                                ch.highlighted = true;
+                                ColorChoice(i, ch, txt);
+
+                                if (Mouse.current.leftButton.wasPressedThisFrame)
+                                {
+                                    ch.highlighted = false;
+                                    historyScrollOffset = 0;
+                                    OnConversationChoice?.Invoke(this, ch);
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                ch.highlighted = false;
+                                ColorChoice(i, ch, txt);
+                            }
+                        }
+                    }
                 }
             }
 
-            void DestroyTalkDialog()
+            static bool IsWithin(RectTransform rect, Vector2 mouse)
+            {
+                var lp = rect.localPosition;
+                lp.x += Screen.width / 2 - rect.sizeDelta.x / 2;
+                lp.y += Screen.height / 2 - rect.sizeDelta.y / 2;
+
+                return mouse.x >= lp.x && mouse.y >= lp.y
+                    && mouse.x <= lp.x + rect.sizeDelta.x && mouse.y <= lp.y + rect.sizeDelta.y;
+            }
+
+            internal void DestroyTalkDialog()
             {
                 foreach (var go in conversationHistoryLines)
                 {
@@ -948,8 +1265,12 @@ namespace FeatTechniciansExile
                 logger.LogInfo("Done OnAction");
             }
 
-            void UpdateCurrents()
+            internal void UpdateCurrents()
             {
+                if (conversationDialogCanvas == null)
+                {
+                    return;
+                }
                 conversationPicture.GetComponent<Image>().sprite = currentImage;
                 conversationName.GetComponent<TextMeshProUGUI>().text = currentName ?? "???";
 
@@ -963,7 +1284,70 @@ namespace FeatTechniciansExile
                     he.GetComponent<TextMeshProUGUI>().text = "";
                 }
 
+                int j = 0;
+                for (int i = currentHistory.Count - 1 - historyScrollOffset; i >= 0; i--)
+                {
+                    var che = currentHistory[i];
+                    var txt = Localization.GetLocalizedString(che.labelId);
 
+                    var lines = txt.Split(new[] { "<br>" }, StringSplitOptions.None);
+
+                    for (int k = lines.Length - 1; k >= 0; k--)
+                    {
+                        conversationHistoryLines[j].GetComponent<TextMeshProUGUI>().text = "<margin=1em>" + lines[k];
+
+                        if (++j == conversationHistoryLines.Count)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (j == conversationHistoryLines.Count)
+                    {
+                        break;
+                    }
+
+                    var oc = GetColorForOwner(che.owner);
+                    conversationHistoryLines[j].GetComponent<TextMeshProUGUI>().text = "<color=" + oc + ">"
+                        + Localization.GetLocalizedString(che.owner);
+
+                    if (++j == conversationHistoryLines.Count)
+                    {
+                        break;
+                    }
+                }
+
+                j = 0;
+                for (int i = 0; i < currentChoices.Count && j < dialogChoiceLines.Count; i++)
+                {
+                    ColorChoice(i, currentChoices[i], dialogChoiceLines[i].GetComponent<TextMeshProUGUI>());
+                }
+            }
+
+            void ColorChoice(int i, DialogChoice choice, TextMeshProUGUI tmp)
+            {
+                var txt = Localization.GetLocalizedString(choice.labelId);
+                if (choice.parameters != null && choice.parameters.Length != 0)
+                {
+                    txt = string.Format(txt, choice.parameters);
+                }
+
+                txt = (i + 1) + ".     " + txt;
+
+                if (!choice.enabled)
+                {
+                    txt = "<color=#800000>" + txt;
+                }
+                else if (choice.highlighted)
+                {
+                    txt = "<color=#FFFF00>" + txt;
+                }
+                else if (choice.picked)
+                {
+                    txt = "<color=#808080>" + txt;
+                }
+
+                tmp.text = txt;
             }
 
             public override void OnHover()
