@@ -88,6 +88,9 @@ namespace FeatTechniciansExile
 
         static readonly Dictionary<string, Dictionary<string, string>> labels = new();
 
+        static MessageData technicianMessage;
+        static MessageData technicianMessage2;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -111,6 +114,20 @@ namespace FeatTechniciansExile
             AddTranslation(dir, "hungarian");
 
             PrepareDialogChoices();
+
+            technicianMessage = new MessageData
+            {
+                stringId = "TechniciansExile_Message",
+                senderStringId = "TechniciansExile_Name",
+                yearSent = "Today"
+            };
+
+            technicianMessage2 = new MessageData
+            {
+                stringId = "TechniciansExile_Message2",
+                senderStringId = "TechniciansExile_Name",
+                yearSent = "Today"
+            };
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -147,6 +164,13 @@ namespace FeatTechniciansExile
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start()
         {
+
+            if (multiplayerMode != null && multiplayerMode() == "CoopClient")
+            {
+                logger.LogInfo("Running on the client.");
+                return;
+            }
+
             bool dontSaveMe = false;
 
             logger.LogInfo("Start");
@@ -388,8 +412,6 @@ namespace FeatTechniciansExile
                 return;
             }
 
-            var player = GetPlayerMainController();
-
             switch (questPhase)
             {
                 case QuestPhase.Not_Started:
@@ -574,7 +596,7 @@ namespace FeatTechniciansExile
             {
                 choice.visible = false;
                 AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_2_Supplies_Given", talk);
-                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_How_Long", talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_How_Long", talk);
 
                 var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory().GetInsideWorldObjects();
 
@@ -582,7 +604,7 @@ namespace FeatTechniciansExile
                 for (int i = inv.Count - 1; i >= 0; i--)
                 {
                     var wo = inv[i];
-                    if (wo.GetGroup().GetId() == "alloy" && alloyCounter < 10)
+                    if (wo.GetGroup().GetId() == "Alloy" && alloyCounter < 10)
                     {
                         alloyCounter++;
                         inv.RemoveAt(i);
@@ -595,8 +617,13 @@ namespace FeatTechniciansExile
             }
             else if (choice.id == "Great")
             {
-                questPhase = QuestPhase.Base_Setup;
+                if (questPhase == QuestPhase.Initial_Help)
+                {
+                    questPhase = QuestPhase.Base_Setup;
+                }
                 talk.DestroyTalkDialog();
+                var wh = Managers.GetManager<WindowsHandler>();
+                wh.CloseAllWindows();
             }
             else if (choice.id == "NicePod")
             {
@@ -718,7 +745,7 @@ namespace FeatTechniciansExile
                 Math.Min(5, food),
                 Math.Min(5, water)
             };
-            logger.LogInfo("Food: " + food + ", Water: " + water);
+            //logger.LogInfo("Food: " + food + ", Water: " + water);
             ch.enabled = food >= 5 && water >= 5;
         }
         static void UpdateSupplies2Params()
@@ -732,7 +759,7 @@ namespace FeatTechniciansExile
 
             foreach (var wo in backpack.GetInsideWorldObjects())
             {
-                if (wo.GetGroup().GetId() == "alloy")
+                if (wo.GetGroup().GetId() == "Alloy")
                 {
                     alloy++;
                 }
@@ -741,6 +768,7 @@ namespace FeatTechniciansExile
             {
                 Math.Min(10, alloy),
             };
+            //logger.LogInfo("Alloy: " + alloy);
             ch.enabled = alloy >= 10;
         }
 
@@ -815,6 +843,10 @@ namespace FeatTechniciansExile
                 {
                     asteroid = null;
                     questPhase = QuestPhase.Initial_Help;
+
+                    var mh = Managers.GetManager<MessagesHandler>();
+                    mh.AddNewReceivedMessage(technicianMessage);
+
                     ShowChoice(dialogChoices["WhoAreYou"]);
                     SaveState();
                     SetVisibilityViaCurrentPhase();
@@ -863,20 +895,6 @@ namespace FeatTechniciansExile
                 return p.GetActivePlayerController();
             }
             return null;
-        }
-
-        static void HideInventory(WorldObject wo)
-        {
-            var allInvs = InventoriesHandler.GetAllInventories();
-            for (int i = 0; i < allInvs.Count; i++)
-            {
-                var inv = allInvs[i];
-                if (inv.GetId() == wo.GetLinkedInventoryId())
-                {
-                    allInvs.RemoveAt(i);
-                    break;
-                }
-            } 
         }
 
         static void SetVisibilityViaCurrentPhase()
@@ -1081,6 +1099,81 @@ namespace FeatTechniciansExile
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MessagesHandler), "Init")]
+        static void MessagesHandler_Init(List<MessageData> ___allAvailableMessages)
+        {
+            if (!___allAvailableMessages.Contains(technicianMessage))
+            {
+                ___allAvailableMessages.Add(technicianMessage);
+            }
+            if (!___allAvailableMessages.Contains(technicianMessage2))
+            {
+                ___allAvailableMessages.Add(technicianMessage2);
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldUnit), "SetIncreaseAndDecreaseForWorldObjects")]
+        static void WorldUnit_SetIncreaseAndDecreaseForWorldObjects(bool __result, 
+            DataConfig.WorldUnitType ___unitType,
+            ref float increaseValuePerSec)
+        {
+            if (__result && questPhase == QuestPhase.Operating)
+            {
+                var gid = GameConfig.spaceGlobalMultipliersGroupIds[___unitType];
+                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                {
+                    if (wo.GetGroup().GetId() == gid)
+                    {
+                        increaseValuePerSec *= 1.1f;        
+                    }
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowRockets), "SetRocketsDisplay")]
+        static void UiWindowRockets_SetRocketsDisplay(
+            GridLayoutGroup ___gridGenerationRockets,
+            List<GroupData> ___rocketsGenerationGroups)
+        {
+            if (questPhase == QuestPhase.Operating)
+            {
+                List<WorldUnit> allWorldUnits = Managers.GetManager<WorldUnitsHandler>().GetAllWorldUnits();
+                var lines = ___gridGenerationRockets.GetComponentsInChildren<UiGroupLine>();
+
+                int j = 0;
+
+                foreach (var gd in ___rocketsGenerationGroups)
+                {
+                    var groupViaId = GroupsHandler.GetGroupViaId(gd.id);
+                    var allWorldObjectsOfGroup = WorldObjectsHandler.GetAllWorldObjectsOfGroup(groupViaId);
+                    if (allWorldObjectsOfGroup.Count != 0)
+                    {
+                        foreach (WorldUnit worldUnit in allWorldUnits)
+                        {
+                            DataConfig.WorldUnitType unitType = worldUnit.GetUnitType();
+                            if (((GroupItem)groupViaId).GetGroupUnitMultiplier(unitType) != 0f)
+                            {
+                                lines[j].label.text = Readable.GetWorldUnitLabel(unitType) 
+                                    + " +" + (1100 * allWorldObjectsOfGroup.Count).ToString() + "%";
+                                j++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // This method crashes with NPE for some reason, maybe because the pod is 
+        // made invisible?
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ConstraintAgainstPanel), "OnDestroy")]
+        static bool ConstraintAgainstPanel_OnDestroy(BuilderDisplayer ___builderDisplayer)
+        {
+            return ___builderDisplayer != null;
+        }
 
         internal class ConversationEntry
         {
@@ -1221,6 +1314,7 @@ namespace FeatTechniciansExile
                 dialogChoiceLines.Clear();
 
                 Destroy(conversationDialogCanvas);
+                conversationDialogCanvas = null;
             }
 
             public override void OnAction()
