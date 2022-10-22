@@ -159,7 +159,7 @@ namespace FeatTechniciansExile
                 escapePod = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("EscapePod"), 
                     technicianWorldObjectIdStart);
                 escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
-                escapePod.SetDontSaveMe(true);
+                escapePod.SetDontSaveMe(false);
                 WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
             }
 
@@ -491,6 +491,20 @@ namespace FeatTechniciansExile
             return null;
         }
 
+        static void HideInventory(WorldObject wo)
+        {
+            var allInvs = InventoriesHandler.GetAllInventories();
+            for (int i = 0; i < allInvs.Count; i++)
+            {
+                var inv = allInvs[i];
+                if (inv.GetId() == wo.GetLinkedInventoryId())
+                {
+                    allInvs.RemoveAt(i);
+                    break;
+                }
+            } 
+        }
+
         static void SetVisibilityViaCurrentPhase()
         {
             switch (questPhase)
@@ -728,18 +742,20 @@ namespace FeatTechniciansExile
 
             internal string currentName;
 
-            internal List<DialogChoice> currentChoices;
+            internal readonly List<DialogChoice> currentChoices = new();
 
-            internal List<ConversationEntry> currentHistory;
+            internal readonly List<ConversationEntry> currentHistory = new();
 
             internal Action<ActionTalk> OnConversationStart;
 
             internal Action<ActionTalk, DialogChoice> OnConversationChoice;
 
+            internal int historyScrollOffset;
+
             void Update()
             {
                 var wh = Managers.GetManager<WindowsHandler>();
-                if (Keyboard.current[Key.Escape].wasPressedThisFrame)
+                if (conversationDialogCanvas != null && Keyboard.current[Key.Escape].wasPressedThisFrame)
                 {
                     DestroyTalkDialog();
 
@@ -751,6 +767,28 @@ namespace FeatTechniciansExile
                 {
                     DestroyTalkDialog();
                     return;
+                }
+
+                if (conversationDialogCanvas != null)
+                {
+                    var ms = Mouse.current.scroll.ReadValue();
+                    if (ms.y != 0)
+                    {
+                        int delta = 1;
+                        if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
+                        {
+                            delta = 3;
+                        }
+                        if (ms.y > 0)
+                        {
+                            historyScrollOffset = Math.Min(currentHistory.Count - 1, historyScrollOffset + delta);
+                        }
+                        else
+                        {
+                            historyScrollOffset = Math.Max(0, historyScrollOffset - delta);
+                        }
+                        UpdateCurrents();
+                    }
                 }
             }
 
@@ -773,14 +811,16 @@ namespace FeatTechniciansExile
 
             public override void OnAction()
             {
+                logger.LogInfo("Creating Canvas");
                 conversationDialogCanvas = new GameObject("TechniciansExileConversationDialogCanvas");
                 var c = conversationDialogCanvas.AddComponent<Canvas>();
                 c.renderMode = RenderMode.ScreenSpaceOverlay;
                 c.transform.SetAsLastSibling();
 
-                var pw = Screen.width * 0.75f;
-                var ph = Screen.height * 0.75f;
+                var pw = Screen.width * 0.6f;
+                var ph = Screen.height * 0.65f;
 
+                logger.LogInfo("Creating background");
                 var background = new GameObject("TechniciansExileConversationDialogCanvas-Background");
                 background.transform.SetParent(conversationDialogCanvas.transform);
 
@@ -791,35 +831,43 @@ namespace FeatTechniciansExile
                 rect.localPosition = new Vector3(0, 0);
                 rect.sizeDelta = new Vector2(pw, ph);
 
+                logger.LogInfo("Creating Picture");
                 conversationPicture = new GameObject("TechniciansExileConversationDialogCanvas-Picture");
                 conversationPicture.transform.SetParent(conversationDialogCanvas.transform);
 
                 img = conversationPicture.AddComponent<Image>();
                 rect = img.GetComponent<RectTransform>();
-                rect.localPosition = new Vector3(- pw * 3 / 4, ph - pw / 4, 0);
-                rect.sizeDelta = new Vector2(pw / 4, pw / 4);
+                var imagePos = new Vector3(-pw / 2 + pw / 12 + pw / 24, ph / 2 - pw / 12 - pw / 24, 0);
+                rect.localPosition = imagePos;
+                rect.sizeDelta = new Vector2(pw / 6, pw / 6);
 
                 int maxChoices = 6;
-                int maxHistory = 10;
+                int maxHistory = 15;
 
                 var fontSize = (int)Mathf.Floor(ph * 0.9f / (maxChoices + maxHistory));
 
+                logger.LogInfo("Creating Name");
                 conversationName = new GameObject("TechniciansExileConversationDialogCanvas-Name");
                 conversationName.transform.SetParent(conversationDialogCanvas.transform);
 
-                var text = conversationName.GetComponent<Text>();
+                var text = conversationName.AddComponent<TextMeshProUGUI>();
                 text.fontSize = fontSize;
-                text.horizontalOverflow = HorizontalWrapMode.Overflow;
-                text.verticalOverflow = VerticalWrapMode.Overflow;
+                text.horizontalAlignment = HorizontalAlignmentOptions.Center;
+                text.enableWordWrapping = false;
+                text.overflowMode = TextOverflowModes.Overflow;
+                text.richText = true;
                 rect = text.GetComponent<RectTransform>();
-                rect.localPosition = new Vector3(-pw * 3 / 4, ph - pw / 4 - fontSize, 0);
+                rect.localPosition = imagePos - new Vector3(0, ph / 6 + fontSize / 2, 0);
                 rect.sizeDelta = new Vector2(pw / 4, fontSize * 3 / 2);
 
-                var historyX = pw / 2;
+                var historyWidth = pw * 3 / 4;
+                var choiceWidth = pw * 11 / 12;
+                var historyX = (pw - historyWidth) / 2;
                 var historyH = maxHistory * fontSize;
-                var historyY = (ph - historyH) / 2 + historyH;
-                var choicesY = historyY;
+                var historyY = ph / 2 - historyH;
+                var choicesY = historyY - 2 * fontSize;
 
+                logger.LogInfo("Creating History Entries");
                 for (int i = 0; i < maxHistory; i++)
                 {
                     var he = new GameObject("TechniciansExileConversationDialogCanvas-History-" + i);
@@ -831,16 +879,34 @@ namespace FeatTechniciansExile
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
                     tmp.enableWordWrapping = false;
                     tmp.overflowMode = TextOverflowModes.Overflow;
+                    tmp.richText = true;
 
                     rect = he.GetComponent<RectTransform>();
                     rect.localPosition = new Vector3(historyX, historyY, 0);
-                    rect.sizeDelta = new Vector2(pw / 2, fontSize);
+                    rect.sizeDelta = new Vector2(historyWidth, fontSize);
 
                     conversationHistoryLines.Add(he);
 
                     historyY += fontSize;
+
+                    logger.LogInfo("  Entry #" + i);
                 }
 
+                logger.LogInfo("Creating Separator");
+
+                var sep = new GameObject("TechniciansExileConversationDialogCanvas-Separator");
+                sep.transform.SetParent(conversationDialogCanvas.transform);
+
+                img = sep.AddComponent<Image>();
+                img.color = Color.white;
+
+                var choiceX = 0;
+
+                rect = img.GetComponent<RectTransform>();
+                rect.localPosition = new Vector3(choiceX, choicesY + fontSize);
+                rect.sizeDelta = new Vector2(pw, 2);
+
+                logger.LogInfo("Creating Choices");
                 for (int i = 0; i < maxChoices; i++)
                 {
                     var he = new GameObject("TechniciansExileConversationDialogCanvas-Choices-" + i);
@@ -852,32 +918,57 @@ namespace FeatTechniciansExile
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
                     tmp.enableWordWrapping = false;
                     tmp.overflowMode = TextOverflowModes.Overflow;
+                    tmp.richText = true;
 
                     rect = he.GetComponent<RectTransform>();
-                    rect.localPosition = new Vector3(pw / 2, choicesY, 0);
-                    rect.sizeDelta = new Vector2(pw, fontSize);
+                    rect.localPosition = new Vector3(choiceX, choicesY, 0);
+                    rect.sizeDelta = new Vector2(choiceWidth, fontSize);
 
                     choicesY -= fontSize;
+
+                    dialogChoiceLines.Add(he);
+
+                    logger.LogInfo("  Choice #" + i);
                 }
+
+                logger.LogInfo("Invoke OnConversationStart");
 
                 OnConversationStart?.Invoke(this);
 
+                logger.LogInfo("Invoke UpdateCurrents");
+
                 UpdateCurrents();
 
+                logger.LogInfo("Pin dialog to WindowsHandler");
                 Cursor.visible = true;
                 var wh = Managers.GetManager<WindowsHandler>();
                 AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
+
+                hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
+                logger.LogInfo("Done OnAction");
             }
 
             void UpdateCurrents()
             {
                 conversationPicture.GetComponent<Image>().sprite = currentImage;
-                conversationName.GetComponent<Text>().text = currentName ?? "";
+                conversationName.GetComponent<TextMeshProUGUI>().text = currentName ?? "???";
+
+                foreach (var he in conversationHistoryLines)
+                {
+                    he.GetComponent<TextMeshProUGUI>().text = "";
+                }
+
+                foreach (var he in dialogChoiceLines)
+                {
+                    he.GetComponent<TextMeshProUGUI>().text = "";
+                }
+
+
             }
 
             public override void OnHover()
             {
-                hudHandler.DisplayCursorText("TechniciansExile_Talk", 0f, Localization.GetLocalizedString("TechniciansExile_Talk"));
+                hudHandler.DisplayCursorText("TechniciansExile_Talk", 0f);
                 base.OnHover();
             }
 
