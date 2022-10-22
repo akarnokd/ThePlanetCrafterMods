@@ -811,7 +811,7 @@ namespace FeatTechniciansExile
         {
             var wu = Managers.GetManager<WorldUnitsHandler>();
             var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
-            if (wut.GetValue() >= 0/* 1100000 */)
+            if (wut.GetValue() >= 1100000)
             {
                 questPhase = QuestPhase.Arrival;
                 SaveState();
