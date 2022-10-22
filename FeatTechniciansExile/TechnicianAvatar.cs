@@ -31,9 +31,14 @@ namespace FeatTechniciansExile
                 rawPosition = position;
 
                 avatar.transform.position = new Vector3(position.x, position.y + 1.5f, position.z);
-                var yrot = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
-                avatar.transform.rotation = yrot;
+                //var yrot = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
+                avatar.transform.rotation = rotation;
             }
+        }
+
+        internal void SetVisible(bool visible)
+        {
+            avatar?.SetActive(visible);
         }
 
         internal void SetColor(Color color)

@@ -50,6 +50,33 @@ namespace FeatTechniciansExile
         static WorldObject chair;
         static WorldObject chest;
         static WorldObject solar;
+        static readonly List<WorldObject> baseComponents = new();
+
+        static Vector3 technicianLocation1;
+        static Quaternion technicianRotation1;
+
+        static Vector3 technicianLocation2;
+        static Quaternion technicianRotation2;
+
+        static Vector3 technicianLocation3;
+        static Quaternion technicianRotation3;
+
+        enum QuestPhase
+        {
+            Not_Started,
+            Arrival,
+            Initial_Help,
+            Base_Setup,
+            Operating
+        }
+
+        static QuestPhase questPhase = QuestPhase.Not_Started;
+
+        static bool ingame;
+
+        static Asteroid asteroid;
+
+        static FieldInfo asteroidHasCrashed;
 
         private void Awake()
         {
@@ -67,6 +94,8 @@ namespace FeatTechniciansExile
 
             technicianFront = LoadPNG(Path.Combine(dir, "Technician_Front.png"));
             technicianBack = LoadPNG(Path.Combine(dir, "Technician_Back.png"));
+
+            asteroidHasCrashed = AccessTools.Field(typeof(Asteroid), "hasCrashed");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -86,6 +115,9 @@ namespace FeatTechniciansExile
             bool dontSaveMe = true;
 
             logger.LogInfo("Start");
+
+            baseComponents.Clear();
+
             logger.LogInfo("  Finding the Escape Pod");
             escapePod = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart);
             if (escapePod == null)
@@ -94,7 +126,7 @@ namespace FeatTechniciansExile
                 escapePod = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("EscapePod"), 
                     technicianWorldObjectIdStart);
                 escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
-                escapePod.SetDontSaveMe(dontSaveMe);
+                escapePod.SetDontSaveMe(true);
                 WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
             }
 
@@ -115,6 +147,8 @@ namespace FeatTechniciansExile
 
             var livingPodFloor = livingPodBase + new Vector3(0, 1, 0);
 
+            var bedPosition = livingPodFloor + new Vector3(3, 0, -1);
+
             logger.LogInfo("  Finding the Bed");
             bed = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 2);
             if (bed == null)
@@ -122,7 +156,7 @@ namespace FeatTechniciansExile
                 logger.LogInfo("    Creating the Bed");
                 bed = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("BedSimple"), 
                     technicianWorldObjectIdStart + 2);
-                bed.SetPositionAndRotation(livingPodFloor + new Vector3(3, 0, -1), Quaternion.identity * Quaternion.Euler(0, 180, 0));
+                bed.SetPositionAndRotation(bedPosition, Quaternion.identity * Quaternion.Euler(0, 180, 0));
                 bed.SetDontSaveMe(dontSaveMe);
                 WorldObjectsHandler.InstantiateWorldObject(bed, false);
             }
@@ -232,9 +266,18 @@ namespace FeatTechniciansExile
                 WorldObjectsHandler.InstantiateWorldObject(solar, false);
             }
 
+            technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
+            technicianRotation1 = Quaternion.identity * Quaternion.Euler(0, -90, 0);
+
+            technicianLocation2 = deskPosition + new Vector3(-0.25f, 0, 2);
+            technicianRotation2 = Quaternion.identity * Quaternion.Euler(0, 180, 0);
+
+            technicianLocation3 = bedPosition + new Vector3(-0.85f, -0.45f, 0);
+            technicianRotation3 = Quaternion.identity * Quaternion.Euler(-90, 0, 0);
+
             logger.LogInfo("  Creating the Technician");
             avatar = TechnicianAvatar.CreateAvatar(Color.white);
-            avatar.SetPosition(technicianDropLocation + new Vector3(0, -0.5f, 0), Quaternion.identity * Quaternion.Euler(0, -90, 0));
+            avatar.SetPosition(technicianLocation1, technicianRotation1);
 
             logger.LogInfo("  Limiting object interactions");
             Destroy(livingPod.GetGameObject().GetComponentInChildren<ActionDeconstructible>());
@@ -257,17 +300,223 @@ namespace FeatTechniciansExile
             Destroy(chest.GetGameObject().GetComponentInChildren<ActionOpenUi>());
             Destroy(solar.GetGameObject().GetComponentInChildren<ActionDeconstructible>());
 
+            baseComponents.Add(livingPod);
+            baseComponents.Add(desk);
+            baseComponents.Add(bed);
+            baseComponents.Add(screen);
+            baseComponents.Add(grower);
+            baseComponents.Add(collector);
+            baseComponents.Add(flower);
+            baseComponents.Add(chair);
+            baseComponents.Add(chest);
+            baseComponents.Add(solar);
+
+            LoadState();
+            SetVisibilityViaCurrentPhase();
+
+            ingame = true;
             logger.LogInfo("Done");
         }
 
         void Update()
         {
+            if (!ingame)
+            {
+                return;
+            }
+
+            var player = GetPlayerMainController();
+
+            switch (questPhase)
+            {
+                case QuestPhase.Not_Started:
+                    {
+                        CheckStartConditions();
+                        break;
+                    }
+                case QuestPhase.Arrival:
+                    {
+                        CheckArrival();
+                        break;
+                    }
+                case QuestPhase.Initial_Help:
+                    {
+                        CheckInitialHelp();
+                        break;
+                    }
+                case QuestPhase.Base_Setup:
+                    {
+                        CheckBaseSetup();
+                        break;
+                    }
+                case QuestPhase.Operating:
+                    {
+                        CheckOperating();
+                        break;
+                    }
+            }
+        }
+
+        void CheckStartConditions()
+        {
+            var wu = Managers.GetManager<WorldUnitsHandler>();
+            var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
+            if (wut.GetValue() >= 0/* 1100000 */)
+            {
+                questPhase = QuestPhase.Arrival;
+                SaveState();
+                SetVisibilityViaCurrentPhase();
+            }
+        }
+
+        void CheckArrival()
+        {
+            if (asteroid == null)
+            {
+                var mh = Managers.GetManager<MeteoHandler>();
+                /*
+                foreach (var me in mh.meteoEvents)
+                {
+                    logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
+                }*/
+                var meteoEvent = mh.meteoEvents[9];
+                logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
+
+                mh.meteoSound.StartMeteoAudio(meteoEvent);
+                if (meteoEvent.asteroidEventData != null)
+                {
+                    var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
+
+                    var ah = Managers.GetManager<AsteroidsHandler>();
+
+                    GameObject obj = Instantiate(
+                        selectedAsteroidEventData.asteroidGameObject,
+                        technicianDropLocation + new Vector3(0, 1000, 0),
+                        Quaternion.identity,
+                        ah.gameObject.transform
+                    );
+                    obj.transform.LookAt(technicianDropLocation);
+                    
+                    asteroid = obj.GetComponent<Asteroid>();
+                    asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
+                    asteroid.debrisDestroyTime = 5;
+                    asteroid.placeAsteroidBody = false;
+                    selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
+                    selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                }
+            } 
+            else
+            {
+                if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                {
+                    asteroid = null;
+                    questPhase = QuestPhase.Initial_Help;
+                    SaveState();
+                    SetVisibilityViaCurrentPhase();
+                }
+            }
+        }
+
+        void CheckInitialHelp()
+        {
+
+        }
+
+        void CheckBaseSetup()
+        {
+
+        }
+
+        void CheckOperating()
+        {
+
+        }
+            
+        internal static PlayerMainController GetPlayerMainController()
+        {
+            PlayersManager p = Managers.GetManager<PlayersManager>();
+            if (p != null)
+            {
+                return p.GetActivePlayerController();
+            }
+            return null;
+        }
+
+        static void SetVisibilityViaCurrentPhase()
+        {
+            switch (questPhase)
+            {
+                case QuestPhase.Not_Started:
+                case QuestPhase.Arrival:
+                    {
+                        avatar.SetVisible(false);
+                        escapePod.GetGameObject().SetActive(false);
+
+                        foreach (var wo in baseComponents)
+                        {
+                            wo.GetGameObject().SetActive(false);
+                        }
+                        break;
+                    }
+                case QuestPhase.Initial_Help:
+                    {
+                        avatar.SetVisible(true);
+                        escapePod.GetGameObject().SetActive(true);
+
+                        foreach (var wo in baseComponents)
+                        {
+                            wo.GetGameObject().SetActive(false);
+                        }
+                        break;
+                    }
+                case QuestPhase.Base_Setup:
+                    {
+                        avatar.SetVisible(true);
+                        escapePod.GetGameObject().SetActive(true);
+
+                        foreach (var wo in baseComponents)
+                        {
+                            wo.GetGameObject().SetActive(false);
+                        }
+                        break;
+                    }
+                case QuestPhase.Operating:
+                    {
+                        avatar.SetVisible(true);
+                        escapePod.GetGameObject().SetActive(true);
+
+                        foreach (var wo in baseComponents)
+                        {
+                            wo.GetGameObject().SetActive(true);
+                        }
+                        break;
+                    }
+            }
+        }
+
+        static void LoadState()
+        {
+            string state = escapePod.GetText();
+            if (string.IsNullOrEmpty(state))
+            {
+                questPhase = QuestPhase.Not_Started;
+            }
+            else
+            {
+                // TODO
+            }
+        }
+
+        static void SaveState()
+        {
+
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
+            ingame = false;
         }
 
     }
