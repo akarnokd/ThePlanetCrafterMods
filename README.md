@@ -9,7 +9,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.6.006
+## Supported Game Version: 0.6.007
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -38,6 +38,7 @@ by deleting the directory itself.
 
 - [Command Console](#feat-command-console)
 - [Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
+- [Technician's Exile](#feat-technicians-exile)
 - [Space Cows](#feat-space-cows)
 - [Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Misc%29-Plugin-Update-Checker)
 
@@ -1356,6 +1357,16 @@ FontSize = 20
 
 [See the wiki](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
 
+
+## (Feat) Technician's Exile
+
+After reaching 1.1 MTi, soon you'll get some company. Follow the in-game clues in this light expansion of the game's world.
+
+:warning: This is a new territory for me so I suggest making a backup of your save. Also if you build at a certain location of the map, this mod may not work correctly.
+
+### Configuration
+
+None.
 
 ## (Lib) Support Mods with Load n Save
 
