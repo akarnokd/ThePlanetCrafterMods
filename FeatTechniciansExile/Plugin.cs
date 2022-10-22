@@ -53,6 +53,7 @@ namespace FeatTechniciansExile
         static WorldObject chair;
         static WorldObject chest;
         static WorldObject solar;
+        static WorldObject seed;
         static readonly List<WorldObject> baseComponents = new();
 
         static Vector3 technicianLocation1;
@@ -146,7 +147,7 @@ namespace FeatTechniciansExile
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start()
         {
-            bool dontSaveMe = true;
+            bool dontSaveMe = false;
 
             logger.LogInfo("Start");
 
@@ -161,7 +162,14 @@ namespace FeatTechniciansExile
                     technicianWorldObjectIdStart);
                 escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
                 escapePod.SetDontSaveMe(false);
-                WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
+                var go = WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
+
+                var ia = go.GetComponentInChildren<InventoryAssociated>();
+                var iai = ia.GetInventory();
+                foreach (var item in new List<WorldObject>(iai.GetInsideWorldObjects()))
+                {
+                    WorldObjectsHandler.DestroyWorldObject(item);
+                }
             }
 
             var livingPodBase = technicianDropLocation + new Vector3(0, 0, 15);
@@ -300,6 +308,22 @@ namespace FeatTechniciansExile
                 WorldObjectsHandler.InstantiateWorldObject(solar, false);
             }
 
+            logger.LogInfo("  Finding Seed");
+            seed = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 11);
+            if (seed == null)
+            {
+                logger.LogInfo("    Creating the Seed");
+                seed = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Vegetable0Seed"),
+                    technicianWorldObjectIdStart + 11);
+                seed.SetDontSaveMe(dontSaveMe);
+            }
+
+            Inventory growerInv = InventoriesHandler.GetInventoryById(grower.GetLinkedInventoryId());
+            if (growerInv.GetInsideWorldObjects().Count == 0)
+            {
+                growerInv.AddItem(seed);
+            }
+
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
             technicianRotation1 = Quaternion.identity * Quaternion.Euler(0, -90, 0);
 
@@ -407,6 +431,8 @@ namespace FeatTechniciansExile
             AddChoice("Satellite", "TechniciansExile_Dialog_2_Task");
             AddChoice("AWhat", "TechniciansExile_Dialog_2_Terminal");
             AddChoice("Supplies2", "TechniciansExile_Dialog_2_Supplies_Avail");
+            AddChoice("NicePod", "TechniciansExile_Dialog_3_Nice_Pod");
+            AddChoice("Status", "TechniciansExile_Dialog_3_Status");
             AddChoice("Great", "TechniciansExile_Dialog_2_Great");
         }
 
@@ -485,7 +511,7 @@ namespace FeatTechniciansExile
             }
             else if (choice.id == "Needs")
             {
-                choice.picked = true;
+                choice.visible = false;
                 AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
                 AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_1_Supplies", talk);
 
@@ -528,7 +554,7 @@ namespace FeatTechniciansExile
             {
                 choice.visible = false;
 
-                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_2_Task_Long", talk);
                 AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_Accept", talk);
                 
                 ShowChoice(dialogChoices["AWhat"]);
@@ -564,17 +590,76 @@ namespace FeatTechniciansExile
                     }
                 }
 
-                SyncChoices(talk);
                 ShowChoice(dialogChoices["Great"]);
+                SyncChoices(talk);
             }
             else if (choice.id == "Great")
             {
                 questPhase = QuestPhase.Base_Setup;
                 talk.DestroyTalkDialog();
             }
+            else if (choice.id == "NicePod")
+            {
+                choice.visible = false;
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+                AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_Thanks", talk);
+
+                ShowChoice(dialogChoices["Status"]);
+                SyncChoices(talk);
+            }
+            else if (choice.id == "Status")
+            {
+                AddResponseLabel("TechniciansExile_Convict", choice.labelId, talk);
+
+                bool haveRockets = CheckRockets();
+                bool haveEnergy = CheckPower();
+
+                if (haveRockets && haveEnergy)
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_OK", talk);
+                }
+                else if (haveRockets && !haveEnergy)
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_Has_Satellie_No_Power", talk);
+                }
+                else if (!haveRockets && haveEnergy)
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_No_Satellite", talk);
+                }
+                else
+                {
+                    AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_3_No_Satellite_No_Power", talk);
+                }
+
+                SyncChoices(talk);
+            }
 
             SaveState();
             talk.UpdateCurrents();
+        }
+
+        static bool CheckRockets()
+        {
+            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                if (wo.GetGroup().GetId().StartsWith("SpaceMultiplier"))
+                {
+                    var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                    if (inv.GetInsideWorldObjects().Count != 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        static bool CheckPower()
+        {
+            var wu = Managers.GetManager<WorldUnitsHandler>();
+            var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
+
+            return wut.GetIncreaseValuePersSec() >= wut.GetDecreaseValuePersSec();
         }
 
         static void NotifyRemoved(Group group)
@@ -633,11 +718,12 @@ namespace FeatTechniciansExile
                 Math.Min(5, food),
                 Math.Min(5, water)
             };
+            logger.LogInfo("Food: " + food + ", Water: " + water);
             ch.enabled = food >= 5 && water >= 5;
         }
         static void UpdateSupplies2Params()
         {
-            var ch = dialogChoices["Supplies"];
+            var ch = dialogChoices["Supplies2"];
             ch.parameters = new object[2];
 
             var backpack = GetPlayerMainController().GetPlayerBackpack().GetInventory();
@@ -748,6 +834,7 @@ namespace FeatTechniciansExile
             if (Vector3.Distance(pm.transform.position, technicianDropLocation) >= 300)
             {
                 questPhase = QuestPhase.Operating;
+                ShowChoice(dialogChoices["NicePod"]);
                 SaveState();
                 SetVisibilityViaCurrentPhase();
             }
@@ -755,7 +842,17 @@ namespace FeatTechniciansExile
 
         void CheckOperating()
         {
+            var mgr = Managers.GetManager<EnvironmentDayNightCycle>();
+            var time = mgr.GetDayNightLerpValue();
 
+            if (time >= 0.8)
+            {
+                avatar.SetPosition(technicianLocation3, technicianRotation3);
+            }
+            else
+            {
+                avatar.SetPosition(technicianLocation2, technicianRotation2);
+            }
         }
             
         internal static PlayerMainController GetPlayerMainController()
@@ -1336,7 +1433,7 @@ namespace FeatTechniciansExile
 
                 if (!choice.enabled)
                 {
-                    txt = "<color=#800000>" + txt;
+                    txt = "<color=#FF8080>" + txt;
                 }
                 else if (choice.highlighted)
                 {
