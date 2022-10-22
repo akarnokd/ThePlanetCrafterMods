@@ -1,1 +1,2 @@
 TechniciansExile_Name=Technician #221021
+TechniciansExile_Talk=Talk

@@ -15,6 +15,8 @@ using MijuTools;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
+using UnityEngine.UI;
+using TMPro;
 
 namespace FeatTechniciansExile
 {
@@ -78,6 +80,12 @@ namespace FeatTechniciansExile
 
         static FieldInfo asteroidHasCrashed;
 
+        static readonly List<ConversationEntry> conversationHistory = new();
+
+        static readonly Dictionary<string, DialogChoice> dialogChoices = new();
+
+        static readonly Dictionary<string, Dictionary<string, string>> labels = new();
+
         private void Awake()
         {
             // Plugin startup logic
@@ -97,7 +105,32 @@ namespace FeatTechniciansExile
 
             asteroidHasCrashed = AccessTools.Field(typeof(Asteroid), "hasCrashed");
 
+            AddTranslation(dir, "english");
+            AddTranslation(dir, "hungarian");
+
+            PrepareDialogChoices();
+
             Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        static void AddTranslation(string dir, string language)
+        {
+            var lines = File.ReadAllLines(Path.Combine(dir, "technician_labels_" + language + ".txt"));
+
+            if (!labels.TryGetValue(language, out var dict))
+            {
+                dict = new();
+                labels[language] = dict;
+            }
+
+            foreach (var line in lines)
+            {
+                if (!line.StartsWith("#") && line.Contains("="))
+                {
+                    string[] parts = line.Split('=');
+                    dict[parts[0]] = parts[1];
+                }
+            }
         }
 
         static Texture2D LoadPNG(string filename)
@@ -279,6 +312,11 @@ namespace FeatTechniciansExile
             avatar = TechnicianAvatar.CreateAvatar(Color.white);
             avatar.SetPosition(technicianLocation1, technicianRotation1);
 
+            var at = avatar.avatar.AddComponent<ActionTalk>();
+
+            at.OnConversationStart = DoConversationStart;
+            at.OnConversationChoice = DoConversationChoice;
+
             logger.LogInfo("  Limiting object interactions");
             Destroy(livingPod.GetGameObject().GetComponentInChildren<ActionDeconstructible>());
             Destroy(desk.GetGameObject().GetComponentInChildren<ActionDeconstructible>());
@@ -355,6 +393,17 @@ namespace FeatTechniciansExile
                         break;
                     }
             }
+        }
+
+        static void DoConversationStart(ActionTalk talk)
+        {
+            talk.currentImage = avatar.avatarFront.GetComponent<SpriteRenderer>().sprite;
+            talk.currentName = "???";
+        }
+
+        static void DoConversationChoice(ActionTalk talk, DialogChoice choice)
+        {
+
         }
 
         void CheckStartConditions()
@@ -496,6 +545,14 @@ namespace FeatTechniciansExile
 
         static void LoadState()
         {
+            conversationHistory.Clear();
+            foreach (var dc in dialogChoices.Values)
+            {
+                dc.visible = false;
+                dc.enabled = false;
+                dc.picked = false;
+            }
+
             string state = escapePod.GetText();
             if (string.IsNullOrEmpty(state))
             {
@@ -503,13 +560,115 @@ namespace FeatTechniciansExile
             }
             else
             {
-                // TODO
+                string[] parts = state.Split(';');
+
+                foreach (var part in parts)
+                {
+                    var kv = part.Split('=');
+                    if (kv.Length != 2)
+                    {
+                        logger.LogWarning("Invalid state key=value pair: " + part);
+                    }
+                    else
+                    {
+                        if (kv[0] == "QuestPhase")
+                        {
+                            questPhase = (QuestPhase)int.Parse(kv[1]);
+                        }
+                        else if (kv[0] == "HistoryEntry")
+                        {
+                            string[] pars = kv[1].Split(',');
+
+                            if (pars.Length != 2)
+                            {
+                                logger.LogWarning("Invalid HistoryEntry format: " + part);
+                            }
+                            else
+                            {
+                                conversationHistory.Add(new ConversationEntry
+                                {
+                                    owner = pars[0],
+                                    labelId = pars[1]
+                                });
+                            }
+                        }
+                        else if (kv[0] == "DialogChoice")
+                        {
+                            string[] pars = kv[1].Split(',');
+
+                            if (pars.Length != 4)
+                            {
+                                logger.LogWarning("Invalid DialogChoice format: " + part);
+                            }
+                            else
+                            {
+                                if (dialogChoices.TryGetValue(pars[0], out var dc))
+                                {
+                                    dc.visible = "1" == pars[1];
+                                    dc.enabled = "1" == pars[2];
+                                    dc.enabled = "1" == pars[3];
+                                }
+                                else
+                                {
+                                    logger.LogWarning("Unknown DialogChoice: " + part);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            logger.LogWarning("Unknown state key=value pair:" + part);
+                        }
+                    }
+                }
             }
+        }
+
+        static string GetColorForOwner(string owner)
+        {
+            if (owner == "player")
+            {
+                return "#FFFFFF";
+            }
+            return "#FFFF00";
         }
 
         static void SaveState()
         {
+            StringBuilder sb = new();
+            sb.Append("QuestPhase=").Append((int)questPhase);
 
+            if (conversationHistory.Count != 0)
+            {
+                foreach (var ch in conversationHistory)
+                {
+                    sb.Append(";HistoryEntry=").Append(ch.owner).Append(',').Append(ch.labelId);
+                }
+            }
+            if (dialogChoices.Count != 0)
+            {
+                foreach (var dc in dialogChoices.Values) 
+                {
+                    sb.Append(";DialogChoice=").Append(dc.id)
+                        .Append(',').Append(dc.visible ? 1 : 0)
+                        .Append(',').Append(dc.enabled ? 1 : 0)
+                        .Append(',').Append(dc.picked ? 1 : 0);
+                }
+            }
+
+            escapePod.SetText(sb.ToString());
+        }
+
+        static void PrepareDialogChoices()
+        {
+
+        }
+
+        static void AddChoice(string labelId)
+        {
+            dialogChoices[labelId] = new DialogChoice
+            {
+                    labelId = labelId
+            };
         }
 
         [HarmonyPrefix]
@@ -519,5 +678,215 @@ namespace FeatTechniciansExile
             ingame = false;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Localization), "LoadLocalization")]
+        static void Localization_LoadLocalization(
+                Dictionary<string, Dictionary<string, string>> ___localizationDictionary
+        )
+        {
+            foreach (var kv in labels)
+            {
+                if (___localizationDictionary.TryGetValue(kv.Key, out var dict)) {
+                    foreach (var kv2 in kv.Value)
+                    {
+                        dict[kv2.Key] = kv2.Value;
+                    }
+                }
+            }
+        }
+
+
+        class ConversationEntry
+        {
+            internal string owner;
+            internal string labelId;
+        }
+
+        class DialogChoice
+        {
+            internal string id;
+            internal string labelId;
+            internal object[] parameters;
+            internal bool visible;
+            internal bool picked;
+            internal bool enabled;
+        }
+
+        class ActionTalk : Actionnable
+        {
+            GameObject conversationDialogCanvas;
+
+            readonly List<GameObject> conversationHistoryLines = new();
+
+            readonly List<GameObject> dialogChoiceLines = new();
+
+            GameObject conversationPicture;
+
+            GameObject conversationName;
+
+            internal Sprite currentImage;
+
+            internal string currentName;
+
+            internal List<DialogChoice> currentChoices;
+
+            internal List<ConversationEntry> currentHistory;
+
+            internal Action<ActionTalk> OnConversationStart;
+
+            internal Action<ActionTalk, DialogChoice> OnConversationChoice;
+
+            void Update()
+            {
+                var wh = Managers.GetManager<WindowsHandler>();
+                if (Keyboard.current[Key.Escape].wasPressedThisFrame)
+                {
+                    DestroyTalkDialog();
+
+                    wh.CloseAllWindows();
+                    return;
+                }
+
+                if (!wh.GetHasUiOpen() && conversationDialogCanvas != null) 
+                {
+                    DestroyTalkDialog();
+                    return;
+                }
+            }
+
+            void DestroyTalkDialog()
+            {
+                foreach (var go in conversationHistoryLines)
+                {
+                    Destroy(go);
+                }
+                conversationHistoryLines.Clear();
+
+                foreach (var go in dialogChoiceLines)
+                {
+                    Destroy(go);
+                }
+                dialogChoiceLines.Clear();
+
+                Destroy(conversationDialogCanvas);
+            }
+
+            public override void OnAction()
+            {
+                conversationDialogCanvas = new GameObject("TechniciansExileConversationDialogCanvas");
+                var c = conversationDialogCanvas.AddComponent<Canvas>();
+                c.renderMode = RenderMode.ScreenSpaceOverlay;
+                c.transform.SetAsLastSibling();
+
+                var pw = Screen.width * 0.75f;
+                var ph = Screen.height * 0.75f;
+
+                var background = new GameObject("TechniciansExileConversationDialogCanvas-Background");
+                background.transform.SetParent(conversationDialogCanvas.transform);
+
+                var img = background.AddComponent<Image>();
+                img.color = new Color(0, 0, 0, 0.95f);
+
+                var rect = background.GetComponent<RectTransform>();
+                rect.localPosition = new Vector3(0, 0);
+                rect.sizeDelta = new Vector2(pw, ph);
+
+                conversationPicture = new GameObject("TechniciansExileConversationDialogCanvas-Picture");
+                conversationPicture.transform.SetParent(conversationDialogCanvas.transform);
+
+                img = conversationPicture.AddComponent<Image>();
+                rect = img.GetComponent<RectTransform>();
+                rect.localPosition = new Vector3(- pw * 3 / 4, ph - pw / 4, 0);
+                rect.sizeDelta = new Vector2(pw / 4, pw / 4);
+
+                int maxChoices = 6;
+                int maxHistory = 10;
+
+                var fontSize = (int)Mathf.Floor(ph * 0.9f / (maxChoices + maxHistory));
+
+                conversationName = new GameObject("TechniciansExileConversationDialogCanvas-Name");
+                conversationName.transform.SetParent(conversationDialogCanvas.transform);
+
+                var text = conversationName.GetComponent<Text>();
+                text.fontSize = fontSize;
+                text.horizontalOverflow = HorizontalWrapMode.Overflow;
+                text.verticalOverflow = VerticalWrapMode.Overflow;
+                rect = text.GetComponent<RectTransform>();
+                rect.localPosition = new Vector3(-pw * 3 / 4, ph - pw / 4 - fontSize, 0);
+                rect.sizeDelta = new Vector2(pw / 4, fontSize * 3 / 2);
+
+                var historyX = pw / 2;
+                var historyH = maxHistory * fontSize;
+                var historyY = (ph - historyH) / 2 + historyH;
+                var choicesY = historyY;
+
+                for (int i = 0; i < maxHistory; i++)
+                {
+                    var he = new GameObject("TechniciansExileConversationDialogCanvas-History-" + i);
+                    he.transform.SetParent(conversationDialogCanvas.transform);
+
+                    var tmp = he.AddComponent<TextMeshProUGUI>();
+                    tmp.text = "example..." + i;
+                    tmp.fontSize = fontSize;
+                    tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
+                    tmp.enableWordWrapping = false;
+                    tmp.overflowMode = TextOverflowModes.Overflow;
+
+                    rect = he.GetComponent<RectTransform>();
+                    rect.localPosition = new Vector3(historyX, historyY, 0);
+                    rect.sizeDelta = new Vector2(pw / 2, fontSize);
+
+                    conversationHistoryLines.Add(he);
+
+                    historyY += fontSize;
+                }
+
+                for (int i = 0; i < maxChoices; i++)
+                {
+                    var he = new GameObject("TechniciansExileConversationDialogCanvas-Choices-" + i);
+                    he.transform.SetParent(conversationDialogCanvas.transform);
+
+                    var tmp = he.AddComponent<TextMeshProUGUI>();
+                    tmp.text = "choice..." + i;
+                    tmp.fontSize = fontSize;
+                    tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
+                    tmp.enableWordWrapping = false;
+                    tmp.overflowMode = TextOverflowModes.Overflow;
+
+                    rect = he.GetComponent<RectTransform>();
+                    rect.localPosition = new Vector3(pw / 2, choicesY, 0);
+                    rect.sizeDelta = new Vector2(pw, fontSize);
+
+                    choicesY -= fontSize;
+                }
+
+                OnConversationStart?.Invoke(this);
+
+                UpdateCurrents();
+
+                Cursor.visible = true;
+                var wh = Managers.GetManager<WindowsHandler>();
+                AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
+            }
+
+            void UpdateCurrents()
+            {
+                conversationPicture.GetComponent<Image>().sprite = currentImage;
+                conversationName.GetComponent<Text>().text = currentName ?? "";
+            }
+
+            public override void OnHover()
+            {
+                hudHandler.DisplayCursorText("TechniciansExile_Talk", 0f, Localization.GetLocalizedString("TechniciansExile_Talk"));
+                base.OnHover();
+            }
+
+            public override void OnHoverOut()
+            {
+                hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
+
+                base.OnHoverOut();
+            }
+        }
     }
 }
