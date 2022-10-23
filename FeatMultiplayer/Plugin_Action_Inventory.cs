@@ -804,7 +804,7 @@ namespace FeatMultiplayer
             {
                 // Since 0.6.006: there is no publicly accessible field to set or method to call
                 playerEquipmentHasCleanConstructionChip.SetValue(
-                    player.GetPlayerEquipment(), true);
+                    player.GetPlayerEquipment(), false);
             }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;
