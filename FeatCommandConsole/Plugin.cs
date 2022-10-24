@@ -26,7 +26,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.7")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -316,6 +316,8 @@ namespace FeatCommandConsole
                 return;
             }
 
+            logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null?" + (background == null));
+
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
             c.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -496,8 +498,6 @@ namespace FeatCommandConsole
         [HarmonyPatch(typeof(WindowsHandler), nameof(WindowsHandler.CloseAllWindows))]
         static bool WindowsHandler_CloseAllWindows()
         {
-            //log(Environment.StackTrace);
-            //log("Background != null:  " + (background != null));
             // by default, Enter toggles any UI. prevent this while our console is open
             return background == null;
         }
@@ -589,6 +589,7 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Spawn item(s) or list items that can be possibly spawn");
                 addLine("<margin=1em>Usage:");
                 addLine("<margin=2em><color=#FFFF00>/spawn list [name-prefix]</color> - list the item ids that can be spawn");
+                addLine("<margin=2em><color=#FFFF00>/spawn basic [amount]</color> - Spawn some food, water, oxygen and beginner materials.");
                 addLine("<margin=2em><color=#FFFF00>/spawn itemid [amount]</color> - spawn the given item by the given amount");
             } else
             {
@@ -612,6 +613,52 @@ namespace FeatCommandConsole
                     foreach (var line in joinPerLine(possibleSpawns, 5))
                     {
                         addLine("<margin=1em>" + line);
+                    }
+                }
+                else if (args[1] == "basic")
+                {
+                    string[] resources =
+                    {
+                        "astrofood", "WaterBottle1", "OxygenCapsule1", "Iron", "Cobalt", "Titanium", "Magnesium", "Silicon", "Aluminium"
+                    };
+                    int amount = 10;
+                    if (args.Count > 2)
+                    {
+                        amount = int.Parse(args[2]);
+                    }
+
+                    int added = 0;
+                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                    var inv = pm.GetPlayerBackpack().GetInventory();
+
+                    for (int i = 0; i < amount; i++)
+                    {
+                        foreach (var gid in resources)
+                        {
+                            var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(gid));
+                            if (inv.AddItem(wo))
+                            {
+                                added++;
+                            }
+                            else
+                            {
+                                WorldObjectsHandler.DestroyWorldObject(wo);
+                            }
+                        }
+                    }
+
+                    int count = amount * resources.Length;
+                    if (added == count)
+                    {
+                        addLine("<margin=1em>Items added");
+                    }
+                    else if (added > 0)
+                    {
+                        addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
+                    }
+                    else
+                    {
+                        addLine("<margin=1em>Inventory full.");
                     }
                 }
                 else
