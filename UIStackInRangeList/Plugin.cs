@@ -91,7 +91,7 @@ namespace UIStackInRangeList
             gameObject.GetComponent<GroupDisplayer>().SetGroupAndUpdateDisplay(_group, false, false, false);
             gameObject.AddComponent<EventHoverShowGroup>().SetHoverGroupEvent(_group, infoDG);
 
-            if (count > 0)
+            if (count > 1)
             {
                 int fs = fontSize.Value;
                 GameObject countBackground = new GameObject("GroupListStackBackground");
