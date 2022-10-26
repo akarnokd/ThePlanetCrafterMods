@@ -162,6 +162,17 @@ namespace FeatMultiplayer
                     }
                     spawn.transform.localScale = new Vector3(spawnScaling, spawnScaling, spawnScaling);
 
+                    var woa = spawn.GetComponent<WorldObjectAssociated>();
+                    if (woa != null)
+                    {
+                        var woSpawn = woa.GetWorldObject();
+                        if (woSpawn != null)
+                        {
+                            woSpawn.SetPositionAndRotation(spawn.transform.position, Quaternion.identity);
+                            //SendWorldObjectToClients(woSpawn, false);
+                        }
+                    }
+
                     var ag = spawn.GetComponent<ActionGrabable>();
                     if (ag != null)
                     {
@@ -269,16 +280,6 @@ namespace FeatMultiplayer
                                 if (ag != null)
                                 {
                                     ag.SetCanGrab(true);
-                                }
-                                var woa = spawn.GetComponent<WorldObjectAssociated>();
-                                if (woa != null)
-                                {
-                                    var woSpawn = woa.GetWorldObject();
-                                    if (woSpawn != null)
-                                    {
-                                        woSpawn.SetPositionAndRotation(spawn.transform.position, Quaternion.identity);
-                                        //SendWorldObjectToClients(woSpawn, false);
-                                    }
                                 }
                             }
 
