@@ -32,62 +32,68 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(ActionGrabable), "Grab")]
         static bool ActionGrabable_Grab(ActionGrabable __instance, 
             PlayerMainController ___playerSource, 
-            ItemWorldDislpayer ___itemWorldDisplayer)
+            ItemWorldDislpayer ___itemWorldDisplayer,
+            bool ___canGrab)
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                var spi = __instance.GetComponent<OutsideGrowerSpawnInfo>();
-                if (spi != null)
+                if (___canGrab)
                 {
-                    ___itemWorldDisplayer.Hide();
-                    ___playerSource.GetPlayerAudio().PlayGrab();
-
-                    LogInfo("Request Grab Outside " + spi.machineId + ", " + spi.spawnId);
-                    SendHost(new MessageGrowRemove()
+                    var spi = __instance.GetComponent<OutsideGrowerSpawnInfo>();
+                    if (spi != null)
                     {
-                        machineId = spi.machineId,
-                        spawnId = spi.spawnId,
-                    }, true);
+                        ___itemWorldDisplayer.Hide();
+                        ___playerSource.GetPlayerAudio().PlayGrab();
+
+                        LogInfo("Request Grab Outside " + spi.machineId + ", " + spi.spawnId);
+                        SendHost(new MessageGrowRemove()
+                        {
+                            machineId = spi.machineId,
+                            spawnId = spi.spawnId,
+                        }, true);
+                    }
+                    else
+                    {
+                        var woa = __instance.GetComponent<WorldObjectAssociated>();
+
+                        if (woa != null)
+                        {
+                            var wo = woa.GetWorldObject();
+
+                            var mg = new MessageGrab()
+                            {
+                                id = wo.GetId(),
+                                groupId = wo.GetGroup().GetId()
+                            };
+                            LogInfo("Request Grab " + DebugWorldObject(wo));
+                            SendHost(mg, true);
+                        }
+                    }
                 }
-                else
+                return false;
+            }
+            else
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (___canGrab)
                 {
                     var woa = __instance.GetComponent<WorldObjectAssociated>();
 
                     if (woa != null)
                     {
                         var wo = woa.GetWorldObject();
+                        ___playerSource.GetPlayerBackpack().GetInventory().AddItem(wo);
+                        wo.SetDontSaveMe(_dontSaveMe: false);
+                        SendWorldObjectToClients(wo, false);
 
-                        var mg = new MessageGrab()
-                        {
-                            id = wo.GetId(),
-                            groupId = wo.GetGroup().GetId()
-                        };
-                        LogInfo("Request Grab " + DebugWorldObject(wo));
-                        SendHost(mg, true);
+                        ___playerSource.GetPlayerAudio().PlayGrab();
+                        ___itemWorldDisplayer.Hide();
+                        var grabedEvent = __instance.grabedEvent;
+                        __instance.grabedEvent = null;
+                        grabedEvent?.Invoke(wo);
+
+                        Destroy(__instance.gameObject);
                     }
-                }
-
-                return false;
-            }
-            else
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                var woa = __instance.GetComponent<WorldObjectAssociated>();
-
-                if (woa != null)
-                {
-                    var wo = woa.GetWorldObject();
-                    ___playerSource.GetPlayerBackpack().GetInventory().AddItem(wo);
-                    wo.SetDontSaveMe(_dontSaveMe: false);
-                    SendWorldObjectToClients(wo, false);
-
-                    ___playerSource.GetPlayerAudio().PlayGrab();
-                    ___itemWorldDisplayer.Hide();
-                    var grabedEvent = __instance.grabedEvent;
-                    __instance.grabedEvent = null;
-                    grabedEvent?.Invoke(wo);
-
-                    Destroy(__instance.gameObject);
                 }
                 return false;
             }

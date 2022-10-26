@@ -270,6 +270,16 @@ namespace FeatMultiplayer
                                 {
                                     ag.SetCanGrab(true);
                                 }
+                                var woa = spawn.GetComponent<WorldObjectAssociated>();
+                                if (woa != null)
+                                {
+                                    var woSpawn = woa.GetWorldObject();
+                                    if (woSpawn != null)
+                                    {
+                                        woSpawn.SetPositionAndRotation(spawn.transform.position, Quaternion.identity);
+                                        //SendWorldObjectToClients(woSpawn, false);
+                                    }
+                                }
                             }
 
                             var spi = spawn.GetComponent<OutsideGrowerSpawnInfo>();

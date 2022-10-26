@@ -133,7 +133,10 @@ namespace FeatMultiplayer
                             }
                         }
                     }
-                    emoteClose.GetComponent<Image>().color = emoteDefaultBackgroundColor;
+                    if (emoteClose != null)
+                    {
+                        emoteClose.GetComponent<Image>().color = emoteDefaultBackgroundColor;
+                    }
                 }
                 else
                 {
