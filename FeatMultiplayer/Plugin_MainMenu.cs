@@ -10,12 +10,11 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static UnityEngine.UIElements.UIRAtlasAllocator;
 
 namespace FeatMultiplayer
 {
@@ -44,15 +43,21 @@ namespace FeatMultiplayer
         static readonly Color interactiveColorHighlight2 = new Color(0.85f, 1, 0.5f, 1f);
         static readonly Color defaultColor = new Color(1f, 1f, 1f, 1f);
 
+        static Intro introInstance;
+        static readonly List<GameObject> mpRows = new();
+        static GameObject mainmenuBackground;
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
         static void Intro_Start(Intro __instance)
         {
             LogInfo("Intro_Start");
             updateMode = MultiplayerMode.MainMenu;
+            introInstance = __instance;
 
             int rows = 9;
 
+            mpRows.Clear();
             clientJoinButtons.Clear();
 
             playerNames.Clear();
@@ -74,10 +79,10 @@ namespace FeatMultiplayer
 
             // -------------------------
 
-            var background = new GameObject("MultiplayerMenu_Background");
-            background.transform.parent = parent.transform;
+            mainmenuBackground = new GameObject("MultiplayerMenu_Background");
+            mainmenuBackground.transform.parent = parent.transform;
 
-            var img = background.AddComponent<Image>();
+            var img = mainmenuBackground.AddComponent<Image>();
             img.color = new Color(0f, 0f, 0f, 0.95f);
 
             rectTransform = img.GetComponent<RectTransform>();
@@ -90,6 +95,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(hostModeCheckbox);
             dy -= fs + 10;
 
             hostLocalIPText = CreateText("    Local Address = " + GetHostLocalAddress() + ":" + port.Value, fs);
@@ -99,6 +105,7 @@ namespace FeatMultiplayer
 
             LogInfo(GetMainIPv6());
 
+            mpRows.Add(hostLocalIPText);
             dy -= fs + 10;
 
             upnpCheckBox = CreateText(GetUPnPString(), fs, true);
@@ -107,6 +114,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(upnpCheckBox);
             dy -= fs + 10;
 
             hostExternalIPText = CreateText(GetExternalAddressString(), fs);
@@ -115,6 +123,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(hostExternalIPText);
             dy -= fs + 10;
 
             hostExternalMappingText = CreateText(GetExternalMappingString(), fs);
@@ -123,6 +132,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(hostExternalMappingText);
             dy -= fs + 20;
 
             clientModeText = CreateText("--- Client Mode ---", fs);
@@ -131,6 +141,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(clientModeText);
             dy -= fs + 10;
 
             clientTargetAddressText = CreateText("    Host Address = " + hostAddress.Value + ":" + port.Value, fs);
@@ -139,6 +150,7 @@ namespace FeatMultiplayer
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
+            mpRows.Add(clientTargetAddressText);
             dy -= fs + 10;
 
             foreach (var clientName in playerNames) {
@@ -150,6 +162,7 @@ namespace FeatMultiplayer
                 rectTransform.sizeDelta = new Vector2(dw, fs + 5);
 
                 clientJoinButtons.Add(joinBtn);
+                mpRows.Add(joinBtn);
 
                 dy -= fs + 10;
             }
@@ -244,8 +257,42 @@ namespace FeatMultiplayer
 
         void DoMainMenuUpdate()
         {
-            if (parent != null)
+            var noMenu = true;
+            if (introInstance != null)
             {
+                if (introInstance.optionsMenu.activeSelf)
+                {
+                    noMenu = false;
+                }
+                if (introInstance.saveFilesContainer.activeSelf)
+                {
+                    noMenu = false;
+                }
+            }
+            if (parent != null && noMenu)
+            {
+                float maxWidth = 0;
+                int fs = fontSize.Value;
+
+                foreach (var go in mpRows)
+                {
+                    var w = go.GetComponent<Text>().preferredWidth;
+                    maxWidth = Math.Max(maxWidth, w);
+                }
+                var dx = (Screen.width - maxWidth) / 2 - 30;
+                float dy = Screen.height / 2 - mpRows.Count / 2f * (fs + 10) + 10;
+
+                var rtb = mainmenuBackground.GetComponent<RectTransform>();
+                rtb.localPosition = new Vector3(dx + 10, Screen.height / 2 - mpRows.Count * (fs + 10) + 10 + (fs + 10) / 2, 0);
+                rtb.sizeDelta = new Vector2(maxWidth + 20, mpRows.Count * (fs + 10) + 20);
+
+                foreach (var go in mpRows)
+                {
+                    var rt = go.GetComponent<RectTransform>();
+                    rt.localPosition = new Vector3(dx, dy, 0);
+                    dy -= fs + 10;
+                }
+
                 var mouse = Mouse.current.position.ReadValue();
                 if (Mouse.current.leftButton.wasPressedThisFrame)
                 {
