@@ -279,17 +279,18 @@ namespace FeatMultiplayer
                     var w = go.GetComponent<Text>().preferredWidth;
                     maxWidth = Math.Max(maxWidth, w);
                 }
-                var dx = (Screen.width - maxWidth) / 2 - 30;
+                var dx = (Screen.width - maxWidth) / 2 - 20;
                 float dy = Screen.height / 2 - mpRows.Count / 2f * (fs + 10) + 10;
 
                 var rtb = mainmenuBackground.GetComponent<RectTransform>();
-                rtb.localPosition = new Vector3(dx + 10, Screen.height / 2 - mpRows.Count * (fs + 10) + 10 + (fs + 10) / 2, 0);
+                rtb.localPosition = new Vector3(dx, Screen.height / 2 - mpRows.Count * (fs + 10) + 10 + (fs + 10) / 2, 0);
                 rtb.sizeDelta = new Vector2(maxWidth + 20, mpRows.Count * (fs + 10) + 20);
 
                 foreach (var go in mpRows)
                 {
                     var rt = go.GetComponent<RectTransform>();
                     rt.localPosition = new Vector3(dx, dy, 0);
+                    rt.sizeDelta = new Vector2(maxWidth, fs + 5);
                     dy -= fs + 10;
                 }
 
