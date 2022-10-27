@@ -12,7 +12,7 @@ using System;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -119,6 +119,27 @@ namespace FixUnofficialPatches
                 File.WriteAllText(once, DateTime.UtcNow.ToString("o"));
             }
             return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineFloater), "SetReferencePositionOnSurface")]
+        static bool MachineFloater_SetReferencePositionOnSurface(MachineFloater __instance, 
+            ref Vector3 ___referencePosition,
+            WorldObjectAssociated ___worldObjectAsso)
+        {
+            Vector3 vector = new Vector3(__instance.transform.position.x, __instance.transform.position.y + 5f, __instance.transform.position.z);
+            Vector3 vector2 = Vector3.up * -1f;
+            RaycastHit raycastHit;
+            if (Physics.Raycast(new Ray(vector, vector2), out raycastHit, 105f, LayerMask.GetMask(new string[] { GameConfig.layerWaterName })))
+            {
+                Vector3 vector3 = Vector3.up * -0.25f;
+                ___referencePosition = raycastHit.point + vector3;
+                if (___worldObjectAsso != null)
+                {
+                    ___worldObjectAsso.GetWorldObject()?.SetPositionAndRotation(___referencePosition, Quaternion.identity);
+                }
+            }
+            return false;
         }
     }
 }
