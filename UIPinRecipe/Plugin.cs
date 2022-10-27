@@ -460,18 +460,18 @@ namespace UIPinRecipe
 
         static void RestorePinnedRecipesMultiplayer()
         {
-            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer");
+            mpLogInfo("RestorePinnedRecipesMultiplayer");
             var data = mpGetData(modUiPinRecipeGuid + ".recipes");
-            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer: " + data);
+            mpLogInfo("RestorePinnedRecipesMultiplayer: " + data);
             ClearPinnedRecipes();
             ResorePinnedRecipesFromString(data);
-            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer - Done");
+            mpLogInfo("RestorePinnedRecipesMultiplayer - Done");
         }
 
         static void RestorePinnedRecipes()
         {
             var wo = EnsureHiddenContainer();
-            if (mpGetMode() != "CoopClient")
+            if (mpGetMode == null || mpGetMode() != "CoopClient")
             {
                 ClearPinnedRecipes();
 
