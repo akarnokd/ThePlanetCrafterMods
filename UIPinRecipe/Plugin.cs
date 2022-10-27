@@ -16,7 +16,7 @@ using BepInEx.Logging;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.13")]
+    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.14")]
     [BepInDependency(modUiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -460,12 +460,12 @@ namespace UIPinRecipe
 
         static void RestorePinnedRecipesMultiplayer()
         {
-            mpLogInfo("RestorePinnedRecipesMultiplayer");
+            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer");
             var data = mpGetData(modUiPinRecipeGuid + ".recipes");
-            mpLogInfo("RestorePinnedRecipesMultiplayer: " + data);
+            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer: " + data);
             ClearPinnedRecipes();
             ResorePinnedRecipesFromString(data);
-            mpLogInfo("RestorePinnedRecipesMultiplayer - Done");
+            mpLogInfo?.Invoke("RestorePinnedRecipesMultiplayer - Done");
         }
 
         static void RestorePinnedRecipes()
