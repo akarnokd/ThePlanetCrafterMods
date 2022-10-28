@@ -141,5 +141,12 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(FlockChildInsect), nameof(FlockChildInsect.UpdatePosition))]
+        static bool FlockChildInsect_UpdatePosition(FlockController ___flockController)
+        {
+            return ___flockController != null;
+        }
     }
 }
