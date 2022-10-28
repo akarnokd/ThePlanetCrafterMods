@@ -98,7 +98,6 @@ namespace FixUnbrickSave
         }
 
         /*
-        static Stopwatch achievementsHandler_CraftedVerifications;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(AchievementsHandler), "CraftedVerifications")]
@@ -134,6 +133,7 @@ namespace FixUnbrickSave
         }
         */
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), "Grow")]
         static void MachineOutsideGrower_Grow()
@@ -147,5 +147,6 @@ namespace FixUnbrickSave
         {
             PerfEnd("MachineOutsideGrower_Grow");
         }
+        */
     }
 }

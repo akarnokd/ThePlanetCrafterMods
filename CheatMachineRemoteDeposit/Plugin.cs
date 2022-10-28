@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.8")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.9")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -24,7 +24,8 @@ namespace CheatMachineRemoteDeposit
 
         static ManualLogSource logger;
 
-        static bool debugMode;
+        static ConfigEntry<bool> modEnabled;
+        static ConfigEntry<bool> debugMode;
 
         static readonly Dictionary<string, string> depositAliases = new();
 
@@ -39,6 +40,9 @@ namespace CheatMachineRemoteDeposit
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
+            debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
 
             ProcessAliases(Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C"));
 
@@ -99,7 +103,7 @@ namespace CheatMachineRemoteDeposit
 
         static void log(string s)
         {
-            if (debugMode)
+            if (debugMode.Value)
             {
                 logger.LogInfo(s);
             }
@@ -134,6 +138,11 @@ namespace CheatMachineRemoteDeposit
             WorldObject ___worldObject
         )
         {
+            if (!modEnabled.Value)
+            {
+                return true;
+            }
+
             log("GenerateAnObject start");
             string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
 
@@ -155,6 +164,10 @@ namespace CheatMachineRemoteDeposit
                 }
             }
 
+            if (oreId == null)
+            {
+                return false;
+            }
 
             // retarget inventory
             Inventory inventory = ___inventory;
