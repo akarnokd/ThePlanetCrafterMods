@@ -68,25 +68,21 @@ namespace FixUnbrickSave
             var fc = Time.frameCount;
             if (frameIndex != fc)
             {
-                foreach (var kv in stopWatches)
-                {
-                    ticks.TryGetValue(kv.Key, out var t);
-                    ticks[kv.Key] = t + kv.Value.ElapsedTicks;
-                }
-
-                logger.LogInfo("Perf [" + fc + "]");
+                logger.LogInfo("Perf [" + frameIndex + "]");
                 
                 foreach (var kv in ticks)
                 {
                     logger.LogInfo(string.Format("  {0} = {1:0.000} ms ({2})", kv.Key, kv.Value / 10000f, invokes[kv.Key]));
                 }
+                invokes.Clear();
                 ticks.Clear();
 
                 frameIndex = fc;
             }
             if (!stopWatches.TryGetValue(key, out var sw))
             {
-                stopWatches[key] = new();
+                sw = new();
+                stopWatches[key] = sw;
             }
             invokes.TryGetValue(key, out var cnt);
             invokes[key] = cnt + 1;
