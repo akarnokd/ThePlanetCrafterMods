@@ -88,8 +88,11 @@ namespace FeatMultiplayer
                     }
                     */
                     string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
-                    LogInfo("MachineGenerator_GenerateAnObject: Generated " + oreId);
-                    GenerateAnObjectAndDepositInto(___inventory, oreId);
+                    if (oreId != null)
+                    {
+                        LogInfo("MachineGenerator_GenerateAnObject: Generated " + oreId);
+                        GenerateAnObjectAndDepositInto(___inventory, oreId);
+                    }
                     return false;
                 }
                 else
