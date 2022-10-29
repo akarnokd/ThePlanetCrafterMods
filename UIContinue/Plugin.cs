@@ -17,7 +17,7 @@ using System.Reflection;
 
 namespace UIContinue
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.2")]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationitalian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -102,13 +102,25 @@ namespace UIContinue
                             var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
 
                             var tiAndUnit = "";
-                            if (ti >= 1E15)
+                            if (ti >= 1E24)
                             {
-                                tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E15);
+                                tiAndUnit = string.Format("{0:#,##0.0} YTi", ti / 1E24);
+                            }
+                            if (ti >= 1E21)
+                            {
+                                tiAndUnit = string.Format("{0:#,##0.0} ZTi", ti / 1E21);
+                            }
+                            if (ti >= 1E18)
+                            {
+                                tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E18);
+                            }
+                            else if (ti >= 1E15)
+                            {
+                                tiAndUnit = string.Format("{0:#,##0.0} PTi", ti / 1E15);
                             }
                             else if (ti >= 1E12)
                             {
-                                tiAndUnit = string.Format("{0:0.0} PTi", ti / 1E12);
+                                tiAndUnit = string.Format("{0:0.0} TTi", ti / 1E12);
                             }
                             else if (ti >= 1E9)
                             {
