@@ -58,6 +58,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIHotbar", "UIHotbar\UIHotb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipRest", "ZipRest\ZipRest.csproj", "{2252A7D3-9E04-4C43-9512-1BD40AB594BC}"
 	ProjectSection(ProjectDependencies) = postProject
+		{07CB94BA-84F3-4651-8C0E-46220C367FCE} = {07CB94BA-84F3-4651-8C0E-46220C367FCE}
 		{0E2D77A6-B995-449B-8B8F-0A273F750453} = {0E2D77A6-B995-449B-8B8F-0A273F750453}
 		{0F9F35E2-F9A0-4D51-A459-B381F6D63295} = {0F9F35E2-F9A0-4D51-A459-B381F6D63295}
 		{10B39461-2449-4762-B763-E8216F51136C} = {10B39461-2449-4762-B763-E8216F51136C}
@@ -165,6 +166,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIStackInRangeList", "UIStackInRangeList\UIStackInRangeList.csproj", "{8A9090D9-4472-49D1-A9EA-D54EF49C0D45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerfMonitor", "PerfMonitor\PerfMonitor.csproj", "{5FE665F6-3522-45FA-A676-A55058A6E8D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationRomanian", "UITranslationRomanian\UITranslationRomanian.csproj", "{07CB94BA-84F3-4651-8C0E-46220C367FCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -380,6 +383,10 @@ Global
 		{5FE665F6-3522-45FA-A676-A55058A6E8D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FE665F6-3522-45FA-A676-A55058A6E8D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FE665F6-3522-45FA-A676-A55058A6E8D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07CB94BA-84F3-4651-8C0E-46220C367FCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07CB94BA-84F3-4651-8C0E-46220C367FCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07CB94BA-84F3-4651-8C0E-46220C367FCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07CB94BA-84F3-4651-8C0E-46220C367FCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
