@@ -7,6 +7,7 @@ using BepInEx.Logging;
 using System.Diagnostics;
 using System.Collections;
 using System;
+using BepInEx.Configuration;
 
 namespace PerfMonitor
 {
@@ -16,6 +17,8 @@ namespace PerfMonitor
 
         static ManualLogSource logger;
 
+        static ConfigEntry<bool> modEnabled;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -23,7 +26,9 @@ namespace PerfMonitor
 
             logger = Logger;
 
-            if (Config.Bind("General", "Enabled", true, "Is the mod enabled?").Value)
+            modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
+
+            if (modEnabled.Value)
             {
                 Harmony.CreateAndPatchAll(typeof(Plugin));
             }
@@ -37,31 +42,34 @@ namespace PerfMonitor
 
         void Update()
         {
-            var now = Time.time;
-            if (now >= lastTime + delay)
+            if (modEnabled.Value)
             {
-                logger.LogInfo("Perf [" + (now - lastTime) + " s]");
-
-                lastTime = now;
-
-                int max = 1;
-                List<string> keyList = new();
-                foreach (var k in ticks.Keys)
+                var now = Time.time;
+                if (now >= lastTime + delay)
                 {
-                    max = Mathf.Max(max, k.Length);
-                    keyList.Add(k);
-                }
-                keyList.Sort();
+                    logger.LogInfo("Perf [" + (now - lastTime) + " s]");
 
-                foreach (var kv in keyList)
-                {
-                    var k = kv;
-                    var v = ticks[k];
-                    logger.LogInfo(string.Format("  {0,-" + max + "} = {1:0.000} ms ({2}), Per call = {3:0.000000} ms", 
-                        k, v / 10000f, invokes[k], v / 10000f / invokes[k]));
+                    lastTime = now;
+
+                    int max = 1;
+                    List<string> keyList = new();
+                    foreach (var k in ticks.Keys)
+                    {
+                        max = Mathf.Max(max, k.Length);
+                        keyList.Add(k);
+                    }
+                    keyList.Sort();
+
+                    foreach (var kv in keyList)
+                    {
+                        var k = kv;
+                        var v = ticks[k];
+                        logger.LogInfo(string.Format("  {0,-" + max + "} = {1:0.000} ms ({2}), Per call = {3:0.000000} ms",
+                            k, v / 10000f, invokes[k], v / 10000f / invokes[k]));
+                    }
+                    invokes.Clear();
+                    ticks.Clear();
                 }
-                invokes.Clear();
-                ticks.Clear();
             }
         }
 
