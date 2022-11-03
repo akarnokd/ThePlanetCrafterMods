@@ -372,8 +372,8 @@ CycleResourceKey = X
 
 ## List of comma-separated larve ids to look for.
 # Setting type: String
-# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae
-LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae
+# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae,Butterfly16Larvae,Butterfly17Larvae,Butterfly18Larvae
+LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae,Butterfly16Larvae,Butterfly17Larvae,Butterfly18Larvae
 
 ## If nonzero, a thin white bar will appear and point to the resource
 # Setting type: Single

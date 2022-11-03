@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.8")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>
@@ -71,7 +71,10 @@ namespace CheatNearbyResourcesHighlight
             "Butterfly12Larvae",
             "Butterfly13Larvae",
             "Butterfly14Larvae",
-            "Butterfly15Larvae"
+            "Butterfly15Larvae",
+            "Butterfly16Larvae",
+            "Butterfly17Larvae",
+            "Butterfly18Larvae"
         });
 
         class GameObjectTTL
