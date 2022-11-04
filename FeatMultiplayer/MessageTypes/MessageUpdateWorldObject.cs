@@ -30,7 +30,11 @@ namespace FeatMultiplayer.MessageTypes
 
         public override string GetString()
         {
-            throw new NotImplementedException();
+            StringBuilder sb = new StringBuilder();
+            sb.Append("UpdateWorldObject|");
+            MessageWorldObject.AppendWorldObject(sb, '|', worldObject, worldObject.makeGrabable);
+            sb.Append('\n');
+            return sb.ToString();
         }
     }
 }

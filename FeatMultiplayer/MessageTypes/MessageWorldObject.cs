@@ -53,6 +53,50 @@ namespace FeatMultiplayer.MessageTypes
             sb.Append(makeGrabable ? 1 : 0); // 10
         }
 
+        internal static void AppendWorldObject(StringBuilder sb, char separator, MessageWorldObject wo, bool makeGrabable)
+        {
+            sb.Append(wo.id);  // 0
+            sb.Append(separator);
+            sb.Append(wo.groupId);  // 1
+            sb.Append(separator);
+            sb.Append(wo.inventoryId);  // 2
+            sb.Append(separator);
+            if (wo.groupIds != null && wo.groupIds.Length != 0)
+            {
+                for (int i = 0; i < wo.groupIds.Length; i++)
+                {
+                    if (i != 0)
+                    {
+                        sb.Append(',');
+                    }
+                    string g = wo.groupIds[i];
+                    sb.Append(g);
+                }
+            }
+            sb.Append(separator);
+            if (wo.position != Vector3.zero)
+            {
+                sb.Append(DataTreatments.Vector3ToString(wo.position)); // 4
+                sb.Append(separator);
+                sb.Append(DataTreatments.QuaternionToString(wo.rotation)); // 5
+                sb.Append(separator);
+            }
+            else
+            {
+                sb.Append(separator);
+                sb.Append(separator);
+            }
+            sb.Append(MessageHelper.ColorToString(wo.color)); // 6
+            sb.Append(separator);
+            sb.Append(wo.text); // 7
+            sb.Append(separator);
+            sb.Append(DataTreatments.IntListToString(wo.panelIds)); // 8
+            sb.Append(separator);
+            sb.Append(wo.growth.ToString(CultureInfo.InvariantCulture)); // 9
+            sb.Append(separator);
+            sb.Append(makeGrabable ? 1 : 0); // 10
+        }
+
         internal static bool TryParse(string[] objs, int offset, out MessageWorldObject mwo)
         {
             if (objs.Length - offset == 11)

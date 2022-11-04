@@ -10,7 +10,7 @@ namespace FeatMultiplayer
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.2.0.12")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.2.0.13")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
