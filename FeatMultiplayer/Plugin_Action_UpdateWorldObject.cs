@@ -157,7 +157,7 @@ namespace FeatMultiplayer
             UpdateWorldObject(mc.worldObject);
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                SendAllClientsExcept(mc.sender.id, mc);
+                SendAllClientsExcept(mc.sender.id, mc, true);
             }
         }
 

@@ -128,7 +128,17 @@ namespace FeatMultiplayer
             }
             else
             {
-                inventoryOut = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                int invId = wo.GetLinkedInventoryId();
+                var inv = InventoriesHandler.GetInventoryById(invId);
+                if (inv == null)
+                {
+                    LogInfo("Recreating special inventory " + id);
+                    inv = InventoriesHandler.CreateNewInventory(1000, 0);
+                    wo.SetLinkedInventoryId(inv.GetId());
+                    inventoryOut = inv;
+                    return true;
+                }
+                inventoryOut = inv;
             }
             return false;
         }

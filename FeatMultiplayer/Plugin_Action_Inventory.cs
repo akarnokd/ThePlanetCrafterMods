@@ -69,7 +69,7 @@ namespace FeatMultiplayer
                     // is the target one of the shadow inventories?
                     foreach (var cc in _clientConnections.Values)
                     {
-                        if (cc.shadowBackpack.GetId() == iid)
+                        if (cc.shadowBackpack != null && cc.shadowBackpack.GetId() == iid)
                         {
                             mia.inventoryId = 1;
 
@@ -78,7 +78,7 @@ namespace FeatMultiplayer
                             cc.Signal();
                             return;
                         }
-                        else if (cc.shadowEquipment.GetId() == iid)
+                        else if (cc.shadowEquipment != null && cc.shadowEquipment.GetId() == iid)
                         {
                             mia.inventoryId = 2;
 
