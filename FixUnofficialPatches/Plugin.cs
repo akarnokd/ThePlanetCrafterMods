@@ -9,6 +9,7 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System;
+using MijuTools;
 
 namespace FixUnofficialPatches
 {
@@ -147,6 +148,13 @@ namespace FixUnofficialPatches
         static bool FlockChildInsect_UpdatePosition(FlockController ___flockController)
         {
             return ___flockController != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), "OnVegetableGrabed")]
+        static bool MachineGrower_OnVegetableGrabed()
+        {
+            return Managers.GetManager<PlayersManager>()?.GetActivePlayerController() != null;
         }
     }
 }

@@ -650,6 +650,10 @@ A mod that hosts the unofficial patches for the game. Eventually, these patches 
 
 Current fixes:
 - Scroll the File List screen from whereever the mouse is currently at.
+- Remove the dev-branch nagging screen.
+- Prevent a silent crash when trying to place items on water but on an invalid position.
+- Prevent a silent crash with butterfly flock management upon loading a save
+- Prevent a silent crash with grabable vegetables upon quitting to the main menu.
 
 
 ### Configuration
