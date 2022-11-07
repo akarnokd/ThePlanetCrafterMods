@@ -17,7 +17,7 @@ public class PlayerAvatar3D {
     static float smoothnessValue = 0.75f;
     static float normalValue = 1;
     static float occlusionStrength = 1;
-    static float emissiveStrength = 1.5f;
+    internal static float emissiveStrength = 1.5f;
 
     //private void Start() {
     //    CreatePlayer("Player", Color.white, "C:/Unity Projects/PCrafter/Assets/");

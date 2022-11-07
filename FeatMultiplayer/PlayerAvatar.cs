@@ -51,6 +51,10 @@ namespace FeatMultiplayer
 
         internal void SetColor(Color color)
         {
+            foreach (var mr in avatar.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                mr.sharedMaterial.SetColor("_EmissionColor", color * PlayerAvatar3D.emissiveStrength);
+            }
             avatarFront.GetComponent<SpriteRenderer>().color = color;
             avatarBack.GetComponent<SpriteRenderer>().color = color;
         }
