@@ -75,6 +75,16 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_no.png" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\A6_Arm.obj" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\A6_Body.obj" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\A6_Boot.obj" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\A6_Helmet.obj" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\A6_Legs.obj" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\Armor6_Normal.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\Armor6_Occlusion.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\Armor6_Orange_Emission.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\Armor6_PaintMetall_MetallicSmoothness.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)Assets\Armor6_White_AlbedoTransparency.png" DestinationFolder="$(Destination1)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />

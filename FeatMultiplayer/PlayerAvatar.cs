@@ -1,6 +1,8 @@
 ﻿using SpaceCraft;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -71,9 +73,14 @@ namespace FeatMultiplayer
 
             SpriteRenderer sr;
 
+            /*
             result.avatar = GameObject.CreatePrimitive(PrimitiveType.Cube);
             result.avatar.name = "Avatar";
             result.avatar.transform.localScale = new Vector3(0.5f, 0.5f, 0.2f);
+            */
+            Assembly me = Assembly.GetExecutingAssembly();
+            string dir = Path.GetDirectoryName(me.Location);
+            result.avatar = PlayerAvatar3D.CreatePlayer("Avatar", color, dir);
 
             float scaling = 2.5f;
 
@@ -139,6 +146,10 @@ namespace FeatMultiplayer
             result.emote.transform.localPosition = new Vector3(0, 4f, 0);
 
             result.emote.AddComponent<EmoteAnimator>();
+
+            result.avatarFront.SetActive(false);
+            result.avatarBack.SetActive(false);
+
             return result;
         }
 

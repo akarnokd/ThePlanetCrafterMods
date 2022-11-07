@@ -398,3 +398,6 @@ FodyWeavers.xsd
 *.sln.iml
 /akarnokd-*.zip
 /akarnokd-all
+
+# The 3D avatar object files
+!A6_*.obj
