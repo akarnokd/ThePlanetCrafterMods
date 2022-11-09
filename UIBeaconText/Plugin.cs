@@ -60,7 +60,7 @@ namespace UIBeaconText
 
             if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
             {
-                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", beacon text updated will sync too");
+                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", beacon text updates will sync too, probably");
             }
             else
             {

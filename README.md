@@ -58,6 +58,7 @@ by deleting the directory itself.
 
 ### User Interface or Quality of Life
 
+- [Beacon Text](#ui-beacon-text)
 - [Craft Equipment Inplace](#ui-craft-equipment-inplace)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
@@ -1121,6 +1122,37 @@ PanelTop = 150
 # Default value: C
 ClearKey = C
 ```
+
+## (UI) Beacon Text
+
+Customize beacons by showing a custom title and the distance from the player. Click on the antenna part to open the text editor for the title.
+*(Remark: the default three dots `...` is a vanilla thing for empty text; use a single space to show nothing)*
+
+Use <kbd>B</kbd> (configurable) to toggle between showing no text, just the title, just the distance or both.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uibeacontext`
+
+```
+[General]
+
+## The font size of the slot index
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
+
+## Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text
+# Setting type: Int32
+# Default value: 3
+DisplayMode = 3
+
+## The toggle key
+# Setting type: String
+# Default value: B
+DisplayModeToggleKey = B
+```
+
 
 ## (UI) Craft Equipment Inplace
 
