@@ -17,6 +17,9 @@ namespace FeatMultiplayer
         internal GameObject light2;
         internal GameObject nameBar;
         internal GameObject emote;
+        internal Vector3 targetPosition;
+        internal Quaternion targetRotation;
+        internal Quaternion lightTargetRotation;
 
         /// <summary>
         /// What the other side told us about their position.
@@ -32,19 +35,33 @@ namespace FeatMultiplayer
             UnityEngine.Object.Destroy(emote);
         }
 
-        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode)
-        {
-            if (avatar != null)
-            {
+        Quaternion lightRotation;       
+        internal void UpdateTransformSmoothly() {           
+            if (Vector3.Distance(targetPosition, avatar.transform.position) > Plugin.positionInstantUpdateDistance.Value) {
+                avatar.transform.position = targetPosition;                                                                                             // Move instantly
+            } else {               
+                avatar.transform.position = Vector3.Lerp(avatar.transform.position, targetPosition, Time.deltaTime * Plugin.positionLerpSpeed.Value);   // Move smoothly
+            }
+
+            avatar.transform.rotation = Quaternion.Lerp(avatar.transform.rotation, targetRotation, Time.deltaTime * Plugin.rotationLerpSpeed.Value);    // Rotate smoothly
+
+            lightRotation = Quaternion.Lerp(light1.transform.localRotation, lightTargetRotation, Time.deltaTime * Plugin.rotationLerpSpeed.Value);      // Rotate smoothly
+
+            light1.transform.localRotation = lightRotation;
+            light2.transform.localRotation = lightRotation;
+        }
+
+        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode) {
+            if (avatar != null) {
                 rawPosition = position;
 
-                avatar.transform.position = new Vector3(position.x, position.y + 1.5f, position.z);
-                var yrot = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
-                avatar.transform.rotation = yrot;
+                targetPosition = position;
+                targetPosition.y += Plugin.positionHeightOffset.Value;
 
-                light1.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
-                light1.SetActive(lightMode == 1);
-                light2.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
+                targetRotation = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
+                lightTargetRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);               
+
+                light1.SetActive(lightMode == 1);               
                 light2.SetActive(lightMode == 2);
             }
         }
@@ -116,12 +133,12 @@ namespace FeatMultiplayer
 
             result.light1 = UnityEngine.Object.Instantiate<GameObject>(lights.toolLightT1);
             result.light1.transform.SetParent(result.avatar.transform);
-            result.light1.transform.localPosition = new Vector3(0, 0, 0.52f);
+            result.light1.transform.localPosition = new Vector3(0, 1.5f, 0.52f);
             result.light1.SetActive(true);
 
             result.light2 = UnityEngine.Object.Instantiate<GameObject>(lights.toolLightT2);
             result.light2.transform.SetParent(result.avatar.transform);
-            result.light2.transform.localPosition = new Vector3(0, 0, 0.52f);
+            result.light2.transform.localPosition = new Vector3(0, 1.5f, 0.52f);
             result.light2.SetActive(false);
 
             // -------------
@@ -132,14 +149,13 @@ namespace FeatMultiplayer
             txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             txt.text = "";
             txt.color = new Color(1f, 1f, 1f, 1f);
-            txt.fontSize = (int)Plugin.playerNameFontSize.Value;
+            txt.fontSize = (int)Plugin.playerNameFontSize.Value * 100;                          // Fix the blurry font
             txt.anchor = TextAnchor.MiddleCenter;
 
             result.nameBar.transform.SetParent(result.avatar.transform);
-            result.nameBar.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-            result.nameBar.transform.localPosition = new Vector3(0, 2.75f, 0.52f);
+            result.nameBar.transform.localScale = new Vector3(0.0025f, 0.0025f, 0.0025f);       // Fix the blurry font
+            result.nameBar.transform.localPosition = new Vector3(0, 0.75f, 0);                  // Adjust height for 3D avatar scale
             result.nameBar.transform.Rotate(new Vector3(0, 1, 0), 180);
-
 
             // -------------
 

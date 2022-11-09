@@ -38,6 +38,10 @@ namespace FeatMultiplayer
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> slowdownConsumption;
         internal static ConfigEntry<int> playerNameFontSize;
+        internal static ConfigEntry<float> positionHeightOffset;
+        internal static ConfigEntry<float> positionInstantUpdateDistance;
+        internal static ConfigEntry<float> positionLerpSpeed;
+        internal static ConfigEntry<float> rotationLerpSpeed;
         static ConfigEntry<string> emoteKey;
         static InputAction emoteAction;
 
@@ -64,6 +68,10 @@ namespace FeatMultiplayer
             fullSyncDelay = Config.Bind("General", "SyncDelay", 3000, "Delay between full sync from the host to the client, in milliseconds");
             smallSyncDelay = Config.Bind("General", "SyncDelaySmall", 500, "Delay between small sync from the host to the client, in milliseconds");
             slowdownConsumption = Config.Bind("General", "SlowdownConsumption", false, "Slows down health/food/water consumption rate");
+            positionHeightOffset = Config.Bind("General", "PositionHeightOffset", -0.09f, "Adjust the position of players relative to the ground.");
+            positionInstantUpdateDistance = Config.Bind("General", "PositionInstantUpdateDistance", 2f, "How far a player's target position has to be for an instant update. Increase this value if players skip while moving.");
+            positionLerpSpeed = Config.Bind("General", "PositionLerpSpeed", 7f, "How fast player positions catch up to positions received via network messages.");
+            rotationLerpSpeed = Config.Bind("General", "RotationLerpSpeed", 15f, "How fast player rotations catch up to rotations received via network messages.");
             playerNameFontSize = Config.Bind("General", "PlayerNameFontSize", 20, "Font size used to display the player's names above their avatar.");
             emoteKey = Config.Bind("General", "EmoteKey", "G", "The key to bring up the emote wheel.");
 

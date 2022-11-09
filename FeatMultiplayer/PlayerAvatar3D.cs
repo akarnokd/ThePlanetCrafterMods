@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.IO;
+using System;
+using SpaceCraft;
 
 public class PlayerAvatar3D {
     static string armName = "A6_Arm";
@@ -8,20 +10,7 @@ public class PlayerAvatar3D {
     static string helmetName = "A6_Helmet";
     static string legsName = "A6_Legs";
 
-    static string albedoName = "Armor6_White_AlbedoTransparency.png";
-    static string metallicName = "Armor6_PaintMetall_MetallicSmoothness.png";
-    static string normalName = "Armor6_Normal.png";
-    static string occlusionName = "Armor6_Occlusion.png";
-    static string emissionName = "Armor6_Orange_Emission.png";
-
-    static float smoothnessValue = 0.75f;
-    static float normalValue = 1;
-    static float occlusionStrength = 1;
-    internal static float emissiveStrength = 1.5f;
-
-    //private void Start() {
-    //    CreatePlayer("Player", Color.white, "C:/Unity Projects/PCrafter/Assets/");
-    //}
+    internal static float emissiveStrength = 1.2f;
 
     /// <summary>
     /// Create and return a player game object
@@ -31,6 +20,8 @@ public class PlayerAvatar3D {
     /// <param name="path">The path where the files are stored ie.: "C:/myFolder/"</param>
     public static GameObject CreatePlayer(string playerRootName, Color playerColor, string path) {
         GameObject playerRoot = new GameObject(playerRootName);
+
+        path = path + "\\";
 
         GameObject arm = CreateBodyPart(armName, playerRoot.transform);
         GameObject body = CreateBodyPart(bodyName, playerRoot.transform);
@@ -46,12 +37,16 @@ public class PlayerAvatar3D {
         CreateComponents(helmet, LoadMesh(helmetName, path), material);
         CreateComponents(legs, LoadMesh(legsName, path), material);
 
+        Vector3 scale = playerRoot.transform.localScale;
+        playerRoot.transform.localScale = scale * 1.2f;
+
         return playerRoot;
     }
 
     private static GameObject CreateBodyPart(string childName, Transform parent) {
         GameObject childObj = new GameObject(childName);
         childObj.transform.parent = parent;
+        //childObj.transform.Translate(0, -0.08f, 0, Space.Self);  // Temp fix for floating avatar
         return childObj;
     }
 
@@ -66,37 +61,11 @@ public class PlayerAvatar3D {
     }
 
     private static Material CreateMaterial(Color playerColor, string path) {
-        Material mat = new Material(Shader.Find("Standard"));
-        mat.SetTexture("_MainTex", LoadPNG(path + albedoName));
-        
-        mat.SetTexture("_MetallicGlossMap", LoadPNG(path + metallicName));
-        mat.SetFloat("_GlossMapScale", smoothnessValue);
-        mat.EnableKeyword("_METALLICGLOSSMAP");
-
-        mat.SetTexture("_BumpMap", LoadPNG(path + normalName));
-        mat.SetFloat("_BumpScale", normalValue);
-        mat.EnableKeyword("_NORMALMAP");
-
-        mat.SetTexture("_OcclusionMap", LoadPNG(path + occlusionName));
-        mat.SetFloat("_OcclusionStrength", occlusionStrength);
-
-        mat.SetTexture("_EmissionMap", LoadPNG(path + emissionName));
+        Material mat = new Material(GameObject.Find("A6_Arm").GetComponent<SkinnedMeshRenderer>().sharedMaterial);
         mat.SetColor("_EmissionColor", playerColor * emissiveStrength);
         mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.AnyEmissive;
         mat.EnableKeyword("_EMISSION");
 
         return mat;
-    }
-
-    private static Texture2D LoadPNG(string filePath) {
-        Texture2D tex = null;
-        byte[] fileData;
-        
-        if (File.Exists(filePath))     {
-            fileData = File.ReadAllBytes(filePath);
-            tex = new Texture2D(2, 2);
-            tex.LoadImage(fileData);
-        }
-        return tex;
     }
 }

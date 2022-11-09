@@ -63,6 +63,8 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost || updateMode == MultiplayerMode.CoopClient)
             {
                 DoMultiplayerUpdate();
+                SmoothTranformUpdate();
+
                 var ap = GetPlayerMainController();
                 WindowsHandler wh = Managers.GetManager<WindowsHandler>();
                 if (ap != null && wh != null && !wh.GetHasUiOpen() && ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey())
@@ -95,6 +97,12 @@ namespace FeatMultiplayer
             }
             else
             {
+            }
+        }
+
+        private void SmoothTranformUpdate() {
+            foreach (var item in playerAvatars) {
+                item.Value.UpdateTransformSmoothly();
             }
         }
 
