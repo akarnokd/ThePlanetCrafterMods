@@ -15,6 +15,7 @@ using BepInEx.Logging;
 using System.Linq;
 using System.Collections;
 using TMPro;
+using UnityEngine.UIElements;
 
 namespace UIBeaconText
 {
@@ -27,9 +28,15 @@ namespace UIBeaconText
 
         static ConfigEntry<int> fontSize;
 
+        static ConfigEntry<int> displayMode;
+
+        static ConfigEntry<string> displayModeToggle;
+
         static ManualLogSource logger;
 
         static TextMeshProUGUI mockupTMPro;
+
+        static InputAction toggleAction;
 
         private void Awake()
         {
@@ -37,6 +44,18 @@ namespace UIBeaconText
             Logger.LogInfo($"Plugin is loaded!");
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size of the slot index");
+
+            displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text");
+
+            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key");
+
+            if (!displayModeToggle.Value.StartsWith("<Keyboard>/"))
+            {
+                displayModeToggle.Value = "<Keyboard>/" + displayModeToggle.Value;
+            }
+            toggleAction = new InputAction("DisplayModeToggleKey", binding: displayModeToggle.Value);
+            toggleAction.Enable();
+
             logger = Logger;
 
             if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
@@ -51,10 +70,33 @@ namespace UIBeaconText
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
+        void Update()
+        {
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh == null)
+            {
+                return;
+            }
+            if (wh.GetHasUiOpen())
+            {
+                return;
+            }
+
+            if (toggleAction.WasPressedThisFrame())
+            {
+                var m = displayMode.Value + 1;
+                if (m == 4)
+                {
+                    m = 0;
+                }
+                displayMode.Value = m;
+            }
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineBeaconUpdater), "Start")]
         static void MachineBeaconUpdater_Start(MachineBeaconUpdater __instance, GameObject ___player, 
-            GameObject ___canvas, float ___scaleFactor, float ___updateEverySec)
+            GameObject ___canvas, float ___updateEverySec)
         {
             var woa = __instance.GetComponent<WorldObjectAssociated>();
             if (woa == null)
@@ -137,6 +179,10 @@ namespace UIBeaconText
                 var dist = (int)Vector3.Distance(canvas.transform.position, ___player.transform.position);
                 distanceText.text = dist + "m";
                 titleText.text = wo.GetText();
+
+                titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
+                distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
+
                 yield return new WaitForSeconds(___updateEverySec);
             }
         }
