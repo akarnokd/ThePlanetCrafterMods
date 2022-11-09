@@ -64,11 +64,13 @@ namespace UIBeaconText
 
             var s = 0.005f;
             var offset = 0.15f;
+            var rot = new Vector3(0, 180, 0);
 
             GameObject title = new GameObject("BeaconTitle");
             title.transform.SetParent(___canvas.transform);
             title.transform.localPosition = new Vector3(0, offset, 0);
             title.transform.localScale = new Vector3(s, s, s);
+            title.transform.localEulerAngles = rot;
 
             var titleText = title.AddComponent<Text>();
             titleText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -84,6 +86,7 @@ namespace UIBeaconText
             distance.transform.SetParent(___canvas.transform);
             distance.transform.localPosition = new Vector3(0, -offset, 0);
             distance.transform.localScale = new Vector3(s, s, s);
+            distance.transform.localEulerAngles = rot;
 
             var distanceText = distance.AddComponent<Text>();
             distanceText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
