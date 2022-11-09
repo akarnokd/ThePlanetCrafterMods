@@ -78,7 +78,7 @@ namespace FeatMultiplayer
 
         internal void SetName(string name)
         {
-            nameBar.GetComponent<TextMesh>().text = name;
+            nameBar.GetComponent<Text>().text = name;
         }
 
         internal void Emote(List<Sprite> sprites, float delayBetweenFrames, int loopCount)
@@ -145,16 +145,25 @@ namespace FeatMultiplayer
 
             result.nameBar = new GameObject("AvatarNameBar");
 
-            var txt = result.nameBar.AddComponent<TextMesh>();
+            var canvas = result.nameBar.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            var txt = result.nameBar.AddComponent<Text>();
             txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             txt.text = "";
             txt.color = new Color(1f, 1f, 1f, 1f);
-            txt.fontSize = (int)Plugin.playerNameFontSize.Value * 100;                          // Fix the blurry font
-            txt.anchor = TextAnchor.MiddleCenter;
+            txt.fontSize = (int)Plugin.playerNameFontSize.Value * 10;
+            txt.alignment = TextAnchor.MiddleCenter;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var shadow = result.nameBar.AddComponent<Shadow>();
+            shadow.effectColor = Color.black;
+            shadow.effectDistance = new Vector2(10, -10);
 
             result.nameBar.transform.SetParent(result.avatar.transform);
-            result.nameBar.transform.localScale = new Vector3(0.0025f, 0.0025f, 0.0025f);       // Fix the blurry font
-            result.nameBar.transform.localPosition = new Vector3(0, 0.75f, 0);                  // Adjust height for 3D avatar scale
+            result.nameBar.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
+            result.nameBar.transform.localPosition = new Vector3(0, Plugin.playerNameHeight.Value, 0);
             result.nameBar.transform.Rotate(new Vector3(0, 1, 0), 180);
 
             // -------------

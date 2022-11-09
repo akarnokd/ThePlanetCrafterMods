@@ -38,6 +38,7 @@ namespace FeatMultiplayer
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> slowdownConsumption;
         internal static ConfigEntry<int> playerNameFontSize;
+        internal static ConfigEntry<float> playerNameHeight;
         internal static ConfigEntry<float> positionHeightOffset;
         internal static ConfigEntry<float> positionInstantUpdateDistance;
         internal static ConfigEntry<float> positionLerpSpeed;
@@ -73,6 +74,7 @@ namespace FeatMultiplayer
             positionLerpSpeed = Config.Bind("General", "PositionLerpSpeed", 7f, "How fast player positions catch up to positions received via network messages.");
             rotationLerpSpeed = Config.Bind("General", "RotationLerpSpeed", 15f, "How fast player rotations catch up to rotations received via network messages.");
             playerNameFontSize = Config.Bind("General", "PlayerNameFontSize", 20, "Font size used to display the player's names above their avatar.");
+            playerNameHeight = Config.Bind("General", "PlayerNameHeight", 2.25f, "The height of the name above the players");
             emoteKey = Config.Bind("General", "EmoteKey", "G", "The key to bring up the emote wheel.");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
