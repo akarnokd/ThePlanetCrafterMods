@@ -43,11 +43,11 @@ namespace UIBeaconText
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            fontSize = Config.Bind("General", "FontSize", 20, "The font size of the slot index");
+            fontSize = Config.Bind("General", "FontSize", 20, "The font size.");
 
-            displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text");
+            displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.");
 
-            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key");
+            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode.");
 
             if (!displayModeToggle.Value.StartsWith("<Keyboard>/"))
             {

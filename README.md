@@ -1137,7 +1137,7 @@ Use <kbd>B</kbd> (configurable) to toggle between showing no text, just the titl
 ```
 [General]
 
-## The font size of the slot index
+## The font size
 # Setting type: Int32
 # Default value: 20
 FontSize = 20
