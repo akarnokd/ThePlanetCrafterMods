@@ -183,6 +183,10 @@ namespace FeatMultiplayer
 
                         spi.doRespawn = () =>
                         {
+                            if (!__instance.gameObject.activeInHierarchy)
+                            {
+                                return;
+                            }
                             ___instantiatedGameObjects.Remove(spawn);
 
                             machineOutsideGrowerInstantiateAtRandomPosition.Invoke(__instance, new object[] { _objectToInstantiate, false });
@@ -192,14 +196,11 @@ namespace FeatMultiplayer
                             __instance.StartCoroutine(enumer);
                         };
 
-                        ag.grabedEvent = (Grabed)Delegate.Combine(
-                            new Grabed(wo => OnGrabSpawn(spi.machineId, id, spi.doRespawn)),
-                            ag.grabedEvent
-                        );
+                        ag.grabedEvent = new Grabed(wo => OnGrabSpawn(spi.machineId, id, spi.doRespawn));
                     }
                     ___instantiatedGameObjects.Add(spawn);
 
-                    LogInfo("MachineOutsideGrower: Spawn new " + spi.machineId + ", " + id);
+                    LogInfo("MachineOutsideGrower: Spawn new " + spi.machineId + ", " + id/* + "\n" + Environment.StackTrace*/);
                     SendAllClients(new MessageGrowAdd()
                     {
                         machineId = spi.machineId,
@@ -342,6 +343,11 @@ namespace FeatMultiplayer
                                 {
                                     tree.UpdateConditions();
                                 }
+                                var ag0 = espawn.GetComponent<ActionGrabable>();
+                                if (ag0 != null)
+                                {
+                                    ag0.SetCanGrab(mga.growth >= mga.growSize);
+                                }
                                 return;
                             }
                         }
@@ -408,7 +414,8 @@ namespace FeatMultiplayer
                                     if (woa != null)
                                     {
                                         WorldObject woSpawn = woa.GetWorldObject();
-                                        LogWarning("ReceiveMessageGrowRemove: Grabbing: " + mgr.machineId + " -> "
+                                        woSpawn.ResetPositionAndRotation();
+                                        LogInfo("ReceiveMessageGrowRemove: Grabbing: " + mgr.machineId + " -> "
                                             + mgr.spawnId + " -> " + DebugWorldObject(woSpawn));
 
                                         SendWorldObjectToClients(woSpawn, false);
@@ -420,6 +427,11 @@ namespace FeatMultiplayer
                                             mgr.sender.Signal();
 
                                             sid.doRespawn?.Invoke();
+                                            var ag = sid.GetComponent<ActionGrabable>();
+                                            if (ag != null)
+                                            {
+                                                ag.grabedEvent = null; // prevent duplicate spawns because of ActionGrabable::OnDestroy
+                                            }
                                             Destroy(spawn.gameObject);
                                         }
                                         else
@@ -431,7 +443,7 @@ namespace FeatMultiplayer
                                 }
                                 else
                                 {
-                                    LogWarning("ReceiveMessageGrowRemove: Removing: " + mgr.machineId + " -> " + mgr.spawnId);
+                                    LogInfo("ReceiveMessageGrowRemove: Removing: " + mgr.machineId + " -> " + mgr.spawnId);
                                     Destroy(spawn.gameObject);
                                 }
                                 return;
