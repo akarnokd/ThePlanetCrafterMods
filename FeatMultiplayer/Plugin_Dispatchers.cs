@@ -286,6 +286,11 @@ namespace FeatMultiplayer
                 Receive(cc, mee);
             }
             else
+            if (MessageStoryEvents.TryParse(message, out var mse))
+            {
+                Receive(cc, mse);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -577,6 +582,11 @@ namespace FeatMultiplayer
                 case MessageEmote mee:
                     {
                         ReceiveMessageEmote(mee);
+                        break;
+                    }
+                case MessageStoryEvents mse:
+                    {
+                        ReceiveMessageStoryEvents(mse);
                         break;
                     }
                 default:

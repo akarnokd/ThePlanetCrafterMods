@@ -68,6 +68,16 @@ namespace FeatMultiplayer
         static void SendStoryEvents()
         {
             // TODO maybe if there will be other event types in the future (message, meteor).
+            var seh = Managers.GetManager<StoryEventsHandler>();
+
+            var mse = new MessageStoryEvents();
+            mse.eventIds = new();
+
+            foreach (var se in seh.GetTriggeredStoryEvents())
+            {
+                mse.eventIds.Add(se.storyEventData.id);
+            }
+            SendAllClients(mse);
         }
 
         static void ReceiveMessageMessages(MessageMessages mm)
@@ -114,6 +124,24 @@ namespace FeatMultiplayer
             {
                 LogWarning("ReceiveMessageMessageAdd: Unknown message " + mma.messageId);
             }
+        }
+
+        static void ReceiveMessageStoryEvents(MessageStoryEvents mse)
+        {
+            if (updateMode != MultiplayerMode.CoopClient)
+            {
+                return;
+            }
+            var seh = Managers.GetManager<StoryEventsHandler>();
+
+            List<StoryEvent> list = new();
+            foreach (var id in mse.eventIds)
+            {
+                var sed = seh.GetStoryEventDataViaId(id);
+                list.Add(new StoryEvent(sed));
+            }
+
+            seh.SetTriggeredEvents(list);
         }
     }
 }
