@@ -122,6 +122,7 @@ namespace FeatMultiplayer
         static FieldInfo machineGrowerIfLinkedGroupWorldObject;
         static MethodInfo machineGrowerIfLinkedGroupSetInteractiveStatus;
         static FieldInfo uiWindowGroupSelectorWorldObject;
+        static FieldInfo worldUnitsPositioningHandlerAllWorldUnitPositionings;
         /// <summary>
         /// PlayerEquipment.hasCleanConstructionChip
         /// </summary>
@@ -159,6 +160,7 @@ namespace FeatMultiplayer
 
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
 
+            worldUnitsPositioningHandlerAllWorldUnitPositionings = AccessTools.Field(typeof(WorldUnitPositioningHandler), "allWorldUnitPositionings");
         }
 
     }
