@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.9")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.10")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -172,6 +172,7 @@ namespace CheatAutoHarvest
                                                 wo.SetDontSaveMe(false);
 
                                                 ___instantiatedGameObjects.Remove(go);
+                                                ag.grabedEvent = null; // prevent respawn duplication due to ActionGrabable::OnDestroy
                                                 UnityEngine.Object.Destroy(go);
 
                                                 // from OnGrabedAGrowing to avoid reentrance
