@@ -6,7 +6,7 @@ using BepInEx.Configuration;
 
 namespace UIShowGrabNMineCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", "1.0.0.5")]
     [BepInDependency("akarnokd.theplanetcraftermods.featmultiplayer", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -79,14 +79,14 @@ namespace UIShowGrabNMineCount
         }
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ActionGrabable), "Grab")]
-        static void ActionGrabable_Grab_Post(PlayerMainController ___playerSource)
+        static void ActionGrabable_Grab_Post(bool ___canGrab, PlayerMainController ___playerSource)
         {
             if (isEnabled.Value)
             {
                 WorldObject worldObject = toGrab;
                 toGrab = null;
 
-                if (worldObject != null)
+                if (worldObject != null && ___canGrab)
                 {
                     ShowInventoryAdded(worldObject, ___playerSource.GetPlayerBackpack().GetInventory());
                 }
