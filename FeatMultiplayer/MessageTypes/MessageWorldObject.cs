@@ -44,7 +44,7 @@ namespace FeatMultiplayer.MessageTypes
             }
             sb.Append(MessageHelper.ColorToString(wo.GetColor())); // 6
             sb.Append(separator);
-            sb.Append(wo.GetText()); // 7
+            MessageHelper.EncodeText(wo.GetText(), sb); // 7
             sb.Append(separator);
             sb.Append(DataTreatments.IntListToString(wo.GetPanelsId())); // 8
             sb.Append(separator);
@@ -88,7 +88,7 @@ namespace FeatMultiplayer.MessageTypes
             }
             sb.Append(MessageHelper.ColorToString(wo.color)); // 6
             sb.Append(separator);
-            sb.Append(wo.text); // 7
+            MessageHelper.EncodeText(wo.text, sb); // 7
             sb.Append(separator);
             sb.Append(DataTreatments.IntListToString(wo.panelIds)); // 8
             sb.Append(separator);
@@ -117,7 +117,7 @@ namespace FeatMultiplayer.MessageTypes
                 mwo.position = DataTreatments.StringToVector3(objs[offset + 4]);
                 mwo.rotation = DataTreatments.StringToQuaternion(objs[offset + 5]);
                 mwo.color = MessageHelper.StringToColor(objs[offset + 6]);
-                mwo.text = objs[offset + 7];
+                mwo.text = MessageHelper.DecodeText(objs[offset + 7]);
 
                 mwo.panelIds = new();
                 if (objs[offset + 8].Length > 0)
@@ -136,7 +136,7 @@ namespace FeatMultiplayer.MessageTypes
             } 
             else
             {
-                Plugin.LogWarning("Invalid MessageWorldObject: " + objs.Length + " | " + offset);
+                Plugin.LogWarning("Invalid MessageWorldObject: " + objs.Length + " | " + offset + "\n" + string.Join("|", objs));
             }
             mwo = null;
             return false;

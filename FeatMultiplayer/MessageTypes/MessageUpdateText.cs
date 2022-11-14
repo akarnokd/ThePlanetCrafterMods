@@ -21,7 +21,7 @@ namespace FeatMultiplayer.MessageTypes
                     {
                         mut = new MessageUpdateText();
                         mut.id = int.Parse(parameters[1]);
-                        mut.text = parameters[2];
+                        mut.text = MessageHelper.DecodeText(parameters[2]);
                         return true;
                     }
                     catch (Exception ex)
@@ -40,7 +40,13 @@ namespace FeatMultiplayer.MessageTypes
 
         public override string GetString()
         {
-            return "UpdateText|" + id + "|" + text + "\n";
+            StringBuilder sb = new();
+            sb.Append("UpdateText|");
+            sb.Append(id);
+            sb.Append('|');
+            MessageHelper.EncodeText(text, sb);
+            sb.Append('\n');
+            return sb.ToString();
         }
     }
 }

@@ -94,5 +94,86 @@ namespace FeatMultiplayer.MessageTypes
                 float.Parse(parts[3], CultureInfo.InvariantCulture)
             );
         }
+
+        /// <summary>
+        /// Encode world object text by replacing semicolos, pipes, backslashes and newlines with escape sequences.
+        /// </summary>
+        /// <param name="text">the text to encode</param>
+        /// <param name="sb">the output for the encoded text</param>
+        internal static void EncodeText(string text, StringBuilder sb)
+        {
+            if (!string.IsNullOrEmpty(text))
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    char c = text[i];
+                    if (c == ';')
+                    {
+                        sb.Append("\\s");
+                    }
+                    else if (c == '|')
+                    {
+                        sb.Append("\\p");
+                    }
+                    else if (c == '\\')
+                    {
+                        sb.Append("\\b");
+                    }
+                    else if (c == '\n')
+                    {
+                        sb.Append("\\n");
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Decode world object text from its message-encoded format by replacing \s with semicolon, \p with pipe,
+        /// \b with backslash and \n with newline.
+        /// </summary>
+        /// <param name="text">The text to decode.</param>
+        /// <returns>The decoded text.</returns>
+        internal static string DecodeText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+            StringBuilder sb = new(text.Length + 1);
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '\\')
+                {
+                    c = text[i + 1];
+                    if (c == 's')
+                    {
+                        sb.Append(';');
+                    }
+                    else if (c == 'p')
+                    {
+                        sb.Append('|');
+                    }
+                    else if (c == 'b')
+                    {
+                        sb.Append('\\');
+                    }
+                    else if (c == 'n')
+                    {
+                        sb.Append('\n');
+                    }
+                    i++;
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
     }
 }
