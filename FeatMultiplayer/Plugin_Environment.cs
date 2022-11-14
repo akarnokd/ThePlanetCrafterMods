@@ -231,12 +231,24 @@ namespace FeatMultiplayer
 
                     //LogInfo("WorldUnitPositioning-Before: " + wup.transform.position);
 
-                    worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
-                    worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
-                    wup.UpdateEvolutionPositioning();
+                    ForceUpdateWorldUnitPositioning(wup, wuh);
 
                     //LogInfo("WorldUnitPositioning-After: " + wup.transform.position);
                 }
+
+                var wuph = Managers.GetManager<WorldUnitPositioningHandler>();
+                List<WorldUnitPositioning> wups = (List<WorldUnitPositioning>)worldUnitsPositioningHandlerAllWorldUnitPositionings.GetValue(wuph);
+                foreach (var wup in wups)
+                {
+                    ForceUpdateWorldUnitPositioning(wup, wuh);
+                }
+            }
+
+            static void ForceUpdateWorldUnitPositioning(WorldUnitPositioning wup, WorldUnitsHandler wuh)
+            {
+                worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
+                worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
+                wup.UpdateEvolutionPositioning();
             }
         }
     }
