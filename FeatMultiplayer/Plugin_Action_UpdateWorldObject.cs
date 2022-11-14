@@ -244,6 +244,15 @@ namespace FeatMultiplayer
                     }
                 }
 
+                var go = wo.GetGameObject();
+                if (go != null) {
+                    var linkedScreen = go.GetComponentInChildren<ScreenShowLinkedGroup>();
+                    if (linkedScreen != null)
+                    {
+                        linkedScreen.SetGroupSelectedImage(wo);
+                    }
+                }
+
                 if (updateMode == MultiplayerMode.CoopHost)
                 {
                     SendAllClientsExcept(mslg.sender.id, mslg);
