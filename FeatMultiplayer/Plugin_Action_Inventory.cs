@@ -720,6 +720,7 @@ namespace FeatMultiplayer
                         }
                     case DataConfig.EquipableType.CompassHUD:
                         {
+                            playerEquipmentHasCompassChip.SetValue(_playerController.GetPlayerEquipment(), true);
                             Managers.GetManager<CanvasCompass>().SetStatus(true);
                             break;
                         }
@@ -766,6 +767,7 @@ namespace FeatMultiplayer
             }
             if (!equipTypes.Contains(DataConfig.EquipableType.CompassHUD))
             {
+                playerEquipmentHasCompassChip.SetValue(player.GetPlayerEquipment(), false);
                 var cc = Managers.GetManager<CanvasCompass>();
                 cc.SetStatus(false);
             }

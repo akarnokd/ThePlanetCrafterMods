@@ -127,6 +127,10 @@ namespace FeatMultiplayer
         /// PlayerEquipment.hasCleanConstructionChip
         /// </summary>
         static FieldInfo playerEquipmentHasCleanConstructionChip;
+        /// <summary>
+        /// PlayerEquipment.hasCompassChip
+        /// </summary>
+        static FieldInfo playerEquipmentHasCompassChip;
 
         static void InitReflectiveAccessors()
         {
@@ -159,6 +163,7 @@ namespace FeatMultiplayer
             uiWindowGroupSelectorWorldObject = AccessTools.Field(typeof(UiWindowGroupSelector), "worldObject");
 
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+            playerEquipmentHasCompassChip = AccessTools.Field(typeof(PlayerEquipment), "hasCompassChip");
 
             worldUnitsPositioningHandlerAllWorldUnitPositionings = AccessTools.Field(typeof(WorldUnitPositioningHandler), "allWorldUnitPositionings");
         }
