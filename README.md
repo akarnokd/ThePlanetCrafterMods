@@ -435,6 +435,8 @@ You can also make the water and methane extractors deposit remotely by naming co
 
 - `*WaterBottle1`, `*OxygenCapsule1`, `*MethanCapsule1`
 
+Biodome T2 generated tree barks can be deposited remotely too via `*TreeRoot`.
+
 With Insects & Waterfalls update, the mod also works with Silk generators:
 
 - `*Silk`
