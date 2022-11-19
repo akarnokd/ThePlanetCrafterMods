@@ -981,6 +981,11 @@ namespace FeatCommandConsole
 
                 string filename = string.Format("{0}/{1}.json", Application.persistentDataPath, "CommandConsole_Locations.txt");
 
+                if (!File.Exists(filename))
+                {
+                    filename = string.Format("{0}/{1}", Application.persistentDataPath, "CommandConsole_Locations.txt");
+                }
+
                 if (File.Exists(filename))
                 {
                     foreach (var line in File.ReadAllLines(filename))
@@ -1008,7 +1013,7 @@ namespace FeatCommandConsole
         {
             if (savedTeleportLocations != null)
             {
-                string filename = string.Format("{0}/{1}.json", Application.persistentDataPath, "CommandConsole_Locations.txt");
+                string filename = string.Format("{0}/{1}", Application.persistentDataPath, "CommandConsole_Locations.txt");
 
                 List<string> lines = new();
 

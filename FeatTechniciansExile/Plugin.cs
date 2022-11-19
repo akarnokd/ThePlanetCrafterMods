@@ -20,7 +20,7 @@ using TMPro;
 
 namespace FeatTechniciansExile
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.2")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -184,14 +184,8 @@ namespace FeatTechniciansExile
                     technicianWorldObjectIdStart);
                 escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
                 escapePod.SetDontSaveMe(false);
+                escapePod.SetLinkedInventoryId(InventoriesHandler.CreateNewInventory(12).GetId());
                 var go = WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
-
-                var ia = go.GetComponentInChildren<InventoryAssociated>();
-                var iai = ia.GetInventory();
-                foreach (var item in new List<WorldObject>(iai.GetInsideWorldObjects()))
-                {
-                    WorldObjectsHandler.DestroyWorldObject(item);
-                }
             }
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
