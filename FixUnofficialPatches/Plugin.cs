@@ -124,7 +124,7 @@ namespace FixUnofficialPatches
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineFloater), "SetReferencePositionOnSurface")]
-        static bool MachineFloater_SetReferencePositionOnSurface(MachineFloater __instance, 
+        static bool MachineFloater_SetReferencePositionOnSurface(MachineFloater __instance,
             ref Vector3 ___referencePosition,
             WorldObjectAssociated ___worldObjectAsso)
         {
@@ -156,5 +156,14 @@ namespace FixUnofficialPatches
         {
             return Managers.GetManager<PlayersManager>()?.GetActivePlayerController() != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineConvertRecipe), nameof(MachineConvertRecipe.CheckIfFullyGrown))]
+        static bool MachineConvertRecipe_CheckIfFullyGrown(
+            WorldObject ___worldObject
+        )
+        {
+            return ___worldObject != null;
+        }
     }
-}
+    }

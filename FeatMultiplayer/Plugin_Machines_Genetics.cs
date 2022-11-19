@@ -305,7 +305,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                if (___worldObject.GetGrowth() >= 100f)
+                if (___worldObject != null && ___worldObject.GetGrowth() >= 100f)
                 {
                     var linkedGroups = ___worldObject.GetLinkedGroups();
                     if (linkedGroups != null && linkedGroups.Count != 0)
