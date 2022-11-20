@@ -166,4 +166,4 @@ namespace FixUnofficialPatches
             return ___worldObject != null;
         }
     }
-    }
+}

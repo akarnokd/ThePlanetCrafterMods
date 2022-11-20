@@ -64,6 +64,9 @@ namespace CheatTeleportNearestMinable
             "Butterfly13Larvae",
             "Butterfly141Larvae",
             "Butterfly15Larvae",
+            "Butterfly16Larvae",
+            "Butterfly17Larvae",
+            "Butterfly18Larvae"
         });
 
         private void Awake()
