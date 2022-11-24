@@ -1270,7 +1270,7 @@ The translation was kindly provided by **Odo** (Discord: Odo#3718).
 
 :information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Czech myself.
 
-:it:
+:cz:
 
 Záplatuje štítky a umožňuje přepínání do češtiny ("česky") na obrazovce možností hry. Upozorňujeme, že některé štítky se při prvním přepnutí do češtiny nezmění. Toto je chyba v uživatelském rozhraní vanilkové hry a lze ji vyřešit restartováním hry.
 
