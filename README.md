@@ -60,6 +60,7 @@ by deleting the directory itself.
 
 - [Beacon Text](#ui-beacon-text)
 - [Craft Equipment Inplace](#ui-craft-equipment-inplace)
+- [Český překlad](#ui-cesky-preklad) (Czech translation)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
 - [Hotbar](#ui-hotbar)
@@ -1255,6 +1256,27 @@ The translation was kindly provided by [Lorenza](https://github.com/LorenzaMX) (
 Patch nelle etichette e abilita il passaggio all'italiano ("Italiano") nella schermata delle opzioni del gioco. Si noti che alcune etichette non cambiano quando si passa all'italiano per la prima volta. Questo è un bug nell'interfaccia utente del gioco vanilla e può essere risolto riavviando il gioco.
 
 La traduzione è stata gentilmente fornita da [Lorenza](https://github.com/LorenzaMX) (Discord: 𝕷𝖔𝖗𝖊𝖓𝖟𝖆#8158).
+
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
+
+## (UI) Czech Translation
+
+Patches in labels and enables switching to Czech ("") in the game's options screen. Note that some labels do not change when switching to Czech the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
+
+The translation was kindly provided by [Odo]() (Discord: Odo#3718).
+
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Czech myself.
+
+:it:
+
+Záplatuje štítky a umožňuje přepínání do češtiny ("česky") na obrazovce možností hry. Upozorňujeme, že některé štítky se při prvním přepnutí do češtiny nezmění. Toto je chyba v uživatelském rozhraní vanilkové hry a lze ji vyřešit restartováním hry.
+
+Překlad laskavě poskytl [Odo]() (Discord: Odo#3718).
+
+:information_source: Pokud narazíte na problém s překladem, poskytněte mi prosím zpětnou vazbu v **angličtině**, protože sám neumím česky.
 
 
 ### Configuration
