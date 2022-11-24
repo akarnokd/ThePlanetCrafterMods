@@ -1266,7 +1266,7 @@ Only diagnostic options. Not relevant for the player.
 
 Patches in labels and enables switching to Czech ("") in the game's options screen. Note that some labels do not change when switching to Czech the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
 
-The translation was kindly provided by [Odo]() (Discord: Odo#3718).
+The translation was kindly provided by **Odo** (Discord: Odo#3718).
 
 :information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Czech myself.
 
@@ -1274,7 +1274,7 @@ The translation was kindly provided by [Odo]() (Discord: Odo#3718).
 
 Záplatuje štítky a umožňuje přepínání do češtiny ("česky") na obrazovce možností hry. Upozorňujeme, že některé štítky se při prvním přepnutí do češtiny nezmění. Toto je chyba v uživatelském rozhraní vanilkové hry a lze ji vyřešit restartováním hry.
 
-Překlad laskavě poskytl [Odo]() (Discord: Odo#3718).
+Překlad laskavě poskytl **Odo** (Discord: Odo#3718).
 
 :information_source: Pokud narazíte na problém s překladem, poskytněte mi prosím zpětnou vazbu v **angličtině**, protože sám neumím česky.
 

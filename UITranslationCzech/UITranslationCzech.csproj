@@ -53,10 +53,10 @@
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  
 	  
-    <Copy SourceFiles="$(SourceDir)labels-it.txt" DestinationFolder="$(Destination1)" />
-	<Copy SourceFiles="$(SourceDir)labels-it.txt" DestinationFolder="$(Destination2)" />
-	<Copy SourceFiles="$(SourceDir)labels-it.txt" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)labels-it.txt" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)labels-cz.txt" DestinationFolder="$(Destination1)" />
+	<Copy SourceFiles="$(SourceDir)labels-cz.txt" DestinationFolder="$(Destination2)" />
+	<Copy SourceFiles="$(SourceDir)labels-cz.txt" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)labels-cz.txt" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
