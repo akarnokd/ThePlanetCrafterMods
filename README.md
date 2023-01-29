@@ -7,6 +7,8 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 ## Version <a href='https://github.com/akarnokd/ThePlanetCrafterMods/releases'><img src='https://img.shields.io/github/v/release/akarnokd/ThePlanetCrafterMods' alt='Latest GitHub Release Version'/></a>
 
+[![Github All Releases](https://img.shields.io/github/downloads/akarnokd/ThePlanetCrafterMods/total.svg)](https://github.com/akarnokd/ThePlanetCrafterMods/releases)
+
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
 ## Supported Game Version: 0.6.008
