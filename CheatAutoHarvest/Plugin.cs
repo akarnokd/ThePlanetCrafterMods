@@ -312,6 +312,7 @@ namespace CheatAutoHarvest
         {
             if (isFullStacked != null)
             {
+                // fine, machines always stack for now
                 return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), wo.GetGroup().GetId());
             }
             return inv.IsFull();

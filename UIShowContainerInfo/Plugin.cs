@@ -20,7 +20,8 @@ namespace UIShowContainerInfo
         /// </summary>
         static Func<List<WorldObject>, int> getStackCount;
 
-        static ConfigEntry<int> stackSize;
+        static ConfigEntry<int> stackSizeConfig;
+        static HashSet<int> noStackingInventories;
 
         private void Awake()
         {
@@ -32,7 +33,8 @@ namespace UIShowContainerInfo
                 MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", new Type[] { typeof(List<WorldObject>) });
                 getStackCount = AccessTools.MethodDelegate<Func<List<WorldObject>, int>>(mi, null);
 
-                stackSize = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
+                stackSizeConfig = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
+                noStackingInventories = (HashSet<int>)AccessTools.Field(pi.Instance.GetType(), "noStackingInventories").GetValue(null);
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -57,10 +59,10 @@ namespace UIShowContainerInfo
                 int count = inv.Count;
                 int size = inventory.GetSize();
 
-                if (getStackCount != null)
+                if (getStackCount != null && !noStackingInventories.Contains(inventory.GetId()))
                 {
                     int stacks = getStackCount(inv);
-                    int slotSize = stackSize.Value;
+                    int slotSize = stackSizeConfig.Value;
                     text += custom + "  [  " + stacks + "  /  " + size + "  --  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
                     if (count >= size * slotSize)
                     {

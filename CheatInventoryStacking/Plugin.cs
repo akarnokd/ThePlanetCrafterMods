@@ -31,6 +31,14 @@ namespace CheatInventoryStacking
 
         static ManualLogSource logger;
 
+        static readonly HashSet<int> noStackingInventories = new()
+        {
+            109441691, // altar at the door in the mushroom cave
+            108035701, // altar in the super alloy cave
+            109811866, // altar at the entrance to paradise canyon with 3 slots
+            101767269, // altar at the entrance to the last building in the city with 5 slots
+        };
+
         public static Func<string> getMultiplayerMode;
 
         private void Awake()
@@ -96,6 +104,42 @@ namespace CheatInventoryStacking
             }
 
             return stacks > inventorySize;
+        }
+
+        /// <summary>
+        /// Returns the number of stacks in the given inventory.
+        /// </summary>
+        /// <param name="inventory">The target inventory</param>
+        /// <returns>The number of stacks occupied by the list of items.</returns>
+        public static int GetStackCount(Inventory inventory)
+        {
+            if (noStackingInventories.Contains(inventory.GetId()))
+            {
+                return inventory.GetInsideWorldObjects().Count;
+            }
+            return GetStackCount(inventory.GetInsideWorldObjects());
+        }
+
+        /// <summary>
+        /// Checks if the given inventory is full or not if one tries to add the optional item indicated by
+        /// its group id.
+        /// </summary>
+        /// <param name="inventory">The target inventory.</param>
+        /// <param name="gid">The optional item group id to check if it can be added or not.</param>
+        /// <returns>True if the list is full.</returns>
+        public static bool IsFullStacked(Inventory inventory, string gid = null)
+        {
+            if (noStackingInventories.Contains(inventory.GetId()))
+            {
+                int count = inventory.GetInsideWorldObjects().Count;
+                if (gid != null)
+                {
+                    count++;
+                }
+                return count > inventory.GetSize();
+            }
+
+            return IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), gid);
         }
 
         // --------------------------------------------------------------------------------------------------------
@@ -165,9 +209,9 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
-        static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize)
+        static bool Inventory_IsFull(ref bool __result, List<WorldObject> ___worldObjectsInInventory, int ___inventorySize, int ___inventoryId)
         {
-            if (stackSize.Value > 1)
+            if (stackSize.Value > 1 && !noStackingInventories.Contains(___inventoryId))
             {
                 string gid = expectedGroupIdToAdd;
                 expectedGroupIdToAdd = null;
@@ -230,7 +274,7 @@ namespace CheatInventoryStacking
             ref Vector2 ___originalSizeDelta, Inventory ___inventoryInteracting)
         {
             int n = stackSize.Value;
-            if (n > 1)
+            if (n > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
                 int fs = fontSize.Value;
 
@@ -373,7 +417,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.OnMoveAll))]
         static bool InventoryDisplayer_OnMoveAll(Inventory ___inventory)
         {
-            if (stackSize.Value > 1)
+            if (stackSize.Value > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
                 // The original always tries to move the 0th inventory item so
                 // when that has no room in the target, the 1st, 2nd etc items wouldn't move either
@@ -403,7 +447,8 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
         static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
         {
-            if (stackSize.Value > 1)
+            var n = stackSize.Value;
+            if (n > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
                 if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
                 {
@@ -416,7 +461,7 @@ namespace CheatInventoryStacking
                             Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
                             if (___inventory != null && otherInventory != null)
                             {
-                                List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), stackSize.Value);
+                                List<List<WorldObject>> slots = CreateInventorySlots(___inventory.GetInsideWorldObjects(), n);
 
                                 foreach (List<WorldObject> wos in slots)
                                 {

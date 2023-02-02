@@ -871,6 +871,7 @@ namespace FeatMultiplayer
         {
             if (getStackCount != null)
             {
+                // fine, always run against the player's inventory which always stacks
                 return inv.GetSize() < getStackCount(inv.GetInsideWorldObjects());
             }
             return inv.IsFull();

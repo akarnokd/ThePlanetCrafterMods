@@ -96,6 +96,7 @@ namespace CheatMachineRemoteDeposit
         {
             if (isFullStacked != null)
             {
+                // fine, machines always stack for now
                 return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), gid);
             }
             return inv.IsFull();
