@@ -648,7 +648,8 @@ namespace CheatInventoryStacking
             return true;
         }
 
-        static Group GenerateOre(List<GroupData> ___groupDatas,
+        static Group GenerateOre(
+            List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
             WorldObject ___worldObject,
             List<GroupData> ___groupDatasTerraStage,

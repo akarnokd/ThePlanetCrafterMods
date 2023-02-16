@@ -134,6 +134,8 @@ namespace FeatMultiplayer
 
         static FieldInfo meteoHandlerMeteoEvents;
 
+        static FieldInfo playerEquipmentHasDeconstructT2;
+
         static void InitReflectiveAccessors()
         {
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -170,6 +172,8 @@ namespace FeatMultiplayer
             worldUnitsPositioningHandlerAllWorldUnitPositionings = AccessTools.Field(typeof(WorldUnitPositioningHandler), "allWorldUnitPositionings");
 
             meteoHandlerMeteoEvents = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
+
+            playerEquipmentHasDeconstructT2 = AccessTools.Field(typeof(PlayerEquipment), "hasDeconstructT2");
         }
 
     }

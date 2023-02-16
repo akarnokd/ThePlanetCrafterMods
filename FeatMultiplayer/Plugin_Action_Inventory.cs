@@ -710,6 +710,12 @@ namespace FeatMultiplayer
                     case DataConfig.EquipableType.MultiToolDeconstruct:
                         {
                             _playerController.GetMultitool().AddEnabledState(DataConfig.MultiToolState.Deconstruct);
+
+                            if (groupItem.GetGroupValue() == 2)
+                            {
+                                playerEquipmentHasDeconstructT2.SetValue(_playerController.GetPlayerEquipment(), true);
+                            }
+
                             break;
                         }
                     case DataConfig.EquipableType.MultiToolBuild:
@@ -756,6 +762,8 @@ namespace FeatMultiplayer
                 {
                     mt.RemoveEnabledState(DataConfig.MultiToolState.Deconstruct);
                 }
+                // FIXME may need to be conditional???
+                playerEquipmentHasDeconstructT2.SetValue(player.GetPlayerEquipment(), false);
             }
             if (!equipTypes.Contains(DataConfig.EquipableType.MultiToolLight))
             {

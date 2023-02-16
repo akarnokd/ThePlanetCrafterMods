@@ -22,17 +22,13 @@ namespace FeatMultiplayer
         /// </summary>
         static bool modMachineRemoteDeposit;
 
-        /// <summary>
-        /// With 0.6.001, some machines can now generate items from the linked groups of the
-        /// machine's world object.
-        /// </summary>
-        /// <param name="___groupDatas">The location's generator list</param>
-        /// <param name="___setGroupsDataViaLinkedGroup">Should the linked groups used for generating ore?</param>
-        /// <param name="___worldObject">The machine's world object</param>
-        /// <returns>The generated ore id or null if nothing is generated</returns>
-        static string GenerateOre(List<GroupData> ___groupDatas,
+        static string GenerateOre(
+            List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             // Since 0.6.001
             if (___setGroupsDataViaLinkedGroup)
@@ -40,13 +36,21 @@ namespace FeatMultiplayer
                 var linkedGroups = ___worldObject.GetLinkedGroups();
                 if (linkedGroups != null && linkedGroups.Count != 0)
                 {
-                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].GetId();
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].id;
                 }
                 return null;
             }
             if (___groupDatas.Count != 0)
             {
-                return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+                // Since 0.7.001
+                var groupDatasCopy = new List<GroupData>(___groupDatas);
+                if (___groupDatasTerraStage.Count != 0
+                    && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                {
+                    groupDatasCopy.AddRange(___groupDatasTerraStage);
+                }
+
+                return groupDatasCopy[UnityEngine.Random.Range(0, groupDatasCopy.Count)].id;
             }
             return null;
         }
@@ -73,7 +77,10 @@ namespace FeatMultiplayer
             List<GroupData> ___groupDatas, 
             Inventory ___inventory,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             if (!modMachineRemoteDeposit)
             {
@@ -86,7 +93,8 @@ namespace FeatMultiplayer
                         LogInfo("MachineGenerator_GenerateAnObject:   " + gr.id);
                     }
                     */
-                    string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
+                    string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject,
+                    ___groupDatasTerraStage, ___worldUnitsHandler, ___terraStage);
                     if (oreId != null)
                     {
                         LogInfo("MachineGenerator_GenerateAnObject: Generated " + oreId);
