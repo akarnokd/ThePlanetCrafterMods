@@ -2,7 +2,6 @@
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using MijuTools;
 
 namespace UIShowPlayerTooltipItemCount
 {

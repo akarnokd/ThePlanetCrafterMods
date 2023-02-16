@@ -9,7 +9,6 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System;
-using MijuTools;
 
 namespace FixUnofficialPatches
 {

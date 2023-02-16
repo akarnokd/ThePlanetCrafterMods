@@ -3,7 +3,6 @@ using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
-using MijuTools;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;

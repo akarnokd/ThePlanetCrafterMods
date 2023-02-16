@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -270,6 +269,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
         static bool InventoryDisplayer_TrueRefreshContent(
             InventoryDisplayer __instance,
+            LogisticManager ___logisticManager,
             Inventory ___inventory, GridLayoutGroup ___grid, int ___selectionIndex,
             ref Vector2 ___originalSizeDelta, Inventory ___inventoryInteracting)
         {
@@ -309,6 +309,8 @@ namespace CheatInventoryStacking
 
                 List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
                 Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
+
+                bool logisticFlag = ___logisticManager.GetGlobalLogisticsEnabled() && ___inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
 
                 __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<PlayModeHandler>().GetIsFreePlay());
 
@@ -388,6 +390,12 @@ namespace CheatInventoryStacking
                                 onDropViaGamepadDelegate
                             );
                         }
+
+                        if (logisticFlag)
+                        {
+                            component.SetLogisticStatus(___logisticManager.WorldObjectIsInTasks(worldObject));
+                        }
+
                     }
                     gameObject.SetActive(true);
                     if (i == ___selectionIndex && (___inventoryInteracting == null || ___inventoryInteracting == ___inventory))
@@ -642,7 +650,10 @@ namespace CheatInventoryStacking
 
         static Group GenerateOre(List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             // Since 0.6.001
             if (___setGroupsDataViaLinkedGroup)
@@ -656,8 +667,16 @@ namespace CheatInventoryStacking
             }
             if (___groupDatas.Count != 0)
             {
+                // Since 0.7.001
+                var groupDatasCopy = new List<GroupData>(___groupDatas);
+                if (___groupDatasTerraStage.Count != 0 
+                    && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                {
+                    groupDatasCopy.AddRange(___groupDatasTerraStage);
+                }
+
                 return GroupsHandler.GetGroupViaId(
-                            ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+                            groupDatasCopy[UnityEngine.Random.Range(0, groupDatasCopy.Count)].id);
             }
             return null;
         }
@@ -667,12 +686,16 @@ namespace CheatInventoryStacking
         static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, 
             List<GroupData> ___groupDatas, 
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             if (!Chainloader.PluginInfos.ContainsKey(cheatMachineRemoteDepositGuid)
                 && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
             {
-                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
+                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject,
+                    ___groupDatasTerraStage, ___worldUnitsHandler, ___terraStage);
 
                 if (group != null)
                 {

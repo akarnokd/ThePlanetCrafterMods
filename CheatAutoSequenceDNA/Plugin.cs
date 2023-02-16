@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -228,7 +227,7 @@ namespace CheatAutoSequenceDNA
                     {
                         log("    Picking Recipe");
 
-                        var spawnTarget = PickRecipe(DataConfig.CraftableIn.CraftInsectsT1);
+                        var spawnTarget = PickRecipe(DataConfig.CraftableIn.CraftIncubatorT1);
 
                         if (spawnTarget != null)
                         {

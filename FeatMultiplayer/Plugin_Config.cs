@@ -132,6 +132,8 @@ namespace FeatMultiplayer
         /// </summary>
         static FieldInfo playerEquipmentHasCompassChip;
 
+        static FieldInfo meteoHandlerMeteoEvents;
+
         static void InitReflectiveAccessors()
         {
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -166,6 +168,8 @@ namespace FeatMultiplayer
             playerEquipmentHasCompassChip = AccessTools.Field(typeof(PlayerEquipment), "hasCompassChip");
 
             worldUnitsPositioningHandlerAllWorldUnitPositionings = AccessTools.Field(typeof(WorldUnitPositioningHandler), "allWorldUnitPositionings");
+
+            meteoHandlerMeteoEvents = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
         }
 
     }

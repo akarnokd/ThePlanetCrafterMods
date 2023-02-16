@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections;
@@ -10,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using FeatMultiplayer.MessageTypes;
+using System.Reflection;
 
 namespace FeatMultiplayer
 {
@@ -633,7 +633,7 @@ namespace FeatMultiplayer
             }
             else
             {
-                mes = mh.meteoEvents;
+                mes = (meteoHandlerMeteoEvents.GetValue(mh) as List<MeteoEventData>);
             }
             var meteoEvent = mes[mas.eventIndex];
 
@@ -671,7 +671,7 @@ namespace FeatMultiplayer
             }
             else
             {
-                mes = mh.meteoEvents;
+                mes = (meteoHandlerMeteoEvents.GetValue(mh) as List<MeteoEventData>);
             }
 
             var me = mes[mme.eventIndex];
@@ -681,9 +681,10 @@ namespace FeatMultiplayer
         static void LaunchAllMeteorEvents()
         {
             var mh = Managers.GetManager<MeteoHandler>();
-            for (int i = 0; i < mh.meteoEvents.Count; i++)
+            var mes = (meteoHandlerMeteoEvents.GetValue(mh) as List<MeteoEventData>);
+            for (int i = 0; i < mes.Count; i++)
             {
-                MeteoEventData me = mh.meteoEvents[i];
+                MeteoEventData me = mes[i];
                 mh.QueueMeteoEvent(me);
             }
             var mss = mh.GetComponent<MeteoSendInSpace>();

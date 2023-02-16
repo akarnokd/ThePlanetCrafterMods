@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
 using System.Diagnostics;
-using MijuTools;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
@@ -1734,7 +1733,7 @@ namespace FeatCommandConsole
             Dictionary<string, List<string>> larvaeToSequenceInto = new();
             foreach (var gr in GroupsHandler.GetAllGroups())
             {
-                if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftInsectsT1))
+                if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
                 {
                     var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
                     foreach (var rgi in recipe)

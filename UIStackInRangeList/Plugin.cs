@@ -7,7 +7,6 @@ using BepInEx.Logging;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Reflection;
-using MijuTools;
 using BepInEx.Configuration;
 using System;
 using System.ComponentModel;

@@ -4,7 +4,6 @@ using HarmonyLib;
 using UnityEngine.EventSystems;
 using BepInEx.Logging;
 using System.Reflection;
-using MijuTools;
 
 namespace UIDontCloseCraftWindow
 {

@@ -50,8 +50,8 @@ namespace UIShowContainerInfo
             {
                 custom = " \"" + woText.GetText() + "\" ";
             }
-            string text = Readable.GetGroupName(Components.GetComponentOnGameObjectOrInParent<WorldObjectAssociated>(__instance.gameObject).GetWorldObject().GetGroup());
-            InventoryAssociated componentOnGameObjectOrInParent = Components.GetComponentOnGameObjectOrInParent<InventoryAssociated>(__instance.gameObject);
+            string text = Readable.GetGroupName(__instance.GetComponentInParent<WorldObjectAssociated>().GetWorldObject().GetGroup());
+            InventoryAssociated componentOnGameObjectOrInParent = __instance.GetComponentInParent<InventoryAssociated>();
             if (componentOnGameObjectOrInParent != null)
             {
                 Inventory inventory = componentOnGameObjectOrInParent.GetInventory();
