@@ -164,5 +164,16 @@ namespace FixUnofficialPatches
         {
             return ___worldObject != null;
         }
+
+        // Bug in 0.7.001 when loading a completely new world
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad(ref PlanetIsLoaded ___planetIsLoaded)
+        {
+            if (___planetIsLoaded == null)
+            {
+                ___planetIsLoaded = () => { };
+            }
+        }
     }
 }

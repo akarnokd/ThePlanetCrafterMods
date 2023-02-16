@@ -206,7 +206,7 @@ namespace UIContinue
                 {
                     multiplayerContinue.Invoke(null, new object[0]);
                 }
-                SceneManager.LoadScene("OpenWorldTest");
+                SceneManager.LoadScene(GameConfig.mainSceneName);
             }
         }
 
