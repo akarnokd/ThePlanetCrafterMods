@@ -136,6 +136,12 @@ namespace FeatMultiplayer
 
         static FieldInfo playerEquipmentHasDeconstructT2;
 
+        static MethodInfo droneSetClosestAvailableDroneStation;
+
+        static AccessTools.FieldRef<UiWindowContainer, Inventory> uiWindowContainerRightInventory;
+        static AccessTools.FieldRef<Inventory, InventoryDisplayer> inventoryDisplayer;
+        static MethodInfo logisticSelectorSetListsDisplay;
+
         static void InitReflectiveAccessors()
         {
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -174,6 +180,13 @@ namespace FeatMultiplayer
             meteoHandlerMeteoEvents = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
 
             playerEquipmentHasDeconstructT2 = AccessTools.Field(typeof(PlayerEquipment), "hasDeconstructT2");
+
+            droneSetClosestAvailableDroneStation = AccessTools.Method(typeof(Drone), "SetClosestAvailableDroneStation");
+
+            uiWindowContainerRightInventory = AccessTools.FieldRefAccess<UiWindowContainer, Inventory>("inventoryRight");
+
+            inventoryDisplayer = AccessTools.FieldRefAccess<Inventory, InventoryDisplayer>("inventoryDisplayer");
+            logisticSelectorSetListsDisplay = AccessTools.Method(typeof(LogisticSelector), "SetListsDisplay");
         }
 
     }

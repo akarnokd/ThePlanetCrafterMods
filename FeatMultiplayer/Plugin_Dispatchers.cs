@@ -290,6 +290,7 @@ namespace FeatMultiplayer
             {
                 Receive(cc, mse);
             }
+            else
             if (MessageUpdateSupplyDemand.TryParse(message, out var musd))
             {
                 Receive(cc, musd);

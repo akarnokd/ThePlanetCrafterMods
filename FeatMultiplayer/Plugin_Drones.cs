@@ -58,13 +58,42 @@ namespace FeatMultiplayer
         /// <returns></returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), nameof(Drone.UpdateState))]
-        static bool Drone_UpdateState()
+        static bool Drone_UpdateState(Drone __instance, 
+            MachineDroneStation ___associatedDroneStation, 
+            List<MachineDroneStation> _allDroneStations)
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
+                if (___associatedDroneStation == null)
+                {
+                    droneSetClosestAvailableDroneStation.Invoke(__instance, new object[] { _allDroneStations });
+                }
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Called when the drone enters the drone station.
+        /// 
+        /// On the client, we do nothing because we do not handle tasks
+        /// and the vanilla behavior would just send the drone to a depot.
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Drone), "OnDestroy")]
+        static void Drone_OnDestroy(WorldObject ___droneWorldObject, MachineDroneStation ___associatedDroneStation)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (___droneWorldObject != null)
+                {
+                    ___droneWorldObject.ResetPositionAndRotation();
+                    SendWorldObjectToClients(___droneWorldObject, true);
+                    LogInfo("Drone " + ___droneWorldObject?.GetId() + " hidden");
+                }
+                ___associatedDroneStation?.OnDroneEnter();
+            }
         }
 
         /// <summary>
@@ -99,20 +128,18 @@ namespace FeatMultiplayer
         /// </summary>
         /// <param name="__result"></param>
         /// <returns></returns>
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.TryToReleaseOneDrone))]
-        static bool MachineDroneStation_TryToReleaseOneDrone_Post(ref GameObject __result)
+        static void MachineDroneStation_TryToReleaseOneDrone_Post(ref GameObject __result)
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                var wo = __result.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+                var wo = __result?.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
                 if (wo != null)
                 {
                     SendWorldObjectToClients(wo, false);
                 }
-                return false;
             }
-            return true;
         }
 
         /// <summary>
@@ -225,6 +252,12 @@ namespace FeatMultiplayer
                     {
                         le.SetSupplyGroups(null);
                     }
+                }
+
+                // if the player is looking at it right now.
+                var d = inventoryDisplayer(inv);
+                if (d != null && d.logisticSelector != null) {
+                    logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
                 }
             }
             else
