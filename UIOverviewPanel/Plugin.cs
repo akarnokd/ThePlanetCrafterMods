@@ -12,7 +12,7 @@ using System;
 
 namespace UIOverviewPanel
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -38,7 +38,7 @@ namespace UIOverviewPanel
 
             logger = Logger;
 
-            fontSize = Config.Bind("General", "FontSize", 19, "Font size");
+            fontSize = Config.Bind("General", "FontSize", 16, "Font size");
             key = Config.Bind("General", "Key", "F1", "The keyboard key to toggle the panel (no modifiers)");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -117,13 +117,11 @@ namespace UIOverviewPanel
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Insects));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Insects));
 
-                AddTextRow("Animals", () => "Not implemented in the game");
-                /*
+                // AddTextRow("Animals", () => "Not implemented in the game");
                 AddTextRow("Animals", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Animals));
                 AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Animals));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Animals));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Animals));
-                */
 
                 AddTextRow("", () => "");
 
