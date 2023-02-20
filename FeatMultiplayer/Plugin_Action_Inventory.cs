@@ -611,6 +611,8 @@ namespace FeatMultiplayer
                 }
             }
 
+            UpdateLogisticEntityFromMessage(inv, wi.demandGroups, wi.supplyGroups);
+
             if (changed)
             {
                 if (wi.id == 2)

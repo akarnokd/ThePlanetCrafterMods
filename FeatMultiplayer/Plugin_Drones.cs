@@ -170,6 +170,7 @@ namespace FeatMultiplayer
                 if (found)
                 {
                     var msg = new MessageUpdateSupplyDemand();
+                    msg.inventoryId = inventoryId;
                     var dg = ___logisticEntity.GetDemandGroups();
                     if (dg != null)
                     {
@@ -202,63 +203,7 @@ namespace FeatMultiplayer
 
             if (inv != null)
             {
-                var le = inv.GetLogisticEntity();
-
-                {
-                    var dg = new List<Group>();
-                    foreach (var dgm in msg.demandGroups)
-                    {
-                        var g = GroupsHandler.GetGroupViaId(dgm);
-                        if (g != null)
-                        {
-                            dg.Add(g);
-                        }
-                        else
-                        {
-                            LogWarning("ReceiveMessageUpdateSupplyDemand: Inventory " + msg.inventoryId + " unknown demand group " + dgm);
-                        }
-                    }
-
-                    if (dg.Count != 0)
-                    {
-                        le.SetDemandGroups(dg);
-                    }
-                    else
-                    {
-                        le.SetDemandGroups(null);
-                    }
-                }
-
-                {
-                    var sg = new List<Group>();
-                    foreach (var sgm in msg.demandGroups)
-                    {
-                        var g = GroupsHandler.GetGroupViaId(sgm);
-                        if (g != null)
-                        {
-                            sg.Add(g);
-                        }
-                        else
-                        {
-                            LogWarning("ReceiveMessageUpdateSupplyDemand: Inventory " + msg.inventoryId + " unknown supply group " + sgm);
-                        }
-                    }
-
-                    if (sg.Count != 0)
-                    {
-                        le.SetSupplyGroups(sg);
-                    }
-                    else
-                    {
-                        le.SetSupplyGroups(null);
-                    }
-                }
-
-                // if the player is looking at it right now.
-                var d = inventoryDisplayer(inv);
-                if (d != null && d.logisticSelector != null) {
-                    logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
-                }
+                UpdateLogisticEntityFromMessage(inv, msg.demandGroups, msg.supplyGroups);
             }
             else
             {
@@ -267,6 +212,68 @@ namespace FeatMultiplayer
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 SendAllClientsExcept(msg.sender.id, msg, true);
+            }
+        }
+
+        internal static void UpdateLogisticEntityFromMessage(Inventory inv, List<string> demandGroups, List<string> supplyGroups)
+        {
+            var le = inv.GetLogisticEntity();
+
+            {
+                var dg = new List<Group>();
+                foreach (var dgm in demandGroups)
+                {
+                    var g = GroupsHandler.GetGroupViaId(dgm);
+                    if (g != null)
+                    {
+                        dg.Add(g);
+                    }
+                    else
+                    {
+                        LogWarning("UpdateLogisticEntityFromMessage: Inventory " + inv.GetId() + " unknown demand group " + dgm);
+                    }
+                }
+
+                if (dg.Count != 0)
+                {
+                    le.SetDemandGroups(dg);
+                }
+                else
+                {
+                    le.SetDemandGroups(null);
+                }
+            }
+
+            {
+                var sg = new List<Group>();
+                foreach (var sgm in supplyGroups)
+                {
+                    var g = GroupsHandler.GetGroupViaId(sgm);
+                    if (g != null)
+                    {
+                        sg.Add(g);
+                    }
+                    else
+                    {
+                        LogWarning("UpdateLogisticEntityFromMessage: Inventory " + inv.GetId() + " unknown supply group " + sgm);
+                    }
+                }
+
+                if (sg.Count != 0)
+                {
+                    le.SetSupplyGroups(sg);
+                }
+                else
+                {
+                    le.SetSupplyGroups(null);
+                }
+            }
+
+            // if the player is looking at it right now.
+            var d = inventoryDisplayer(inv);
+            if (d != null && d.logisticSelector != null)
+            {
+                logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
             }
         }
     }

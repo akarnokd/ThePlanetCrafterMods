@@ -16,40 +16,33 @@ namespace FeatMultiplayer.MessageTypes
         {
             if (MessageHelper.TryParseMessage("UpdateSupplyDemand|", str, 4, out var parameters))
             {
-                if (parameters.Length == 3)
+                try
                 {
-                    try
-                    {
-                        msg = new MessageUpdateSupplyDemand();
-                        msg.inventoryId = int.Parse(parameters[1]);
+                    msg = new MessageUpdateSupplyDemand();
+                    msg.inventoryId = int.Parse(parameters[1]);
 
-                        var demandGroups = parameters[2];
-                        foreach (var dg in demandGroups.Split(','))
-                        {
-                            if (dg.Length != 0)
-                            {
-                                msg.demandGroups.Add(dg);
-                            }
-                        }
-                        var supplyGroups = parameters[3];
-                        foreach (var sg in supplyGroups.Split(','))
-                        {
-                            if (sg.Length != 0)
-                            {
-                                msg.supplyGroups.Add(sg);
-                            }
-                        }
-
-                        return true;
-                    }
-                    catch (Exception ex)
+                    var demandGroups = parameters[2];
+                    foreach (var dg in demandGroups.Split(','))
                     {
-                        Plugin.LogError(ex);
+                        if (dg.Length != 0)
+                        {
+                            msg.demandGroups.Add(dg);
+                        }
                     }
+                    var supplyGroups = parameters[3];
+                    foreach (var sg in supplyGroups.Split(','))
+                    {
+                        if (sg.Length != 0)
+                        {
+                            msg.supplyGroups.Add(sg);
+                        }
+                    }
+
+                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    Plugin.LogError("MessageUpdateSupplyDemand.Length = " + parameters.Length);
+                    Plugin.LogError(ex);
                 }
             }
             msg = null;
