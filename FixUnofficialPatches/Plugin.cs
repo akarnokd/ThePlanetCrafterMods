@@ -12,7 +12,7 @@ using System;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -174,6 +174,40 @@ namespace FixUnofficialPatches
             {
                 ___planetIsLoaded = () => { };
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
+        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
+        {
+            if (__instance.environmentVolumeVariables == null)
+            {
+                logger.LogError(__instance.gameObject.name + " id " + __instance.GetInstanceID() + ", environmentVolumeVariables == null");
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "CalculateLerpRelativeToPositionInCollider")]
+        static bool EnvironmentVolue_CalculateLerpRelativeToPositionInCollider(EnvironmentVolume __instance)
+        {
+            if (__instance.liveEnvironmentVolumeVariables == null)
+            {
+                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "OnTriggerExit")]
+        static bool EnvironmentVolue_OnTriggerExit(EnvironmentVolume __instance)
+        {
+            if (__instance.liveEnvironmentVolumeVariables == null)
+            {
+                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
+                return false;
+            }
+            return true;
         }
     }
 }
