@@ -15,7 +15,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.16")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.17")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -26,7 +26,7 @@ namespace CheatInventoryStacking
 
         static string expectedGroupIdToAdd;
 
-        static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
+        static readonly Dictionary<int, List<GameObject>> inventoryCountGameObjects = new();
 
         static ManualLogSource logger;
 
@@ -36,6 +36,9 @@ namespace CheatInventoryStacking
             108035701, // altar in the super alloy cave
             109811866, // altar at the entrance to paradise canyon with 3 slots
             101767269, // altar at the entrance to the last building in the city with 5 slots
+            109487734, // fusion generator in the hill wreck
+            102606011, // fusion generator in the battleship
+            101703877, // fusion generator in the stargate
         };
 
         public static Func<string> getMultiplayerMode;
