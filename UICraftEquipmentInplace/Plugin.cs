@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace UICraftEquipmentInPlace
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.11")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicraftequipmentinplace", "(UI) Craft Equipment Inplace", "1.0.0.12")]
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -29,6 +29,7 @@ namespace UICraftEquipmentInPlace
         static ActionCrafter mobileCrafterTestss;
 
         static FieldInfo playerEquipmentHasCleanConstructionChip;
+        static FieldInfo playerEquipmentHasDeconstructT2;
 
         private void Awake()
         {
@@ -69,6 +70,7 @@ namespace UICraftEquipmentInPlace
             }
 
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+            playerEquipmentHasDeconstructT2 = AccessTools.Field(typeof(PlayerEquipment), "hasDeconstructT2");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -124,7 +126,8 @@ namespace UICraftEquipmentInPlace
                 || equipType == DataConfig.EquipableType.Jetpack
                 || equipType == DataConfig.EquipableType.MultiToolLight
                 || equipType == DataConfig.EquipableType.AirFilter
-                || equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
+                || equipType == DataConfig.EquipableType.MultiToolCleanConstruction
+                || equipType == DataConfig.EquipableType.MultiToolDeconstruct)
             {
                 logger.LogInfo("Crafting inplace: " + equipType);
                 List<Group> ingredients = new List<Group>(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
@@ -234,13 +237,13 @@ namespace UICraftEquipmentInPlace
                         {
                             _playerController.GetPlayerEquipment()
                                 .GetComponent<PlayerMovable>()
-                                .SetMoveSpeedChangePercentage((float)groupItem.GetGroupValue());
+                                .SetMoveSpeedChangePercentage(groupItem.GetGroupValue());
                         }
                         else if (equipType == DataConfig.EquipableType.Jetpack)
                         {
                             _playerController.GetPlayerEquipment()
                                 .GetComponent<PlayerMovable>()
-                                .SetJetpackFactor((float)groupItem.GetGroupValue() / 100f);
+                                .SetJetpackFactor(groupItem.GetGroupValue() / 100f);
                         }
                         else if (equipType == DataConfig.EquipableType.MultiToolLight)
                         {
@@ -254,6 +257,10 @@ namespace UICraftEquipmentInPlace
                         {
                             playerEquipmentHasCleanConstructionChip.SetValue(
                                 _playerController.GetPlayerEquipment(), true);
+                        }
+                        else if (equipType == DataConfig.EquipableType.MultiToolDeconstruct)
+                        {
+                            playerEquipmentHasDeconstructT2.SetValue(_playerController.GetPlayerEquipment(), true);
                         }
                     }
                     else
