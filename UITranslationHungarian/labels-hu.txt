@@ -844,3 +844,7 @@ GROUP_NAME_RocketMap4=GPS műhold t4
 GROUP_DESC_RocketMap4=Jobb pozícionálást tesz lehetővé a térkép képernyőn. A térkép mozgathatóvá válik.
 GROUP_NAME_RocketDrones1=Drón láthatósági rakéta
 GROUP_DESC_RocketDrones1=A drónok láthatóvá válnak a térkép képernyőn
+GROUP_NAME_Aquarium1=Akvárium t1
+GROUP_DESC_Aquarium1=Állatokat tenyészt
+GROUP_NAME_Aquarium2=Akvárium t2
+GROUP_DESC_Aquarium2=Állatokat tenyészt
