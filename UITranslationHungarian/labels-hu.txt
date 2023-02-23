@@ -848,3 +848,4 @@ GROUP_NAME_Aquarium1=Akvárium t1
 GROUP_DESC_Aquarium1=Állatokat tenyészt
 GROUP_NAME_Aquarium2=Akvárium t2
 GROUP_DESC_Aquarium2=Állatokat tenyészt
+Logistic_menu_priority=Prioritás
