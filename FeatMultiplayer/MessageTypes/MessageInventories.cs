@@ -62,6 +62,8 @@ namespace FeatMultiplayer.MessageTypes
                     j++;
                 }
             }
+            sb.Append(separator);
+            sb.Append(inv.GetLogisticEntity().GetPriority());
         }
 
         internal static bool TryParse(string str, out MessageInventories minv)
@@ -117,6 +119,7 @@ namespace FeatMultiplayer.MessageTypes
                                 }
                             }
                         }
+                        wi.priority = int.Parse(innerIds[5]);
 
                         minv.inventories.Add(wi);
                     }
@@ -141,6 +144,7 @@ namespace FeatMultiplayer.MessageTypes
     {
         internal int id;
         internal int size;
+        internal int priority;
         internal readonly List<int> itemIds = new();
         internal readonly List<string> demandGroups = new();
         internal readonly List<string> supplyGroups = new();

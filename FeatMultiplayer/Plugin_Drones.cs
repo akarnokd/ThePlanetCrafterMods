@@ -171,6 +171,7 @@ namespace FeatMultiplayer
                 {
                     var msg = new MessageUpdateSupplyDemand();
                     msg.inventoryId = inventoryId;
+                    msg.priority = ___logisticEntity.GetPriority();
                     var dg = ___logisticEntity.GetDemandGroups();
                     if (dg != null)
                     {
@@ -197,13 +198,20 @@ namespace FeatMultiplayer
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LogisticSelector), nameof(LogisticSelector.OnChangePriority))]
+        static void LogisticSelector_OnChangePriority(LogisticEntity ___logisticEntity)
+        {
+            LogisticSelector_ResetListAndInvokeEvent(___logisticEntity);
+        }
+
         static void ReceiveMessageUpdateSupplyDemand(MessageUpdateSupplyDemand msg)
         {
             Inventory inv = InventoriesHandler.GetInventoryById(msg.inventoryId);
 
             if (inv != null)
             {
-                UpdateLogisticEntityFromMessage(inv, msg.demandGroups, msg.supplyGroups);
+                UpdateLogisticEntityFromMessage(inv, msg.demandGroups, msg.supplyGroups, msg.priority);
             }
             else
             {
@@ -215,7 +223,8 @@ namespace FeatMultiplayer
             }
         }
 
-        internal static void UpdateLogisticEntityFromMessage(Inventory inv, List<string> demandGroups, List<string> supplyGroups)
+        internal static void UpdateLogisticEntityFromMessage(Inventory inv, 
+            List<string> demandGroups, List<string> supplyGroups, int priority)
         {
             var le = inv.GetLogisticEntity();
 
@@ -268,6 +277,7 @@ namespace FeatMultiplayer
                     le.SetSupplyGroups(null);
                 }
             }
+            le.SetPriority(priority);
 
             // if the player is looking at it right now.
             var d = inventoryDisplayer(inv);

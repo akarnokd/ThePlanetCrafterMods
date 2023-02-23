@@ -611,7 +611,7 @@ namespace FeatMultiplayer
                 }
             }
 
-            UpdateLogisticEntityFromMessage(inv, wi.demandGroups, wi.supplyGroups);
+            UpdateLogisticEntityFromMessage(inv, wi.demandGroups, wi.supplyGroups, wi.priority);
 
             if (changed)
             {

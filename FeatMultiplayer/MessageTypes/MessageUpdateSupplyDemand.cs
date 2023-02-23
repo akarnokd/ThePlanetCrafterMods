@@ -9,12 +9,13 @@ namespace FeatMultiplayer.MessageTypes
     internal class MessageUpdateSupplyDemand : MessageBase
     {
         internal int inventoryId;
+        internal int priority;
         internal readonly List<string> demandGroups = new();
         internal readonly List<string> supplyGroups = new();
 
         internal static bool TryParse(string str, out MessageUpdateSupplyDemand msg)
         {
-            if (MessageHelper.TryParseMessage("UpdateSupplyDemand|", str, 4, out var parameters))
+            if (MessageHelper.TryParseMessage("UpdateSupplyDemand|", str, 5, out var parameters))
             {
                 try
                 {
@@ -37,6 +38,7 @@ namespace FeatMultiplayer.MessageTypes
                             msg.supplyGroups.Add(sg);
                         }
                     }
+                    msg.priority = int.Parse(parameters[4]);
 
                     return true;
                 }
@@ -58,6 +60,8 @@ namespace FeatMultiplayer.MessageTypes
             sb.Append(string.Join(",", demandGroups));
             sb.Append('|');
             sb.Append(string.Join(",", supplyGroups));
+            sb.Append('|');
+            sb.Append(priority);
             sb.Append('\n');
             return sb.ToString();
         }
