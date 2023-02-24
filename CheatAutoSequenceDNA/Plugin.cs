@@ -10,10 +10,11 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using System.Linq;
 using static SpaceCraft.DataConfig;
+using System.Reflection;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.4")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -43,11 +44,19 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> sequencerTreeSeedId;
 
+        static ConfigEntry<string> incubatorPhytoplanktonId;
+
+        static ConfigEntry<string> incubatorFishId;
+
         static ConfigEntry<bool> debugMode;
 
         static Func<string> getMultiplayerMode;
 
         static ManualLogSource logger;
+
+        static FieldInfo uiWindowGeneticsWorldObject;
+
+        static FieldInfo uiWindowGeneticsUpdateUiCoroutine;
 
         private void Awake()
         {
@@ -63,6 +72,8 @@ namespace CheatAutoSequenceDNA
             incubatorButterflyId = Config.Bind("Incubator", "Butterfly", "*Butterfly", "The name of the container(s) where to deposit the spawned butterflies.");
             incubatorBeeId = Config.Bind("Incubator", "Bee", "*Bee", "The name of the container(s) where to deposit the spawned bees.");
             incubatorSilkId = Config.Bind("Incubator", "Silk", "*Silk", "The name of the container(s) where to deposit the spawned silk worms.");
+            incubatorPhytoplanktonId = Config.Bind("Incubator", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
+            incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
 
             sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
             sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
@@ -80,6 +91,9 @@ namespace CheatAutoSequenceDNA
             }
 
             logger = Logger;
+
+            uiWindowGeneticsWorldObject = AccessTools.Field(typeof(UiWindowGenetics), "worldObject");
+            uiWindowGeneticsUpdateUiCoroutine = AccessTools.Field(typeof(UiWindowGenetics), "updateUiCoroutine");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
@@ -162,7 +176,9 @@ namespace CheatAutoSequenceDNA
                 { "Larvae", incubatorLarvaeId.Value },
                 { "Butterfly", incubatorButterflyId.Value },
                 { "Bee", incubatorBeeId.Value },
-                { "Silk", incubatorSilkId.Value }
+                { "Silk", incubatorSilkId.Value },
+                { "Phytoplankton", incubatorPhytoplanktonId.Value },
+                { "Fish", incubatorFishId.Value }
             };
 
             // List of world objects per category (containers, machines)
@@ -219,6 +235,10 @@ namespace CheatAutoSequenceDNA
                             if (gid.StartsWith("Silk"))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Silk");
+                            }
+                            if (gid.StartsWith("Fish"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "Fish");
                             }
                         }
                     }
@@ -379,7 +399,8 @@ namespace CheatAutoSequenceDNA
                     {
                         wo.SetLockInInventoryTime(t);
                     }
-                    StartCoroutine(RefreshDisplayer(0.1f, machineInventory));
+                    StartCoroutine(RefreshDisplayer(0.1f, machineInventory, machine));
+
                     return true;
                 }
                 else
@@ -415,6 +436,10 @@ namespace CheatAutoSequenceDNA
             else if (ingredientGroupId.StartsWith("TreeRoot"))
             {
                 return "TreeRoot";
+            }
+            else if (ingredientGroupId.StartsWith("Phytoplankton"))
+            {
+                return "Phytoplankton";
             }
             return "";
         }
@@ -611,10 +636,25 @@ namespace CheatAutoSequenceDNA
             return null;
         }
 
-        IEnumerator RefreshDisplayer(float t, Inventory inv)
+        IEnumerator RefreshDisplayer(float t, Inventory inv, WorldObject machine)
         {
             yield return new WaitForSeconds(t);
             inv.RefreshDisplayerContent();
+
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh != null && wh.GetOpenedUi() == UiType.Genetics)
+            {
+                var ui = wh.GetWindowViaUiId(UiType.Genetics) as UiWindowGenetics;
+                if (ui != null)
+                {
+                    var m = uiWindowGeneticsWorldObject.GetValue(ui) as WorldObject;
+
+                    if (m != null && m.GetId() == machine.GetId())
+                    {
+                        ui.StartCoroutine(uiWindowGeneticsUpdateUiCoroutine.GetValue(ui) as IEnumerator);
+                    }
+                }
+            }
         }
 
         void TryDeposit(Inventory source, WorldObject item, 
