@@ -5,7 +5,6 @@ using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
 using BepInEx.Logging;
-using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
@@ -13,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationHungarian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.17")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationhungarian", "(UI) Hungarian Translation", "1.0.0.22")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "hungarian";
@@ -32,7 +31,7 @@ namespace UITranslationHungarian
         private void Awake()
         {
             // Plugin startup logic
-            Logger.LogInfo($"Plugin is loaded!");
+            Logger.LogInfo($"Plugin is loading!");
 
             logger = Logger;
 
@@ -62,13 +61,24 @@ namespace UITranslationHungarian
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             StartCoroutine(WaitForLocalizationLoad());
+
+            Logger.LogInfo($"Plugin loaded!");
         }
 
         IEnumerator WaitForLocalizationLoad()
         {
+            logger.LogInfo("Waiting for loadSuccess");
             for (; ; )
             {
-                yield return new WaitForSeconds(0.1f);
+                // yield return new WaitForSeconds(0.1f);
+                /*
+                for (int i = 0; i < 6; i++)
+                {
+                    yield return null;
+                }
+                */
+                yield return new WaitForSecondsRealtime(0.1f);
+                logger.LogInfo("Waiting for loadSuccess...");
                 if (loadSuccess)
                 {
                     foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsOfType<LocalizedText>(true))
@@ -88,6 +98,7 @@ namespace UITranslationHungarian
                     ExportLocalization();
                     yield break;
                 }
+                logger.LogInfo("Waiting for loadSuccess");
             }
         }
 

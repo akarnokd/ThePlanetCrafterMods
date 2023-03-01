@@ -2,7 +2,6 @@
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
-using MijuTools;
 using SpaceCraft;
 
 namespace FeatMultiplayer
@@ -10,7 +9,7 @@ namespace FeatMultiplayer
     /// <summary>
     /// Multiplayer mod.
     /// </summary>
-    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.2.0.15")]
+    [BepInPlugin(modFeatMultiplayerGuid, "(Feat) Multiplayer", "0.2.0.17")]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]

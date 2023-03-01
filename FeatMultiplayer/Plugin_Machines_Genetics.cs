@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections;
@@ -56,7 +55,7 @@ namespace FeatMultiplayer
                     {
                         __instance.groupLoadingDisplayer.SetDisplayLoadingGroup(___matchingGroup, true);
                     }
-                    else if (___craftableIdentifier == DataConfig.CraftableIn.CraftInsectsT1)
+                    else if (___craftableIdentifier == DataConfig.CraftableIn.CraftIncubatorT1)
                     {
                         __instance.groupLoadingDisplayer.SetDisplayLoadingGroup(GroupsHandler.GetGroupViaId(___groupLarvae.id), true, _showInterogationPoint: true);
                     }

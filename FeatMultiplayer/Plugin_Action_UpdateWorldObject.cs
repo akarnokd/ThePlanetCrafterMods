@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -78,6 +77,10 @@ namespace FeatMultiplayer
             if (wo.GetGrowth() > 0f)
             {
                 sb.Append(", growth = ").Append(wo.GetGrowth().ToString(CultureInfo.InvariantCulture));
+            }
+            if (wo.GetGameObject() != null)
+            {
+                sb.Append(", GameObject");
             }
             sb.Append(" }");
             return sb.ToString();
@@ -352,6 +355,14 @@ namespace FeatMultiplayer
                 }
                 rocketsInFlight.Remove(mwo.id);
             }
+            if (!doPlace && hasGameObject)
+            {
+                LogInfo("UpdateWorldObject:   WorldObject " + wo.GetId() + " GameObject destroyed: not placed");
+                TryRemoveGameObject(wo);
+                Destroy(go);
+                hasGameObject = false;
+            }
+
             if (hasGameObject)
             {
                 if (doPlace && !dontUpdatePosition)

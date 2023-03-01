@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -474,7 +473,7 @@ namespace CheatMinimap
             }
         }
 
-        static bool allowUnload = true;
+        public static bool allowUnload = true;
         static bool loaded;
 
         IEnumerator PhotographMap(string dir, PlayerMainController pm)

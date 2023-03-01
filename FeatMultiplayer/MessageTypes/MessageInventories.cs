@@ -16,11 +16,54 @@ namespace FeatMultiplayer.MessageTypes
             sb.Append(asId);
             sb.Append(';');
             sb.Append(inv.GetSize());
+            sb.Append(';');
+            int i = 0;
             foreach (WorldObject wo in inv.GetInsideWorldObjects())
             {
-                sb.Append(';');
+                if (i != 0)
+                {
+                    sb.Append(',');
+                }
                 sb.Append(wo.GetId());
+                i++;
             }
+            AppendSupplyDemand(inv, sb, ';');
+        }
+
+        internal static void AppendSupplyDemand(Inventory inv, StringBuilder sb, char separator)
+        {
+            sb.Append(separator);
+            var grs = inv.GetLogisticEntity().GetDemandGroups();
+            if (grs != null)
+            {
+                int j = 0;
+                foreach (var s in grs)
+                {
+                    if (j != 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(s.id);
+                    j++;
+                }
+            }
+            sb.Append(separator);
+            grs = inv.GetLogisticEntity().GetSupplyGroups();
+            if (grs != null)
+            {
+                int j = 0;
+                foreach (var s in grs)
+                {
+                    if (j != 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(s.id);
+                    j++;
+                }
+            }
+            sb.Append(separator);
+            sb.Append(inv.GetLogisticEntity().GetPriority());
         }
 
         internal static bool TryParse(string str, out MessageInventories minv)
@@ -40,26 +83,51 @@ namespace FeatMultiplayer.MessageTypes
 
                         string[] innerIds = pi.Split(';');
 
-                        WorldInventory wi = new WorldInventory();
+                        var wi = new WorldInventory();
                         wi.id = int.Parse(innerIds[0]);
                         wi.size = int.Parse(innerIds[1]);
 
-                        for (int j = 2; j < innerIds.Length; j++)
                         {
-                            string ii = innerIds[j];
-                            if (ii.Length == 0)
+                            var worldObjects = innerIds[2];
+
+                            foreach (var wo in worldObjects.Split(','))
                             {
-                                continue;
+                                if (wo.Length != 0)
+                                {
+                                    wi.itemIds.Add(int.Parse(wo));
+                                }
                             }
-                            wi.itemIds.Add(int.Parse(ii));
                         }
+
+                        {
+                            var demandGroups = innerIds[3];
+                            foreach (var dg in demandGroups.Split(','))
+                            {
+                                if (dg.Length != 0)
+                                {
+                                    wi.demandGroups.Add(dg);
+                                }
+                            }
+                        }
+                        {
+                            var supplyGroups = innerIds[4];
+                            foreach (var sg in supplyGroups.Split(','))
+                            {
+                                if (sg.Length != 0)
+                                {
+                                    wi.supplyGroups.Add(sg);
+                                }
+                            }
+                        }
+                        wi.priority = int.Parse(innerIds[5]);
+
                         minv.inventories.Add(wi);
                     }
                     return true;
                 } 
-                catch (Exception)
+                catch (Exception ex)
                 {
-
+                    Plugin.LogError(ex);
                 }
             }
             minv = null;
@@ -76,6 +144,9 @@ namespace FeatMultiplayer.MessageTypes
     {
         internal int id;
         internal int size;
-        internal List<int> itemIds = new List<int>();
+        internal int priority;
+        internal readonly List<int> itemIds = new();
+        internal readonly List<string> demandGroups = new();
+        internal readonly List<string> supplyGroups = new();
     }
 }

@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -19,7 +18,7 @@ using UnityEngine.UIElements;
 
 namespace UIBeaconText
 {
-    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.0")]
+    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.1")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -58,7 +57,7 @@ namespace UIBeaconText
 
             logger = Logger;
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
+            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var _))
             {
                 Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", beacon text updates will sync too, probably");
             }
@@ -98,12 +97,6 @@ namespace UIBeaconText
         static void MachineBeaconUpdater_Start(MachineBeaconUpdater __instance, GameObject ___player, 
             GameObject ___canvas, float ___updateEverySec)
         {
-            var woa = __instance.GetComponent<WorldObjectAssociated>();
-            if (woa == null)
-            {
-                return;
-            }
-
             var s = 0.005f;
             var offset = 0.15f;
             var rot = new Vector3(0, 180, 0);
@@ -141,10 +134,18 @@ namespace UIBeaconText
             distanceText.alignment = TextAnchor.MiddleCenter;
 
             logger.LogInfo("Finding the World Object of the beacon");
-            var wo = woa.GetWorldObject();
-            if (wo.GetText() == null || wo.GetText() == "...")
+            WorldObject wo = null;
+            var woa = __instance.GetComponent<WorldObjectAssociated>();
+            if (woa != null)
             {
-                wo.SetText("");
+                wo = woa.GetWorldObject();
+                if (wo != null)
+                {
+                    if (wo.GetText() == null || wo.GetText() == "...")
+                    {
+                        wo.SetText("");
+                    }
+                }
             }
 
             logger.LogInfo("Adding default TMPro");
@@ -153,17 +154,23 @@ namespace UIBeaconText
                 mockupTMPro = new GameObject("BeaconMockupTMPro").AddComponent<TextMeshProUGUI>();
             }
 
-            logger.LogInfo("Finding Antena_01");
-            var antena = __instance.gameObject.transform.Find("Container/Antena_01");
+            if (wo != null)
+            {
+                logger.LogInfo("Finding Antena_01");
+                var antena = __instance.gameObject.transform.Find("Container/Antena_01");
 
-            logger.LogInfo("Adding WorldObjectText");
-            var wot = antena.gameObject.AddComponent<WorldObjectText>();
-            wot.textContainer = mockupTMPro; // Not sure why this field is even here, it is unused.
-            wot.SetWorldObjectForText(wo);
+                if (antena != null)
+                {
+                    logger.LogInfo("Adding WorldObjectText");
+                    var wot = antena.gameObject.AddComponent<WorldObjectText>();
+                    wot.textContainer = mockupTMPro; // Not sure why this field is even here, it is unused.
+                    wot.SetWorldObjectForText(wo);
 
-            logger.LogInfo("Adding Action for text editor");
-            var atwo = antena.gameObject.AddComponent<ActionTextWorldObject>();
-            atwo.worldObjectText = wot;
+                    logger.LogInfo("Adding Action for text editor");
+                    var atwo = antena.gameObject.AddComponent<ActionTextWorldObject>();
+                    atwo.worldObjectText = wot;
+                }
+            }
 
             logger.LogInfo("Starting updater");
             __instance.StartCoroutine(TextUpdater(___player, ___updateEverySec, __instance.gameObject, wo, titleText, distanceText));
@@ -178,23 +185,13 @@ namespace UIBeaconText
             {
                 var dist = (int)Vector3.Distance(canvas.transform.position, ___player.transform.position);
                 distanceText.text = dist + "m";
-                titleText.text = wo.GetText();
+                titleText.text = wo?.GetText() ?? "";
 
                 titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
                 distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
 
                 yield return new WaitForSeconds(___updateEverySec);
             }
-        }
-
-        private static T GetApi<T>(BepInEx.PluginInfo pi, string name)
-        {
-            var fi = AccessTools.Field(pi.Instance.GetType(), name);
-            if (fi == null)
-            {
-                throw new NullReferenceException("Missing field " + pi.Instance.GetType() + "." + name);
-            }
-            return (T)fi.GetValue(null);
         }
     }
 }

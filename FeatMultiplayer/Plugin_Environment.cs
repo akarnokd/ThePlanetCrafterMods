@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections;
@@ -124,7 +123,8 @@ namespace FeatMultiplayer
                     layer.colorBaseLerp, 
                     layer.colorCustomLerp);
             }
-            manager.FinishTerrainLayersSetup();
+            var m = AccessTools.Method(typeof(TerrainVisualsHandler), "SetTerrainsColorsFromDb");
+            m.Invoke(manager, new object[0]);
         }
 
         static void SendTerraformState()

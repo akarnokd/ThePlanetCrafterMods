@@ -5,7 +5,6 @@ using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
 using BepInEx.Logging;
-using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
@@ -13,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationItalian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationitalian", "(UI) Italian Translation", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationitalian", "(UI) Italian Translation", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "italian";

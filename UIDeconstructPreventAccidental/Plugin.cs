@@ -2,7 +2,6 @@
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
-using MijuTools;
 
 namespace UIDeconstructPreventAccidental
 {

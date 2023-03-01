@@ -4,7 +4,6 @@ using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using MijuTools;
 
 namespace UIPhotomodeHideWater
 {
@@ -27,7 +26,7 @@ namespace UIPhotomodeHideWater
             bool active = ___uisToHide[0].activeSelf;
             if (Keyboard.current[Key.LeftShift].isPressed)
             {
-                foreach (GameObject gameObject2 in Managers.GetManager<WaterHandler>().waterVolumes)
+                foreach (GameObject gameObject2 in Managers.GetManager<WaterHandler>().GetAllWaterVolumes())
                 {
                     gameObject2.SetActive(active);
                 }

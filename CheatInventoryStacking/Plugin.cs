@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -16,7 +15,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.16")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.17")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -27,7 +26,7 @@ namespace CheatInventoryStacking
 
         static string expectedGroupIdToAdd;
 
-        static Dictionary<int, List<GameObject>> inventoryCountGameObjects = new Dictionary<int, List<GameObject>>();
+        static readonly Dictionary<int, List<GameObject>> inventoryCountGameObjects = new();
 
         static ManualLogSource logger;
 
@@ -37,6 +36,9 @@ namespace CheatInventoryStacking
             108035701, // altar in the super alloy cave
             109811866, // altar at the entrance to paradise canyon with 3 slots
             101767269, // altar at the entrance to the last building in the city with 5 slots
+            109487734, // fusion generator in the hill wreck
+            102606011, // fusion generator in the battleship
+            101703877, // fusion generator in the stargate
         };
 
         public static Func<string> getMultiplayerMode;
@@ -270,6 +272,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
         static bool InventoryDisplayer_TrueRefreshContent(
             InventoryDisplayer __instance,
+            LogisticManager ___logisticManager,
             Inventory ___inventory, GridLayoutGroup ___grid, int ___selectionIndex,
             ref Vector2 ___originalSizeDelta, Inventory ___inventoryInteracting)
         {
@@ -309,6 +312,8 @@ namespace CheatInventoryStacking
 
                 List<Group> authorizedGroups = ___inventory.GetAuthorizedGroups();
                 Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups[0]) : null;
+
+                bool logisticFlag = ___logisticManager.GetGlobalLogisticsEnabled() && ___inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
 
                 __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<PlayModeHandler>().GetIsFreePlay());
 
@@ -388,6 +393,12 @@ namespace CheatInventoryStacking
                                 onDropViaGamepadDelegate
                             );
                         }
+
+                        if (logisticFlag)
+                        {
+                            component.SetLogisticStatus(___logisticManager.WorldObjectIsInTasks(worldObject));
+                        }
+
                     }
                     gameObject.SetActive(true);
                     if (i == ___selectionIndex && (___inventoryInteracting == null || ___inventoryInteracting == ___inventory))
@@ -640,9 +651,13 @@ namespace CheatInventoryStacking
             return true;
         }
 
-        static Group GenerateOre(List<GroupData> ___groupDatas,
+        static Group GenerateOre(
+            List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             // Since 0.6.001
             if (___setGroupsDataViaLinkedGroup)
@@ -656,8 +671,16 @@ namespace CheatInventoryStacking
             }
             if (___groupDatas.Count != 0)
             {
+                // Since 0.7.001
+                var groupDatasCopy = new List<GroupData>(___groupDatas);
+                if (___groupDatasTerraStage.Count != 0 
+                    && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                {
+                    groupDatasCopy.AddRange(___groupDatasTerraStage);
+                }
+
                 return GroupsHandler.GetGroupViaId(
-                            ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id);
+                            groupDatasCopy[UnityEngine.Random.Range(0, groupDatasCopy.Count)].id);
             }
             return null;
         }
@@ -667,12 +690,16 @@ namespace CheatInventoryStacking
         static bool MachineGenerator_GenerateAnObject(Inventory ___inventory, 
             List<GroupData> ___groupDatas, 
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             if (!Chainloader.PluginInfos.ContainsKey(cheatMachineRemoteDepositGuid)
                 && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
             {
-                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
+                Group group = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject,
+                    ___groupDatasTerraStage, ___worldUnitsHandler, ___terraStage);
 
                 if (group != null)
                 {
