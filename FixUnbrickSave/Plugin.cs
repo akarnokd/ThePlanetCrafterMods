@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace FixUnbrickSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunbricksave", "(Fix) Unbrick Save", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 

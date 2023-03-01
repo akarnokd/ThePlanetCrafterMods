@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace UIHotbar
 {
-    [BepInPlugin(modUiHotbarGuid, "(UI) Hotbar", "1.0.0.12")]
+    [BepInPlugin(modUiHotbarGuid, "(UI) Hotbar", "1.0.0.13")]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]

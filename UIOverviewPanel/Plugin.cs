@@ -12,7 +12,7 @@ using System;
 
 namespace UIOverviewPanel
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
 

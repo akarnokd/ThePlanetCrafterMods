@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 
 namespace UIBeaconText
 {
-    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.1")]
+    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.2")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

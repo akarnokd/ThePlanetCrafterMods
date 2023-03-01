@@ -11,7 +11,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.6.008
+## Supported Game Version: 0.7.007
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -33,6 +33,11 @@ You'll have a directory structure like this:
 Such organization avoids overwriting each others' files if they happen to be named the same as well as allows removing plugin files together 
 by deleting the directory itself.
 
+:warning: Enabling mods became a bit more involved in 0.7 and beyond.
+
+The new Unity version the game uses has a feature/bug that prevents **all mods** from running beyond their initialization phase. To work around it, find the `BepInEx\config\BepInEx.cfg` file, and in it, set
+
+`HideManagerGameObject = true`
 
 # Mods
 

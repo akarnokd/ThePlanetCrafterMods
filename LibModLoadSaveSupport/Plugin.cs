@@ -13,7 +13,7 @@ namespace LibModLoadSaveSupport
     /// <summary>
     /// Manages the saving and loading of custom data (plugin save states).
     /// </summary>
-    [BepInPlugin(pluginGuid, "(Lib) Support Mods with Load n Save", "1.0.0.3")]
+    [BepInPlugin(pluginGuid, "(Lib) Support Mods with Load n Save", "1.0.0.4")]
     public class LibModLoadSaveSupportPlugin : BaseUnityPlugin
     {
 

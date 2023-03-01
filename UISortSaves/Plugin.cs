@@ -16,7 +16,7 @@ using System.Text;
 
 namespace UISortSaves
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uisortsaves", "(UI) Sort Saves On The Load Screen", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uisortsaves", "(UI) Sort Saves On The Load Screen", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 

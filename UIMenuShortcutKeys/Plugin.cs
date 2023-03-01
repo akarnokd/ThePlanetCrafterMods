@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace UIMenuShortcutKeys
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 

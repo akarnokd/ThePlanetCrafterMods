@@ -11,7 +11,7 @@ using BepInEx.Configuration;
 
 namespace PerfMonitor
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.perfmonitor", "(Perf) Monitor", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.perfmonitor", "(Perf) Monitor", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 

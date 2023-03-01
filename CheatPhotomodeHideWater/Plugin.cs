@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 
 namespace UIPhotomodeHideWater
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
 
