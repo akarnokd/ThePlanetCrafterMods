@@ -15,7 +15,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.18")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.19")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -828,6 +828,32 @@ namespace CheatInventoryStacking
                 {
                     WorldObjectsHandler.DestroyWorldObject(craftedWo);
                 }
+            }
+        }
+
+        static bool calledFromSetLogisticTask;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
+        static void LogisticManager_SetLogisticTasks_Pre()
+        {
+            calledFromSetLogisticTask = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
+        static void LogisticManager_SetLogisticTasks_Post()
+        {
+            calledFromSetLogisticTask = false;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetSize))]
+        static void Inventory_GetSize(ref int __result, int ___inventorySize)
+        {
+            if (calledFromSetLogisticTask)
+            {
+                __result = ___inventorySize * stackSize.Value;
             }
         }
     }
