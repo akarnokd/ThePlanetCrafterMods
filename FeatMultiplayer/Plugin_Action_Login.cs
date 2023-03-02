@@ -142,14 +142,21 @@ namespace FeatMultiplayer
                 }
             } else
             {
-                NotifyUserFromBackground("Host disconnected");
+                NotifyUserFromBackground("Host disconnected.\n\nIf you get this message right after joining the host,\ncheck if your username and password matches with the hosts' settings.", 30);
                 DestroyAvatars();
             }
         }
 
-        static void ReceiveMessageHostDisconnected()
+        static void ReceiveMessageHostDisconnected(MessageDisconnected md)
         {
-            NotifyUserFromBackground("Host disconnected");
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                NotifyUserFromBackground("Host disconnected.\n\nIf you get this message right after joining the host,\ncheck if your username and password matches with the hosts' settings.", 30);
+            }
+            else
+            {
+                NotifyUserFromBackground("A client left the game: " + md.clientName);
+            }
             DestroyAvatars();
         }
     }

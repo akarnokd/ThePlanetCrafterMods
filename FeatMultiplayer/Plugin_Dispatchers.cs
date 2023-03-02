@@ -571,7 +571,7 @@ namespace FeatMultiplayer
                     }
                 case MessageDisconnected md:
                     {
-                        ReceiveMessageHostDisconnected();
+                        ReceiveMessageHostDisconnected(md);
                         break;
                     }
                 case MessageUpdateStorage mus:

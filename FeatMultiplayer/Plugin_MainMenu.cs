@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using LibCommon;
 using Open.Nat;
 using SpaceCraft;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -165,6 +167,8 @@ namespace FeatMultiplayer
 
                 dy -= fs + 10;
             }
+
+            CheckBepInEx();
         }
 
         static string GetHostModeString()
@@ -416,6 +420,14 @@ namespace FeatMultiplayer
             else
             {
                 updateMode = MultiplayerMode.SinglePlayer;
+            }
+        }
+
+        static void CheckBepInEx()
+        {
+            if (!BepInExConfigCheck.Check(Assembly.GetExecutingAssembly(), theLogger))
+            {
+                NotifyUser(BepInExConfigCheck.DefaultMessage, 30);
             }
         }
     }

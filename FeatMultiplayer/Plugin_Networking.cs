@@ -129,7 +129,6 @@ namespace FeatMultiplayer
             }
         }
 
-
         static void StartAsHost()
         {
             stopNetwork = new CancellationTokenSource();
@@ -138,7 +137,7 @@ namespace FeatMultiplayer
 
         static void StartAsClient()
         {
-            NotifyUser("Connecting to Host...");
+            NotifyUser("Connecting to Host...", 1);
             stopNetwork = new CancellationTokenSource();
             Task.Run(() =>
             {
@@ -148,7 +147,7 @@ namespace FeatMultiplayer
                     TcpClient client = new TcpClient();
                     client.Connect(hostAddress.Value, port.Value);
                     LogInfo("Client connection success");
-                    NotifyUserFromBackground("Connecting to Host...Success");
+                    NotifyUserFromBackground("Connecting to Host...Success", 1);
 
                     var cc = new ClientConnection(0);
                     cc.clientName = ""; // host is always ""
@@ -173,7 +172,7 @@ namespace FeatMultiplayer
                 catch (Exception ex)
                 {
                     LogError(ex);
-                    NotifyUserFromBackground("Error: could not connect to Host");
+                    NotifyUserFromBackground("Error: Could not connect to the host.\n\nPlease check if your HostAddress is setup correctly,\nthe host has its ports accessible and\nhas entered a world with 'Host a multiplayer game' checked.", 30);
                 }
             });
         }
@@ -414,7 +413,7 @@ namespace FeatMultiplayer
                     LogError(ex);
                 }
             }
-            _receiveQueue.Enqueue(MessageDisconnected.Instance);
+            _receiveQueue.Enqueue(new MessageDisconnected() { clientName = clientConnection .clientName });
         }
 
         static ClientConnection CreateNewClient()

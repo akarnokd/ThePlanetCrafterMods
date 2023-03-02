@@ -4,13 +4,16 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.2.0.18</Version>
+    <Version>0.2.0.19</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
+	<ItemGroup>
+	  <Compile Include="..\LibCommon\BepInExConfigCheck.cs" Link="BepInExConfigCheck.cs" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
@@ -107,9 +110,6 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(ForZipAll)" />
 
-	  <ZipDirectory
-            SourceDirectory="$(TargetDir)\$(AssemblyName)"
-            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
-            Overwrite="true" />
+	  <ZipDirectory SourceDirectory="$(TargetDir)\$(AssemblyName)" DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip" Overwrite="true" />
   </Target>
 </Project>
