@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationItalian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationitalian", "(UI) Italian Translation", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationitalian", "(UI) Italian Translation", "1.0.0.6")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "italian";
