@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -45,10 +44,10 @@ namespace FeatMultiplayer
             }
 
             Managers.GetManager<SavedDataHandler>().SetSaveFileName(multiplayerFilename);
-            SceneManager.LoadScene("OpenWorldTest");
+            SceneManager.LoadScene(GameConfig.mainSceneName);
 
             LogInfo("Find SaveFilesSelector");
-            var selector = UnityEngine.Object.FindObjectOfType<SaveFilesSelector>();
+            var selector = FindObjectOfType<SaveFilesSelector>();
             if (selector != null)
             {
                 selector.gameObject.SetActive(false);

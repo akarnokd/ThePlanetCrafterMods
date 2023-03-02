@@ -9,7 +9,6 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System.Collections;
-using MijuTools;
 using System.Linq;
 using BepInEx.Configuration;
 using System;
@@ -19,7 +18,7 @@ using System.Collections.Concurrent;
 
 namespace FeatSpaceCows
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.4")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

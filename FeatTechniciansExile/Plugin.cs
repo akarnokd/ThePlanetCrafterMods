@@ -11,7 +11,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Collections;
 using UnityEngine;
-using MijuTools;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
@@ -20,7 +19,7 @@ using TMPro;
 
 namespace FeatTechniciansExile
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.3")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -798,12 +797,13 @@ namespace FeatTechniciansExile
             if (asteroid == null)
             {
                 var mh = Managers.GetManager<MeteoHandler>();
+                FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
                 /*
                 foreach (var me in mh.meteoEvents)
                 {
                     logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
                 }*/
-                var meteoEvent = mh.meteoEvents[9];
+                var meteoEvent = (fi.GetValue(mh) as List<MeteoEventData>)[9];
                 logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
 
                 mh.meteoSound.StartMeteoAudio(meteoEvent);

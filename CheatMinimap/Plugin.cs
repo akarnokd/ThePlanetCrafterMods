@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -16,7 +15,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.19")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.20")]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -474,7 +473,7 @@ namespace CheatMinimap
             }
         }
 
-        static bool allowUnload = true;
+        public static bool allowUnload = true;
         static bool loaded;
 
         IEnumerator PhotographMap(string dir, PlayerMainController pm)

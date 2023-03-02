@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections;
@@ -97,13 +96,24 @@ namespace FeatMultiplayer
             float ___growSize,
             GameObject ___spawnOnThis,
             float ___downValue,
-            bool ___canRecoltOnlyWhenFullyGrown
+            bool ___canRecoltOnlyWhenFullyGrown,
+            MachineOutsideGrowerSpecificRadius ___machineOutsideGrowerSpecificRadius
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 int layerMask = ~LayerMask.GetMask(GameConfig.commonIgnoredLayers);
-                Vector2 randomPointInRadius = UnityEngine.Random.insideUnitCircle * ___radius;
+                
+                float radiusForObject = ___radius;
+                if (___machineOutsideGrowerSpecificRadius != null)
+                {
+                    int num2 = __instance.thingsToGrow.IndexOf(_objectToInstantiate);
+                    if (___machineOutsideGrowerSpecificRadius.GetRadiusForObject(num2) != 0f)
+                    {
+                        radiusForObject = ___machineOutsideGrowerSpecificRadius.GetRadiusForObject(num2);
+                    }
+                }
+                Vector2 randomPointInRadius = UnityEngine.Random.insideUnitCircle * radiusForObject;
 
                 var go = __instance.gameObject;
                 Vector3 relativeToGrower = new Vector3(

@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
@@ -11,7 +10,7 @@ using System;
 
 namespace CheatAsteroidLandingPosition
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", "1.0.0.4")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

@@ -9,11 +9,10 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System;
-using MijuTools;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.6")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -164,6 +163,51 @@ namespace FixUnofficialPatches
         )
         {
             return ___worldObject != null;
+        }
+
+        // Bug in 0.7.001 when loading a completely new world
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad(ref PlanetIsLoaded ___planetIsLoaded)
+        {
+            if (___planetIsLoaded == null)
+            {
+                ___planetIsLoaded = () => { };
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
+        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
+        {
+            if (__instance.environmentVolumeVariables == null)
+            {
+                logger.LogError(__instance.gameObject.name + " id " + __instance.GetInstanceID() + ", environmentVolumeVariables == null");
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "CalculateLerpRelativeToPositionInCollider")]
+        static bool EnvironmentVolue_CalculateLerpRelativeToPositionInCollider(EnvironmentVolume __instance)
+        {
+            if (__instance.liveEnvironmentVolumeVariables == null)
+            {
+                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "OnTriggerExit")]
+        static bool EnvironmentVolue_OnTriggerExit(EnvironmentVolume __instance)
+        {
+            if (__instance.liveEnvironmentVolumeVariables == null)
+            {
+                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
+                return false;
+            }
+            return true;
         }
     }
 }

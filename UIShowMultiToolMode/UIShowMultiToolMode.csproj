@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>UIShowMultiToolMode</AssemblyName>
     <Description>(UI) Show MultiTool Mode</Description>
-    <Version>1.0.0.3</Version>
+    <Version>1.0.0.4</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -16,7 +16,7 @@
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.26" IncludeAssets="compile" />
+    <PackageReference Include="UnityEngine.Modules" Version="2020.3.42" IncludeAssets="compile" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -27,11 +27,6 @@
     <Reference Include="Assembly-CSharp">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="com.mijugames.miju-tools">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">

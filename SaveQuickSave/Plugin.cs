@@ -11,13 +11,12 @@ using System.IO.Compression;
 using System.Text;
 using System.Collections;
 using UnityEngine;
-using MijuTools;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 
 namespace SaveQuickSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.savequicksave", "(Save) Quick Save", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.savequicksave", "(Save) Quick Save", "1.0.0.1")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

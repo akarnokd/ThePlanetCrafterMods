@@ -10,7 +10,7 @@ using BepInEx.Configuration;
 
 namespace UIShowContainerInfo
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcontainerinfo", "(UI) Show Container Content Info", "1.0.0.5")]
     [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -50,8 +50,8 @@ namespace UIShowContainerInfo
             {
                 custom = " \"" + woText.GetText() + "\" ";
             }
-            string text = Readable.GetGroupName(Components.GetComponentOnGameObjectOrInParent<WorldObjectAssociated>(__instance.gameObject).GetWorldObject().GetGroup());
-            InventoryAssociated componentOnGameObjectOrInParent = Components.GetComponentOnGameObjectOrInParent<InventoryAssociated>(__instance.gameObject);
+            string text = Readable.GetGroupName(__instance.GetComponentInParent<WorldObjectAssociated>().GetWorldObject().GetGroup());
+            InventoryAssociated componentOnGameObjectOrInParent = __instance.GetComponentInParent<InventoryAssociated>();
             if (componentOnGameObjectOrInParent != null)
             {
                 Inventory inventory = componentOnGameObjectOrInParent.GetInventory();

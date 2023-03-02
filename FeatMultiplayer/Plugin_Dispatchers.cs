@@ -291,6 +291,11 @@ namespace FeatMultiplayer
                 Receive(cc, mse);
             }
             else
+            if (MessageUpdateSupplyDemand.TryParse(message, out var musd))
+            {
+                Receive(cc, musd);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -566,7 +571,7 @@ namespace FeatMultiplayer
                     }
                 case MessageDisconnected md:
                     {
-                        ReceiveMessageHostDisconnected();
+                        ReceiveMessageHostDisconnected(md);
                         break;
                     }
                 case MessageUpdateStorage mus:
@@ -587,6 +592,11 @@ namespace FeatMultiplayer
                 case MessageStoryEvents mse:
                     {
                         ReceiveMessageStoryEvents(mse);
+                        break;
+                    }
+                case MessageUpdateSupplyDemand musd:
+                    {
+                        ReceiveMessageUpdateSupplyDemand(musd);
                         break;
                     }
                 default:

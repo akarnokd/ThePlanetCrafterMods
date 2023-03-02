@@ -7,14 +7,13 @@ using BepInEx.Logging;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Reflection;
-using MijuTools;
 using BepInEx.Configuration;
 using System;
 using System.ComponentModel;
 
 namespace UIStackInRangeList
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uistackinrangelist", "(UI) Stack In-Range List", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uistackinrangelist", "(UI) Stack In-Range List", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
 

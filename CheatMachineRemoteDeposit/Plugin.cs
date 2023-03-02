@@ -10,7 +10,7 @@ using BepInEx.Logging;
 
 namespace CheatMachineRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", "1.0.0.10")]
     [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
@@ -110,9 +110,13 @@ namespace CheatMachineRemoteDeposit
             }
         }
 
-        static string GenerateOre(List<GroupData> ___groupDatas,
+        static string GenerateOre(
+            List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject)
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage)
         {
             // Since 0.6.001
             if (___setGroupsDataViaLinkedGroup)
@@ -120,13 +124,21 @@ namespace CheatMachineRemoteDeposit
                 var linkedGroups = ___worldObject.GetLinkedGroups();
                 if (linkedGroups != null && linkedGroups.Count != 0)
                 {
-                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].GetId();
+                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].id;
                 }
                 return null;
             }
             if (___groupDatas.Count != 0)
             {
-                return ___groupDatas[UnityEngine.Random.Range(0, ___groupDatas.Count)].id;
+                // Since 0.7.001
+                var groupDatasCopy = new List<GroupData>(___groupDatas);
+                if (___groupDatasTerraStage.Count != 0
+                    && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                {
+                    groupDatasCopy.AddRange(___groupDatasTerraStage);
+                }
+
+                return groupDatasCopy[UnityEngine.Random.Range(0, groupDatasCopy.Count)].id;
             }
             return null;
         }
@@ -136,7 +148,10 @@ namespace CheatMachineRemoteDeposit
         static bool MachineGenerator_GenerateAnObject(
             Inventory ___inventory, List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject
+            WorldObject ___worldObject,
+            List<GroupData> ___groupDatasTerraStage,
+            WorldUnitsHandler ___worldUnitsHandler,
+            TerraformStage ___terraStage
         )
         {
             if (!modEnabled.Value)
@@ -145,7 +160,8 @@ namespace CheatMachineRemoteDeposit
             }
 
             log("GenerateAnObject start");
-            string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject);
+            string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject,
+                    ___groupDatasTerraStage, ___worldUnitsHandler, ___terraStage);
 
             log("  Ore detected: " + oreId);
             // If Lathrey's OreExtractorTweaks are installed, intertwine its logic

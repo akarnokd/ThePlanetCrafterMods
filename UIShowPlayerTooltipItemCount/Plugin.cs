@@ -2,11 +2,10 @@
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using MijuTools;
 
 namespace UIShowPlayerTooltipItemCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayertooltipitemcount", "(UI) Show Player Tooltip Item Count", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayertooltipitemcount", "(UI) Show Player Tooltip Item Count", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 

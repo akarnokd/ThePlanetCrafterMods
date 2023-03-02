@@ -4,19 +4,22 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.2.0.15</Version>
+    <Version>0.2.0.19</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
+	<ItemGroup>
+	  <Compile Include="..\LibCommon\BepInExConfigCheck.cs" Link="BepInExConfigCheck.cs" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.26" IncludeAssets="compile" />
+    <PackageReference Include="UnityEngine.Modules" Version="2020.3.42" IncludeAssets="compile" />
     <PackageReference Include="Open.Nat" Version="2.1.0" />
   </ItemGroup>
   
@@ -30,11 +33,6 @@
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-	  <Reference Include="com.mijugames.miju-tools">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)com.mijugames.miju-tools.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
 	  <Reference Include="UnityEngine.UI">
 		  <SpecificVersion>False</SpecificVersion>
 		  <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
@@ -112,9 +110,6 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_comehere.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(ForZipAll)" />
 
-	  <ZipDirectory
-            SourceDirectory="$(TargetDir)\$(AssemblyName)"
-            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
-            Overwrite="true" />
+	  <ZipDirectory SourceDirectory="$(TargetDir)\$(AssemblyName)" DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip" Overwrite="true" />
   </Target>
 </Project>

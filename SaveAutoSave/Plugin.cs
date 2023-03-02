@@ -11,12 +11,11 @@ using System.IO.Compression;
 using System.Text;
 using System.Collections;
 using UnityEngine;
-using MijuTools;
 using BepInEx.Bootstrap;
 
 namespace SaveAutoSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveautosave", "(Save) Auto Save", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveautosave", "(Save) Auto Save", "1.0.0.2")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

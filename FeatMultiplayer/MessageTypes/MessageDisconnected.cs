@@ -8,6 +8,6 @@ namespace FeatMultiplayer.MessageTypes
 {
     internal class MessageDisconnected
     {
-        internal static readonly MessageDisconnected Instance = new MessageDisconnected();
+        internal string clientName;
     }
 }

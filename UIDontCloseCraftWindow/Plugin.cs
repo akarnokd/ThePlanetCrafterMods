@@ -4,11 +4,10 @@ using HarmonyLib;
 using UnityEngine.EventSystems;
 using BepInEx.Logging;
 using System.Reflection;
-using MijuTools;
 
 namespace UIDontCloseCraftWindow
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uidontclosecraftwindow", "(UI) Don't Close Craft Window", "1.0.0.5")]
     public class Plugin : BaseUnityPlugin
     {
 

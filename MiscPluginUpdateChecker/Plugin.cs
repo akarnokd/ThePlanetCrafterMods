@@ -16,7 +16,7 @@ using UnityEngine.InputSystem;
 [assembly: InternalsVisibleTo("XTestPlugins")]
 namespace MiscPluginUpdateChecker
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.miscpluginupdatechecker", "(Misc) Plugin Update Checker", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.miscpluginupdatechecker", "(Misc) Plugin Update Checker", "1.0.0.3")]
     [BepInDependency("akarnokd.theplanetcraftermods.featmultiplayer", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

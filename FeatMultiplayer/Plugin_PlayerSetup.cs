@@ -217,6 +217,7 @@ namespace FeatMultiplayer
                 if (gr is GroupItem gi)
                 {
                     string item = gi.GetId();
+                    /* FIXME not sure what happened to random effigie spawing yet
                     if (item == "GoldenEffigieSpawner")
                     {
                         foreach (var gc in gi.GetAssociatedGroups())
@@ -225,6 +226,7 @@ namespace FeatMultiplayer
                         }
                         continue;
                     }
+                    */
                     if (item.StartsWith("Rocket") && item != "RocketReactor")
                     {
                         continue;

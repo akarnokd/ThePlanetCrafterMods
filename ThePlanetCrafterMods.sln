@@ -175,6 +175,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIBeaconText", "UIBeaconTex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationCzech", "UITranslationCzech\UITranslationCzech.csproj", "{BCCB223D-8D00-413A-8600-DD21D3A95ED4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibCommon", "LibCommon\LibCommon.csproj", "{404C0831-AA80-4258-A996-E41B00C54B8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -401,6 +403,10 @@ Global
 		{BCCB223D-8D00-413A-8600-DD21D3A95ED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCCB223D-8D00-413A-8600-DD21D3A95ED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCCB223D-8D00-413A-8600-DD21D3A95ED4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{404C0831-AA80-4258-A996-E41B00C54B8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{404C0831-AA80-4258-A996-E41B00C54B8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{404C0831-AA80-4258-A996-E41B00C54B8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{404C0831-AA80-4258-A996-E41B00C54B8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

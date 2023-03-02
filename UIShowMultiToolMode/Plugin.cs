@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -9,7 +8,7 @@ using BepInEx.Configuration;
 
 namespace UIShowMultiToolMode
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", "1.0.0.4")]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

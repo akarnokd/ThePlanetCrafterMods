@@ -5,7 +5,6 @@ using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
 using BepInEx.Logging;
-using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
@@ -13,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationCzech
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationczech", "(UI) Czech Translation", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationczech", "(UI) Czech Translation", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "czech";

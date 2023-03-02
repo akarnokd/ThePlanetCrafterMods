@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using UnityEngine.InputSystem;
 using HarmonyLib;
@@ -8,7 +7,7 @@ using System.Collections.Generic;
 
 namespace UIInventoryMoveMultiple
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiinventorymovemultiple", "(UI) Inventory Move Multiple Items", "1.0.0.3")]
     public class Plugin : BaseUnityPlugin
     {
 

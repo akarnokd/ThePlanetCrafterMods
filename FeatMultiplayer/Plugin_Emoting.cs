@@ -2,7 +2,6 @@
 using BepInEx.Configuration;
 using FeatMultiplayer.MessageTypes;
 using HarmonyLib;
-using MijuTools;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;

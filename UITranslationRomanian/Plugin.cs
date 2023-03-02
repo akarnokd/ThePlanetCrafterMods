@@ -5,7 +5,6 @@ using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
 using BepInEx.Logging;
-using MijuTools;
 using System.Text;
 using System.IO;
 using BepInEx.Configuration;
@@ -13,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationRomanian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationromanian", "(UI) Romanian Translation", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationromanian", "(UI) Romanian Translation", "1.0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "romanian";

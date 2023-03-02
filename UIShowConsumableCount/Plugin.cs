@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -9,7 +8,7 @@ using UnityEngine.UI;
 
 namespace UIShowConsumableCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", "1.0.0.4")]
     public class Plugin : BaseUnityPlugin
     {
 

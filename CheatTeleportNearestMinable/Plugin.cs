@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using UnityEngine.InputSystem;
 using HarmonyLib;
@@ -13,7 +12,7 @@ using System.Reflection;
 
 namespace CheatTeleportNearestMinable
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.7")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

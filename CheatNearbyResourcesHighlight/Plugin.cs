@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -12,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.8")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.9")]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>

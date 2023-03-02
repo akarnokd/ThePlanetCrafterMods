@@ -11,7 +11,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Collections;
 using UnityEngine;
-using MijuTools;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Collections.Concurrent;
@@ -21,7 +20,7 @@ using System.Diagnostics.Eventing.Reader;
 
 namespace UIShowCrash
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 

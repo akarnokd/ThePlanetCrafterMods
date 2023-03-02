@@ -3,7 +3,6 @@ using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
-using MijuTools;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
@@ -17,7 +16,7 @@ using System.Reflection;
 
 namespace UIContinue
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", "1.0.0.3")]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationitalian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
@@ -207,7 +206,7 @@ namespace UIContinue
                 {
                     multiplayerContinue.Invoke(null, new object[0]);
                 }
-                SceneManager.LoadScene("OpenWorldTest");
+                SceneManager.LoadScene(GameConfig.mainSceneName);
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -16,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.14")]
+    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.15")]
     [BepInDependency(modUiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin

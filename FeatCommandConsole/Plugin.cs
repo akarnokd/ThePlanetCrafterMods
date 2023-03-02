@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
 using System.Diagnostics;
-using MijuTools;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
@@ -26,7 +25,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.8")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -1734,7 +1733,7 @@ namespace FeatCommandConsole
             Dictionary<string, List<string>> larvaeToSequenceInto = new();
             foreach (var gr in GroupsHandler.GetAllGroups())
             {
-                if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftInsectsT1))
+                if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
                 {
                     var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
                     foreach (var rgi in recipe)

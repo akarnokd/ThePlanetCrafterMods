@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using MijuTools;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -11,7 +10,7 @@ using System.Reflection;
 
 namespace UIMenuShortcutKeys
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", "1.0.0.2")]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -20,6 +19,7 @@ namespace UIMenuShortcutKeys
         ConfigEntry<string> configContainerTakeAll;
         ConfigEntry<string> configSortPlayerInventory;
         ConfigEntry<string> configSortOtherInventory;
+        ConfigEntry<bool> debugMode;
 
         GameObject ourCanvas;
         GameObject shortcutBar;
@@ -76,6 +76,8 @@ namespace UIMenuShortcutKeys
                 sortOtherInventory.Enable();
             }
 
+            debugMode = Config.Bind("General", "DebugMode", false, "Turn this true to see log messages.");
+
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -120,7 +122,10 @@ namespace UIMenuShortcutKeys
 
             if (canvas == null)
             {
-                Logger.LogWarning("Window canvas not found?!");
+                if (debugMode.Value)
+                {
+                    Logger.LogWarning("Window canvas not found?!");
+                }
                 return;
             }
 
@@ -130,30 +135,45 @@ namespace UIMenuShortcutKeys
             //ourCanvas.transform.SetParent(canvas.transform);
             ourCanvas.transform.SetAsLastSibling();
 
-            Logger.LogInfo("Creating ShortcutBar for " + ui);
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("Creating ShortcutBar for " + ui);
+            }
 
             shortcutBar = new GameObject("MenuShortcutKeysInfoBar");
-            shortcutBar.transform.parent = ourCanvas.transform;
+            shortcutBar.transform.SetParent(ourCanvas.transform, false);
 
 
-            Logger.LogInfo("  Creating background");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Creating background");
+            }
             var background = shortcutBar.AddComponent<Image>();
             background.color = new Color(0, 0, 0, 0.95f);
             var rect = background.GetComponent<RectTransform>();
             rect.localPosition = new Vector3(0, 0, 0);
             rect.sizeDelta = new Vector2(100, 100);
 
-            Logger.LogInfo("  Creating entries");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Creating entries");
+            }
             entries.Clear();
             CreateEntriesForUI(ui, w);
 
             LayoutEntries();
-            Logger.LogInfo("  Done");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Done");
+            }
         }
 
         void LayoutEntries()
         {
-            Logger.LogInfo("  Calculating sizes");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Calculating sizes");
+            }
             var margin = 10f;
             var sumWidth = 0f;
             float maxHeight = fontSize.Value;
@@ -169,7 +189,10 @@ namespace UIMenuShortcutKeys
 
             RectTransform rect;
 
-            Logger.LogInfo("  Laying out shortcut entries");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Laying out shortcut entries");
+            }
             var x = 0 - sumWidth / 2;
             foreach (var entry in entries)
             {
@@ -180,7 +203,10 @@ namespace UIMenuShortcutKeys
                 x += entry.preferredWidth + margin;
             }
 
-            Logger.LogInfo("  Positioning to screen-bottom");
+            if (debugMode.Value)
+            {
+                Logger.LogInfo("  Positioning to screen-bottom");
+            }
             rect = shortcutBar.GetComponent<RectTransform>();
             rect.localPosition = new Vector3(0, -Screen.height / 2 + maxHeight / 2 + margin);
             rect.sizeDelta = new Vector2(sumWidth + margin * 2, maxHeight + margin);
@@ -215,8 +241,9 @@ namespace UIMenuShortcutKeys
                         AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid").Invoke(uiWindowConstruction, new object[0]);
                     }
                     else
+                    if (debugMode.Value)
                     {
-                        Logger.LogWarning("Unknoww container-type window: " + window.GetType());
+                        Logger.LogWarning("Unknown container-type window: " + window.GetType());
                     }
                 }
             }
@@ -245,6 +272,7 @@ namespace UIMenuShortcutKeys
                     }
                 }
                 else
+                if (debugMode.Value)
                 {
                     Logger.LogWarning("Unknown container-type window: " + window.GetType());
                 }
@@ -303,6 +331,7 @@ namespace UIMenuShortcutKeys
                     }
                 }
                 else
+                if (debugMode.Value)
                 {
                     Logger.LogWarning("Unknown container-type window: " + window.GetType());
                 }
@@ -398,7 +427,7 @@ namespace UIMenuShortcutKeys
             // background1 for the shorcut
 
             var keyBackground1 = new GameObject("KeyBackground1");
-            keyBackground1.transform.parent = entry.gameObject.transform;
+            keyBackground1.transform.SetParent(entry.gameObject.transform, false);
 
             var img = keyBackground1.AddComponent<Image>();
             img.color = Color.white;
@@ -409,7 +438,7 @@ namespace UIMenuShortcutKeys
             // background for the shortcut
 
             var keyBackground2 = new GameObject("KeyBackground1");
-            keyBackground2.transform.parent = entry.gameObject.transform;
+            keyBackground2.transform.SetParent(entry.gameObject.transform, false);
 
             img = keyBackground2.AddComponent<Image>();
             img.color = Color.black;
@@ -417,7 +446,7 @@ namespace UIMenuShortcutKeys
             rect.localPosition = new Vector3(keyMargin + keyW / 2, 0, 0);
             rect.sizeDelta = new Vector2(keyW + keyMargin * 2 - 2, keyH + keyMargin * 2 - 2);
 
-            keyText.transform.parent = entry.gameObject.transform;
+            keyText.transform.SetParent(entry.gameObject.transform, false);
 
             // shortcut description
 
@@ -442,7 +471,7 @@ namespace UIMenuShortcutKeys
             entry.preferredWidth = descW + keyW + 10 + 2 * keyMargin;
             entry.preferredHeight = Mathf.Max(descH, keyH) + 10;
 
-            descriptionText.transform.parent = entry.gameObject.transform;
+            descriptionText.transform.SetParent(entry.gameObject.transform, false);
 
             return entry;
         }
