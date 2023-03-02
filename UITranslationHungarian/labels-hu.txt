@@ -883,3 +883,4 @@ GROUP_NAME_Fish10Eggs=Tiloo halikra
 GROUP_DESC_Fish10Eggs=
 GROUP_NAME_Fish11Eggs=Arany halikra
 GROUP_DESC_Fish11Eggs=
+Message_DeathCrosses=Ami jó mókának és nyugodt időtöltésnek ígérkezett, rémálommá vált. Öt hetes űrtúra az univerzum egy kevéssé ismert régióján keresztül. <br><br> Sajnos a buta legénység még a látszólag legkisebb incidensre sem tudott kellően reagálni, úgyhogy most itt vagyunk, temetjük azt a néhány testet amit ki tudtunk húzni az égő roncsokból... <br><br> Szinte biztos, hogy ránk is ez a sors vár. Nyugatnak tartunk, meglátjuk meddig éljük túl. Legfeljebb néhány napot... <br><br><br> A Cinitat II néhány túlélője, egyelőre...
