@@ -15,7 +15,7 @@ using System.Collections;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.20")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.21")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -831,21 +831,37 @@ namespace CheatInventoryStacking
             }
         }
 
-        static bool calledFromSetLogisticTask;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Pre()
+        static void LogisticManager_SetLogisticTasks_Pre(List<Inventory> ___demandInventories)
         {
-            calledFromSetLogisticTask = true;
+            var n = stackSize.Value;
+            if (n > 1)
+            {
+                foreach (var inv in ___demandInventories)
+                {
+                    inv.SetSize(inv.GetSize() * n);
+                }
+            }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Post()
+        static void LogisticManager_SetLogisticTasks_Post(List<Inventory> ___demandInventories)
         {
-            calledFromSetLogisticTask = false;
+            var n = stackSize.Value;
+            if (n > 1)
+            {
+                foreach (var inv in ___demandInventories)
+                {
+                    inv.SetSize(inv.GetSize() / n);
+                }
+            }
         }
+
+        /*
+        static bool calledFromSetLogisticTask;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetSize))]
@@ -856,5 +872,6 @@ namespace CheatInventoryStacking
                 __result = ___inventorySize * stackSize.Value;
             }
         }
+        */
     }
 }
