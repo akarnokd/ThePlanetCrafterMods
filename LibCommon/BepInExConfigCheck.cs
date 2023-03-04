@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,9 +22,9 @@ namespace LibCommon
         {
             string dir = Path.GetDirectoryName(me.Location);
 
-            int i = dir.ToLower().IndexOf("bepinex");
+            int i = dir.ToLower(CultureInfo.InvariantCulture).IndexOf("bepinex");
 
-            if (i != 0)
+            if (i >= 0)
             {
                 var newdir = dir.Substring(0, i) + "bepinex\\config\\BepInEx.cfg";
                 
