@@ -375,6 +375,19 @@ namespace PerfMonitor
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
+        static void Inventory_IsFull()
+        {
+            PerfBegin("Inventory_IsFull");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
+        static void Inventory_IsFull_Post()
+        {
+            PerfEnd("Inventory_IsFull");
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.GetANonAttributedTask))]
         static void LogisticManager_GetANonAttributedTask()
         {
@@ -385,6 +398,19 @@ namespace PerfMonitor
         static void LogisticManager_GetANonAttributedTask_Post()
         {
             PerfEnd("LogisticManager_GetANonAttributedTask");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.TryToReleaseOneDrone))]
+        static void MachineDroneStation_TryToReleaseOneDrone()
+        {
+            PerfBegin("MachineDroneStation_TryToReleaseOneDrone");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.TryToReleaseOneDrone))]
+        static void MachineDroneStation_TryToReleaseOneDrone_Post()
+        {
+            PerfEnd("MachineDroneStation_TryToReleaseOneDrone");
         }
 
         class IEnumeratorInterceptor : IEnumerator
