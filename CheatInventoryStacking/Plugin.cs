@@ -12,10 +12,11 @@ using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using System.Collections;
+using System.Linq;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.21")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.22")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -834,31 +835,207 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Pre(List<Inventory> ___demandInventories)
+        static bool LogisticManager_SetLogisticTasks_Pre(
+            bool ___hasLogisticsEnabled,
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            List<MachineDroneStation> ___allDroneStations,
+            List<Drone> ___droneFleet,
+            List<Inventory> ___supplyInventories,
+            List<Inventory> ___demandInventories
+        )
         {
             var n = stackSize.Value;
-            if (n > 1)
+            if (n <= 1)
             {
-                foreach (var inv in ___demandInventories)
+                return true;
+            }
+
+            if (!___hasLogisticsEnabled)
+            {
+                return false;
+            }
+            // logger.LogInfo("LogisticManager::SetLogisticTasks");
+            Dictionary<int, WorldObject> inventoryParent = new();
+
+            SetLogisticTask_SupplyDemand(___supplyInventories, ___demandInventories, ___allLogisticTasks, inventoryParent);
+            SetLogisticTask_RemoveDone(___allLogisticTasks);
+
+            var nextNonAttributedTasks = ___allLogisticTasks.Values.Where(t => t.GetTaskState() == LogisticData.TaskState.NotAttributed).GetEnumerator();
+
+            SetLogisticTask_AssignDrones(___droneFleet, nextNonAttributedTasks);
+            SetLogisticTask_ReleaseDrones(___allDroneStations, nextNonAttributedTasks);
+
+            return false;
+        }
+
+        static void SetLogisticTask_SupplyDemand(
+            List<Inventory> ___supplyInventories,
+            List<Inventory> ___demandInventories,
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Dictionary<int, WorldObject> inventoryParent
+            )
+        {
+            foreach (Inventory demandInventory in ___demandInventories)
+            {
+                var f = demandInventory.IsFull();
+                if (!f)
                 {
-                    inv.SetSize(inv.GetSize() * n);
+                    var capacity = demandInventory.GetSize() * stackSize.Value;
+
+                    foreach (Group demandGroup in demandInventory.GetLogisticEntity().GetDemandGroups())
+                    {
+                        foreach (Inventory supplyInventory in ___supplyInventories)
+                        {
+                            if (supplyInventory != demandInventory)
+                            {
+                                foreach (Group supplyGroup in supplyInventory.GetLogisticEntity().GetSupplyGroups())
+                                {
+                                    if (demandGroup == supplyGroup)
+                                    {
+                                        foreach (WorldObject worldObject in supplyInventory.GetWorldObjectsOfGroup(supplyGroup))
+                                        {
+                                            if (demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < capacity)
+                                            {
+                                                // logger.LogInfo("Creating task for " + worldObject.GetGroup().GetId());
+                                                CreateNewTaskForWorldObject(___allLogisticTasks, supplyInventory, demandInventory, worldObject, inventoryParent);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Post(List<Inventory> ___demandInventories)
+        static LogisticTask CreateNewTaskForWorldObject(
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Inventory _supplyInventory, Inventory _demandInventory, 
+            WorldObject _worldObject,
+            Dictionary<int, WorldObject> inventoryParent)
         {
-            var n = stackSize.Value;
-            if (n > 1)
+            if (___allLogisticTasks.ContainsKey(_worldObject.GetId()))
             {
-                foreach (var inv in ___demandInventories)
+                return null;
+            }
+            WorldObject worldObjectForInventory = GetInventoryParent(_supplyInventory, inventoryParent);
+            WorldObject worldObjectForInventory2 = GetInventoryParent(_demandInventory, inventoryParent);
+            if (worldObjectForInventory2 == null || worldObjectForInventory == null)
+            {
+                return null;
+            }
+            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, worldObjectForInventory, worldObjectForInventory2);
+            ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
+            return logisticTask;
+        }
+
+        static WorldObject GetInventoryParent(Inventory inv, Dictionary<int, WorldObject> lookup)
+        {
+            if (lookup.TryGetValue(inv.GetId(), out var wo))
+            {
+                return wo;
+            }
+            wo = WorldObjectsHandler.GetWorldObjectForInventory(inv);
+            if (wo != null)
+            {
+                lookup.Add(inv.GetId(), wo);
+            }
+            return wo;
+        }
+
+        static void SetLogisticTask_RemoveDone(
+            Dictionary<int, LogisticTask> ___allLogisticTasks
+        )
+        {
+            var list = new List<int>();
+            var isFull = new Dictionary<int, bool>();
+            foreach (KeyValuePair<int, LogisticTask> keyValuePair in ___allLogisticTasks)
+            {
+                Inventory inv = keyValuePair.Value.GetDemandInventory();
+                bool f;
+                if (isFull.ContainsKey(inv.GetId()))
                 {
-                    inv.SetSize(inv.GetSize() / n);
+                    f = isFull[inv.GetId()];
+                }
+                else
+                {
+                    f = inv.IsFull();
+                    isFull[inv.GetId()] = f;
+                }
+                if (f)
+                {
+                    keyValuePair.Value.SetTaskState(LogisticData.TaskState.Done);
+                    list.Add(keyValuePair.Key);
+                }
+                else if (keyValuePair.Value.GetTaskState() == LogisticData.TaskState.Done)
+                {
+                    list.Add(keyValuePair.Key);
+                }
+            }
+
+            foreach (int num in list)
+            {
+                ___allLogisticTasks.Remove(num);
+            }
+
+        }
+
+        static void SetLogisticTask_AssignDrones(
+                List<Drone> ___droneFleet,
+                IEnumerator<LogisticTask> nextNonAttributedTasks
+        )
+        {
+            foreach (var drone in ___droneFleet)
+            {
+                if (drone.GetLogisticTask() == null)
+                { 
+                    if (nextNonAttributedTasks.MoveNext())
+                    {
+                        // logger.LogInfo("Assign task to drone");
+                        drone.SetLogisticTask(nextNonAttributedTasks.Current);
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
+
+        static void SetLogisticTask_ReleaseDrones(
+            List<MachineDroneStation> ___allDroneStations,
+            IEnumerator<LogisticTask> nextNonAttributedTasks
+            )
+        {
+            var list2 = new List<LogisticStationDistanceToTask>();
+            while (nextNonAttributedTasks.MoveNext())
+            {
+                var logisticTask = nextNonAttributedTasks.Current;
+                var pos = logisticTask.GetSupplyInventoryWorldObject().GetPosition();
+                // logger.LogInfo("Try releasing more drones");
+                list2.Clear();
+                foreach (var machineDroneStation in ___allDroneStations)
+                {
+                    if (logisticTask.GetSupplyInventoryWorldObject() != null)
+                    {
+                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, pos));
+                        list2.Add(new LogisticStationDistanceToTask(machineDroneStation, (float)num2));
+                    }
+                }
+                list2.Sort();
+                foreach (var logisticStationDistanceToTask in list2)
+                {
+                    GameObject gameObject = logisticStationDistanceToTask.GetMachineDroneStation().TryToReleaseOneDrone();
+                    if (gameObject != null && gameObject.GetComponent<Drone>())
+                    {
+                        gameObject.GetComponent<Drone>().SetLogisticTask(logisticTask);
+                        break;
+                    }
+                }
+            }
+        }
+
 
         /*
         static bool calledFromSetLogisticTask;
