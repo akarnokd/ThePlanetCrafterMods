@@ -286,8 +286,7 @@ namespace FeatMultiplayer
                 logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
             }
 
-            var lm = Managers.GetManager<LogisticManager>();
-            lm.SetInventoryStatusInLogistics(inv);
+            Managers.GetManager<LogisticManager>()?.SetInventoryStatusInLogistics(inv);
         }
     }
 }

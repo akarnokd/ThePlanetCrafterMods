@@ -16,7 +16,7 @@ using System.Linq;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.22")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.23")]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -854,6 +854,11 @@ namespace CheatInventoryStacking
             {
                 return false;
             }
+            if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
+            {
+                return false;
+            }
+                
             // logger.LogInfo("LogisticManager::SetLogisticTasks");
             Dictionary<int, WorldObject> inventoryParent = new();
 
@@ -875,6 +880,8 @@ namespace CheatInventoryStacking
             Dictionary<int, WorldObject> inventoryParent
             )
         {
+            ___demandInventories.Sort((Inventory x, Inventory y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority()));
+            
             foreach (Inventory demandInventory in ___demandInventories)
             {
                 var f = demandInventory.IsFull();

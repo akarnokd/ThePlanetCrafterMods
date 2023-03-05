@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyName></AssemblyName>
-    <Description>(Cheat) Inventory Stacking</Description>
-    <Version>1.0.0.23</Version>
+    <AssemblyName>LathreyAutoMove</AssemblyName>
+    <Description>(Lathrey) Auto Move</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
-  <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 
@@ -39,15 +39,19 @@
       <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
       <Private>False</Private>
     </Reference>
+	  <Reference Include="Unity.TextMeshPro">
+		  <SpecificVersion>False</SpecificVersion>
+		  <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
   </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
-	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
-
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  <ZipDirectory
+	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
