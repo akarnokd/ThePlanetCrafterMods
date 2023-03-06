@@ -70,6 +70,11 @@ namespace FeatMultiplayer
                 Receive(cc, ml);
             }
             else
+            if (MessagePlayerWelcome.TryParse(message, out var mw) && updateMode == MultiplayerMode.CoopClient)
+            {
+                Receive(cc, mw);
+            }
+            else
             if (MessageAllObjects.TryParse(message, out var mc))
             {
                 //LogInfo(message);
@@ -304,11 +309,6 @@ namespace FeatMultiplayer
             if (message == "EAccessDenied" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host access denied (check user and password settings)");
-            }
-            else
-            if (message == "Welcome" && updateMode == MultiplayerMode.CoopClient)
-            {
-                Receive(cc, new MessagePlayerWelcome());
             }
             else
             if (!TryMessageParsers(cc.id, message))

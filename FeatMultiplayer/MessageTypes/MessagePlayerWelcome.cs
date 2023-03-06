@@ -8,12 +8,31 @@ namespace FeatMultiplayer.MessageTypes
 {
     internal class MessagePlayerWelcome : MessageBase
     {
+        internal Version multiplayerModVersion;
+        internal readonly Dictionary<string, Version> modVersions = new();
+
         public static bool TryParse(string str, out MessagePlayerWelcome mpw)
         {
-            if (str == "Welcome")
+            if (MessageHelper.TryParseMessage("Welcome", str, 3, out var parameters))
             {
-                mpw = new();
-                return true;
+                try
+                {
+                    Plugin.LogInfo(str);
+                    mpw = new();
+                    mpw.multiplayerModVersion = new Version(parameters[1]);
+
+                    foreach (var kv in parameters[2].Split(';'))
+                    {
+                        var kvv = kv.Split('=');
+                        mpw.modVersions[kvv[0]] = new Version(kvv[1]);
+                    }
+
+                    return true;
+                } 
+                catch (Exception ex)
+                {
+                    Plugin.LogError(ex);
+                }
             }
             mpw = null;
             return false;
@@ -21,7 +40,20 @@ namespace FeatMultiplayer.MessageTypes
 
         public override string GetString()
         {
-            return "Welcome\n";
+            StringBuilder sb = new();
+            sb.Append("Welcome|").Append(multiplayerModVersion).Append('|');
+            int j = 0;
+            foreach (var m in modVersions)
+            {
+                if (j != 0)
+                {
+                    sb.Append(';');
+                }
+                sb.Append(m.Key).Append('=').Append(m.Value);
+                j++;
+            }
+            sb.Append('\n');
+            return sb.ToString();
         }
     }
 }
