@@ -13,6 +13,8 @@ using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using System.Collections;
 using System.Linq;
+using System.Diagnostics;
+using System.Data;
 
 namespace CheatInventoryStacking
 {
@@ -26,8 +28,6 @@ namespace CheatInventoryStacking
         static ConfigEntry<int> fontSize;
 
         static string expectedGroupIdToAdd;
-
-        static readonly Dictionary<int, List<GameObject>> inventoryCountGameObjects = new();
 
         static ManualLogSource logger;
 
@@ -43,6 +43,10 @@ namespace CheatInventoryStacking
         };
 
         public static Func<string> getMultiplayerMode;
+
+        static double invokeSumTime;
+        static int invokeCount;
+        static float invokeLast;
 
         private void Awake()
         {
@@ -280,21 +284,10 @@ namespace CheatInventoryStacking
             int n = stackSize.Value;
             if (n > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
-                int fs = fontSize.Value;
+                var sw = new Stopwatch();
+                sw.Start();
 
-                if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out List<GameObject> inventoryGO))
-                {
-                    foreach (GameObject go in inventoryGO)
-                    {
-                        UnityEngine.Object.Destroy(go);
-                    }
-                    inventoryGO.Clear();
-                }
-                else
-                {
-                    inventoryGO = new List<GameObject>();
-                    inventoryCountGameObjects[___inventory.GetId()] = inventoryGO;
-                }
+                int fs = fontSize.Value;
 
                 GameObjects.DestroyAllChildren(___grid.gameObject, false);
 
@@ -351,8 +344,7 @@ namespace CheatInventoryStacking
                         if (slot.Count > 1)
                         {
                             GameObject countBackground = new GameObject();
-                            inventoryGO.Add(countBackground);
-                            countBackground.transform.parent = component.transform;
+                            countBackground.transform.SetParent(component.transform, false);
 
                             Image image = countBackground.AddComponent<Image>();
                             image.color = new Color(0.25f, 0.25f, 0.25f, 0.8f);
@@ -362,8 +354,7 @@ namespace CheatInventoryStacking
                             rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
 
                             GameObject count = new GameObject();
-                            inventoryGO.Add(count);
-                            count.transform.parent = component.transform;
+                            count.transform.SetParent(component.transform, false);
                             Text text = count.AddComponent<Text>();
                             text.text = slot.Count.ToString();
                             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -420,6 +411,24 @@ namespace CheatInventoryStacking
                     __instance.GetComponent<RectTransform>().sizeDelta = ___originalSizeDelta;
                 }
                 __instance.SetIconsPositionRelativeToGrid();
+
+                invokeCount++;
+
+                var t = Time.realtimeSinceStartup;
+                if (t - invokeLast >= 10)
+                {
+                    invokeLast = t;
+
+                    logger.LogInfo("InventoryDisplayer_TrueRefreshContent. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
+
+                    invokeSumTime = 0;
+                    invokeCount = 0;
+                }
+                else
+                {
+                    invokeSumTime += sw.ElapsedTicks / 10000d;
+                }
+
                 return false;
             }
             return true;
