@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace UITranslationCzech
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationczech", "(UI) Czech Translation", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationczech", "(UI) Czech Translation", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "czech";

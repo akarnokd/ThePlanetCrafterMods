@@ -44,9 +44,11 @@ namespace CheatInventoryStacking
 
         public static Func<string> getMultiplayerMode;
 
+        /*
         static double invokeSumTime;
         static int invokeCount;
         static float invokeLast;
+        */
 
         private void Awake()
         {
@@ -284,8 +286,10 @@ namespace CheatInventoryStacking
             int n = stackSize.Value;
             if (n > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
+                /*
                 var sw = new Stopwatch();
                 sw.Start();
+                */
 
                 int fs = fontSize.Value;
 
@@ -412,8 +416,8 @@ namespace CheatInventoryStacking
                 }
                 __instance.SetIconsPositionRelativeToGrid();
 
+                /*
                 invokeCount++;
-
                 var t = Time.realtimeSinceStartup;
                 if (t - invokeLast >= 10)
                 {
@@ -428,7 +432,7 @@ namespace CheatInventoryStacking
                 {
                     invokeSumTime += sw.ElapsedTicks / 10000d;
                 }
-
+                */
                 return false;
             }
             return true;
