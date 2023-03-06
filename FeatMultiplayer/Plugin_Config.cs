@@ -41,6 +41,9 @@ namespace FeatMultiplayer
         static ConfigEntry<string> emoteKey;
         static InputAction emoteAction;
 
+        static ConfigEntry<string> playerLocatorKey;
+        static InputAction playerLocatorAction;
+
         internal static Texture2D astronautFront;
         internal static Texture2D astronautBack;
 
@@ -66,6 +69,7 @@ namespace FeatMultiplayer
             slowdownConsumption = Config.Bind("General", "SlowdownConsumption", false, "Slows down health/food/water consumption rate");
             playerNameFontSize = Config.Bind("General", "PlayerNameFontSize", 20, "Font size used to display the player's names above their avatar.");
             emoteKey = Config.Bind("General", "EmoteKey", "G", "The key to bring up the emote wheel.");
+            playerLocatorKey = Config.Bind("General", "PlayerLocatorKey", "H", "Toggle the overlay that shows the other players' location");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
@@ -98,6 +102,8 @@ namespace FeatMultiplayer
             ApiSetup();
 
             EmoteSetup();
+
+            OverlaySetup();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

@@ -91,6 +91,8 @@ namespace FeatMultiplayer
                     CheckLogKeys();
                 }
                 HandleEmoting();
+
+                HandleOverlays();
             }
             else
             {
