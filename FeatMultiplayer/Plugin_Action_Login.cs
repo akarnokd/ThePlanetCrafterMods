@@ -171,11 +171,14 @@ namespace FeatMultiplayer
                     }
                 }
 
-                var str2 = "Warning! Mod version mismatch(es) detected!\n\n"
-                    + string.Join("\n", diff)
-                    + "\n\nPlease make sure you run the same version(s).";
-                NotifyUser(str2, 60);
-                LogWarning(str2);
+                if (diff.Count != 0)
+                {
+                    var str2 = "Warning! Mod version mismatch(es) detected!\n\n"
+                        + string.Join("\n", diff)
+                        + "\n\nPlease make sure you run the same version(s).";
+                    NotifyUser(str2, 60);
+                    LogWarning(str2);
+                }
             }
         }
 
