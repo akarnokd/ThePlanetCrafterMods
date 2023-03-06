@@ -39,7 +39,8 @@ namespace FeatMultiplayer
                 playerLocatorOverlay.SetActive(false);
             }
 
-            if (playerLocatorAction.WasPressedThisFrame())
+            WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+            if (playerLocatorAction.WasPressedThisFrame() && !wh.GetHasUiOpen())
             {
                 playerLocatorOverlay.SetActive(!playerLocatorOverlay.activeSelf);
             }
