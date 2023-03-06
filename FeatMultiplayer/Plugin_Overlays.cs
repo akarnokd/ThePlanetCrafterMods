@@ -79,7 +79,7 @@ namespace FeatMultiplayer
 
                 var outline = textGo.AddComponent<Outline>();
                 outline.effectColor = Color.black;
-                outline.effectDistance = new Vector2(1, 1);
+                outline.effectDistance = new Vector2(1, -1);
             }
         }
 
