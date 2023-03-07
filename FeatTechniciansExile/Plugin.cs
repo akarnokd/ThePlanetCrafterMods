@@ -2,14 +2,10 @@
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Globalization;
 using BepInEx.Logging;
-using BepInEx.Configuration;
 using System.IO;
 using System;
-using System.IO.Compression;
 using System.Text;
-using System.Collections;
 using UnityEngine;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
@@ -19,7 +15,7 @@ using TMPro;
 
 namespace FeatTechniciansExile
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -783,12 +779,15 @@ namespace FeatTechniciansExile
         void CheckStartConditions()
         {
             var wu = Managers.GetManager<WorldUnitsHandler>();
-            var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
-            if (wut.GetValue() >= 1100000)
+            if (wu != null)
             {
-                questPhase = QuestPhase.Arrival;
-                SaveState();
-                SetVisibilityViaCurrentPhase();
+                var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
+                if (wut != null && wut.GetValue() >= 1100000)
+                {
+                    questPhase = QuestPhase.Arrival;
+                    SaveState();
+                    SetVisibilityViaCurrentPhase();
+                }
             }
         }
 
