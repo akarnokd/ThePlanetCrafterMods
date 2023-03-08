@@ -793,54 +793,61 @@ namespace FeatTechniciansExile
 
         void CheckArrival()
         {
-            if (asteroid == null)
+            var mh = Managers.GetManager<MeteoHandler>();
+            if (mh != null)
             {
-                var mh = Managers.GetManager<MeteoHandler>();
-                FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
-                /*
-                foreach (var me in mh.meteoEvents)
+                if (asteroid == null)
                 {
-                    logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
-                }*/
-                var meteoEvent = (fi.GetValue(mh) as List<MeteoEventData>)[9];
-                logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
+                    FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
+                    /*
+                    foreach (var me in mh.meteoEvents)
+                    {
+                        logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
+                    }*/
+                    var mes = (fi.GetValue(mh) as List<MeteoEventData>);
+                    if (mes != null)
+                    {
+                        var meteoEvent = mes[9];
+                        logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
 
-                mh.meteoSound.StartMeteoAudio(meteoEvent);
-                if (meteoEvent.asteroidEventData != null)
-                {
-                    var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
+                        mh.meteoSound.StartMeteoAudio(meteoEvent);
+                        if (meteoEvent.asteroidEventData != null)
+                        {
+                            var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
 
-                    var ah = Managers.GetManager<AsteroidsHandler>();
+                            var ah = Managers.GetManager<AsteroidsHandler>();
 
-                    GameObject obj = Instantiate(
-                        selectedAsteroidEventData.asteroidGameObject,
-                        technicianDropLocation + new Vector3(0, 1000, 0),
-                        Quaternion.identity,
-                        ah.gameObject.transform
-                    );
-                    obj.transform.LookAt(technicianDropLocation);
-                    
-                    asteroid = obj.GetComponent<Asteroid>();
-                    asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
-                    asteroid.debrisDestroyTime = 5;
-                    asteroid.placeAsteroidBody = false;
-                    selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
-                    selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                            GameObject obj = Instantiate(
+                                selectedAsteroidEventData.asteroidGameObject,
+                                technicianDropLocation + new Vector3(0, 1000, 0),
+                                Quaternion.identity,
+                                ah.gameObject.transform
+                            );
+                            obj.transform.LookAt(technicianDropLocation);
+
+                            asteroid = obj.GetComponent<Asteroid>();
+                            asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
+                            asteroid.debrisDestroyTime = 5;
+                            asteroid.placeAsteroidBody = false;
+                            selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
+                            selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                        }
+                    }
                 }
-            } 
-            else
-            {
-                if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                else
                 {
-                    asteroid = null;
-                    questPhase = QuestPhase.Initial_Help;
+                    if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                    {
+                        asteroid = null;
+                        questPhase = QuestPhase.Initial_Help;
 
-                    var mh = Managers.GetManager<MessagesHandler>();
-                    mh.AddNewReceivedMessage(technicianMessage);
+                        var msh = Managers.GetManager<MessagesHandler>();
+                        msh.AddNewReceivedMessage(technicianMessage);
 
-                    ShowChoice(dialogChoices["WhoAreYou"]);
-                    SaveState();
-                    SetVisibilityViaCurrentPhase();
+                        ShowChoice(dialogChoices["WhoAreYou"]);
+                        SaveState();
+                        SetVisibilityViaCurrentPhase();
+                    }
                 }
             }
         }

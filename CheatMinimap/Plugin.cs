@@ -471,6 +471,12 @@ namespace CheatMinimap
                 lg.color = Color.white;
                 lg.range = 1000;
             }
+            /*
+            foreach (var ps in FindObjectsOfType<ParticleSystem>())
+            {
+                ps.gameObject.SetActive(false);
+            }
+            */
         }
 
         public static bool allowUnload = true;
