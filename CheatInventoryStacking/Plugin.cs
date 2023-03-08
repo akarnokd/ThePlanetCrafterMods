@@ -40,6 +40,7 @@ namespace CheatInventoryStacking
             109487734, // fusion generator in the hill wreck
             102606011, // fusion generator in the battleship
             101703877, // fusion generator in the stargate
+            101484917, // fusion generator in the luxury cruiser with 3 slots
         };
 
         public static Func<string> getMultiplayerMode;
