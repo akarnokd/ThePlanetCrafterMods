@@ -1544,7 +1544,9 @@ Note that there is no guaranteed order of loading data for different registered 
 ## (Lathrey) Disable Build Constraints
 
 Updated version of Lathrey's Disable Build Constraint mod. Lathrey no longer supports his mods.
+
 Toggle the mode via Ctrl+G (configurable).
+
 :warning: This mod runs in a different namespace thus it can't pick up your old configuration.
 
 ### Configuration
