@@ -73,6 +73,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
+- [Logistic Select All](#logistic-select-all)
 - [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
 - [Menu Shortcut Keys](#ui-menu-shortcut-keys)
 - [Overview Panel](#ui-overview-panel)
@@ -1598,3 +1599,11 @@ Toggle_Auto_Move_Modifier_Key = None
 Toggle_Auto_Move_Key = CapsLock
 ```
 </details>
+
+## (UI) Logistic Select All
+
+Select all groups in the logistic screen by pressing <kbd>Ctrl+A</kbd>.
+
+### Configuration
+
+None.
