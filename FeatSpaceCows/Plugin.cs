@@ -18,7 +18,7 @@ using System.Collections.Concurrent;
 
 namespace FeatSpaceCows
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", "1.0.0.5")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -336,7 +336,7 @@ namespace FeatSpaceCows
                 UiWindowContainer uiWindowContainer = (UiWindowContainer)Managers.GetManager<WindowsHandler>().OpenAndReturnUi(DataConfig.UiType.Container);
                 if (uiWindowContainer != null)
                 {
-                    uiWindowContainer.SetInventories(backpack, inventory);
+                    uiWindowContainer.SetInventories(backpack, inventory, false);
                 }
             }
 

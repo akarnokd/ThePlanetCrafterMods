@@ -12,7 +12,7 @@ using System;
 
 namespace UIOverviewPanel
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -30,6 +30,7 @@ namespace UIOverviewPanel
         static float lastUpdate;
         static readonly Dictionary<string, int> sceneCounts = new();
         static readonly HashSet<string> uniqueButterflies = new();
+        static readonly HashSet<string> uniqueFish = new();
 
         private void Awake()
         {
@@ -134,9 +135,11 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(17, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(20, "GoldenContainer"));
 
                 AddTextRow("Unique larvae found", CreateButterflyCount(18));
+
+                AddTextRow("Unique fish found", CreateFishCount(11));
 
                 AddTextRow("Resources mined", CreateSceneCounter(0, 
                     "Cobalt",
@@ -374,6 +377,14 @@ namespace UIOverviewPanel
                 return csum + " / " + max + " (" + string.Format("{0:##0.00}", 100f * csum / max) + " %)";
             };
         }
+        Func<string> CreateFishCount(int max)
+        {
+            return () =>
+            {
+                int csum = uniqueFish.Count;
+                return csum + " / " + max + " (" + string.Format("{0:##0.00}", 100f * csum / max) + " %)";
+            };
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
@@ -389,6 +400,10 @@ namespace UIOverviewPanel
             if (gid.StartsWith("Butterfly") && gid.EndsWith("Larvae"))
             {
                 uniqueButterflies.Add(gid);
+            }
+            if (gid.StartsWith("Fish") && gid.EndsWith("Eggs"))
+            {
+                uniqueFish.Add(gid);
             }
         }
 

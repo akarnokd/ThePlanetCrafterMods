@@ -12,10 +12,13 @@ using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using System.Collections;
+using System.Linq;
+using System.Diagnostics;
+using System.Data;
 
 namespace CheatInventoryStacking
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", "1.0.0.19")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -25,8 +28,6 @@ namespace CheatInventoryStacking
         static ConfigEntry<int> fontSize;
 
         static string expectedGroupIdToAdd;
-
-        static readonly Dictionary<int, List<GameObject>> inventoryCountGameObjects = new();
 
         static ManualLogSource logger;
 
@@ -39,9 +40,16 @@ namespace CheatInventoryStacking
             109487734, // fusion generator in the hill wreck
             102606011, // fusion generator in the battleship
             101703877, // fusion generator in the stargate
+            101484917, // fusion generator in the luxury cruiser with 3 slots
         };
 
         public static Func<string> getMultiplayerMode;
+
+        /*
+        static double invokeSumTime;
+        static int invokeCount;
+        static float invokeLast;
+        */
 
         private void Awake()
         {
@@ -279,21 +287,12 @@ namespace CheatInventoryStacking
             int n = stackSize.Value;
             if (n > 1 && !noStackingInventories.Contains(___inventory.GetId()))
             {
-                int fs = fontSize.Value;
+                /*
+                var sw = new Stopwatch();
+                sw.Start();
+                */
 
-                if (inventoryCountGameObjects.TryGetValue(___inventory.GetId(), out List<GameObject> inventoryGO))
-                {
-                    foreach (GameObject go in inventoryGO)
-                    {
-                        UnityEngine.Object.Destroy(go);
-                    }
-                    inventoryGO.Clear();
-                }
-                else
-                {
-                    inventoryGO = new List<GameObject>();
-                    inventoryCountGameObjects[___inventory.GetId()] = inventoryGO;
-                }
+                int fs = fontSize.Value;
 
                 GameObjects.DestroyAllChildren(___grid.gameObject, false);
 
@@ -350,8 +349,7 @@ namespace CheatInventoryStacking
                         if (slot.Count > 1)
                         {
                             GameObject countBackground = new GameObject();
-                            inventoryGO.Add(countBackground);
-                            countBackground.transform.parent = component.transform;
+                            countBackground.transform.SetParent(component.transform, false);
 
                             Image image = countBackground.AddComponent<Image>();
                             image.color = new Color(0.25f, 0.25f, 0.25f, 0.8f);
@@ -361,8 +359,7 @@ namespace CheatInventoryStacking
                             rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
 
                             GameObject count = new GameObject();
-                            inventoryGO.Add(count);
-                            count.transform.parent = component.transform;
+                            count.transform.SetParent(component.transform, false);
                             Text text = count.AddComponent<Text>();
                             text.text = slot.Count.ToString();
                             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -419,6 +416,24 @@ namespace CheatInventoryStacking
                     __instance.GetComponent<RectTransform>().sizeDelta = ___originalSizeDelta;
                 }
                 __instance.SetIconsPositionRelativeToGrid();
+
+                /*
+                invokeCount++;
+                var t = Time.realtimeSinceStartup;
+                if (t - invokeLast >= 10)
+                {
+                    invokeLast = t;
+
+                    logger.LogInfo("InventoryDisplayer_TrueRefreshContent. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
+
+                    invokeSumTime = 0;
+                    invokeCount = 0;
+                }
+                else
+                {
+                    invokeSumTime += sw.ElapsedTicks / 10000d;
+                }
+                */
                 return false;
             }
             return true;
@@ -831,21 +846,220 @@ namespace CheatInventoryStacking
             }
         }
 
-        static bool calledFromSetLogisticTask;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Pre()
+        static bool LogisticManager_SetLogisticTasks_Pre(
+            bool ___hasLogisticsEnabled,
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            List<MachineDroneStation> ___allDroneStations,
+            List<Drone> ___droneFleet,
+            List<Inventory> ___supplyInventories,
+            List<Inventory> ___demandInventories
+        )
         {
-            calledFromSetLogisticTask = true;
+            var n = stackSize.Value;
+            if (n <= 1)
+            {
+                return true;
+            }
+
+            if (!___hasLogisticsEnabled)
+            {
+                return false;
+            }
+            if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
+            {
+                return false;
+            }
+                
+            // logger.LogInfo("LogisticManager::SetLogisticTasks");
+            Dictionary<int, WorldObject> inventoryParent = new();
+
+            SetLogisticTask_SupplyDemand(___supplyInventories, ___demandInventories, ___allLogisticTasks, inventoryParent);
+            SetLogisticTask_RemoveDone(___allLogisticTasks);
+
+            var nextNonAttributedTasks = ___allLogisticTasks.Values.Where(t => t.GetTaskState() == LogisticData.TaskState.NotAttributed).GetEnumerator();
+
+            SetLogisticTask_AssignDrones(___droneFleet, nextNonAttributedTasks);
+            SetLogisticTask_ReleaseDrones(___allDroneStations, nextNonAttributedTasks);
+
+            return false;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static void LogisticManager_SetLogisticTasks_Post()
+        static void SetLogisticTask_SupplyDemand(
+            List<Inventory> ___supplyInventories,
+            List<Inventory> ___demandInventories,
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Dictionary<int, WorldObject> inventoryParent
+            )
         {
-            calledFromSetLogisticTask = false;
+            ___demandInventories.Sort((Inventory x, Inventory y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority()));
+            
+            foreach (Inventory demandInventory in ___demandInventories)
+            {
+                var f = demandInventory.IsFull();
+                if (!f)
+                {
+                    var capacity = demandInventory.GetSize() * stackSize.Value;
+
+                    foreach (Group demandGroup in demandInventory.GetLogisticEntity().GetDemandGroups())
+                    {
+                        foreach (Inventory supplyInventory in ___supplyInventories)
+                        {
+                            if (supplyInventory != demandInventory)
+                            {
+                                foreach (Group supplyGroup in supplyInventory.GetLogisticEntity().GetSupplyGroups())
+                                {
+                                    if (demandGroup == supplyGroup)
+                                    {
+                                        foreach (WorldObject worldObject in supplyInventory.GetWorldObjectsOfGroup(supplyGroup))
+                                        {
+                                            if (demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < capacity)
+                                            {
+                                                // logger.LogInfo("Creating task for " + worldObject.GetGroup().GetId());
+                                                CreateNewTaskForWorldObject(___allLogisticTasks, supplyInventory, demandInventory, worldObject, inventoryParent);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        static LogisticTask CreateNewTaskForWorldObject(
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Inventory _supplyInventory, Inventory _demandInventory, 
+            WorldObject _worldObject,
+            Dictionary<int, WorldObject> inventoryParent)
+        {
+            if (___allLogisticTasks.ContainsKey(_worldObject.GetId()))
+            {
+                return null;
+            }
+            WorldObject worldObjectForInventory = GetInventoryParent(_supplyInventory, inventoryParent);
+            WorldObject worldObjectForInventory2 = GetInventoryParent(_demandInventory, inventoryParent);
+            if (worldObjectForInventory2 == null || worldObjectForInventory == null)
+            {
+                return null;
+            }
+            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, worldObjectForInventory, worldObjectForInventory2);
+            ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
+            return logisticTask;
+        }
+
+        static WorldObject GetInventoryParent(Inventory inv, Dictionary<int, WorldObject> lookup)
+        {
+            if (lookup.TryGetValue(inv.GetId(), out var wo))
+            {
+                return wo;
+            }
+            wo = WorldObjectsHandler.GetWorldObjectForInventory(inv);
+            if (wo != null)
+            {
+                lookup.Add(inv.GetId(), wo);
+            }
+            return wo;
+        }
+
+        static void SetLogisticTask_RemoveDone(
+            Dictionary<int, LogisticTask> ___allLogisticTasks
+        )
+        {
+            var list = new List<int>();
+            var isFull = new Dictionary<int, bool>();
+            foreach (KeyValuePair<int, LogisticTask> keyValuePair in ___allLogisticTasks)
+            {
+                Inventory inv = keyValuePair.Value.GetDemandInventory();
+                bool f;
+                if (isFull.ContainsKey(inv.GetId()))
+                {
+                    f = isFull[inv.GetId()];
+                }
+                else
+                {
+                    f = inv.IsFull();
+                    isFull[inv.GetId()] = f;
+                }
+                if (f)
+                {
+                    keyValuePair.Value.SetTaskState(LogisticData.TaskState.Done);
+                    list.Add(keyValuePair.Key);
+                }
+                else if (keyValuePair.Value.GetTaskState() == LogisticData.TaskState.Done)
+                {
+                    list.Add(keyValuePair.Key);
+                }
+            }
+
+            foreach (int num in list)
+            {
+                ___allLogisticTasks.Remove(num);
+            }
+
+        }
+
+        static void SetLogisticTask_AssignDrones(
+                List<Drone> ___droneFleet,
+                IEnumerator<LogisticTask> nextNonAttributedTasks
+        )
+        {
+            foreach (var drone in ___droneFleet)
+            {
+                if (drone.GetLogisticTask() == null)
+                { 
+                    if (nextNonAttributedTasks.MoveNext())
+                    {
+                        // logger.LogInfo("Assign task to drone");
+                        drone.SetLogisticTask(nextNonAttributedTasks.Current);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        static void SetLogisticTask_ReleaseDrones(
+            List<MachineDroneStation> ___allDroneStations,
+            IEnumerator<LogisticTask> nextNonAttributedTasks
+            )
+        {
+            var list2 = new List<LogisticStationDistanceToTask>();
+            while (nextNonAttributedTasks.MoveNext())
+            {
+                var logisticTask = nextNonAttributedTasks.Current;
+                var pos = logisticTask.GetSupplyInventoryWorldObject().GetPosition();
+                // logger.LogInfo("Try releasing more drones");
+                list2.Clear();
+                foreach (var machineDroneStation in ___allDroneStations)
+                {
+                    if (logisticTask.GetSupplyInventoryWorldObject() != null)
+                    {
+                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, pos));
+                        list2.Add(new LogisticStationDistanceToTask(machineDroneStation, (float)num2));
+                    }
+                }
+                list2.Sort();
+                foreach (var logisticStationDistanceToTask in list2)
+                {
+                    GameObject gameObject = logisticStationDistanceToTask.GetMachineDroneStation().TryToReleaseOneDrone();
+                    if (gameObject != null && gameObject.GetComponent<Drone>())
+                    {
+                        gameObject.GetComponent<Drone>().SetLogisticTask(logisticTask);
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        /*
+        static bool calledFromSetLogisticTask;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetSize))]
@@ -856,5 +1070,6 @@ namespace CheatInventoryStacking
                 __result = ___inventorySize * stackSize.Value;
             }
         }
+        */
     }
 }

@@ -1,7 +1,8 @@
 # ThePlanetCrafterMods
 BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
-Steam: https://store.steampowered.com/app/1284190/The_Planet_Crafter/
+- Steam: https://store.steampowered.com/app/1284190/The_Planet_Crafter/
+- GoG: https://www.gog.com/en/game/the_planet_crafter
 
 Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/filedetails/?id=2784319459
 
@@ -11,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.7.007
+## Supported Game Version: 0.7.008
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -72,6 +73,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
+- [Logistic Select All](#logistic-select-all)
 - [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
 - [Menu Shortcut Keys](#ui-menu-shortcut-keys)
 - [Overview Panel](#ui-overview-panel)
@@ -97,6 +99,12 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Unbrick Save](#fix-unbrick-save)
 - [Unofficial Patches](#fix-unofficial-patches)
 
+### Mods from former Modders
+
+#### Lathrey
+
+- [Auto Move](#lathrey-auto-move)
+- [Disable Build Constraints](#lathrey-disable-build-constraints)
 
 ## (Cheat) Asteroid Landing Position Override
 
@@ -1533,3 +1541,69 @@ This plugin will deliver the custom save data (if any) after the `SessionControl
 returns control. This way, every vanilla game data should be initialized.
 
 Note that there is no guaranteed order of loading data for different registered plugins.
+
+## (Lathrey) Disable Build Constraints
+
+Updated version of Lathrey's Disable Build Constraint mod. Lathrey no longer supports his mods.
+
+Toggle the mode via Ctrl+G (configurable).
+
+:warning: This mod runs in a different namespace thus it can't pick up your old configuration.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.lathreydisablebuildconstraints.cfg</summary>
+
+```
+[General]
+
+## Pick the modifier key to use in combination with the key to toggle building constraints off/on.
+# Setting type: Key
+# Default value: LeftCtrl
+# Acceptable values: None, Space, Enter, Tab, Backquote, Quote, Semicolon, Comma, Period, Slash, Backslash, LeftBracket, RightBracket, Minus, Equals, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0, LeftShift, RightShift, LeftAlt, RightAlt, AltGr, LeftCtrl, RightCtrl, LeftMeta, LeftWindows, LeftCommand, LeftApple, RightCommand, RightMeta, RightWindows, RightApple, ContextMenu, Escape, LeftArrow, RightArrow, UpArrow, DownArrow, Backspace, PageDown, PageUp, Home, End, Insert, Delete, CapsLock, NumLock, PrintScreen, ScrollLock, Pause, NumpadEnter, NumpadDivide, NumpadMultiply, NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, OEM1, OEM2, OEM3, OEM4, OEM5, IMESelected
+Toggle_Build_Constraints_Modifier_Key = LeftCtrl
+
+## Pick the key to use in combination with the modifier key to toggle building constraints off/on.
+# Setting type: Key
+# Default value: G
+# Acceptable values: None, Space, Enter, Tab, Backquote, Quote, Semicolon, Comma, Period, Slash, Backslash, LeftBracket, RightBracket, Minus, Equals, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0, LeftShift, RightShift, LeftAlt, RightAlt, AltGr, LeftCtrl, RightCtrl, LeftMeta, LeftWindows, LeftCommand, LeftApple, RightCommand, RightMeta, RightWindows, RightApple, ContextMenu, Escape, LeftArrow, RightArrow, UpArrow, DownArrow, Backspace, PageDown, PageUp, Home, End, Insert, Delete, CapsLock, NumLock, PrintScreen, ScrollLock, Pause, NumpadEnter, NumpadDivide, NumpadMultiply, NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, OEM1, OEM2, OEM3, OEM4, OEM5, IMESelected
+Toggle_Build_Constraints_Key = G
+```
+</details>
+
+## (Lathrey) Auto Move
+
+Updated version of Lathrey's Auto Move mod. Lathrey no longer supports his mods.
+
+Toggle the mode via CapsLock (configurable).
+
+:warning: This mod runs in a different namespace thus it can't pick up your old configuration.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.lathreyautomove.cfg</summary>
+
+```
+[General]
+
+## Pick the modifier key to use in combination with the key to toggle auto move off/on.
+# Setting type: Key
+# Default value: None
+# Acceptable values: None, Space, Enter, Tab, Backquote, Quote, Semicolon, Comma, Period, Slash, Backslash, LeftBracket, RightBracket, Minus, Equals, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0, LeftShift, RightShift, LeftAlt, RightAlt, AltGr, LeftCtrl, RightCtrl, LeftMeta, LeftWindows, LeftCommand, LeftApple, RightCommand, RightMeta, RightWindows, RightApple, ContextMenu, Escape, LeftArrow, RightArrow, UpArrow, DownArrow, Backspace, PageDown, PageUp, Home, End, Insert, Delete, CapsLock, NumLock, PrintScreen, ScrollLock, Pause, NumpadEnter, NumpadDivide, NumpadMultiply, NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, OEM1, OEM2, OEM3, OEM4, OEM5, IMESelected
+Toggle_Auto_Move_Modifier_Key = None
+
+## Pick the key to use in combination with the modifier key to toggle auto move off/on.
+# Setting type: Key
+# Default value: CapsLock
+# Acceptable values: None, Space, Enter, Tab, Backquote, Quote, Semicolon, Comma, Period, Slash, Backslash, LeftBracket, RightBracket, Minus, Equals, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0, LeftShift, RightShift, LeftAlt, RightAlt, AltGr, LeftCtrl, RightCtrl, LeftMeta, LeftWindows, LeftCommand, LeftApple, RightCommand, RightMeta, RightWindows, RightApple, ContextMenu, Escape, LeftArrow, RightArrow, UpArrow, DownArrow, Backspace, PageDown, PageUp, Home, End, Insert, Delete, CapsLock, NumLock, PrintScreen, ScrollLock, Pause, NumpadEnter, NumpadDivide, NumpadMultiply, NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, OEM1, OEM2, OEM3, OEM4, OEM5, IMESelected
+Toggle_Auto_Move_Key = CapsLock
+```
+</details>
+
+## (UI) Logistic Select All
+
+Select all groups in the logistic screen by pressing <kbd>Ctrl+A</kbd>.
+
+### Configuration
+
+None.

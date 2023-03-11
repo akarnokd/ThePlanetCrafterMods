@@ -2,14 +2,10 @@
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Globalization;
 using BepInEx.Logging;
-using BepInEx.Configuration;
 using System.IO;
 using System;
-using System.IO.Compression;
 using System.Text;
-using System.Collections;
 using UnityEngine;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
@@ -19,7 +15,7 @@ using TMPro;
 
 namespace FeatTechniciansExile
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", "0.1.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -783,65 +779,75 @@ namespace FeatTechniciansExile
         void CheckStartConditions()
         {
             var wu = Managers.GetManager<WorldUnitsHandler>();
-            var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
-            if (wut.GetValue() >= 1100000)
+            if (wu != null)
             {
-                questPhase = QuestPhase.Arrival;
-                SaveState();
-                SetVisibilityViaCurrentPhase();
+                var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
+                if (wut != null && wut.GetValue() >= 1100000)
+                {
+                    questPhase = QuestPhase.Arrival;
+                    SaveState();
+                    SetVisibilityViaCurrentPhase();
+                }
             }
         }
 
         void CheckArrival()
         {
-            if (asteroid == null)
+            var mh = Managers.GetManager<MeteoHandler>();
+            if (mh != null)
             {
-                var mh = Managers.GetManager<MeteoHandler>();
-                FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
-                /*
-                foreach (var me in mh.meteoEvents)
+                if (asteroid == null)
                 {
-                    logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
-                }*/
-                var meteoEvent = (fi.GetValue(mh) as List<MeteoEventData>)[9];
-                logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
+                    FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
+                    /*
+                    foreach (var me in mh.meteoEvents)
+                    {
+                        logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
+                    }*/
+                    var mes = (fi.GetValue(mh) as List<MeteoEventData>);
+                    if (mes != null)
+                    {
+                        var meteoEvent = mes[9];
+                        logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
 
-                mh.meteoSound.StartMeteoAudio(meteoEvent);
-                if (meteoEvent.asteroidEventData != null)
-                {
-                    var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
+                        mh.meteoSound.StartMeteoAudio(meteoEvent);
+                        if (meteoEvent.asteroidEventData != null)
+                        {
+                            var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
 
-                    var ah = Managers.GetManager<AsteroidsHandler>();
+                            var ah = Managers.GetManager<AsteroidsHandler>();
 
-                    GameObject obj = Instantiate(
-                        selectedAsteroidEventData.asteroidGameObject,
-                        technicianDropLocation + new Vector3(0, 1000, 0),
-                        Quaternion.identity,
-                        ah.gameObject.transform
-                    );
-                    obj.transform.LookAt(technicianDropLocation);
-                    
-                    asteroid = obj.GetComponent<Asteroid>();
-                    asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
-                    asteroid.debrisDestroyTime = 5;
-                    asteroid.placeAsteroidBody = false;
-                    selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
-                    selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                            GameObject obj = Instantiate(
+                                selectedAsteroidEventData.asteroidGameObject,
+                                technicianDropLocation + new Vector3(0, 1000, 0),
+                                Quaternion.identity,
+                                ah.gameObject.transform
+                            );
+                            obj.transform.LookAt(technicianDropLocation);
+
+                            asteroid = obj.GetComponent<Asteroid>();
+                            asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
+                            asteroid.debrisDestroyTime = 5;
+                            asteroid.placeAsteroidBody = false;
+                            selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
+                            selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                        }
+                    }
                 }
-            } 
-            else
-            {
-                if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                else
                 {
-                    asteroid = null;
-                    questPhase = QuestPhase.Initial_Help;
+                    if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                    {
+                        asteroid = null;
+                        questPhase = QuestPhase.Initial_Help;
 
-                    var mh = Managers.GetManager<MessagesHandler>();
-                    mh.AddNewReceivedMessage(technicianMessage);
+                        var msh = Managers.GetManager<MessagesHandler>();
+                        msh.AddNewReceivedMessage(technicianMessage);
 
-                    ShowChoice(dialogChoices["WhoAreYou"]);
-                    SaveState();
-                    SetVisibilityViaCurrentPhase();
+                        ShowChoice(dialogChoices["WhoAreYou"]);
+                        SaveState();
+                        SetVisibilityViaCurrentPhase();
+                    }
                 }
             }
         }

@@ -12,7 +12,7 @@ using System;
 
 namespace FixUnofficialPatches
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.fixunofficialpatches", "(Fix) Unofficial Patches", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -205,6 +205,18 @@ namespace FixUnofficialPatches
             if (__instance.liveEnvironmentVolumeVariables == null)
             {
                 // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Localization), nameof(Localization.GetLocalizedString))]
+        static bool Localization_GetLocalizedString(string stringCode, ref string __result)
+        {
+            if (stringCode == null)
+            {
+                __result = "";
                 return false;
             }
             return true;

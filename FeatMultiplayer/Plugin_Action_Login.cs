@@ -1,5 +1,7 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using FeatMultiplayer.MessageTypes;
+using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -61,7 +63,7 @@ namespace FeatMultiplayer
                             avatar.SetName(cc.clientName);
                             playerAvatars[cc.clientName] = avatar;
 
-                            cc.Send("Welcome\n");
+                            cc.Send(CreateWelcome());
                             cc.Signal();
                             cc.Send(new MessageGameMode()
                             {
@@ -95,6 +97,19 @@ namespace FeatMultiplayer
             }
         }
 
+        static MessagePlayerWelcome CreateWelcome()
+        {
+            var msg = new MessagePlayerWelcome();
+            msg.multiplayerModVersion = new Version(PluginInfo.PLUGIN_VERSION);
+
+            foreach (var pi in Chainloader.PluginInfos)
+            {
+                msg.modVersions[pi.Key] = pi.Value.Metadata.Version;
+            }
+
+            return msg;
+        }
+
         static void ReceiveWelcome(MessagePlayerWelcome mpw)
         {
             Color color = Color.white;
@@ -118,6 +133,52 @@ namespace FeatMultiplayer
             if (h != null)
             {
                 h.loginSuccess = true;
+            }
+
+            CheckMods(mpw);
+        }
+
+        static void CheckMods(MessagePlayerWelcome mpw)
+        {
+            if (new Version(PluginInfo.PLUGIN_VERSION).CompareTo(mpw.multiplayerModVersion) != 0)
+            {
+                var str = "Multiplayer mod version mismatch!\n\n- Host's version: <color=yellow>"
+                    + mpw.multiplayerModVersion + "</color>\n- Your version: <color=yellow>" + PluginInfo.PLUGIN_VERSION
+                    + "</color>\n\nPlease make sure you run the same version.";
+                NotifyUser(str, 60);
+                LogWarning(str);
+            }
+            else
+            {
+                List<string> diff = new();
+                foreach (var mod in mpw.modVersions)
+                {
+                    if (Chainloader.PluginInfos.TryGetValue(mod.Key, out var info))
+                    {
+                        if (info.Metadata.Version.CompareTo(mod.Value) != 0)
+                        {
+                            var str = "- " + mod.Key + "\n    Host's version: <color=yellow>" + mod.Value + "</color>, Your version: <color=yellow>" + info.Metadata.Version + "</color>";
+                            if (diff.Count == 5)
+                            {
+                                diff.Add("...");
+                            }
+                            else
+                            if (diff.Count < 5)
+                            {
+                                diff.Add(str);
+                            }
+                        }
+                    }
+                }
+
+                if (diff.Count != 0)
+                {
+                    var str2 = "Warning! Mod version mismatch(es) detected!\n\n"
+                        + string.Join("\n", diff)
+                        + "\n\nPlease make sure you run the same version(s).";
+                    NotifyUser(str2, 60);
+                    LogWarning(str2);
+                }
             }
         }
 

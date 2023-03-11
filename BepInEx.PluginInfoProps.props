@@ -1,0 +1,28 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<Target Name="AddGeneratedFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
+        <PropertyGroup>
+            <BepInExPluginGuid Condition="'$(BepInExPluginGuid)' == ''">$(AssemblyName)</BepInExPluginGuid>
+            <BepInExPluginName Condition="'$(BepInExPluginName)' == ''">$(Description)</BepInExPluginName>
+            <BepInExPluginVersion Condition="'$(BepInExPluginVersion)' == ''">$(Version)</BepInExPluginVersion>
+            <GeneratedText><![CDATA[
+namespace $(RootNamespace)
+{
+    public static class PluginInfo
+    {
+        public const string PLUGIN_GUID = "$(BepInExPluginGuid)"%3B
+        public const string PLUGIN_NAME = "$(BepInExPluginName)"%3B
+        public const string PLUGIN_VERSION = "$(BepInExPluginVersion)"%3B
+    }
+}
+      ]]></GeneratedText>
+            <GeneratedFilePath>$(IntermediateOutputPath)PluginInfo.cs</GeneratedFilePath>
+        </PropertyGroup>
+        <ItemGroup>
+            <Compile Include="$(GeneratedFilePath)" />
+            <FileWrites Include="$(GeneratedFilePath)" />
+        </ItemGroup>
+        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
+    </Target> 
+
+</Project>

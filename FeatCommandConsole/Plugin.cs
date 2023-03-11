@@ -25,7 +25,7 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", "1.0.0.8")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -588,7 +588,8 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Spawn item(s) or list items that can be possibly spawn");
                 addLine("<margin=1em>Usage:");
                 addLine("<margin=2em><color=#FFFF00>/spawn list [name-prefix]</color> - list the item ids that can be spawn");
-                addLine("<margin=2em><color=#FFFF00>/spawn basic [amount]</color> - Spawn some food, water, oxygen and beginner materials.");
+                addLine("<margin=2em><color=#FFFF00>/spawn basic [amount]</color> - Spawn some food, water, oxygen and beginner materials");
+                addLine("<margin=2em><color=#FFFF00>/spawn advanced [amount]</color> - Spawn the best equipment");
                 addLine("<margin=2em><color=#FFFF00>/spawn itemid [amount]</color> - spawn the given item by the given amount");
             } else
             {
@@ -626,39 +627,23 @@ namespace FeatCommandConsole
                         amount = int.Parse(args[2]);
                     }
 
-                    int added = 0;
-                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                    var inv = pm.GetPlayerBackpack().GetInventory();
-
-                    for (int i = 0; i < amount; i++)
+                    SpawnInItems(amount, resources);
+                }
+                else if (args[1] == "advanced")
+                {
+                    string[] resources =
                     {
-                        foreach (var gid in resources)
-                        {
-                            var wo = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(gid));
-                            if (inv.AddItem(wo))
-                            {
-                                added++;
-                            }
-                            else
-                            {
-                                WorldObjectsHandler.DestroyWorldObject(wo);
-                            }
-                        }
+                        "MultiToolLight2", "MultiToolDeconstruct2", "Backpack5", 
+                        "Jetpack3", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
+                        "EquipmentIncrease3", "OxygenTank4", "HudCompass"
+                    };
+                    int amount = 1;
+                    if (args.Count > 2)
+                    {
+                        amount = int.Parse(args[2]);
                     }
 
-                    int count = amount * resources.Length;
-                    if (added == count)
-                    {
-                        addLine("<margin=1em>Items added");
-                    }
-                    else if (added > 0)
-                    {
-                        addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
-                    }
-                    else
-                    {
-                        addLine("<margin=1em>Inventory full.");
-                    }
+                    SpawnInItems(amount, resources);
                 }
                 else
                 {
@@ -741,6 +726,51 @@ namespace FeatCommandConsole
                         }
                     }
                 }
+            }
+        }
+
+        void SpawnInItems(int amount, string[] resources)
+        {
+            int added = 0;
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var inv = pm.GetPlayerBackpack().GetInventory();
+
+            for (int i = 0; i < amount; i++)
+            {
+                foreach (var gid in resources)
+                {
+                    var gr = GroupsHandler.GetGroupViaId(gid);
+                    if (gr != null)
+                    {
+                        var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
+                        if (inv.AddItem(wo))
+                        {
+                            added++;
+                        }
+                        else
+                        {
+                            WorldObjectsHandler.DestroyWorldObject(wo);
+                        }
+                    }
+                    else
+                    {
+                        addLine("<margin=1em><color=red>Unknown item " + gid);
+                    }
+                }
+            }
+
+            int count = amount * resources.Length;
+            if (added == count)
+            {
+                addLine("<margin=1em>Items added");
+            }
+            else if (added > 0)
+            {
+                addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
+            }
+            else
+            {
+                addLine("<margin=1em>Inventory full.");
             }
         }
 

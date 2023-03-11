@@ -15,7 +15,7 @@ using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", "1.0.0.20")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
@@ -65,7 +65,7 @@ namespace CheatMinimap
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
             fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
-            photographMap = Config.Bind("General", "PhotographMap", false, "Photograph the entire map in grid pattern when pressing U");
+            photographMap = Config.Bind("General", "PhotographMap", false, "Not meant for end-users. (Photographs the map when pressing U for development purposes.)");
 
             self = this;
 
@@ -471,6 +471,12 @@ namespace CheatMinimap
                 lg.color = Color.white;
                 lg.range = 1000;
             }
+            /*
+            foreach (var ps in FindObjectsOfType<ParticleSystem>())
+            {
+                ps.gameObject.SetActive(false);
+            }
+            */
         }
 
         public static bool allowUnload = true;

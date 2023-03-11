@@ -93,6 +93,7 @@ namespace PerfMonitor
             sw.Stop();
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SavedDataHandler), "LoadWorldObjectsData")]
         static void SavedDataHandler_LoadWorldObjectsData(List<JsonableWorldObject> _jsonableWorldObjects)
@@ -125,7 +126,7 @@ namespace PerfMonitor
                     _jsonableWorldObjects.RemoveAt(i);
                 }
             }
-            */
+            * /
         }
 
         [HarmonyPostfix]
@@ -316,6 +317,100 @@ namespace PerfMonitor
         static void WorldUnitsHandler_ForceResetAllValues_Post()
         {
             PerfEnd("WorldUnitsHandler_ForceResetAllValues");
+        }
+        */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.GetWorldObjectForInventory))]
+        static void WorldObjectsHandler_GetWorldObjectForInventory()
+        {
+            PerfBegin("WorldObjectsHandler_GetWorldObjectForInventory");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.GetWorldObjectForInventory))]
+        static void WorldObjectsHandler_GetWorldObjectForInventory_Post()
+        {
+            PerfEnd("WorldObjectsHandler_GetWorldObjectForInventory");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
+        static void LogisticManager_SetLogisticTasks(
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            List<Drone> ___droneFleet,
+            List<Inventory> ___supplyInventories,
+            List<Inventory> ___demandInventories,
+            List<MachineDroneStation> ___allDroneStations
+        )
+        {
+            /*
+            logger.LogInfo("LogisticManager_SetLogisticTasks\r\n"
+                + "   droneFleet        = " + ___droneFleet.Count + "\r\n"
+                + "   allDroneStations  = " + ___allDroneStations.Count + "\r\n"
+                + "   allLogisticTasks  = " + ___allLogisticTasks.Count + "\r\n"
+                + "   supplyInventories = " + ___supplyInventories.Count + "\r\n"
+                + "   demandInventories = " + ___demandInventories.Count
+            );
+            */
+            PerfBegin("LogisticManager_SetLogisticTasks");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
+        static void LogisticManager_SetLogisticTasks_Post()
+        {
+            PerfEnd("LogisticManager_SetLogisticTasks");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetWorldObjectsOfGroup))]
+        static void Inventory_GetWorldObjectsOfGroup()
+        {
+            PerfBegin("Inventory_GetWorldObjectsOfGroup");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetWorldObjectsOfGroup))]
+        static void Inventory_GetWorldObjectsOfGroup_Post()
+        {
+            PerfEnd("Inventory_GetWorldObjectsOfGroup");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
+        static void Inventory_IsFull()
+        {
+            PerfBegin("Inventory_IsFull");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
+        static void Inventory_IsFull_Post()
+        {
+            PerfEnd("Inventory_IsFull");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.GetANonAttributedTask))]
+        static void LogisticManager_GetANonAttributedTask()
+        {
+            PerfBegin("LogisticManager_GetANonAttributedTask");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.GetANonAttributedTask))]
+        static void LogisticManager_GetANonAttributedTask_Post()
+        {
+            PerfEnd("LogisticManager_GetANonAttributedTask");
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.TryToReleaseOneDrone))]
+        static void MachineDroneStation_TryToReleaseOneDrone()
+        {
+            PerfBegin("MachineDroneStation_TryToReleaseOneDrone");
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.TryToReleaseOneDrone))]
+        static void MachineDroneStation_TryToReleaseOneDrone_Post()
+        {
+            PerfEnd("MachineDroneStation_TryToReleaseOneDrone");
         }
 
         class IEnumeratorInterceptor : IEnumerator

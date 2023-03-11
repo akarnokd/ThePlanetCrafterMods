@@ -212,14 +212,15 @@ namespace FeatMultiplayer
             if (inv != null)
             {
                 UpdateLogisticEntityFromMessage(inv, msg.demandGroups, msg.supplyGroups, msg.priority);
+
+                if (updateMode == MultiplayerMode.CoopHost)
+                {
+                    SendAllClients(msg, true);
+                }
             }
             else
             {
                 LogWarning("ReceiveMessageUpdateSupplyDemand: Inventory " + msg.inventoryId + " not found");
-            }
-            if (updateMode == MultiplayerMode.CoopHost)
-            {
-                SendAllClientsExcept(msg.sender.id, msg, true);
             }
         }
 
@@ -285,6 +286,8 @@ namespace FeatMultiplayer
             {
                 logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
             }
+
+            Managers.GetManager<LogisticManager>()?.SetInventoryStatusInLogistics(inv);
         }
     }
 }
