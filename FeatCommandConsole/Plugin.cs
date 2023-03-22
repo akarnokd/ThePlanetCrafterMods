@@ -2073,6 +2073,48 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/raise", "Raises player-placed objects in a radius (cylindrically)")]
+        public void Raise(List<string> args)
+        {
+            if (args.Count != 3)
+            {
+                addLine("<margin=1em>Raises player-placed objects in a radius (cylindrically).");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/raise radius amount</color> - raise all items within the given radius by the given amount");
+            }
+            else
+            {
+                var radius = Math.Abs(float.Parse(args[1]));
+                var amount = float.Parse(args[2]);
+
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var pos = pm.transform.position;
+                var posXY = new Vector2(pos.x, pos.z);
+
+                int i = 0;
+                foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+                {
+                    if (!WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && wo.GetIsPlaced())
+                    {
+                        var wp = wo.GetPosition();
+                        var xy = new Vector2(wp.x, wp.z);
+                        
+                        if (Vector2.Distance(xy, posXY) <= radius)
+                        {
+                            wo.SetPositionAndRotation(new Vector3(wp.x, wp.y + amount, wp.z), wo.GetRotation());
+                            var wog = wo.GetGameObject();
+                            if (wog != null)
+                            {
+                                wog.transform.position = wo.GetPosition();
+                            }
+                            i++;
+                        }
+                    }
+                }
+                addLine("<margin=1em>" + i + " objects affected.");
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         void Colorize(List<string> list, string color)
