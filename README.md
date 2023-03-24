@@ -211,7 +211,7 @@ AliasBeans = *Vegetable2Growable
 # Setting type: String
 # Default value: *Vegetable3Growable
 AliasMushroom = *Vegetable3Growable
-```
+
 ## The container name to put cocoa into.
 # Setting type: String
 # Default value: *CookCocoaGrowable
@@ -221,8 +221,9 @@ AliasCocoa = *CookCocoaGrowable
 # Setting type: String
 # Default value: *CookWheatGrowable
 AliasWheat = *CookWheatGrowable
+```
 
-</detauls>
+</details>
 
 ## (Cheat) Auto Launch Rockets
 

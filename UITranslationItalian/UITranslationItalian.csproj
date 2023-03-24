@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>UITranslationItalian</AssemblyName>
     <Description>(UI) Italian Translation</Description>
-    <Version>1.0.0.6</Version>
+    <Version>1.0.0.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
