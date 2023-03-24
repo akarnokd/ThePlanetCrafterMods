@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.7.008
+## Supported Game Version: 0.7.009
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -170,7 +170,7 @@ It is possible to change these aliases via configuration. If customized, the `*`
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatautoharvest.cfg`
+<details><summary>`akarnokd.theplanetcraftermods.cheatautoharvest.cfg`</summary>
 
 ```
 [General]
@@ -210,6 +210,17 @@ AliasBeans = *Vegetable2Growable
 # Default value: *Vegetable3Growable
 AliasMushroom = *Vegetable3Growable
 ```
+## The container name to put cocoa into.
+# Setting type: String
+# Default value: *CookCocoaGrowable
+AliasCocoa = *CookCocoaGrowable
+
+## The container name to put wheat into.
+# Setting type: String
+# Default value: *CookWheatGrowable
+AliasWheat = *CookWheatGrowable
+
+</detauls>
 
 ## (Cheat) Auto Launch Rockets
 

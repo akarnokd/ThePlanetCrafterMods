@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
-    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", "1.0.0.11")]
+    [BepInPlugin(modCheatAutoHarvest, "(Cheat) Automatically Harvest Food n Algae", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -61,6 +61,8 @@ namespace CheatAutoHarvest
             depositAliases["Vegetable1Growable"] = Config.Bind("General", "AliasSquash", "*Vegetable1Growable", "The container name to put squash into.");
             depositAliases["Vegetable2Growable"] = Config.Bind("General", "AliasBeans", "*Vegetable2Growable", "The container name to put beans into.");
             depositAliases["Vegetable3Growable"] = Config.Bind("General", "AliasMushroom", "*Vegetable3Growable", "The container name to put mushroom into.");
+            depositAliases["CookCocoaGrowable"] = Config.Bind("General", "AliasCocoa", "*CookCocoaGrowable", "The container name to put cocoa into.");
+            depositAliases["CookWheatGrowable"] = Config.Bind("General", "AliasWheat", "*CookWheatGrowable", "The container name to put wheat into.");
 
             if (debugAlgae.Value || debugFood.Value)
             {
