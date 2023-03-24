@@ -163,6 +163,8 @@ To deposit food, use the following default naming convention:
 - **Squash** - `*Vegetable1Growable`
 - **Beans** - `*Vegetable2Growable`
 - **Mushroom** - `*Vegetable3Growable`
+- **Cocoa** - `*CookCocoaGrowable`
+- **Wheat** - `*CookWheatGrowable`
 
 The naming is case insensitive.
 
