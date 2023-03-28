@@ -99,7 +99,12 @@ namespace FeatMultiplayer
             mpRows.Add(hostModeCheckbox);
             dy -= fs + 10;
 
-            hostLocalIPText = CreateText("    Local Address = " + GetHostLocalAddress() + ":" + port.Value, fs);
+            var localAddrStr = GetHostLocalAddress() + ":" + port.Value;
+            if (streamerMode.Value)
+            {
+                localAddrStr = "<redacted>";
+            }
+            hostLocalIPText = CreateText("    Local Address = " + localAddrStr, fs);
             rectTransform = hostLocalIPText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
             rectTransform.sizeDelta = new Vector2(dw, fs + 5);
@@ -145,7 +150,12 @@ namespace FeatMultiplayer
             mpRows.Add(clientModeText);
             dy -= fs + 10;
 
-            clientTargetAddressText = CreateText("    Host Address = " + hostAddress.Value + ":" + port.Value, fs);
+            var hostAddrStr = hostAddress.Value + ":" + port.Value;
+            if (streamerMode.Value)
+            {
+                hostAddrStr = "<redacted>";
+            }
+            clientTargetAddressText = CreateText("    Host Address = " + hostAddrStr, fs);
 
             rectTransform = clientTargetAddressText.GetComponent<Text>().GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector2(dx, dy);
@@ -341,7 +351,14 @@ namespace FeatMultiplayer
                 if (eip != null)
                 {
                     externalIP = null;
-                    hostExternalIPText.GetComponent<Text>().text = eip;
+                    if (streamerMode.Value)
+                    {
+                        hostExternalIPText.GetComponent<Text>().text = "<redacted>";
+                    }
+                    else
+                    {
+                        hostExternalIPText.GetComponent<Text>().text = eip;
+                    }
                 }
                 var emp = externalMap;
                 if (emp != null)

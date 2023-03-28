@@ -18,6 +18,7 @@ namespace FeatMultiplayer
         static ConfigEntry<int> networkFrequency;
         static ConfigEntry<int> fullSyncDelay;
         static ConfigEntry<int> smallSyncDelay;
+        static ConfigEntry<bool> streamerMode;
 
         static ConfigEntry<bool> hostMode;
         static ConfigEntry<bool> useUPnP;
@@ -85,6 +86,8 @@ namespace FeatMultiplayer
             clientPassword = Config.Bind("Client", "Password", "password,wordpass", "The plaintext(!) password presented to the host when joining their game.");
             clientColor = Config.Bind("Client", "Color", "0.75,0.75,1,1", "The color of the client avatar as comma-separated RGBA floats");
             clientLogLevel = Config.Bind("Client", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
+
+            streamerMode = Config.Bind("General", "StreamerMode", false, "Hides the IP addresses in the main menu.");
 
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
