@@ -5,7 +5,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
-using System.Diagnostics;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
@@ -39,6 +38,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> consoleRight;
         static ConfigEntry<int> consoleBottom;
         static ConfigEntry<int> fontSize;
+        static ConfigEntry<string> fontName;
 
         static GameObject canvas;
         static GameObject background;
@@ -104,6 +104,7 @@ namespace FeatCommandConsole
             consoleRight = Config.Bind("General", "ConsoleRight", 200, "Console window's position relative to the right of the screen.");
             consoleBottom = Config.Bind("General", "ConsoleBottom", 200, "Console window's position relative to the bottom of the screen.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
+            fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -117,7 +118,7 @@ namespace FeatCommandConsole
 
             foreach (var fp in Font.GetPathsToOSFonts())
             {
-                if (fp.ToLower().Contains("arial.ttf"))
+                if (fp.ToLower(CultureInfo.InvariantCulture).Contains(fontName.Value))
                 {
                     osFont = new Font(fp);
                     log("      Found font at " + fp);
