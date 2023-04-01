@@ -116,9 +116,11 @@ namespace FeatCommandConsole
             log("   Get resource");
             Font osFont = null;
 
+            var fn = fontName.Value.ToLower(CultureInfo.InvariantCulture);
+
             foreach (var fp in Font.GetPathsToOSFonts())
             {
-                if (fp.ToLower(CultureInfo.InvariantCulture).Contains(fontName.Value))
+                if (fp.ToLower(CultureInfo.InvariantCulture).Contains(fn))
                 {
                     osFont = new Font(fp);
                     log("      Found font at " + fp);
