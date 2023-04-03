@@ -263,12 +263,14 @@ On the recipe side:
 - `*Fertilizer` - where the *Fertilizer* ingredient is searched for.
 - `*TreeRoot` - where the *Tree Root* ingredient is searched for.
 - `*FlowerSeed` - where the various *Flower Seed* ingredient is searched for.
+- `*Phytoplankton` - where the various *Phytoplankton* ingredient is searched for.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
 - `*Bee` - where to deposit the created *Bee*s.
 - `*Silk` - where to deposit the created *Silk Worm*s.
 - `*TreeSeed` - where to deposit the created *Tree Seed*s (all kinds).
+- `*Fish` - where to deposit the created *Fish* (all kinds).
 
 (Note. Unlike other similar mods, you don't need to start the naming with the star `*` character. The defaults shown are just a convention I use.)
 
@@ -280,7 +282,7 @@ they would both get their ingredients from.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatautosequencedna.cfg`
+<details><summary>akarnokd.theplanetcraftermods.cheatautosequencedna.cfg</summary>
 
 ```
 [General]
@@ -327,6 +329,16 @@ Bee = *Bee
 # Default value: *Silk
 Silk = *Silk
 
+## The name of the container(s) where to look for Phytoplankton.
+# Setting type: String
+# Default value: *Phytoplankton
+Phytoplankton = *Phytoplankton
+
+## The name of the container(s) where to deposit the spawned fish.
+# Setting type: String
+# Default value: *Fish
+Fish = *Fish
+
 [Sequencer]
 
 ## Should the Tree-sequencer auto sequence?
@@ -353,9 +365,8 @@ FlowerSeed = *FlowerSeed
 # Setting type: String
 # Default value: *TreeSeed
 TreeSeed = *TreeSeed
-
-
 ```
+</details>
 
 ## (Cheat) Photomode Hide Water
 
