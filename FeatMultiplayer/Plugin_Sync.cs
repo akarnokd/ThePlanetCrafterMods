@@ -216,6 +216,19 @@ namespace FeatMultiplayer
                     }
                 }
                 LogInfo("Player " + playerName + " has no saved position info");
+                var pm = GetPlayerMainController();
+                if (pm != null)
+                {
+                    var pos2 = pm.transform.position;
+                    LogInfo("Moving " + playerName + " to the host at " + pos2);
+
+                    var msg = new MessageMovePlayer()
+                    {
+                        position = pos2
+                    };
+                    cc.Send(msg);
+                    cc.Signal();
+                }
             }
             else
             {
