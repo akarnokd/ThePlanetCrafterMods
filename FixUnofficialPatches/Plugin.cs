@@ -221,5 +221,19 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(TerrainVisualsHandler), "GetTerrainLayerDataByName")]
+        static bool TerrainVisualsHandler_GetTerrainLayerDataByName(
+            Dictionary<string, TerrainLayerData> ___terrainLayerDatas,
+            ref TerrainLayerData __result)
+        {
+            if (___terrainLayerDatas == null)
+            {
+                __result = null;
+                return false;
+            }
+            return true;
+        }
     }
 }
