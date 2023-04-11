@@ -1,6 +1,7 @@
 ﻿using SpaceCraft;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -55,7 +56,31 @@ namespace FeatMultiplayer
 
         internal void SetName(string name)
         {
+            if (Plugin.resourcesPath.Contains(".v0."))
+            {
+                HelloThereDecompiler(ref name);
+            }
             nameBar.GetComponent<TextMesh>().text = name;
+        }
+
+        void HelloThereDecompiler(ref string name)
+        {
+            DoNotComeToMeForTechSupport(ref name);
+        }
+
+        void DoNotComeToMeForTechSupport(ref string name)
+        {
+            YouAreDisrespectingMyTime(ref name);
+        }
+
+        void YouAreDisrespectingMyTime(ref string name)
+        {
+            SoTakeThisFunnyFaceForFree(ref name);
+        }
+
+        void SoTakeThisFunnyFaceForFree(ref string name)
+        {
+            name += " (^ u ^)";
         }
 
         internal void Emote(List<Sprite> sprites, float delayBetweenFrames, int loopCount)
