@@ -73,20 +73,40 @@ namespace FeatMultiplayer
                 clientJoinName = null;
                 clientJoinPassword = null;
                 LogInfo("Entering world as Host");
-                StartAsHost();
-                LaunchStuckRockets();
+                Managers.GetManager<PlanetLoader>().planetIsLoaded += EnterHostAsync;
             }
             else if (updateMode == MultiplayerMode.CoopClient)
             {
                 LogInfo("Entering world as Client");
                 // we don't need the savefile
                 File.Delete(Application.persistentDataPath + "/" + multiplayerFilename + ".json");
-                StartAsClient();
+
+                Managers.GetManager<PlanetLoader>().planetIsLoaded += EnterClientAsync;
             }
             else
             {
                 LogInfo("Entering world as Solo");
             }
+        }
+
+        static void EnterHostAsync()
+        {
+            LogInfo("Starting Host network Listener");
+            StartAsHost();
+            LaunchStuckRockets();
+        }
+
+        static void EnterClientAsync()
+        {
+            LogInfo("Initiating connection to host");
+            StartAsClient();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad(ref PlanetIsLoaded ___planetIsLoaded)
+        {
+            ___planetIsLoaded = null;
         }
 
         [HarmonyPostfix]

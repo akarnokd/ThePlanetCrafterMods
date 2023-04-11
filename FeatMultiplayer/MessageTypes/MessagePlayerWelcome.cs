@@ -10,10 +10,10 @@ namespace FeatMultiplayer.MessageTypes
     {
         internal Version multiplayerModVersion;
         internal readonly Dictionary<string, Version> modVersions = new();
-
+        internal string hostDisplayName;
         public static bool TryParse(string str, out MessagePlayerWelcome mpw)
         {
-            if (MessageHelper.TryParseMessage("Welcome", str, 3, out var parameters))
+            if (MessageHelper.TryParseMessage("Welcome", str, 4, out var parameters))
             {
                 try
                 {
@@ -26,6 +26,7 @@ namespace FeatMultiplayer.MessageTypes
                         var kvv = kv.Split('=');
                         mpw.modVersions[kvv[0]] = new Version(kvv[1]);
                     }
+                    mpw.hostDisplayName = MessageHelper.DecodeText(parameters[3]);
 
                     return true;
                 } 
@@ -52,6 +53,8 @@ namespace FeatMultiplayer.MessageTypes
                 sb.Append(m.Key).Append('=').Append(m.Value);
                 j++;
             }
+            sb.Append('|');
+            MessageHelper.EncodeText(hostDisplayName, sb);
             sb.Append('\n');
             return sb.ToString();
         }

@@ -22,7 +22,7 @@ namespace LibCommon
         {
             string dir = Path.GetDirectoryName(me.Location);
 
-            int i = dir.ToLower(CultureInfo.InvariantCulture).IndexOf("bepinex");
+            int i = dir.ToLower(CultureInfo.InvariantCulture).LastIndexOf("bepinex");
 
             if (i >= 0)
             {

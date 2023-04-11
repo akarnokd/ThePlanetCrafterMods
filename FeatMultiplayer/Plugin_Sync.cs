@@ -42,9 +42,11 @@ namespace FeatMultiplayer
 
         static void SendAllInventories()
         {
-            HashSet<int> ignoreInventories = new();
-            ignoreInventories.Add(1);
-            ignoreInventories.Add(2);
+            HashSet<int> ignoreInventories = new()
+            {
+                1,
+                2
+            };
             foreach (var cc in _clientConnections.Values)
             {
                 if (cc.shadowBackpack != null)

@@ -106,7 +106,7 @@ namespace FeatMultiplayer
             {
                 msg.modVersions[pi.Key] = pi.Value.Metadata.Version;
             }
-
+            msg.hostDisplayName = hostDisplayName.Value;
             return msg;
         }
 
@@ -124,7 +124,12 @@ namespace FeatMultiplayer
 
             }
             var avatar = PlayerAvatar.CreateAvatar(color, true, GetPlayerMainController());
-            avatar.SetName("< Host >");
+            if (string.IsNullOrEmpty(mpw.hostDisplayName)) {
+                avatar.SetName("< Host >");
+            } else
+            {
+                avatar.SetName(mpw.hostDisplayName);
+            }
             playerAvatars[""] = avatar; // host is always ""
             NotifyUserFromBackground("Joined the host.");
             firstTerraformSync = true;

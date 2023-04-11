@@ -296,9 +296,7 @@ namespace FeatMultiplayer
 
         static void AddEmote(string id)
         {
-            Assembly me = Assembly.GetExecutingAssembly();
-            string dir = Path.GetDirectoryName(me.Location);
-            var f = Path.Combine(dir, "emote_" + id + ".png");
+            var f = Path.Combine(resourcesPath, "emote_" + id + ".png");
             if (!File.Exists(f))
             {
                 LogError("Could not find emote " + f);
