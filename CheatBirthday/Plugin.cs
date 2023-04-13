@@ -74,8 +74,9 @@ namespace CheatBirthday
                         var ac = go2.AddComponent<ActionCrafter>();
                         ac.craftableIdentifier = DataConfig.CraftableIn.CraftOvenT1;
                         ac.craftSpawn = new GameObject();
-                        ac.craftSpawn.AddComponent<Renderer>();
+                        ac.craftSpawn.AddComponent<MeshRenderer>();
                         ac.transform.position = go2.transform.position;
+                        ac.particlesOnCraft = new();
                     }
                     kitchen = true;
                 }
@@ -91,6 +92,13 @@ namespace CheatBirthday
 
                 yield return new WaitForSeconds(1);
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ConstraintOnSurfaces), "LateUpdate")]
+        static bool ConstraintOnSurfaces_LateUpdate(ConstraintOnSurfaces __instance)
+        {
+            return __instance.gameObject.GetComponent<ConstructibleGhost>() != null;
         }
     }
 }
