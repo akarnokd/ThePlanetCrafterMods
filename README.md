@@ -57,6 +57,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Auto Harvest](#cheat-auto-harvest)
 - [Auto Launch Rockets](#cheat-auto-launch-rockets)
 - [Auto Sequence DNA](#cheat-auto-sequence-dna)
+- [Birthday](#cheat-birthday)
 - [Highlight Nearby Resources](#cheat-highlight-nearby-resources)
 - [Inventory Stacking](#cheat-inventory-stacking)
 - [Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)
@@ -1628,6 +1629,14 @@ Toggle_Auto_Move_Key = CapsLock
 ## (UI) Logistic Select All
 
 Select all groups in the logistic screen by pressing <kbd>Ctrl+A</kbd>.
+
+### Configuration
+
+None.
+
+## (Cheat) Birthday
+
+Re-enables the hidden Birthday underground base and the oven in there.
 
 ### Configuration
 
