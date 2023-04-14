@@ -9,6 +9,7 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System;
+using System.Linq;
 
 namespace FixUnofficialPatches
 {
@@ -235,5 +236,20 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
+        static void MachineGenerator_GenerateAnObject(WorldObject ___worldObject, 
+            TerraformStage ___terraStage, List<GroupData> ___groupDatas, List<GroupData> ___groupDatasTerraStage,
+            int ___spawnEveryXSec)
+        {
+            logger.LogInfo(___worldObject.GetId() + ".GenerateAnObject");
+            logger.LogInfo("   SpawnEveryXSec:       " + ___spawnEveryXSec);
+            logger.LogInfo("   GroupDatas:           " + (___groupDatas != null ? string.Join(", ", ___groupDatas.Select(g => g.id)) : "[]"));
+            logger.LogInfo("   TerraStage:           " + (___terraStage != null ? (___terraStage.GetTerraId() + " @ " + ___terraStage.GetStageStartValue()) : "N/A"));
+            logger.LogInfo("   GroupDatasTerraStage: " + (___groupDatasTerraStage != null ? string.Join(", ", ___groupDatasTerraStage.Select(g => g.id)) : "[]"));
+        }
+        */
     }
 }
