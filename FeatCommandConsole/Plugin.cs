@@ -17,6 +17,7 @@ using System.IO;
 using System.Text;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using System.Collections;
 
 namespace FeatCommandConsole
 {
@@ -60,6 +61,8 @@ namespace FeatCommandConsole
         static Dictionary<string, Vector3> savedTeleportLocations;
 
         const int similarLimit = 3;
+
+        static IEnumerator autorefillCoroutine;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -327,6 +330,12 @@ namespace FeatCommandConsole
 
             log("Creating the background");
 
+            RecreateBackground(wh);
+            log("Done");
+        }
+
+        void RecreateBackground(WindowsHandler wh)
+        {
             int panelWidth = Screen.width - consoleLeft.Value - consoleRight.Value;
             int panelHeight = Screen.height - consoleTop.Value - consoleBottom.Value;
 
@@ -335,6 +344,7 @@ namespace FeatCommandConsole
 
             RectTransform rect;
 
+            Destroy(background);
             background = new GameObject("CommandConsoleBackground");
             background.transform.parent = canvas.transform;
             var img = background.AddComponent<Image>();
@@ -390,7 +400,6 @@ namespace FeatCommandConsole
 
             inputFieldText.Select();
             inputFieldText.ActivateInputField();
-            log("Done");
         }
 
         void createOutputLines()
@@ -601,12 +610,12 @@ namespace FeatCommandConsole
                     var prefix = "";
                     if (args.Count > 2)
                     {
-                        prefix = args[2].ToLower();
+                        prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleSpawns = new();
                     foreach (var g in GroupsHandler.GetAllGroups())
                     {
-                        if (g is GroupItem gi && gi.GetId().ToLower().StartsWith(prefix))
+                        if (g is GroupItem gi && gi.GetId().ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             possibleSpawns.Add(gi.GetId());
                         }
@@ -663,36 +672,12 @@ namespace FeatCommandConsole
                         }
                     }
 
-                    var gid = args[1].ToLower();
-                    SpaceCraft.Group g = null;
-
-                    foreach (var gr in GroupsHandler.GetAllGroups())
-                    {
-                        if (gr.GetId().ToLower() == gid)
-                        {
-                            g = gr;
-
-                        }
-                    }
+                    var gid = args[1].ToLower(CultureInfo.InvariantCulture);
+                    SpaceCraft.Group g = FindGroup(gid);
 
                     if (g == null)
                     {
-                        List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups().Where(g => g is GroupItem).Select(g => g.id.ToLower()));
-                        if (similar.Count != 0)
-                        {
-                            similar.Sort();
-                            Colorize(similar, "#00FF00");
-
-                            addLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
-                            foreach (var line in joinPerLine(similar, 5))
-                            {
-                                addLine("<margin=2em>" + line);
-                            }
-                        }
-                        else
-                        {
-                            addLine("<margin=1em><color=#FF0000>Unknown item.</color>");
-                        }
+                        DidYouMean(gid, false);
                     }
                     else if (!(g is GroupItem))
                     {
@@ -912,11 +897,11 @@ namespace FeatCommandConsole
                 string prefix = "";
                 if (args.Count >= 2)
                 {
-                    prefix = args[1].ToLower();
+                    prefix = args[1].ToLower(CultureInfo.InvariantCulture);
                 }
                 foreach (var n in savedTeleportLocations.Keys)
                 {
-                    if (n.ToLower().StartsWith(prefix))
+                    if (n.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                     {
                         tpNames.Add(n);
                     }
@@ -1339,7 +1324,7 @@ namespace FeatCommandConsole
             string prefix = "";
             if (args.Count >= 2)
             {
-                prefix = args[1].ToLower();
+                prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
 
             List<string> list = new();
@@ -1352,7 +1337,7 @@ namespace FeatCommandConsole
                 {
                     foreach (GroupData g in gd)
                     {
-                        if (g.id.ToLower().StartsWith(prefix))
+                        if (g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             list.Add(g.id);
                         }
@@ -1406,13 +1391,13 @@ namespace FeatCommandConsole
                     var prefix = "";
                     if (args.Count > 2)
                     {
-                        prefix = args[2].ToLower();
+                        prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> list = new();
                     foreach (var gd in tiers)
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
-                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower().StartsWith(prefix))
+                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             list.Add(g.id);
                         }
@@ -1461,13 +1446,13 @@ namespace FeatCommandConsole
                     var prefix = "";
                     if (args.Count > 2)
                     {
-                        prefix = args[2].ToLower();
+                        prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> list = new();
                     foreach (var gd in GroupsHandler.GetAllGroups())
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
-                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower().StartsWith(prefix))
+                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             list.Add(g.id);
                         }
@@ -1505,13 +1490,13 @@ namespace FeatCommandConsole
             var prefix = "";
             if (args.Count > 1)
             {
-                prefix = args[1].ToLower();
+                prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
             List<string> list = new();
             foreach (var gd in GroupsHandler.GetAllGroups())
             {
                 var g = GroupsHandler.GetGroupViaId(gd.id);
-                if (g.id.ToLower().StartsWith(prefix))
+                if (g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                 {
                     list.Add(g.id);
                 }
@@ -1527,6 +1512,50 @@ namespace FeatCommandConsole
             }
         }
 
+        SpaceCraft.Group FindGroup(string gid)
+        {
+            foreach (var gr in GroupsHandler.GetAllGroups())
+            {
+                var gci = gr.GetId().ToLower(CultureInfo.InvariantCulture);
+                if (gci == gid && !gci.StartsWith("spacemultiplier"))
+                {
+                    return gr;
+
+                }
+            }
+            return null;
+        }
+
+        void DidYouMean(string gid, bool isStructure)
+        {
+            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
+                .Where(g => g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
+                .Select(g => g.id.ToLower(CultureInfo.InvariantCulture)));
+            if (similar.Count != 0)
+            {
+                similar.Sort();
+                Colorize(similar, "#00FF00");
+
+                addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
+                foreach (var line in joinPerLine(similar, 5))
+                {
+                    addLine("<margin=2em>" + line);
+                }
+            }
+            else
+            {
+                if (isStructure)
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown item.</color>");
+                }
+            }
+
+        }
+
         [Command("/tech-info", "Shows detailed information about a technology")]
         public void TechInfo(List<string> args)
         {
@@ -1539,9 +1568,14 @@ namespace FeatCommandConsole
             }
             else
             {
-                var gr = GroupsHandler.GetGroupViaId(args[1]);
-                if (gr != null)
+                var gr = FindGroup(args[1]);
+                if (gr == null)
                 {
+                    DidYouMean(args[1], false);
+                }
+                else
+                {
+                    addLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
                     addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
                     addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
                     addLine("<margin=1em><b>Is unlocked:</b> <color=#00FF00>" + GroupsHandler.IsGloballyUnlocked(gr));
@@ -1653,10 +1687,6 @@ namespace FeatCommandConsole
                         }
                     }
                 }
-                else
-                {
-                    addLine("<margin=1em><color=#FF0000>Unknown technology");
-                }
             }
         }
 
@@ -1687,6 +1717,35 @@ namespace FeatCommandConsole
             gh.AddWater(100);
             gh.AddOxygen(1000);
             addLine("<margin=1em>Health, Water and Oxygen refilled");
+        }
+
+        [Command("/auto-refill", "Automatically refills the Health, Water and Oxygen. Re-issue command to stop.")]
+        public void AutoRefill(List<string> args)
+        {
+            if (autorefillCoroutine != null)
+            {
+                addLine("<margin=1em>Auto Refill stopped");
+                StopCoroutine(autorefillCoroutine);
+                autorefillCoroutine = null;
+            }
+            else
+            {
+                addLine("<margin=1em>Auto Refill started");
+                autorefillCoroutine = AutoRefillCoroutine();
+                StartCoroutine(autorefillCoroutine);
+            }
+        }
+
+        IEnumerator AutoRefillCoroutine()
+        {
+            for (; ; ) { 
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var gh = pm.GetGaugesHandler();
+                gh.AddHealth(100);
+                gh.AddWater(100);
+                gh.AddOxygen(1000);
+                    yield return new WaitForSeconds(1);
+            }
         }
 
         [Command("/add-health", "Adds a specific Health amount to the player")]
@@ -1760,7 +1819,7 @@ namespace FeatCommandConsole
             var prefix = "";
             if (args.Count > 1)
             {
-                prefix = args[1].ToLower();
+                prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
 
             Dictionary<string, List<string>> larvaeToSequenceInto = new();
@@ -1772,7 +1831,7 @@ namespace FeatCommandConsole
                     foreach (var rgi in recipe)
                     {
                         var rgid = rgi.GetId();
-                        if (rgid.StartsWith("LarvaeBase") && rgid.ToLower().StartsWith(prefix))
+                        if (rgid.StartsWith("LarvaeBase") && rgid.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             if (!larvaeToSequenceInto.TryGetValue(rgid, out var list))
                             {
@@ -1958,7 +2017,7 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Build a structure. The ingredients are automatically added to the inventory first.");
                 addLine("<margin=1em>Usage:");
                 addLine("<margin=2em><color=#FFFF00>/build list [name-prefix]</color> - list the item ids that can be built");
-                addLine("<margin=2em><color=#FFFF00>/build itemid</color> - get the ingredients and start building it by showing the ghost");
+                addLine("<margin=2em><color=#FFFF00>/build itemid [count]</color> - get the ingredients and start building it by showing the ghost");
             }
             else
             {
@@ -1967,14 +2026,14 @@ namespace FeatCommandConsole
                     var prefix = "";
                     if (args.Count > 2)
                     {
-                        prefix = args[2].ToLower();
+                        prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleStructures = new();
                     foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupConstructible gc)
                         {
-                            var gci = gc.GetId().ToLower();
+                            var gci = gc.GetId().ToLower(CultureInfo.InvariantCulture);
                             if (gci.StartsWith(prefix) && !gci.StartsWith("SpaceMultiplier"))
                             {
                                 possibleStructures.Add(gc.GetId());
@@ -1990,39 +2049,11 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gid = args[1].ToLower();
-                    SpaceCraft.Group g = null;
-
-                    foreach (var gr in GroupsHandler.GetAllGroups())
-                    {
-                        var gci = gr.GetId().ToLower();
-                        if (gci == gid && !gci.StartsWith("SpaceMultiplier"))
-                        {
-                            g = gr;
-
-                        }
-                    }
-
+                    var gid = args[1].ToLower(CultureInfo.InvariantCulture);
+                    SpaceCraft.Group g = FindGroup(gid);
                     if (g == null)
                     {
-                        List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
-                            .Where(g => g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
-                            .Select(g => g.id.ToLower()));
-                        if (similar.Count != 0)
-                        {
-                            similar.Sort();
-                            Colorize(similar, "#00FF00");
-
-                            addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
-                            foreach (var line in joinPerLine(similar, 5))
-                            {
-                                addLine("<margin=2em>" + line);
-                            }
-                        }
-                        else
-                        {
-                            addLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
-                        }
+                        DidYouMean(gid, true);
                     }
                     else if (!(g is GroupConstructible))
                     {
@@ -2036,14 +2067,26 @@ namespace FeatCommandConsole
 
                         var recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
 
-                        var full = false;
-                        foreach (var ri in recipe)
+                        int n = 1;
+                        if (args.Count >= 2)
                         {
-                            var wo = WorldObjectsHandler.CreateNewWorldObject(ri);
-                            if (!inv.AddItem(wo))
+                            n = int.Parse(args[2]);
+                        }
+                        var full = false;
+                        for (int k = 0; k < n; k++)
+                        {
+                            foreach (var ri in recipe)
                             {
-                                WorldObjectsHandler.DestroyWorldObject(wo);
-                                full = true;
+                                var wo = WorldObjectsHandler.CreateNewWorldObject(ri);
+                                if (!inv.AddItem(wo))
+                                {
+                                    WorldObjectsHandler.DestroyWorldObject(wo);
+                                    full = true;
+                                    break;
+                                }
+                            }
+                            if (full)
+                            {
                                 break;
                             }
                         }
@@ -2118,6 +2161,40 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/console-set-left", "Sets the Command Console's window's left position on the screen")]
+        public void ConsoleLeft(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Sets the Command Console's left position on the screen.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/console-set-left value</color> - Set the window's left position");
+            }
+            else
+            {
+                consoleLeft.Value = int.Parse(args[1]);
+            }
+            addLine("<margin=1em>Current Left: " + consoleLeft.Value);
+            RecreateBackground(Managers.GetManager<WindowsHandler>());
+        }
+
+        [Command("/console-set-right", "Sets the Command Console's window's right position on the screen")]
+        public void ConsoleRight(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Sets the Command Console's right position on the screen.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/console-set-right value</color> - Set the window's right position");
+            }
+            else
+            {
+                consoleRight.Value = int.Parse(args[1]);
+            }
+            addLine("<margin=1em>Current Right: " + consoleRight.Value);
+            RecreateBackground(Managers.GetManager<WindowsHandler>());
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         void Colorize(List<string> list, string color)
@@ -2166,7 +2243,7 @@ namespace FeatCommandConsole
             List<string> result = new();
             foreach (var text in texts)
             {
-                if (text.StartsWith(userText) || text.Contains(userText))
+                if (text.Contains(userText))
                 {
                     result.Add(text);
                 }
