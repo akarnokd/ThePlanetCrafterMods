@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>CheatTeleportNearestMinable</AssemblyName>
     <Description>(Cheat) Teleport to Nearest Minable</Description>
-    <Version>1.0.0.7</Version>
+    <Version>1.0.0.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace CheatTeleportNearestMinable
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", "1.0.0.7")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatteleportnearestminable", "(Cheat) Teleport To Nearest Minable", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -61,7 +61,7 @@ namespace CheatTeleportNearestMinable
             "Butterfly11Larvae",
             "Butterfly12Larvae",
             "Butterfly13Larvae",
-            "Butterfly141Larvae",
+            "Butterfly14Larvae",
             "Butterfly15Larvae",
             "Butterfly16Larvae",
             "Butterfly17Larvae",
