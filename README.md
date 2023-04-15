@@ -527,7 +527,7 @@ Remark: `Uranim` is a misspelling in the vanilla game which will probably never 
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg`
+<details><summary>akarnokd.theplanetcraftermods.cheatteleportnearestminable.cfg</summary>
 
 ```
 [General]
@@ -539,8 +539,8 @@ ResourceSet = Cobalt,Silicon,Iron,ice,Magnesium,Titanium,Aluminium,Uranim,Iridiu
 
 ## List of comma-separated larvae ids to look for.
 # Setting type: String
-# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly141Larvae,Butterfly15Larvae
-LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly141Larvae,Butterfly15Larvae
+# Default value: LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae,Butterfly16Larvae,Butterfly17Larvae,Butterfly18Larvae
+LarvaeSet = LarvaeBase1,LarvaeBase2,LarvaeBase3,Butterfly11Larvae,Butterfly12Larvae,Butterfly13Larvae,Butterfly14Larvae,Butterfly15Larvae,Butterfly16Larvae,Butterfly17Larvae,Butterfly18Larvae
 
 ## Press this key (without modifiers) to enable automatic mining/grabbing in a radius.
 # Setting type: String
@@ -557,6 +557,7 @@ Radius = 90
 # Default value: 5
 Delay = 5
 ```
+</details>
 
 ## (Cheat) Minimap
 
