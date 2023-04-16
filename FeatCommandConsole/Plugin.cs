@@ -2068,7 +2068,7 @@ namespace FeatCommandConsole
                         var recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
 
                         int n = 1;
-                        if (args.Count >= 2)
+                        if (args.Count > 2)
                         {
                             n = int.Parse(args[2]);
                         }
