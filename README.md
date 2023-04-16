@@ -83,6 +83,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Save When Quitting](#ui-save-when-quitting)
 - [Show Consumable Counts](#ui-show-consumable-counts)
 - [Show Container Content Info](#ui-show-container-content-info)
+- [Show ETA](#ui-show-eta)
 - [Show Grab N Mine Count](#ui-show-grab-n-mine-count)
 - [Show MultiTool Mode](#ui-show-multitool-mode)
 - [Show Player Inventory Counts](#ui-show-player-inventory-counts)
@@ -1638,6 +1639,14 @@ None.
 ## (Cheat) Birthday
 
 Re-enables the hidden Birthday underground base and the oven in there.
+
+### Configuration
+
+None.
+
+## (UI) Show ETA
+
+Show the time unit the next terraformation stage given the current speed of terraformation.
 
 ### Configuration
 
