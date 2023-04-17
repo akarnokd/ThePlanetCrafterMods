@@ -59,6 +59,7 @@ namespace FeatMultiplayer
                 LogInfo("Larvae; Radius = " + ___radius + ", Max spawn = " + ___maxLarvaeToSpawn);
                 __instance.StopAllCoroutines();
                 __instance.StartCoroutine(PlayerLarvaeAround_TryToSpawnLarvae_Override(
+                    __instance,
                     ___larvaesStart, ___playerDirectEnvironment, ___larvaesEnd, ___worldUnitsHandler, ___maxLarvaeToSpawn,
                     ___larvaesSpawned, ___updateInterval, ___radius, ___larvaesToSpawn, ___ignoredLayerMasks, ___poolContainer
                 ));
@@ -71,6 +72,7 @@ namespace FeatMultiplayer
         }
 
         static IEnumerator PlayerLarvaeAround_TryToSpawnLarvae_Override(
+            PlayerLarvaeAround __instance,
             TerraformStage ___larvaesStart,
             PlayerDirectEnvironment ___playerDirectEnvironment,
             TerraformStage ___larvaesEnd,
@@ -88,7 +90,9 @@ namespace FeatMultiplayer
             {
                 try
                 {
-                    if (___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesStart, null) && !___playerDirectEnvironment.GetIsInLivable())
+                    if (playerLarvaeAroundNoLarvaeZoneEntered(__instance) <= 0
+                        && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___larvaesStart, null) 
+                        && !___playerDirectEnvironment.GetIsInLivable())
                     {
                         float num = Mathf.InverseLerp(___larvaesStart.GetStageStartValue(), ___larvaesEnd.GetStageStartValue(), ___worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue());
 
@@ -210,7 +214,7 @@ namespace FeatMultiplayer
                 // zone specific spawn
                 foreach (var lz in allLarvaeZones.Values)
                 {
-                    if (lz.bounds.Contains(position))
+                    if (lz.bounds.Contains(position) && !lz.noSpawn)
                     {
                         result.AddRange(lz.spawns);
                     }
@@ -383,6 +387,7 @@ namespace FeatMultiplayer
         {
             internal Bounds bounds;
             internal List<GroupDataItem> spawns;
+            internal bool noSpawn;
         }
 
         /// <summary>
@@ -417,7 +422,7 @@ namespace FeatMultiplayer
             var str = string.Join(",", (int)center.x, (int)center.y, (int)center.z,
                 (int)extents.x, (int)extents.y, (int)extents.z);
 
-            string info = "Larvae; Zone " + str + " [ " + string.Join(", ", list) + " ]";
+            string info = "Larvae; Zone " + str + " [ " + string.Join(", ", list) + " ], NoSpawn = " + __instance.GetNoLarvaeZone();
             LogInfo(info);
             theLogger.LogInfo(info);
             // File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
@@ -428,6 +433,7 @@ namespace FeatMultiplayer
                     LarvaeZoneCached lzc = new();
                     lzc.bounds = bounds;
                     lzc.spawns = __instance.GetLarvaesToAddToPool();
+                    lzc.noSpawn = __instance.GetNoLarvaeZone();
                     allLarvaeZones[str] = lzc;
                     foreach (var lp in lzc.spawns)
                     {

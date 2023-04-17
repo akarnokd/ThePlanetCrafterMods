@@ -155,6 +155,7 @@ namespace FeatMultiplayer
         static AccessTools.FieldRef<UiWindowContainer, Inventory> uiWindowContainerRightInventory;
         static AccessTools.FieldRef<Inventory, InventoryDisplayer> inventoryDisplayer;
         static MethodInfo logisticSelectorSetListsDisplay;
+        static AccessTools.FieldRef<PlayerLarvaeAround, int> playerLarvaeAroundNoLarvaeZoneEntered;
 
         static void InitReflectiveAccessors()
         {
@@ -201,6 +202,8 @@ namespace FeatMultiplayer
 
             inventoryDisplayer = AccessTools.FieldRefAccess<Inventory, InventoryDisplayer>("inventoryDisplayer");
             logisticSelectorSetListsDisplay = AccessTools.Method(typeof(LogisticSelector), "SetListsDisplay");
+
+            playerLarvaeAroundNoLarvaeZoneEntered = AccessTools.FieldRefAccess<PlayerLarvaeAround, int>("noLarvaeZoneEntered");
         }
 
     }

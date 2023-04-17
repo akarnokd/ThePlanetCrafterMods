@@ -219,5 +219,19 @@ namespace FixUnofficialPatches
                 }
             }
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerLarvaeAround), "CleanFarAwayLarvae")]
+        static void PlayerLarvaeAround_CleanFarAwayLarvae(List<GameObject> ___larvaesSpawned)
+        {
+            for (int i = ___larvaesSpawned.Count - 1; i >= 0; i--)
+            {
+                if (___larvaesSpawned[i] == null)
+                {
+                    ___larvaesSpawned.RemoveAt(i);
+                }
+            }
+        }
+
     }
 }
