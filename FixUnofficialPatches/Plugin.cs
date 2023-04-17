@@ -72,40 +72,6 @@ namespace FixUnofficialPatches
             }
         }
 
-        /*
-         * Fixed in 0.5.005
-        /// <summary>
-        /// Fixes the lack of localization Id when viewing a Craft Station T2, so the window title is not properly updated.
-        /// </summary>
-        /// <param name="__instance">The ActionCrafter instance of the station object</param>
-        /// <param name="___titleLocalizationId">The field hosting the localization id</param>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.OnAction))]
-        static void ActionCrafter_OnAction(ActionCrafter __instance, ref string ___titleLocalizationId)
-        {
-            if (__instance.GetCrafterIdentifier() == DataConfig.CraftableIn.CraftStationT2)
-            {
-                ___titleLocalizationId = "GROUP_NAME_CraftStation1";
-            }
-        }
-        */
-
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayerAimController), "HandleAiming")]
-        static void PlayerAimController_HandleAiming(Ray ___aimingRay, float ___distanceHitLimit, int ___layerMask)
-        {
-            if (Physics.Raycast(___aimingRay, out var raycastHit, ___distanceHitLimit, ___layerMask))
-            {
-                logger.LogInfo("Looking at " + raycastHit.transform.gameObject.name + " (" + ___layerMask + ")");
-            }
-            else
-            {
-                logger.LogInfo("No hits");
-            }
-        }
-        */
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WindowsHandler), "OpenDevBranch")]
         static bool WindowsHandler_OpenDevBranch()
@@ -166,34 +132,12 @@ namespace FixUnofficialPatches
             return ___worldObject != null;
         }
 
-        // Bug in 0.7.001 when loading a completely new world
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
-        static void PlanetLoader_HandleDataAfterLoad(ref PlanetIsLoaded ___planetIsLoaded)
-        {
-            if (___planetIsLoaded == null)
-            {
-                ___planetIsLoaded = () => { };
-            }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
-        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
-        {
-            if (__instance.environmentVolumeVariables == null)
-            {
-                logger.LogError(__instance.gameObject.name + " id " + __instance.GetInstanceID() + ", environmentVolumeVariables == null");
-            }
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(EnvironmentVolume), "CalculateLerpRelativeToPositionInCollider")]
         static bool EnvironmentVolue_CalculateLerpRelativeToPositionInCollider(EnvironmentVolume __instance)
         {
             if (__instance.liveEnvironmentVolumeVariables == null)
             {
-                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
                 return false;
             }
             return true;
@@ -205,7 +149,6 @@ namespace FixUnofficialPatches
         {
             if (__instance.liveEnvironmentVolumeVariables == null)
             {
-                // logger.LogError(__instance.name + ", liveEnvironmentVolumeVariables == null");
                 return false;
             }
             return true;
@@ -237,19 +180,44 @@ namespace FixUnofficialPatches
             return true;
         }
 
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static void MachineGenerator_GenerateAnObject(WorldObject ___worldObject, 
-            TerraformStage ___terraStage, List<GroupData> ___groupDatas, List<GroupData> ___groupDatasTerraStage,
-            int ___spawnEveryXSec)
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticEntity), nameof(LogisticEntity.ClearSupplyGroups))]
+        static bool LogisticEntity_ClearSupplyGroups(LogisticEntity __instance)
         {
-            logger.LogInfo(___worldObject.GetId() + ".GenerateAnObject");
-            logger.LogInfo("   SpawnEveryXSec:       " + ___spawnEveryXSec);
-            logger.LogInfo("   GroupDatas:           " + (___groupDatas != null ? string.Join(", ", ___groupDatas.Select(g => g.id)) : "[]"));
-            logger.LogInfo("   TerraStage:           " + (___terraStage != null ? (___terraStage.GetTerraId() + " @ " + ___terraStage.GetStageStartValue()) : "N/A"));
-            logger.LogInfo("   GroupDatasTerraStage: " + (___groupDatasTerraStage != null ? string.Join(", ", ___groupDatasTerraStage.Select(g => g.id)) : "[]"));
+            return __instance.HasSupplyGroups();
         }
-        */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticEntity), nameof(LogisticEntity.ClearDemandGroups))]
+        static bool LogisticEntity_ClearDemandGroups(LogisticEntity __instance)
+        {
+            return __instance.HasDemandGroups();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Drone), nameof(Drone.UpdateState))]
+        static void Drone_UpdateState(LogisticTask ___logisticTask)
+        {
+            if (___logisticTask != null)
+            {
+                var state = ___logisticTask.GetTaskState();
+                if (state == LogisticData.TaskState.ToDemand)
+                {
+                    var go = ___logisticTask.GetDemandInventoryWorldObject()?.GetGameObject();
+                    if (go == null)
+                    {
+                        ___logisticTask.SetTaskState(LogisticData.TaskState.Done);
+                    }
+                }
+                if (state == LogisticData.TaskState.ToSupply)
+                {
+                    var go = ___logisticTask.GetSupplyInventoryWorldObject()?.GetGameObject();
+                    if (go == null)
+                    {
+                        ___logisticTask.SetTaskState(LogisticData.TaskState.Done);
+                    }
+                }
+            }
+        }
     }
 }

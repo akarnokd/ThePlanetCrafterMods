@@ -1529,14 +1529,27 @@ namespace FeatCommandConsole
         void DidYouMean(string gid, bool isStructure)
         {
             List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
-                .Where(g => g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
+                .Where(g => { 
+                    if (isStructure && g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
+                    {
+                        return true;
+                    }
+                    return !isStructure && g is GroupItem;
+                })
                 .Select(g => g.id.ToLower(CultureInfo.InvariantCulture)));
             if (similar.Count != 0)
             {
                 similar.Sort();
                 Colorize(similar, "#00FF00");
 
-                addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
+                if (isStructure)
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
+                }
                 foreach (var line in joinPerLine(similar, 5))
                 {
                     addLine("<margin=2em>" + line);
