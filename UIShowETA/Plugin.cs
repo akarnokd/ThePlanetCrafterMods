@@ -33,26 +33,29 @@ namespace UIShowETA
             {
                 ___percentageProcess.text += "<color=#FFFF00>ETA</color><br>Done";
             }
-            var wuh = Managers.GetManager<WorldUnitsHandler>();
-            var speed = wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetCurrentValuePersSec();
-            var remaining = nextGlobalStage.GetStageStartValue() - wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetValue();
-
-            if (speed <= 0)
-            {
-                ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Infinite";
-            }
             else
             {
-                var time = (long)(remaining / speed);
-                var ts = TimeSpan.FromSeconds(time);
+                var wuh = Managers.GetManager<WorldUnitsHandler>();
+                var speed = wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetCurrentValuePersSec();
+                var remaining = nextGlobalStage.GetStageStartValue() - wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetValue();
 
-                if (ts.Days > 0)
+                if (speed <= 0)
                 {
-                    ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} days<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                    ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Infinite";
                 }
                 else
                 {
-                    ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                    var time = (long)(remaining / speed);
+                    var ts = TimeSpan.FromSeconds(time);
+
+                    if (ts.Days > 0)
+                    {
+                        ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} days<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                    }
+                    else
+                    {
+                        ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                    }
                 }
             }
         }
