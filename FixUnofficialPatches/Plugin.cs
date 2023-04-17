@@ -10,6 +10,7 @@ using System.Reflection;
 using System.IO;
 using System;
 using System.Linq;
+using TMPro;
 
 namespace FixUnofficialPatches
 {
@@ -233,5 +234,50 @@ namespace FixUnofficialPatches
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
+        static void ScreenTerraStage_RefreshDisplay(
+            ScreenTerraStage __instance, TerraformStagesHandler ___terraformStagesHandler, ref TerraformStage ___previousCurrentStage)
+        {
+            TerraformStage currentGlobalStage = ___terraformStagesHandler.GetCurrentGlobalStage();
+            TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
+
+            if (currentGlobalStage != null && nextGlobalStage != null)
+            {
+                if (currentGlobalStage != nextGlobalStage)
+                {
+                    __instance.percentageProcess.text = ___terraformStagesHandler.GetNextGlobalStageCompletion().ToString("F2") + "%";
+                }
+                else
+                {
+                    __instance.percentageProcess.text = "N/A";
+                }
+            }
+            else
+            {
+                __instance.percentageProcess.text = "N/A";
+            }
+
+            if (currentGlobalStage != null)
+            {
+                __instance.currentStageImage.sprite = currentGlobalStage.GetStageImage();
+                __instance.currentStageName.text = Readable.GetTerraformStageName(currentGlobalStage);
+            }
+            else
+            {
+                __instance.currentStageImage.sprite = null;
+                __instance.currentStageName.text = "N/A";
+            }
+            if (nextGlobalStage != null && nextGlobalStage != currentGlobalStage)
+            {
+                __instance.nextStageImage.sprite = nextGlobalStage.GetStageImage();
+                __instance.nextStageName.text = Readable.GetTerraformStageName(nextGlobalStage);
+            }
+            else
+            {
+                __instance.nextStageImage.sprite = null;
+                __instance.nextStageName.text = "N/A";
+            }
+        }
     }
 }

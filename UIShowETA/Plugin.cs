@@ -12,6 +12,7 @@ using BepInEx.Configuration;
 namespace UIShowETA
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uishoweta", "(UI) Show ETA", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("akarnokd.theplanetcraftermods.fixunofficialpatches", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         private void Awake()
@@ -31,7 +32,7 @@ namespace UIShowETA
             TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
             if (nextGlobalStage == null)
             {
-                ___percentageProcess.text += "<color=#FFFF00>ETA</color><br>Done";
+                ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Done";
             }
             else
             {
@@ -46,15 +47,29 @@ namespace UIShowETA
                 else
                 {
                     var time = (long)(remaining / speed);
-                    var ts = TimeSpan.FromSeconds(time);
-
-                    if (ts.Days > 0)
+                    if (time > 0)
                     {
-                        ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} days<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                        if (time < 366 * 24 * 60 * 60)
+                        {
+                            var ts = TimeSpan.FromSeconds(time);
+
+                            if (ts.Days > 0)
+                            {
+                                ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} days<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                            }
+                            else
+                            {
+                                ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                            }
+                        }
+                        else
+                        {
+                            ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Year+";
+                        }
                     }
                     else
                     {
-                        ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                        ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Done";
                     }
                 }
             }
