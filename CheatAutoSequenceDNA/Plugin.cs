@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.6")]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -666,11 +666,14 @@ namespace CheatAutoSequenceDNA
                 foreach (var container in containers)
                 {
                     Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
-                    if (inv.AddItem(item))
+                    if (inv != null)
                     {
-                        log("        Into      : " + DebugWorldObject(container));
-                        source.RemoveItem(item, false);
-                        return;
+                        if (inv.AddItem(item))
+                        {
+                            log("        Into      : " + DebugWorldObject(container));
+                            source.RemoveItem(item, false);
+                            return;
+                        }
                     }
                 }
                 log("        Into      : Failed - all target containers are full");
@@ -694,17 +697,20 @@ namespace CheatAutoSequenceDNA
                 {
                     Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
 
-                    foreach (var wo in inv.GetInsideWorldObjects())
+                    if (inv != null)
                     {
-                        var woGid = wo.GetGroup().GetId();
-                        if (woGid == gid)
+                        foreach (var wo in inv.GetInsideWorldObjects())
                         {
-                            result.Add(new IngredientSource
+                            var woGid = wo.GetGroup().GetId();
+                            if (woGid == gid)
                             {
-                                ingredient = woGid,
-                                source = inv,
-                                wo = wo
-                            });
+                                result.Add(new IngredientSource
+                                {
+                                    ingredient = woGid,
+                                    source = inv,
+                                    wo = wo
+                                });
+                            }
                         }
                     }
                 }
