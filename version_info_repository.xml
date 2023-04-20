@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
 	<plugin guid="akarnokd.theplanetcraftermods.cheatasteroidlandingposition"
-            description="(Cheat) Asteroid Landing Position Override"
-            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
-            method="CsprojVersionTag"
-            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+		description="(Cheat) Asteroid Landing Position Override"
+		discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
+		method="CsprojVersionTag"
+		link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
 	<plugin guid="akarnokd.theplanetcraftermods.cheatautoconsume"
             description="(Cheat) Auto Consume Oxygen-Water-Food"
@@ -66,7 +66,13 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid="akarnokd.theplanetcraftermods.cheatteleportnearestminable"
+	<plugin guid=""
+            description="(Cheat) Recyclers Deposit Into Remote Containers"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatRecyclerRemoteDeposit/CheatRecyclerRemoteDeposit.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+	<plugin guid=""
             description="(Cheat) Teleport To Nearest Minable"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatTeleportNearestMinable/CheatTeleportNearestMinable.csproj"
             method="CsprojVersionTag"
@@ -288,6 +294,12 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
+	<plugin guid=""
+            description="(UI) Show ETA"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowETA/UIShowETA.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
 	<plugin guid="akarnokd.theplanetcraftermods.uishowgrabnminecount"
             description="(UI) Show Grab N Mine Count"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowGrabNMineCount/UIShowGrabNMineCount.csproj"
@@ -355,7 +367,8 @@
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
 
-  <!--
+
+	<!--
     We can include some other repository info source.
         <include url="https://raw.githubusercontent.com/somemodder987/ThePlanetCrafterMods/main/their_version_info_repository.xml" />
     -->
