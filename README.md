@@ -1663,6 +1663,8 @@ Using the `*` prefix is not required with customized names, but it is recommende
 
 You can define the automatic recycle period via configuration; default is every 5 seconds. Set it to zero to disable automatic recycling.
 
+You can also define the maximum range (spherical) to look for the named containers.
+
 :information_source: Note that some items can't be recycled because they have no ingredients associated with them or are explicitly forbidden to be recycled by the game.
 
 :warning: if no aliases and no container named `*Recycled` can be found, the recyclers won't work, not even when pressing the button.
@@ -1727,7 +1729,7 @@ CustomDepositAliases = Iron:*Common,Magnesium:*Common,Cobalt:*Common;Aluminium:*
 
 ### Configuration
 
-<details><summary>akarnokd.theplanetcraftermods.cheatrecycleremotedeposit.cfg</summary>
+<details><summary>akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit.cfg</summary>
 
 ```
 [General]
@@ -1756,5 +1758,10 @@ CustomDepositAliases =
 # Setting type: Int32
 # Default value: 5
 AutoRecyclePeriod = 5
+
+## The maximum range to look for containers within. Zero means unlimited range.
+# Setting type: Int32
+# Default value: 20
+MaxRange = 20
 ```
 </details>

@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace CheatRecyclerRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatrecycleremotedeposit", "(Cheat) Recyclers Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit", "(Cheat) Recyclers Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -31,11 +31,15 @@ namespace CheatRecyclerRemoteDeposit
 
         static ConfigEntry<int> autoRecyclePeriod;
 
+        static ConfigEntry<int> maxRange;
+
         static readonly Dictionary<string, string> aliasMap = new();
 
         static Func<string> mpGetMode;
 
         static Action<int, WorldObject> mpSendWorldObject;
+
+        static bool isAutomaticCall;
 
         private void Awake()
         {
@@ -49,6 +53,7 @@ namespace CheatRecyclerRemoteDeposit
             defaultDepositAlias = Config.Bind("General", "DefaultDepositAlias", "*Recycled", "The name of the container to deposit resources not explicity mentioned in CustomDepositAliases.");
             customDepositAliases = Config.Bind("General", "CustomDepositAliases", "", "Comma separated list of resource_id:alias to deposit into such named containers");
             autoRecyclePeriod = Config.Bind("General", "AutoRecyclePeriod", 5, "How often to auto-recycle, seconds. Zero means no auto-recycle.");
+            maxRange = Config.Bind("General", "MaxRange", 20, "The maximum range to look for containers within. Zero means unlimited range.");
 
             ParseAliasConfig();
 
@@ -86,22 +91,28 @@ namespace CheatRecyclerRemoteDeposit
             }
         }
 
-        static IEnumerable<Inventory> FindInventoryFor(string gid)
+        static IEnumerable<Inventory> FindInventoryFor(string gid, Vector3 center)
         {
             if (!aliasMap.TryGetValue(gid, out var name))
             {
                 name = defaultDepositAlias.Value.ToLowerInvariant();
             }
 
+            var range = maxRange.Value;
+
             foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
             {
                 var wot = wo.GetText();
                 if (wot != null && wot.ToLowerInvariant().Contains(name))
                 {
-                    var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
-                    if (inv != null)
+                    var xyz = wo.GetPosition();
+                    if (Vector3.Distance(xyz, center) < range || range == 0)
                     {
-                        yield return inv;
+                        var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                        if (inv != null)
+                        {
+                            yield return inv;
+                        }
                     }
                 }
             }
@@ -118,7 +129,10 @@ namespace CheatRecyclerRemoteDeposit
                     return false;
                 }
                 var woMachine = __instance.GetComponentInParent<WorldObjectAssociated>().GetWorldObject();
-                Log("Handling Recycler " + woMachine.GetId() + " at " + woMachine.GetPosition());
+                var pos = woMachine.GetPosition();
+                Log("Handling Recycler " + woMachine.GetId() + " at " + pos);
+
+
                 Inventory inventory = __instance.GetComponentInParent<InventoryAssociated>().GetInventory();
                 if (inventory == null || inventory.GetInsideWorldObjects().Count == 0)
                 {
@@ -156,7 +170,7 @@ namespace CheatRecyclerRemoteDeposit
                     bool deposited = false;
                     bool foundInventory = false;
 
-                    foreach (var inv in FindInventoryFor(group.GetId()))
+                    foreach (var inv in FindInventoryFor(group.GetId(), pos))
                     {
                         foundInventory = true;
                         if (inv.AddItem(wo))
@@ -172,10 +186,18 @@ namespace CheatRecyclerRemoteDeposit
                         if (foundInventory) 
                         {
                             Log("      Failure - all target inventories full");
+                            if (!isAutomaticCall)
+                            {
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Recycler: All target inventories are full!");
+                            }
                         }
                         else
                         {
-                            Log("      Failure - no designated target inventory");
+                            Log("      Failure - no designated container found");
+                            if (!isAutomaticCall)
+                            {
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Recycler: No designated container found!");
+                            }
                         }
                         WorldObjectsHandler.DestroyWorldObject(wo);
                         return false;
@@ -212,7 +234,15 @@ namespace CheatRecyclerRemoteDeposit
                 yield return new WaitForSeconds(t);
                 if (mpGetMode == null || mpGetMode() != "CoopClient")
                 {
-                    __instance.OnAction();
+                    isAutomaticCall = true;
+                    try
+                    {
+                        __instance.OnAction();
+                    }
+                    finally
+                    {
+                        isAutomaticCall = false;
+                    }
                 }
             }
         }
