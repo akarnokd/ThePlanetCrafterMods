@@ -63,6 +63,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)
 - [Minimap](#cheat-minimap)
 - [Photomode Hide Water](#cheat-photomode-hide-water)
+- [Recyclers Deposit Into Remote Containers](#cheat-recyclers-deposit-into-remote-containers)
 - [Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable)
 
 ### User Interface or Quality of Life
@@ -1651,3 +1652,107 @@ Show the time unit the next terraformation stage given the current speed of terr
 ### Configuration
 
 None.
+
+## (Cheat) Recyclers Deposit Into Remote Containers
+
+Recyclers deposit the decomposed ingredients into named containers. Supports automatic periodic recycling.
+
+By default, all such ingredients would go into a container named `*Recycled` (case insensitive, can be configured). You can define a list of *item ids* (case sensitive) and *aliases* (case insensitive) to deposit various ingredients into such various named containers. Note that there are some vanilla misspellings (such as `Uranim` to look out for). 
+
+Using the `*` prefix is not required with customized names, but it is recommended to avoid ambiguities with visible and mod-hidden containers.
+
+:information_source: Note that some items can't be recycled because they have no ingredients associated with them or are explicitly forbidden to be recycled by the game.
+
+:warning: if no aliases and no container named `*Recycled` can be found, the recyclers won't work, not even when pressing the button.
+
+
+Example aliases:
+
+```
+DefaultDepositAliases = *Dump
+CustomDepositAliases = Iron:*Common,Magnesium:*Common,Cobalt:*Common;Aluminium:*Precious;Iridium:*Precious
+```
+
+### Standard item identifiers
+
+<details><summary>List of identifiers (case sensitive)</summary>
+
+ - AirFilter1, Algae1Growable, Algae1Seed, Alloy, Aluminium
+ - astrofood, astrofood2, Backpack1, Backpack2, Backpack3
+ - Backpack4, Backpack5, Bacteria1, Bee1Hatched, Bee1Larvae
+ - Bioplastic1, BlueprintT1, BootsSpeed1, BootsSpeed2, BootsSpeed3
+ - Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched, Butterfly11Larvae, Butterfly12Hatched
+ - Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae, Butterfly14Hatched, Butterfly14Larvae
+ - Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched, Butterfly16Larvae, Butterfly17Hatched
+ - Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae, Butterfly1Hatched, Butterfly1Larvae
+ - Butterfly2Hatched, Butterfly2Larvae, Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched
+ - Butterfly4Larvae, Butterfly5Hatched, Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae
+ - Butterfly7Hatched, Butterfly7Larvae, Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched
+ - Butterfly9Larvae, CircuitBoard1, Cobalt, CookCake1, CookChocolate
+ - CookCocoaGrowable, CookCocoaSeed, CookCookie1, CookCroissant, CookFlour
+ - CookWheatGrowable, CookWheatSeed, Drone1, EquipmentIncrease1, EquipmentIncrease2
+ - EquipmentIncrease3, FabricBlue, Fertilizer1, Fertilizer2, Firefly1Hatched
+ - Fish10Eggs, Fish10Hatched, Fish11Eggs, Fish11Hatched, Fish1Eggs
+ - Fish1Hatched, Fish2Eggs, Fish2Hatched, Fish3Eggs, Fish3Hatched
+ - Fish4Eggs, Fish4Hatched, Fish5Eggs, Fish5Hatched, Fish6Eggs
+ - Fish6Hatched, Fish7Eggs, Fish7Hatched, Fish8Eggs, Fish8Hatched
+ - Fish9Eggs, Fish9Hatched, FusionEnergyCell, honey, HudChipCleanConstruction
+ - HudCompass, ice, Iridium, Iron, Jetpack1
+ - Jetpack2, Jetpack3, LarvaeBase1, LarvaeBase2, LarvaeBase3
+ - Magnesium, MethanCapsule1, MultiBuild, MultiDeconstruct, MultiToolDeconstruct2
+ - MultiToolLight, MultiToolLight2, MultiToolMineSpeed1, MultiToolMineSpeed2, MultiToolMineSpeed3
+ - MultiToolMineSpeed4, Mutagen1, Mutagen2, Mutagen3, NitrogenCapsule1
+ - Osmium, OxygenCapsule1, OxygenTank1, OxygenTank2, OxygenTank3
+ - OxygenTank4, Phytoplankton1, Phytoplankton2, Phytoplankton3, Phytoplankton4
+ - PulsarQuartz, RedPowder1, RocketBiomass1, RocketDrones1, RocketHeat1
+ - RocketInformations1, RocketInsects1, RocketMap1, RocketMap2, RocketMap3
+ - RocketMap4, RocketOxygen1, RocketPressure1, RocketReactor, Rod-alloy
+ - Rod-iridium, Rod-osmium, Rod-uranium, Seed0, Seed0Growable
+ - Seed1, Seed1Growable, Seed2, Seed2Growable, Seed3
+ - Seed3Growable, Seed4, Seed4Growable, Seed5, Seed5Growable
+ - Seed6, Seed6Growable, SeedGold, SeedGoldGrowable, Silicon
+ - Silk, SilkWorm, Sulfur, Titanium, Tree0Growable
+ - Tree0Seed, Tree1Growable, Tree1Seed, Tree2Growable, Tree2Seed
+ - Tree3Growable, Tree3Seed, Tree4Growable, Tree4Seed, Tree5Growable
+ - Tree5Seed, Tree6Growable, Tree6Seed, Tree7Growable, Tree7Seed
+ - Tree8Growable, Tree8Seed, Tree9Growable, Tree9Seed, TreeRoot
+ - Uranim, Vegetable0Growable, Vegetable0Seed, Vegetable1Growable, Vegetable1Seed
+ - Vegetable2Growable, Vegetable2Seed, Vegetable3Growable, Vegetable3Seed, WardenKey
+ - WaterBottle1, WaterFilter, Zeolite
+
+</details>
+
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.cheatrecycleremotedeposit.cfg</summary>
+
+```
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable debug mode with detailed logging (chatty!)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+## The name of the container to deposit resources not explicity mentioned in CustomDepositAliases.
+# Setting type: String
+# Default value: *Recycled
+DefaultDepositAlias = *Recycled
+
+## Comma separated list of resource_id:alias to deposit into such named containers
+# Setting type: String
+# Default value: 
+CustomDepositAliases = 
+
+## How often to auto-recycle, seconds. Zero means no auto-recycle.
+# Setting type: Int32
+# Default value: 5
+AutoRecyclePeriod = 5
+```
+</details>
