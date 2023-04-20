@@ -1661,6 +1661,8 @@ By default, all such ingredients would go into a container named `*Recycled` (ca
 
 Using the `*` prefix is not required with customized names, but it is recommended to avoid ambiguities with visible and mod-hidden containers.
 
+You can define the automatic recycle period via configuration; default is every 5 seconds. Set it to zero to disable automatic recycling.
+
 :information_source: Note that some items can't be recycled because they have no ingredients associated with them or are explicitly forbidden to be recycled by the game.
 
 :warning: if no aliases and no container named `*Recycled` can be found, the recyclers won't work, not even when pressing the button.
