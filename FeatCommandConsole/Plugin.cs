@@ -2208,6 +2208,160 @@ namespace FeatCommandConsole
             RecreateBackground(Managers.GetManager<WindowsHandler>());
         }
 
+        [Command("/meteor", "Triggers or lists the available meteor events")]
+        public void Meteor(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Triggers or lists the available meteor events.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/meteor list</color> - Lists the queued and all meteor events");
+                addLine("<margin=2em><color=#FFFF00>/meteor clear</color> - Clears all queued meteor events");
+                addLine("<margin=2em><color=#FFFF00>/meteor eventId</color> - Triggers the meteor events by its case-insensitive name");
+                addLine("<margin=2em><color=#FFFF00>/meteor eventNumber</color> - Triggers the meteor events by its number");
+            }
+            else {
+                var mh = Managers.GetManager<MeteoHandler>();
+                var list = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEvents").GetValue(mh);
+                var queue = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEventQueue").GetValue(mh);
+                var curr = (MeteoEventData)AccessTools.Field(typeof(MeteoHandler), "selectedDataMeteoEvent").GetValue(mh);
+                if (args[1] == "list")
+                {
+                    addLine("<margin=1em>Current meteor event:");
+                    if (curr != null)
+                    {
+                        CreateMeteorEventLines(0, curr);
+                    }
+                    else
+                    {
+                        addLine("<margin=2em>None.");
+                    }
+
+                    addLine("<margin=1em>Queued meteor events:");
+                    if (queue.Count == 0)
+                    {
+                        addLine("<margin=2em>None.");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < queue.Count; i++)
+                        {
+                            CreateMeteorEventLines(i, queue[i]);
+                        }
+                    }
+                    addLine("<margin=1em>All meteor events:");
+                    if (list.Count == 0)
+                    {
+                        addLine("<margin=2em>None.");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            CreateMeteorEventLines(i, list[i]);
+                        }
+                    }
+                }
+                else
+                if (args[1] == "clear")
+                {
+                    addLine("<margin=1em>Queued meteor events cleared [" + queue.Count + "].");
+                    queue.Clear();
+                }
+                else
+                {
+                    try
+                    {
+                        int n = int.Parse(args[1]);
+                        if (n < 0 && n >= list.Count)
+                        {
+                            addLine("<margin=1em><color=#FF0000>Meteor event index out of range.");
+                        }
+                        else
+                        {
+                            mh.QueueMeteoEvent(list[n]);
+                            addLine("<margin=1em>Meteor event <color=#00FF00>" + list[n].name + "</color> queued.");
+                            if (list[n].asteroidEventData != null)
+                            {
+                                addLine("<margin=3em>Resources: " + GetAsteroidSpawn(list[n].asteroidEventData));
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        var found = false;
+                        var name = args[1].ToLowerInvariant();
+                        foreach (var me in list)
+                        {
+                            if (me.name.ToLowerInvariant() == name)
+                            {
+                                mh.QueueMeteoEvent(me);
+                                addLine("<margin=1em>Meteor event <color=#00FF00>" + me.name + "</color> queued.");
+                                if (me.asteroidEventData != null)
+                                {
+                                    addLine("<margin=3em>Resources: " + GetAsteroidSpawn(me.asteroidEventData));
+                                }
+                                found = true;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            addLine("<margin=1em><color=#FF0000>Meteor event not found.");
+
+                            var candidates = new List<string>();
+
+                            foreach (var me in list)
+                            {
+                                if (me.name.ToLowerInvariant().Contains(name))
+                                {
+                                    candidates.Add(me.name);
+                                }
+                            }
+                            if (candidates.Count > 0)
+                            {
+                                addLine("<margin=1em><color=#FF0000>Unknown meteor event.</color> Did you mean?");
+                                foreach (var line in joinPerLine(candidates, 5))
+                                {
+                                    addLine("<margin=2em>" + line);
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static string MeteoEventDataToString(int idx, MeteoEventData med)
+        {
+            return string.Format("{0:00}. <color=#00FF00>{1}</color> [{2:#,##0} <= TI <= {3:#,##0}]", 
+                idx, 
+                med.name,
+                med.startTerraformStage?.GetStageStartValue() ?? 0f,
+                med.stopTerraformStage?.GetStageStartValue() ?? float.PositiveInfinity);
+        }
+
+        static string GetAsteroidSpawn(AsteroidEventData asteroidEventData)
+        {
+            var list = asteroidEventData.asteroidGameObject?.GetComponent<Asteroid>()?.groupsSelected;
+
+            if (list != null && list.Count != 0)
+            {
+                return "<color=#00FF00>" + string.Join("</color>, <color=#00FF00>", list.Select(g => g.id).Distinct()) + "</color>";
+            }
+            return "No resources";
+        }
+
+        void CreateMeteorEventLines(int idx, MeteoEventData med)
+        {
+            addLine("<margin=2em>" + MeteoEventDataToString(idx, med));
+            if (med.asteroidEventData != null)
+            {
+                addLine("<margin=3em>Resources: " + GetAsteroidSpawn(med.asteroidEventData));
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         void Colorize(List<string> list, string color)
