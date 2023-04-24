@@ -59,7 +59,7 @@ namespace CheatRecyclerRemoteDeposit
 
             if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
             {
-                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", pinned recipes will be saved/restored on the host");
+                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", the mod will be inactive on the client side");
 
                 mpGetMode = GetApi<Func<string>>(pi, "apiGetMultiplayerMode");
                 mpSendWorldObject = GetApi<Action<int, WorldObject>>(pi, "apiSendWorldObject");
