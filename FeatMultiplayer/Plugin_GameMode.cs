@@ -139,9 +139,13 @@ namespace FeatMultiplayer
                                     var item = list[i];
                                     if (dropAll || dropProbability > UnityEngine.Random.Range(0, 100))
                                     {
-                                        if (dinv.AddItem(item))
+                                        var gr = item.GetGroup();
+                                        if (!(gr is GroupItem) || !((GroupItem)gr).GetCantBeDestroyed())
                                         {
-                                            inv.RemoveItem(item, false);
+                                            if (dinv.AddItem(item))
+                                            {
+                                                inv.RemoveItem(item, false);
+                                            }
                                         }
                                     }
                                 }
@@ -156,14 +160,14 @@ namespace FeatMultiplayer
                     case DataConfig.GameSettingMode.Intense:
                         {
                             LogInfo("ReceiveMessageDeath: Intense @ " + mdt.position);
-                            DeathClearInventory(mdt.sender.shadowBackpack);
+                            DeathClearInventoryExcept(mdt.sender.shadowBackpack);
 
                             break;
                         }
                     case DataConfig.GameSettingMode.Hardcore:
                         {
                             LogInfo("ReceiveMessageDeath: Hardcode @ " + mdt.position);
-                            DeathClearInventory(mdt.sender.shadowBackpack);
+                            DeathClearInventoryExcept(mdt.sender.shadowBackpack);
                             DeathClearInventory(mdt.sender.shadowEquipment);
 
                             break;
@@ -178,6 +182,20 @@ namespace FeatMultiplayer
             for (int i = list.Count - 1; i >= 0; i--)
             {
                 inv.RemoveItem(list[i], true);
+            }
+        }
+
+        static void DeathClearInventoryExcept(Inventory inv)
+        {
+            var list = inv.GetInsideWorldObjects();
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var item = list[i];
+                var gr = item.GetGroup();
+                if (!(gr is GroupItem) || !((GroupItem)gr).GetCantBeDestroyed())
+                {
+                    inv.RemoveItem(list[i], true);
+                }
             }
         }
 
