@@ -279,5 +279,25 @@ namespace FixUnofficialPatches
                 __instance.nextStageName.text = "N/A";
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticStationDistanceToTask), nameof(LogisticStationDistanceToTask.CompareTo))]
+        static bool LogisticStationDistanceToTask_CompareTo(object obj, float ___distanceToSupply, ref int __result)
+        {
+            var dist = (obj as LogisticStationDistanceToTask).GetDistance();
+            if (dist < ___distanceToSupply)
+            {
+                __result = 1;
+            }
+            else if (dist > ___distanceToSupply)
+            {
+                __result = -1;
+            }
+            else
+            {
+                __result = 0;
+            }
+            return false;
+        }
     }
 }
