@@ -137,6 +137,8 @@ namespace FeatMultiplayer
 
             cellsInCircle?.Clear();
 
+            droneTargetCache.Clear();
+
             clientJoinName = null;
             clientJoinPassword = null;
         }

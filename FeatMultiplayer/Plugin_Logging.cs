@@ -76,6 +76,8 @@ namespace FeatMultiplayer
                         1 => "[Info:    (Feat) Multiplayer @ ",
                         2 => "[Warning: (Feat) Multiplayer @ ",
                         3 => "[Error:   (Feat) Multiplayer @ ",
+                        4 => "[Fatal:   (Feat) Multiplayer @ ",
+                        5 => "[Always:  (Feat) Multiplayer @ ",
                         _ => "[Debug:   (Feat) Multiplayer @ "
                     };
 
@@ -128,6 +130,10 @@ namespace FeatMultiplayer
         internal static void LogWarning(object message)
         {
             LogInternal(message, 2);
+        }
+        internal static void LogAlways(object message)
+        {
+            LogInternal(message, 5);
         }
     }
 }

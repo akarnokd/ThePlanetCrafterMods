@@ -24,7 +24,7 @@ namespace FeatMultiplayer.MessageTypes
                 {
                     sb.Append(',');
                 }
-                sb.Append(wo.GetId());
+                sb.Append(wo.GetId().ToString("X"));
                 i++;
             }
             AppendSupplyDemand(inv, sb, ';');
@@ -94,7 +94,7 @@ namespace FeatMultiplayer.MessageTypes
                             {
                                 if (wo.Length != 0)
                                 {
-                                    wi.itemIds.Add(int.Parse(wo));
+                                    wi.itemIds.Add(int.Parse(wo, System.Globalization.NumberStyles.HexNumber));
                                 }
                             }
                         }

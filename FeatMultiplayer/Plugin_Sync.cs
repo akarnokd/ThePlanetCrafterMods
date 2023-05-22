@@ -268,5 +268,16 @@ namespace FeatMultiplayer
                 LogInfo("Warning, no backpack info for " + playerName + " (" + backpackWoId + ")");
             }
         }
+
+        static void SendDroneTargets()
+        {
+            foreach (var kw in droneTargetCache)
+            {
+                var msg = new MessageDronePosition();
+                msg.id = kw.Key;
+                msg.position = kw.Value;
+                SendAllClients(msg);
+            }
+        }
     }
 }

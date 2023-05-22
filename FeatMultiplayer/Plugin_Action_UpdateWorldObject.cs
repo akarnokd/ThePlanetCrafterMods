@@ -371,9 +371,13 @@ namespace FeatMultiplayer
                     {
                         if (!rocketsInFlight.Contains(mwo.id))
                         {
-                            LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
-                            go.transform.position = mwo.position;
-                            go.transform.rotation = mwo.rotation;
+                            var drone = go.GetComponent<DroneSmoother>();
+                            if (drone == null || drone.targetReached)
+                            {
+                                LogInfo("UpdateWorldObject:   Placement " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", position=" + mwo.position + ", rotation=" + mwo.rotation);
+                                go.transform.position = mwo.position;
+                                go.transform.rotation = mwo.rotation;
+                            }
                         }
                     }
                 }

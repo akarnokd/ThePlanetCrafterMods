@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using FeatMultiplayer.MessageTypes;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace FeatMultiplayer
 {
@@ -26,6 +28,10 @@ namespace FeatMultiplayer
         static readonly ConcurrentDictionary<int, ClientConnection> _clientConnections = new();
 
         static volatile ClientConnection _towardsHost;
+
+        static Telemetry sendTelemetry;
+
+        static Telemetry receiveTelemetry;
 
         static void Receive(ClientConnection sender, MessageBase obj)
         {
@@ -295,25 +301,16 @@ namespace FeatMultiplayer
                                 {
                                     case string s:
                                         {
+                                            HandleSendTelemetry(s);
                                             stream.Write(s);
-                                            stream.Flush();
-                                            break;
-                                        }
-                                    case byte[] b:
-                                        {
-                                            stream.Write(b);
                                             stream.Flush();
                                             break;
                                         }
                                     case IMessageStringProvider msp:
                                         {
-                                            stream.Write(msp.GetString());
-                                            stream.Flush();
-                                            break;
-                                        }
-                                    case IMessageBytesProvider msp:
-                                        {
-                                            stream.Write(msp.GetBytes());
+                                            var s1 = msp.GetString();
+                                            HandleSendTelemetry(s1);
+                                            stream.Write(s1);
                                             stream.Flush();
                                             break;
                                         }
@@ -385,6 +382,8 @@ namespace FeatMultiplayer
                             var message = reader.ReadLine();
                             if (message != null)
                             {
+                                HandleReceiveTelemetry(message);
+
                                 NetworkParseMessage(message, clientConnection);
                             }
                             else
@@ -429,6 +428,60 @@ namespace FeatMultiplayer
             if (_clientConnections.TryRemove(cc.id, out _))
             {
                 Receive(cc, new MessageClientDisconnected());
+            }
+        }
+
+        static void NetworkTelemetrySetup(MonoBehaviour plugin)
+        {
+            if (networkTelemetry.Value > 0)
+            {
+                LogInfo("Enabling Network Telemetry");
+                sendTelemetry = new("Send");
+                receiveTelemetry = new("Receive");
+                plugin.StartCoroutine(NetworkTelemetryLoop());
+            }
+        }
+
+        static IEnumerator NetworkTelemetryLoop()
+        {
+            for (; ; )
+            {
+                yield return new WaitForSecondsRealtime(networkTelemetry.Value);
+
+                sendTelemetry.LogAndReset(LogAlways);
+                receiveTelemetry.LogAndReset(LogAlways);
+            }
+        }
+
+        static void HandleSendTelemetry(string s)
+        {
+            if (sendTelemetry != null)
+            {
+                var idx = s.IndexOf('|');
+                if (idx != -1)
+                {
+                    sendTelemetry.Add(s.Substring(0, idx), s.Length);
+                }
+                else
+                {
+                    sendTelemetry.Add("???", s.Length);
+               }
+            }
+        }
+
+        static void HandleReceiveTelemetry(string message)
+        {
+            if (receiveTelemetry != null)
+            {
+                var idx = message.IndexOf('|');
+                if (idx != -1)
+                {
+                    receiveTelemetry.Add(message.Substring(0, idx), message.Length);
+                }
+                else
+                {
+                    receiveTelemetry.Add("???", message.Length);
+                }
             }
         }
     }

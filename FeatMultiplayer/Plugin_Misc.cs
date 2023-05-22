@@ -2,6 +2,7 @@
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -66,6 +67,68 @@ namespace FeatMultiplayer
             LogInfo("SlowdownConsumption: " + slowdownConsumption.Value);
 
             ResetGaugeConsumptions();
+        }
+    }
+
+    internal class Telemetry
+    {
+        readonly string name;
+
+        Dictionary<string, long> dataPerType = new();
+
+        float lastTime;
+
+        internal Telemetry(string name)
+        {
+            this.name = name;
+            this.lastTime = Time.realtimeSinceStartup;
+        }
+
+        internal void Add(string key, long value) 
+        { 
+            lock (dataPerType)
+            {
+                dataPerType.TryGetValue(key, out var v);
+                dataPerType[key] = v + value;
+            }
+        }
+
+        internal void LogAndReset(Action<string> logPrintln)
+        {
+            Dictionary<string, long> dict = null;
+            lock (dataPerType)
+            {
+                dict = this.dataPerType;
+                this.dataPerType = new();
+            }
+
+            var t0 = lastTime;
+            lastTime = Time.realtimeSinceStartup;
+            var dt = lastTime - t0;
+
+            List<string> keys = new(dict.Keys);
+            if (keys.Count > 0)
+            {
+                keys.Sort();
+                var mx = keys.Select(k => k.Length).Max() + 3;
+
+                var totalBytes = 0L;
+                logPrintln(name + " Telemetry");
+                foreach (string key in keys)
+                {
+                    var v = dict[key];
+
+                    logPrintln(string.Format("  {0} - {1,15:#,##0} bytes ~ {2,15:#,##0.00} kb/s",
+                        key.PadRight(mx), v, v / 1024f / dt    
+                    ));
+
+                    totalBytes += v;
+                }
+                logPrintln("  ----");
+                logPrintln(string.Format("  {0} - {1,15:#,##0} bytes ~ {2,15:#,##0.00} kb/s",
+                        "Total".PadRight(mx), totalBytes, totalBytes / 1024f / dt
+                ));
+            }
         }
     }
 }

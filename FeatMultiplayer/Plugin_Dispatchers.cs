@@ -301,6 +301,11 @@ namespace FeatMultiplayer
                 Receive(cc, musd);
             }
             else
+            if (MessageDronePosition.TryParse(message, out var mdp))
+            {
+                Receive(cc, mdp);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -592,6 +597,11 @@ namespace FeatMultiplayer
                 case MessageStoryEvents mse:
                     {
                         ReceiveMessageStoryEvents(mse);
+                        break;
+                    }
+                case MessageDronePosition mdp:
+                    {
+                        ReceiveMessageDronePosition(mdp);
                         break;
                     }
                 case MessageUpdateSupplyDemand musd:

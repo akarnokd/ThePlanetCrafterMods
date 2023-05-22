@@ -175,5 +175,16 @@ namespace FeatMultiplayer.MessageTypes
             }
             return sb.ToString();
         }
+
+        /// <summary>
+        /// Converts a vector into a string x,y,z where each number has at most
+        /// 2 decimal places.
+        /// </summary>
+        /// <param name="vector">The vector to convert</param>
+        /// <returns>The string representation</returns>
+        internal static string Vector3ToStringReducedPrecision(Vector3 vector)
+        {
+            return $"{vector.x:0.##},{vector.y:0.##},{vector.z:0.##}";
+        }
     }
 }

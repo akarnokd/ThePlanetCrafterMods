@@ -15,14 +15,6 @@ namespace FeatMultiplayer.MessageTypes
     }
 
     /// <summary>
-    /// Implement this interface for sending messages that are themselves binary data.
-    /// </summary>
-    public interface IMessageBytesProvider
-    {
-        byte[] GetBytes();
-    }
-
-    /// <summary>
     /// Base class with a sender field.
     /// </summary>
     public abstract class MessageBase : IMessageStringProvider

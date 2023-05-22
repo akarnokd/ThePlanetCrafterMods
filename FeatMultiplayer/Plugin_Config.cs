@@ -19,6 +19,7 @@ namespace FeatMultiplayer
         static ConfigEntry<int> fullSyncDelay;
         static ConfigEntry<int> smallSyncDelay;
         static ConfigEntry<bool> streamerMode;
+        static ConfigEntry<int> networkTelemetry;
 
         static ConfigEntry<bool> hostMode;
         static ConfigEntry<bool> useUPnP;
@@ -75,6 +76,7 @@ namespace FeatMultiplayer
             playerNameFontSize = Config.Bind("General", "PlayerNameFontSize", 20, "Font size used to display the player's names above their avatar.");
             emoteKey = Config.Bind("General", "EmoteKey", "G", "The key to bring up the emote wheel.");
             playerLocatorKey = Config.Bind("General", "PlayerLocatorKey", "H", "Toggle the overlay that shows the other players' location");
+            networkTelemetry = Config.Bind("General", "NetworkTelemetry", 0, "Time in seconds to take a network telemetry snapshot. 0 means disabled.");
 
             hostMode = Config.Bind("Host", "Host", false, "If true, loading a save will also host it as a multiplayer game.");
             useUPnP = Config.Bind("Host", "UseUPnP", false, "If behind NAT, use UPnP to manually map the HostPort to the external IP address?");
@@ -112,6 +114,8 @@ namespace FeatMultiplayer
             EmoteSetup();
 
             OverlaySetup();
+
+            NetworkTelemetrySetup(this);
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }

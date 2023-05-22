@@ -10,6 +10,8 @@ namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+        static readonly Dictionary<int, Vector3> droneTargetCache = new();
+
         /// <summary>
         /// The vanilla routine assigns tasks to drones periodically.
         /// 
@@ -31,20 +33,65 @@ namespace FeatMultiplayer
         /// <summary>
         /// The vanilla animates the drone position via this method.
         /// 
-        /// We let the clients know of the current position via the world object.
+        /// We let the clients know if the target position changed since the last
+        /// cached information.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="___droneWorldObject"></param>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Drone), "MoveToTarget")]
+        static void Drone_MoveToTarget(Drone __instance, WorldObject ___droneWorldObject, Vector3 _targetPosition)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                if (___droneWorldObject != null)
+                {
+                    bool targetChanged = false;
+                    var id = ___droneWorldObject.GetId();
+
+                    if (droneTargetCache.TryGetValue(id, out var tpos))
+                    {
+                        if (Vector3.Distance(tpos, _targetPosition) > 0.1)
+                        {
+                            targetChanged = true;
+                            droneTargetCache[id] = _targetPosition;
+                        }
+                    }
+                    else
+                    {
+                        droneTargetCache[id] = _targetPosition;
+                        targetChanged = true;
+                    }
+
+                    if (targetChanged)
+                    {
+                        SendWorldObjectToClients(___droneWorldObject, false);
+
+                        var msg = new MessageDronePosition();
+                        msg.id = ___droneWorldObject.GetId();
+                        msg.position = _targetPosition;
+                        SendAllClients(msg);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// The vanilla animates the drone position via this method.
+        /// 
+        /// We save the drone's position into the world object to minimize jitter.
         /// </summary>
         /// <param name="__instance"></param>
         /// <param name="___droneWorldObject"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Drone), "MoveToTarget")]
-        static void Drone_MoveToTarget(Drone __instance, WorldObject ___droneWorldObject)
+        static void Drone_MoveToTarget_Post(Drone __instance, WorldObject ___droneWorldObject, Vector3 _targetPosition)
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 if (___droneWorldObject != null)
                 {
                     ___droneWorldObject.SetPositionAndRotation(__instance.gameObject.transform.position, __instance.gameObject.transform.rotation);
-                    SendWorldObjectToClients(___droneWorldObject, false);
                 }
             }
         }
@@ -90,6 +137,8 @@ namespace FeatMultiplayer
                 {
                     ___droneWorldObject.ResetPositionAndRotation();
                     SendWorldObjectToClients(___droneWorldObject, true);
+                    droneTargetCache.Remove(___droneWorldObject.GetId());
+
                     LogInfo("Drone " + ___droneWorldObject?.GetId() + " hidden");
                 }
                 ___associatedDroneStation?.OnDroneEnter();
@@ -224,6 +273,34 @@ namespace FeatMultiplayer
             }
         }
 
+        static void ReceiveMessageDronePosition(MessageDronePosition msg)
+        {
+            if (updateMode != MultiplayerMode.CoopClient)
+            {
+                return;
+            }
+            if (worldObjectById.TryGetValue(msg.id, out var drone))
+            {
+                var go = drone.GetGameObject();
+                if (go != null)
+                {
+                    var ds = go.GetComponent<DroneSmoother>();
+                    if (ds == null)
+                    {
+                        ds = go.AddComponent<DroneSmoother>();
+                        ds.drone = go.GetComponent<Drone>();
+                    }
+
+                    ds.targetPosition = msg.position;
+
+                    /*
+                    go.transform.position = msg.position;
+                    go.transform.rotation = msg.rotation;
+                    */
+                }
+            }
+        }
+
         internal static void UpdateLogisticEntityFromMessage(Inventory inv, 
             List<string> demandGroups, List<string> supplyGroups, int priority)
         {
@@ -287,7 +364,43 @@ namespace FeatMultiplayer
                 logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
             }
 
+            if (inv.GetLogisticEntity().GetSupplyGroups() == null)
+            {
+                // Avoid crash in SetInventoryStatusInLogistics if
+                // inv is in a task that doesn't have supplygroups initialized yet
+                inv.GetLogisticEntity().SetSupplyGroups(new());
+            }
             Managers.GetManager<LogisticManager>()?.SetInventoryStatusInLogistics(inv);
+        }
+    }
+
+    internal class DroneSmoother : MonoBehaviour
+    {
+        internal Drone drone;
+        internal Vector3 targetPosition;
+        internal bool targetReached;
+
+        void Update()
+        {
+            if (drone == null)
+            {
+                return;
+            }
+
+            if (Vector3.Distance(transform.position, targetPosition) >= drone.distanceMinToTarget) 
+            {
+                transform.Translate(0f, 0f, Time.deltaTime * drone.forwardSpeed);
+
+                var tp = targetPosition + Vector3.up * 2f;
+                transform.rotation = Quaternion.Slerp(transform.rotation,
+                    Quaternion.LookRotation(tp - transform.position),
+                    Time.deltaTime * drone.rotationSpeed);
+                targetReached = false;
+            }
+            else
+            {
+                targetReached = true;
+            }
         }
     }
 }
