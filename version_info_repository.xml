@@ -78,12 +78,6 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid="akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft"
-            description="(Example) Soft Dependency on ModLoadSaveSupport"
-            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/ExampleModLoadSaveSupportSoft/ExampleModLoadSaveSupportSoft.csproj"
-            method="CsprojVersionTag"
-            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
-            />
 	<plugin guid=""
             description="(Feat) Command Console"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatCommandConsole/FeatCommandConsole.csproj"
@@ -141,12 +135,6 @@
 	<plugin guid="akarnokd.theplanetcraftermods.libcommon"
             description="(Lib) Common tools for other mods"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/LibCommon/LibCommon.csproj"
-            method="CsprojVersionTag"
-            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
-            />
-	<plugin guid="akarnokd.theplanetcraftermods.libmodloadsavesupport"
-            description="(Lib) Support Mods with Load n Save"
-            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/LibModLoadSaveSupport/LibModLoadSaveSupport.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
