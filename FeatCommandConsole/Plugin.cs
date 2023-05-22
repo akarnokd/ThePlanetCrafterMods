@@ -1536,7 +1536,7 @@ namespace FeatCommandConsole
                     }
                     return !isStructure && g is GroupItem;
                 })
-                .Select(g => g.id.ToLower(CultureInfo.InvariantCulture)));
+                .Select(g => g.id));
             if (similar.Count != 0)
             {
                 similar.Sort();
@@ -1591,8 +1591,12 @@ namespace FeatCommandConsole
                     addLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
                     addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
                     addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
-                    addLine("<margin=1em><b>Is unlocked:</b> <color=#00FF00>" + GroupsHandler.IsGloballyUnlocked(gr));
-                    addLine("<margin=2em><b>Unlocked at:</b> <color=#00FF00>" + string.Format("{0:#,##0}", gr.GetUnlockingInfos().GetUnlockingValue()) + " " + gr.GetUnlockingInfos().GetWorldUnit());
+                    var unlockInfo = gr.GetUnlockingInfos();
+                    addLine("<margin=1em><b>Is Unlocked:</b>");
+                    addLine("<margin=2em><b>Globally:</b> <color=#00FF00>" + GroupsHandler.IsGloballyUnlocked(gr));
+                    addLine("<margin=2em><b>Blueprint:</b> <color=#00FF00>" + unlockInfo.GetIsUnlockedViaBlueprint());
+                    addLine("<margin=2em><b>Progress:</b> <color=#00FF00>" + unlockInfo.GetIsUnlocked());
+                    addLine("<margin=2em><b>At:</b> <color=#00FF00>" + string.Format("{0:#,##0}", unlockInfo.GetUnlockingValue()) + " " + unlockInfo.GetWorldUnit());
                     if (gr is GroupItem gi)
                     {
                         addLine("<margin=1em><b>Class:</b> Item");
@@ -1613,7 +1617,6 @@ namespace FeatCommandConsole
                             addLine("<margin=2em><b>Subcategory:</b> <color=#00FF00>" + gi.GetItemSubCategory());
                         }
                         addLine("<margin=2em><b>Value:</b> <color=#00FF00>" + gi.GetGroupValue());
-
                         List<string> list = new();
                         foreach (var e in Enum.GetValues(typeof(DataConfig.CraftableIn)))
                         {
@@ -1650,6 +1653,9 @@ namespace FeatCommandConsole
                         }
                         addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
+                        addLine("<margin=2em><b>Hide in Crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
+                        addLine("<margin=2em><b>Hide in Logistics:</b> <color=#00FF00>" + gi.GetHideInLogistics());
+                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled()); ;
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -2410,7 +2416,7 @@ namespace FeatCommandConsole
             List<string> result = new();
             foreach (var text in texts)
             {
-                if (text.Contains(userText))
+                if (text.ToLower(CultureInfo.InvariantCulture).Contains(userText))
                 {
                     result.Add(text);
                 }
