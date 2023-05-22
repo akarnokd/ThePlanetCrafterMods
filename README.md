@@ -96,7 +96,6 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 ### Other
 
 - [Reduce Save Size](#perf-reduce-save-size)
-- [Support Mods with Load n Save](#lib-support-mods-with-load-n-save)
 - [Save Auto Backup](#save-auto-backup)
 - [Auto Save](#save-auto-save)
 - [Unbrick Save](#fix-unbrick-save)
@@ -1474,102 +1473,18 @@ None.
 
 ## (Lib) Support Mods with Load n Save
 
-This mod alters the loading and saving of the game by parsing/appending custom information based on
-registered callbacks. These callbacks can be registered by other plugins and thus they can use this
-plugin for save-specific persistency.
+:warning: Discontinued. Use a known item id and store excess data in its text attribute.
 
-Here is an example plugin that utilizes this plugin:
+### How to achieve save-mod persistence?
 
-https://github.com/akarnokd/ThePlanetCrafterMods/blob/main/ExampleModLoadSaveSupportSoft/Plugin.cs
+Previously, this mod expanded the load and save process by appending more sections to the save. After I gained more experience with the game's code, it turns out this is/was completely unnnecessary.
 
-### Developer notes
+A safer and compatible method is to convert the mod data into text and set it on a item id with known identifier. For example, a hidden Iron or Container1 item (i.e., their position and rotation are zeros).
 
-#### Dependency setup
+You can use almost all identifiers between 0 and 200.000.000 with one restriction: the id can't start with `10` because those indicate pre-placed scene objects.
 
-To add a (soft) dependency to this plugin in your own plugin, use the `BepInDependency` annotation
-with the guid (`akarnokd.theplanetcraftermods.libmodloadsavesupport`) of this plugin:
+There is also the caveat of the text format: you can't have the pipe `|` or `@` characters in them (`|` is the line separator and `@` is the section separator). These charcters are not escaped by default in JSON.
 
-```cs
-[BepInPlugin(guid, "(Example) Soft Dependency on ModLoadSaveSupport", "1.0.0.0")]
-[BepInDependency(libModLoadSaveSupportGuid, BepInDependency.DependencyFlags.SoftDependency)]
-public class Plugin : BaseUnityPlugin
-{
-    const string libModLoadSaveSupportGuid = "akarnokd.theplanetcraftermods.libmodloadsavesupport";
-
-    const string guid = "akarnokd.theplanetcraftermods.examplemodloadsavesupportsoft";
-}
-```
-
-This way, BepInEx knows to load your plugin after this plugin.
-
-#### Registering callbacks
-
-This plugin uses callbacks to get what to save or notify about what has been loaded for a plugin.
-
-First, locate this plugin via its guid:
-
-```cs
-using BepInEx.Bootstrap;
-
-if (Chainloader.PluginInfos.TryGetValue(libModLoadSaveSupportGuid, 
-        out BepInEx.PluginInfo pi))
-{
-}
-```
-
-If found, locate the `RegisterLoadSave` method on its instance:
-
-```cs
-// public IDisposable RegisterLoadSave(string guid, Action<string> onLoad, Func<string> onSave)
-
-MethodInfo mi = pi.Instance.GetType().GetMethod("RegisterLoadSave",
-                   new Type[] { 
-                       typeof(string), 
-                       typeof(Action<string>), 
-                       typeof(Func<string>) 
-                   }
-);
-
-```
-
-Then, invoke it with your plugin id and the delegates to a load and a save function:
-
-```cs
-this.handle = (IDisposable)mi.Invoke(pi.Instance, new object[] { 
-    guid, new Action<string>(OnLoad), new Func<string>(OnSave) 
-});
-
-//...
-
-IDisposable handle;
-
-void OnLoad(string content) {
-
-}
-string OnSave() {
-
-}
-```
-
-The handle is there to remove the registration if needed.
-
-```cs
-void OnDestroy()
-{
-    handle?.Dispose();
-    handle = null;
-}
-```
-
-:warning: Please make sure the string you return does not contain the `@` or `|` characters as these are treated by the vanilla game
-and this mod as separators.
-
-#### Loading Lifecycle
-
-This plugin will deliver the custom save data (if any) after the `SessionController.Start` of the game
-returns control. This way, every vanilla game data should be initialized.
-
-Note that there is no guaranteed order of loading data for different registered plugins.
 
 ## (Lathrey) Disable Build Constraints
 
