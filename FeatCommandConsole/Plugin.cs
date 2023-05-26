@@ -2226,7 +2226,8 @@ namespace FeatCommandConsole
                 addLine("<margin=2em><color=#FFFF00>/meteor eventId</color> - Triggers the meteor events by its case-insensitive name");
                 addLine("<margin=2em><color=#FFFF00>/meteor eventNumber</color> - Triggers the meteor events by its number");
             }
-            else {
+            else 
+            {
                 var mh = Managers.GetManager<MeteoHandler>();
                 var list = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEvents").GetValue(mh);
                 var queue = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEventQueue").GetValue(mh);
@@ -2336,6 +2337,334 @@ namespace FeatCommandConsole
                         }
                     }
                 }
+            }
+        }
+
+        [Command("/list-items-nearby", "Lists the world object ids and their types within a radius")]
+        public void ItemsNearby(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                addLine("<margin=1em>Lists the world object ids and their types within a radius.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter]</color> - List the items with group type name containing the optional typefilter");
+            }
+            else
+            {
+                string filter = "";
+                if (args.Count > 2)
+                {
+                    filter = args[2].ToLowerInvariant();
+                }
+                float radius = float.Parse(args[1], CultureInfo.InvariantCulture);
+
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var pp = pm.transform.position;
+
+                List<WorldObject> found = new();
+                foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+                {
+                    if (wo.GetIsPlaced() && Vector3.Distance(pp, wo.GetPosition()) < radius)
+                    {
+                        if (wo.GetGroup().id.ToLowerInvariant().Contains(filter))
+                        {
+                            found.Add(wo);
+                        }
+                    }
+                }
+                addLine("<margin=1em>Found " + found.Count + " world objects");
+                foreach (var wo in found) {
+                    addLine("<margin=2em>" 
+                        + wo.GetId() + " - " 
+                        + wo.GetGroup().GetId() 
+                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) 
+                        + "\"</color>  @ " + wo.GetPosition() + " (" + string.Format("{0:0.#}", Vector3.Distance(wo.GetPosition(), pp)) + ")");
+                }
+            }
+        }
+
+        [Command("/delete-item", "Deletes a world object specified by its unique id")]
+        public void DeleteItem(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Deletes a world object specified by its unique id.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/delete-item id</color> - Deletes a world object (and its game object) by the given id");
+            }
+            else
+            {
+                int id = int.Parse(args[1]);
+
+                int cnt = 0;
+                var wos = WorldObjectsHandler.GetAllWorldObjects();
+                for (int i = wos.Count - 1; i >= 0; i--)
+                {
+                    var wo = wos[i];
+                    if (wo.GetId() == id)
+                    {
+                        wos.RemoveAt(i);
+                        Destroy(wo.GetGameObject());
+                        cnt++;
+                    }
+                }
+
+                if (cnt == 0)
+                {
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                }
+                else if (cnt == 1)
+                {
+                    addLine("<margin=1em>World object deleted.");
+                }
+                else
+                {
+                    addLine("<margin=1em>World object & duplicates deleted x " + cnt + ".");
+                }
+            }
+        }
+
+        [Command("/move-item", "Moves an item to the specified absolute position.")]
+        public void MoveItem(List<string> args)
+        {
+            if (args.Count != 5)
+            {
+                addLine("<margin=1em>Moves an item to the specified absolute position.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/move-item id x y z</color> - Moves a world object identified by its id to the position x, y, z");
+            }
+            else
+            {
+                int id = int.Parse(args[1]);
+                float x = float.Parse(args[2], CultureInfo.InvariantCulture);
+                float y = float.Parse(args[3], CultureInfo.InvariantCulture);
+                float z = float.Parse(args[4], CultureInfo.InvariantCulture);
+
+                int cnt = 0;
+                var wos = WorldObjectsHandler.GetAllWorldObjects();
+                for (int i = 0; i < wos.Count; i++)
+                {
+                    var wo = wos[i];
+                    if (wo.GetId() == id && wo.GetIsPlaced())
+                    {
+                        wo.SetPositionAndRotation(new Vector3(x, y, z), wo.GetRotation());
+
+                        var go = wo.GetGameObject();
+                        if (go != null)
+                        {
+                            go.transform.position = wo.GetPosition();
+                        }
+
+                        cnt++;
+                    }
+                }
+
+                if (cnt == 0)
+                {
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                }
+                else if (cnt == 1)
+                {
+                    addLine("<margin=1em>World object moved.");
+                }
+                else
+                {
+                    addLine("<margin=1em>World object & duplicates moved x " + cnt + ".");
+                }
+            }
+        }
+
+        [Command("/move-item-relative", "Moves an item by the specified relative amount")]
+        public void MoveItemRelative(List<string> args)
+        {
+            if (args.Count != 5)
+            {
+                addLine("<margin=1em>Moves an item by the specified relative amount.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/move-item-relative id x y z</color> - Moves a world object identified by its id relative by x, y, z");
+            }
+            else
+            {
+                int id = int.Parse(args[1]);
+                float x = float.Parse(args[2], CultureInfo.InvariantCulture);
+                float y = float.Parse(args[3], CultureInfo.InvariantCulture);
+                float z = float.Parse(args[4], CultureInfo.InvariantCulture);
+
+                int cnt = 0;
+                var wos = WorldObjectsHandler.GetAllWorldObjects();
+                for (int i = 0; i < wos.Count; i++)
+                {
+                    var wo = wos[i];
+                    if (wo.GetId() == id && wo.GetIsPlaced())
+                    {
+                        wo.SetPositionAndRotation(wo.GetPosition() + new Vector3(x, y, z), wo.GetRotation());
+                        var go = wo.GetGameObject();
+                        if (go != null)
+                        {
+                            go.transform.position = wo.GetPosition();
+                        }
+                        cnt++;
+                    }
+                }
+
+                if (cnt == 0)
+                {
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                }
+                else if (cnt == 1)
+                {
+                    addLine("<margin=1em>World object moved.");
+                }
+                else
+                {
+                    addLine("<margin=1em>World object & duplicates moved x " + cnt + ".");
+                }
+            }
+        }
+
+        [Command("/list-duplicates", "Lists the ids of duplicated world objects")]
+        public void ListDuplicates(List<string> args)
+        {
+            HashSet<int> ids = new();
+            Dictionary<int, int> duplicates = new();
+
+            var wos = WorldObjectsHandler.GetAllWorldObjects();
+            for (int i = 0; i < wos.Count; i++)
+            {
+                var wo = wos[i];
+                var id = wo.GetId();
+                if (!ids.Add(id))
+                {
+                    duplicates.TryGetValue(id, out var c);
+                    duplicates[id] = c + 1;
+                }
+            }
+
+            if (duplicates.Count > 0)
+            {
+                addLine("<margin=1em>Item duplicates found: " + duplicates.Count);
+                foreach (var kv in duplicates)
+                {
+                    var wo = WorldObjectsHandler.GetWorldObjectViaId(kv.Key);
+                    addLine("<margin=2em>" + (kv.Value + 1) + " x " + kv.Key + " - " 
+                        + wo.GetGroup().GetId() 
+                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
+                }
+            }
+            else
+            {
+                addLine("<margin=1em>No item duplicates found.");
+            }
+
+            duplicates.Clear();
+            ids.Clear();
+
+            foreach (var inv in InventoriesHandler.GetAllInventories())
+            {
+                foreach (var wo in inv.GetInsideWorldObjects())
+                {
+                    int id = wo.GetId();
+                    if (!duplicates.ContainsKey(id))
+                    {
+                        duplicates.Add(id, inv.GetId());
+                    }
+                    else
+                    {
+                        ids.Add(id);
+                    }
+                }
+            }
+            if (ids.Count > 0)
+            {
+                addLine("<margin=1em>Inventory duplicates found: " + duplicates.Count);
+                foreach (var kv in ids)
+                {
+                    var wo = WorldObjectsHandler.GetWorldObjectViaId(kv);
+                    addLine("<margin=2em>" + kv + " - "
+                        + wo.GetGroup().GetId()
+                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
+                }
+            }
+            else
+            {
+                addLine("<margin=1em>No inventory duplicates found.");
+            }
+        }
+
+        [Command("/delete-duplicates", "Deletes all but one of each duplicate world objects.")]
+        public void DeleteDuplicates(List<string> args)
+        {
+            HashSet<int> ids = new();
+            Dictionary<int, int> duplicates = new();
+            int excess = 0;
+
+            var wos = WorldObjectsHandler.GetAllWorldObjects();
+            for (int i = 0; i < wos.Count; i++)
+            {
+                var wo = wos[i];
+                var id = wo.GetId();
+                if (!ids.Add(id))
+                {
+                    duplicates.TryGetValue(id, out var c);
+                    duplicates[id] = c + 1;
+                    excess++;
+                }
+            }
+
+            for (int i = wos.Count - 1; i >= 0; i--)
+            {
+                WorldObject wo = wos[i];
+                var id = wo.GetId();
+                duplicates.TryGetValue(id, out var c);
+                if (c > 0)
+                {
+                    wos.RemoveAt(i);
+                    duplicates[id] = c - 1;
+
+                    Destroy(wo.GetGameObject());
+                }
+            }
+
+            if (duplicates.Count > 0)
+            {
+                addLine("<margin=1em>Item duplicates removed: " + excess);
+            }
+            else
+            {
+                addLine("<margin=1em>No item duplicates found.");
+            }
+
+            duplicates.Clear();
+            ids.Clear();
+
+            foreach (var inv in InventoriesHandler.GetAllInventories())
+            {
+                List<WorldObject> list = inv.GetInsideWorldObjects();
+
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    WorldObject wo = list[i];
+                    int id = wo.GetId();
+
+                    if (!duplicates.ContainsKey(id))
+                    {
+                        duplicates.Add(id, inv.GetId());
+                    }
+                    else
+                    {
+                        ids.Add(id);
+                        list.RemoveAt(i);
+                    }
+                }
+            }
+
+            if (ids.Count > 0)
+            {
+                addLine("<margin=1em>Inventory duplicates removed: " + ids.Count);
+            }
+            else
+            {
+                addLine("<margin=1em>No inventory duplicates found.");
             }
         }
 
