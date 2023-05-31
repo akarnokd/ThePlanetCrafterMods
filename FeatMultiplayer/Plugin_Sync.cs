@@ -138,6 +138,7 @@ namespace FeatMultiplayer
         static void SendPeriodicState()
         {
             SendTerraformState();
+            SendDroneStats();
             SignalAllClients();
         }
 

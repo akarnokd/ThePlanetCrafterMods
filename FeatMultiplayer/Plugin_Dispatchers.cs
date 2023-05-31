@@ -306,6 +306,11 @@ namespace FeatMultiplayer
                 Receive(cc, mdp);
             }
             else
+            if (MessageDroneStats.TryParse(message, out var mds))
+            {
+                Receive(cc, mds);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -607,6 +612,11 @@ namespace FeatMultiplayer
                 case MessageUpdateSupplyDemand musd:
                     {
                         ReceiveMessageUpdateSupplyDemand(musd);
+                        break;
+                    }
+                case MessageDroneStats mds:
+                    {
+                        ReceiveMessageDroneStats(mds);
                         break;
                     }
                 default:

@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace FeatMultiplayer
 {
@@ -161,6 +162,8 @@ namespace FeatMultiplayer
         static MethodInfo logisticSelectorSetListsDisplay;
         static AccessTools.FieldRef<PlayerLarvaeAround, int> playerLarvaeAroundNoLarvaeZoneEntered;
 
+        static MethodInfo uiWindowLogisticsSetLogisticsList;
+
         static void InitReflectiveAccessors()
         {
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -208,6 +211,8 @@ namespace FeatMultiplayer
             logisticSelectorSetListsDisplay = AccessTools.Method(typeof(LogisticSelector), "SetListsDisplay");
 
             playerLarvaeAroundNoLarvaeZoneEntered = AccessTools.FieldRefAccess<PlayerLarvaeAround, int>("noLarvaeZoneEntered");
+
+            uiWindowLogisticsSetLogisticsList = AccessTools.Method(typeof(UiWindowLogistics), "SetLogisticsList", new Type[] { typeof(bool), typeof(GridLayoutGroup), typeof(List<Inventory>) });
         }
 
     }

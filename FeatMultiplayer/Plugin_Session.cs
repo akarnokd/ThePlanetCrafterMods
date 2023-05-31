@@ -139,6 +139,9 @@ namespace FeatMultiplayer
 
             droneTargetCache.Clear();
 
+            droneSupplyCount = 0;
+            droneDemandCount = 0;
+
             clientJoinName = null;
             clientJoinPassword = null;
         }
