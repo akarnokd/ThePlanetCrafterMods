@@ -34,7 +34,7 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    var unlocked = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
+                    var unlocked = Managers.GetManager<UnlockingHandler>().GetUnlockableGroup();
                     if (unlocked != null)
                     {
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
@@ -83,7 +83,7 @@ namespace FeatMultiplayer
             // Signal back the client immediately
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                var gr = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
+                var gr = Managers.GetManager<UnlockingHandler>().GetUnlockableGroup();
                 if (gr != null)
                 {
                     mmu.groupId = gr.GetId();

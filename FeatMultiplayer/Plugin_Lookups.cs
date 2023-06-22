@@ -296,7 +296,7 @@ namespace FeatMultiplayer
 
                     WorldObjectsHandler.DestroyWorldObjects(inv.GetInsideWorldObjects());
 
-                    Managers.GetManager<LogisticManager>().OnDestroyInventory(inv);
+                    Managers.GetManager<LogisticManager>().RemoveInventoryFromLogistics(inv);
                     break;
                 }
             }
