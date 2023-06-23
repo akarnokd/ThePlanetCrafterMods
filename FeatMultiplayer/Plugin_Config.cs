@@ -164,6 +164,12 @@ namespace FeatMultiplayer
 
         static MethodInfo uiWindowLogisticsSetLogisticsList;
 
+        static MethodInfo machineTradePlatformUpdateGrowth;
+        static MethodInfo uiWindowTradeUpdateTokenUi;
+
+        static AccessTools.FieldRef<UiGroupLine, Group> uiGroupLineGroup;
+        static AccessTools.FieldRef<UiWindowTrade, MachineTradePlatform> uiWindowTradeMachineTradePlatform;
+
         static void InitReflectiveAccessors()
         {
             worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
@@ -213,6 +219,14 @@ namespace FeatMultiplayer
             playerLarvaeAroundNoLarvaeZoneEntered = AccessTools.FieldRefAccess<PlayerLarvaeAround, int>("noLarvaeZoneEntered");
 
             uiWindowLogisticsSetLogisticsList = AccessTools.Method(typeof(UiWindowLogistics), "SetLogisticsList", new Type[] { typeof(bool), typeof(GridLayoutGroup), typeof(List<Inventory>) });
+
+            machineTradePlatformUpdateGrowth = AccessTools.Method(typeof(MachineTradePlatform), "UpdateGrowth", new Type[] { typeof(float) });
+
+            uiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
+
+            uiGroupLineGroup = AccessTools.FieldRefAccess<UiGroupLine, Group>("group");
+
+            uiWindowTradeMachineTradePlatform = AccessTools.FieldRefAccess<UiWindowTrade, MachineTradePlatform>("machineTradePlatform");
         }
 
     }

@@ -925,3 +925,4 @@ TERRASTAGE_Mammals=Emlősök
 Alert_new_tokens_gained=Újonnan szerzett Terra Zsetonok
 UI_ClickGainTokens=Kattints a jobb egérgombal a zsetonok megszerzéséhez
 Message_TradePlatform=<br><br>Több hónapnyi kemény munka árán végül sikerült bejutnom a Sentinel feloldó folyamatába és élérhetővé tettem a kereskedelmi kilövő állomást a rendszeredben.<br><br>Általában a terraformálók nem használhatják, de neked segíteni fog.<br>A túlélési esélyek nagyban megnövekednek az aktiválást követően, de a Sentinel szinte sosem engedélyezi ezt a Planet Crafter-eknek… <br><br><br>Nem tudom, hogy élsz-e még vagy sem.<br><br>Bárcsak láthatnánk egymást újra egy napon.<br>
+UI_tradeplatform_title=Űrkereskedelem

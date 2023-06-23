@@ -1649,13 +1649,20 @@ namespace FeatCommandConsole
                         var ggi = gi.GetGrowableGroup();
                         if (ggi != null)
                         {
-                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi));
+                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi) + "\"");
+                        }
+                        var ulg = gi.GetUnlocksGroup();
+                        if (ulg != null)
+                        {
+                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
                         }
                         addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
                         addLine("<margin=2em><b>Hide in Crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
                         addLine("<margin=2em><b>Hide in Logistics:</b> <color=#00FF00>" + gi.GetHideInLogistics());
-                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled()); ;
+                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
+                        addLine("<margin=2em><b>Trade Category:</b> <color=#00FF00>" + gi.GetTradeCategory());
+                        addLine("<margin=2em><b>Trade Value:</b> <color=#00FF00>" + gi.GetTradeValue());
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -2694,6 +2701,24 @@ namespace FeatCommandConsole
             if (med.asteroidEventData != null)
             {
                 addLine("<margin=3em>Resources: " + GetAsteroidSpawn(med.asteroidEventData));
+            }
+        }
+
+        [Command("/add-token", "Adds the specified amount to the Trade Token value")]
+        public void AddToken(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Trade Token value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-token amount</color> - Trade Token += amount");
+            }
+            else
+            {
+                var n = float.Parse(args[1], CultureInfo.InvariantCulture);
+                TokensHandler.GainTokens((int)n);
+                n = TokensHandler.GetTokensNumber();
+                addLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
             }
         }
 

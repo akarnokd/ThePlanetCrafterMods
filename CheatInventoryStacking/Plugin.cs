@@ -26,12 +26,16 @@ namespace CheatInventoryStacking
 
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
+        static ConfigEntry<bool> stackTradeRockets;
 
         static string expectedGroupIdToAdd;
 
         static ManualLogSource logger;
 
-        static readonly HashSet<int> noStackingInventories = new()
+        /// <summary>
+        /// The list of pre-placed inventories that should not stack
+        /// </summary>
+        static readonly HashSet<int> defaultNoStackingInventories = new()
         {
             109441691, // altar at the door in the mushroom cave
             108035701, // altar in the super alloy cave
@@ -42,6 +46,11 @@ namespace CheatInventoryStacking
             101703877, // fusion generator in the stargate
             101484917, // fusion generator in the luxury cruiser with 3 slots
         };
+
+        /// <summary>
+        /// The set of static and dynamic inventory ids that should not stack.
+        /// </summary>
+        static HashSet<int> noStackingInventories = new(defaultNoStackingInventories);
 
         public static Func<string> getMultiplayerMode;
 
@@ -58,6 +67,7 @@ namespace CheatInventoryStacking
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
+            stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
 
             logger = Logger;
 
@@ -407,7 +417,14 @@ namespace CheatInventoryStacking
                 {
                     ___originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
                 }
-                if (___inventory.GetSize() > 28)
+                if (___inventory.GetSize() > 35)
+                {
+                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 70f, ___originalSizeDelta.y);
+                    GridLayoutGroup componentInChildren = __instance.GetComponentInChildren<GridLayoutGroup>();
+                    componentInChildren.cellSize = new Vector2(76f, 76f);
+                    componentInChildren.spacing = new Vector2(3f, 3f);
+                }
+                else if (___inventory.GetSize() > 28)
                 {
                     __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 50f, ___originalSizeDelta.y);
                 }
@@ -1057,6 +1074,36 @@ namespace CheatInventoryStacking
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
+        static void MachineTradePlatform_SetInventoryTradePlatform(Inventory _inventory)
+        {
+            if (!stackTradeRockets.Value)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
+        static void InventoriesHandler_DestroyInventory(int _inventoryId)
+        {
+            if (defaultNoStackingInventories.Contains(_inventoryId))
+            {
+                noStackingInventories.Remove(_inventoryId);
+            }
+        }
+
+
+        /// <summary>
+        /// When we quit, we clear the custom inventory ids that should not be stacked.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            noStackingInventories = new(defaultNoStackingInventories);
+        }
 
         /*
         static bool calledFromSetLogisticTask;

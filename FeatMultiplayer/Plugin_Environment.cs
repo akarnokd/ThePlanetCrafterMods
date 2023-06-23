@@ -138,6 +138,7 @@ namespace FeatMultiplayer
             mts.plants = wuh.GetUnit(DataConfig.WorldUnitType.Plants).GetValue();
             mts.insects = wuh.GetUnit(DataConfig.WorldUnitType.Insects).GetValue();
             mts.animals = wuh.GetUnit(DataConfig.WorldUnitType.Animals).GetValue();
+            mts.tokens = TokensHandler.GetTokensNumber();
 
             SendAllClients(mts);
         }
@@ -241,6 +242,13 @@ namespace FeatMultiplayer
                 foreach (var wup in wups)
                 {
                     ForceUpdateWorldUnitPositioning(wup, wuh);
+                }
+
+                var prevTokens = TokensHandler.GetTokensNumber();
+                TokensHandler.SetTotalTokens(mts.tokens);
+                if (prevTokens < mts.tokens)
+                {
+                    Managers.GetManager<PopupsHandler>().PopupNewTokens(mts.tokens - prevTokens);
                 }
             }
 

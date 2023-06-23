@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <version_info_repository>
 	<plugin guid="akarnokd.theplanetcraftermods.cheatasteroidlandingposition"
-		description="(Cheat) Asteroid Landing Position Override"
-		discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
-		method="CsprojVersionTag"
-		link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+		  description="(Cheat) Asteroid Landing Position Override"
+		  discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatAsteroidLandingPosition/CheatAsteroidLandingPosition.csproj"
+		  method="CsprojVersionTag"
+		  link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
 	<plugin guid="akarnokd.theplanetcraftermods.cheatautoconsume"
             description="(Cheat) Auto Consume Oxygen-Water-Food"
@@ -30,13 +30,13 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.cheatbirthday"
             description="(Cheat) Birthday"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatBirthday/CheatBirthday.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
             description="(Cheat) Inventory Stacking"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
             method="CsprojVersionTag"
@@ -48,7 +48,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.cheatminimap"
             description="(Cheat) Minimap"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatMinimap/CheatMinimap.csproj"
             method="CsprojVersionTag"
@@ -66,19 +66,19 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit"
             description="(Cheat) Recyclers Deposit Into Remote Containers"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatRecyclerRemoteDeposit/CheatRecyclerRemoteDeposit.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.cheatteleportnearestminable"
             description="(Cheat) Teleport To Nearest Minable"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatTeleportNearestMinable/CheatTeleportNearestMinable.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.featcommandconsole"
             description="(Feat) Command Console"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatCommandConsole/FeatCommandConsole.csproj"
             method="CsprojVersionTag"
@@ -90,8 +90,8 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
-            description=""
+	<plugin guid="akarnokd.theplanetcraftermods.featmultiplayer"
+            description="(Feat) Multiplayer"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatMultiplayer/FeatMultiplayer.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
@@ -102,7 +102,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.feattechniciansexile"
             description="(Feat) Technicians Exile"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FeatTechniciansExile/FeatTechniciansExile.csproj"
             method="CsprojVersionTag"
@@ -114,13 +114,13 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.fixunofficialpatches"
             description="(Fix) Unofficial Patches"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/FixUnofficialPatches/FixUnofficialPatches.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.lathreyautomove"
             description="(Lathrey) Auto Move"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/LathreyAutoMove/LathreyAutoMove.csproj"
             method="CsprojVersionTag"
@@ -138,7 +138,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.miscmodenabler"
             description="(Misc) Mod Enabler"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscModEnabler/MiscModEnabler.csproj"
             method="CsprojVersionTag"
@@ -234,7 +234,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uilogisticselectall"
             description="(UI) Logistic Select All"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UILogisticSelectAll/UILogisticSelectAll.csproj"
             method="CsprojVersionTag"
@@ -246,7 +246,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uioverviewpanel"
             description="(UI) Overview Panel"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIOverviewPanel/UIOverviewPanel.csproj"
             method="CsprojVersionTag"
@@ -282,7 +282,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uishoweta"
             description="(UI) Show ETA"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UIShowETA/UIShowETA.csproj"
             method="CsprojVersionTag"
@@ -330,19 +330,19 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uitranslationczech"
             description="(UI) Czech Translation"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UITranslationCzech/UITranslationCzech.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uitranslationhungarian"
             description="(UI) Hungarian Translation"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UITranslationHungarian/UITranslationHungarian.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
-	<plugin guid=""
+	<plugin guid="akarnokd.theplanetcraftermods.uitranslationitalian"
             description="(UI) Italian Translation"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/UITranslationItalian/UITranslationItalian.csproj"
             method="CsprojVersionTag"
@@ -354,6 +354,7 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
+
 
 
 	<!--

@@ -139,9 +139,11 @@ namespace XTestPlugins
         {
             StringBuilder sb = new StringBuilder();
             string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
+            string pattern2 = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,";
             string patternConst = "BepInPlugin\\((.*?)\\s*,\\s*\"(.*?)\"\\s*,";
             var regex = new Regex(pattern);
-            foreach(string dir in Directory.EnumerateDirectories("..\\..\\.."))
+            var regex2 = new Regex(pattern2);
+            foreach (string dir in Directory.EnumerateDirectories("..\\..\\.."))
             {
                 string d = Path.GetFileName(dir);
                 string f = Path.Combine(dir, "Plugin.cs");
@@ -159,16 +161,24 @@ namespace XTestPlugins
                     }
                     else
                     {
-                        m = new Regex(patternConst).Match(text);
-                        if (m.Success)
+                        m = regex2.Match(text);
+                        if (m.Groups[1].Success)
                         {
-                            desc = m.Groups[2].Value;
-                            string constDecl = "const\\s+string\\s+" + m.Groups[1].Value + "\\s*=\\s*\"(.*?)\"\\s*;";
-                            m = new Regex(constDecl).Match(text);
                             guid = m.Groups[1].Value;
+                            desc = m.Groups[2].Value;
+                        }
+                        else
+                        {
+                            m = new Regex(patternConst).Match(text);
+                            if (m.Success)
+                            {
+                                desc = m.Groups[2].Value;
+                                string constDecl = "const\\s+string\\s+" + m.Groups[1].Value + "\\s*=\\s*\"(.*?)\"\\s*;";
+                                m = new Regex(constDecl).Match(text);
+                                guid = m.Groups[1].Value;
+                            }
                         }
                     }
-
                     sb.Append("    <plugin guid=\"").Append(guid).Append("\"").AppendLine();
                     sb.Append("            description=\"").Append(desc).Append("\"").AppendLine();
                     sb.Append("            discover=\"https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/").Append(d).Append("/").Append(d).Append(".csproj\"").AppendLine();
