@@ -64,6 +64,9 @@ namespace FeatCommandConsole
 
         static IEnumerator autorefillCoroutine;
 
+        static readonly float defaultTradePlatformDelay = 6;
+        static float tradePlatformDelay = defaultTradePlatformDelay;
+
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -2721,6 +2724,47 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
             }
         }
+
+        [Command("/set-trade-rocket-delay", "Sets the trading rockets' progress delay in seconds.")]
+        public void SetTradeDelay(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Sets the trading rocket's progress delay in seconds. Total rocket time is 100 x this amount.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/set-trade-rocket-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
+                addLine("<margin=1em>Current trading rocket progress delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+            }
+            else
+            {
+                tradePlatformDelay = float.Parse(args[1], CultureInfo.InvariantCulture);
+                
+                addLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+
+                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
+
+                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                {
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        var platform = go.GetComponent<MachineTradePlatform>();
+                        if (platform != null)
+                        {
+                            ___updateGrowthEvery.SetValue(platform, tradePlatformDelay);
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetWorldObjectForTradePlatform))]
+        static void MachineTradePlatform_SetWorldObjectForTradePlatform(ref float ___updateGrowthEvery)
+        {
+            ___updateGrowthEvery = tradePlatformDelay;
+        }
+
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

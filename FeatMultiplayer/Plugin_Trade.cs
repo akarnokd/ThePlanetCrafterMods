@@ -276,6 +276,7 @@ namespace FeatMultiplayer
             }
         }
 
+        /*
         /// <summary>
         /// For testing purposes, we speed up the rocket progressing.
         /// </summary>
@@ -286,5 +287,6 @@ namespace FeatMultiplayer
         {
             ___updateGrowthEvery = 0.5f;
         }
+        */
     }
 }
