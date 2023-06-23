@@ -216,7 +216,6 @@ namespace FeatMultiplayer
                 // Prevent pinging all unlocks after the join
                 if (firstTerraformSync)
                 {
-                    firstTerraformSync = false;
                     var go = FindObjectOfType<AlertUnlockables>();
                     if (go != null)
                     {
@@ -246,10 +245,12 @@ namespace FeatMultiplayer
 
                 var prevTokens = TokensHandler.GetTokensNumber();
                 TokensHandler.SetTotalTokens(mts.tokens);
-                if (prevTokens < mts.tokens)
+                if (prevTokens < mts.tokens && !firstTerraformSync)
                 {
                     Managers.GetManager<PopupsHandler>().PopupNewTokens(mts.tokens - prevTokens);
                 }
+
+                firstTerraformSync = false;
             }
 
             static void ForceUpdateWorldUnitPositioning(WorldUnitPositioning wup, WorldUnitsHandler wuh)
