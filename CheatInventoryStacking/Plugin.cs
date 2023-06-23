@@ -1074,6 +1074,10 @@ namespace CheatInventoryStacking
             }
         }
 
+        /// <summary>
+        /// Conditionally disallow stacking in trade rockets.
+        /// </summary>
+        /// <param name="_inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
         static void MachineTradePlatform_SetInventoryTradePlatform(Inventory _inventory)
@@ -1082,6 +1086,50 @@ namespace CheatInventoryStacking
             {
                 noStackingInventories.Add(_inventory.GetId());
             }
+        }
+
+        /// <summary>
+        /// Disallow stacking in growers.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
+        static void MachineGrower_SetGrowerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in outside growers.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
+        static void MachineOutsideGrower_SetGrowerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in DNA/Incubator.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowGenetics), nameof(UiWindowGenetics.SetGeneticsData))]
+        static void UiWindowGenetics_SetGeneticsData(Inventory ___inventoryRight)
+        {
+            noStackingInventories.Add(___inventoryRight.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in butterfly farms.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineFlockSpawner), nameof(MachineFlockSpawner.SetSpawnerInventory))]
+        static void MachineFlockSpawner_SetSpawnerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
         }
 
         [HarmonyPostfix]
