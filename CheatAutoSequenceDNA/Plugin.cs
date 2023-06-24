@@ -48,8 +48,6 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> incubatorFishId;
 
-        static ConfigEntry<string> incubatorFrogHatchedId;
-
         static ConfigEntry<string> incubatorFrogEggId;
 
         static ConfigEntry<int> range;
@@ -80,7 +78,6 @@ namespace CheatAutoSequenceDNA
             incubatorSilkId = Config.Bind("Incubator", "Silk", "*Silk", "The name of the container(s) where to deposit the spawned silk worms.");
             incubatorPhytoplanktonId = Config.Bind("Incubator", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
-            incubatorFrogHatchedId = Config.Bind("Incubator", "FrogHatched", "*FrogHatched", "The name of the container(s) where to deposit the spawned frog.");
             incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
 
             sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
@@ -189,7 +186,6 @@ namespace CheatAutoSequenceDNA
                 { "Phytoplankton", incubatorPhytoplanktonId.Value },
                 { "Fish", incubatorFishId.Value },
                 { "FrogEgg", incubatorFrogEggId.Value },
-                { "FrogHatched", incubatorFrogHatchedId.Value },
             };
 
             // List of world objects per category (containers, machines)
@@ -251,9 +247,9 @@ namespace CheatAutoSequenceDNA
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Fish");
                             }
-                            if (gid.StartsWith("Frog") && gid.EndsWith("Hatched"))
+                            if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "FrogHatched");
+                                TryDeposit(incubatorInv, item, itemCategories, "FrogEgg");
                             }
                         }
                     }
