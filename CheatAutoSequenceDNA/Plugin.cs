@@ -48,6 +48,12 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> incubatorFishId;
 
+        static ConfigEntry<string> incubatorFrogHatchedId;
+
+        static ConfigEntry<string> incubatorFrogEggId;
+
+        static ConfigEntry<int> range;
+
         static ConfigEntry<bool> debugMode;
 
         static Func<string> getMultiplayerMode;
@@ -74,6 +80,8 @@ namespace CheatAutoSequenceDNA
             incubatorSilkId = Config.Bind("Incubator", "Silk", "*Silk", "The name of the container(s) where to deposit the spawned silk worms.");
             incubatorPhytoplanktonId = Config.Bind("Incubator", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
+            incubatorFrogHatchedId = Config.Bind("Incubator", "FrogHatched", "*FrogHatched", "The name of the container(s) where to deposit the spawned frog.");
+            incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
 
             sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
             sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
@@ -81,6 +89,7 @@ namespace CheatAutoSequenceDNA
             sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
+            range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
 
             if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
             {
@@ -178,7 +187,9 @@ namespace CheatAutoSequenceDNA
                 { "Bee", incubatorBeeId.Value },
                 { "Silk", incubatorSilkId.Value },
                 { "Phytoplankton", incubatorPhytoplanktonId.Value },
-                { "Fish", incubatorFishId.Value }
+                { "Fish", incubatorFishId.Value },
+                { "FrogEgg", incubatorFrogEggId.Value },
+                { "FrogHatched", incubatorFrogHatchedId.Value },
             };
 
             // List of world objects per category (containers, machines)
@@ -240,6 +251,10 @@ namespace CheatAutoSequenceDNA
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Fish");
                             }
+                            if (gid.StartsWith("Frog") && gid.EndsWith("Hatched"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "FrogHatched");
+                            }
                         }
                     }
 
@@ -247,16 +262,26 @@ namespace CheatAutoSequenceDNA
                     {
                         log("    Picking Recipe");
 
-                        var spawnTarget = PickRecipe(DataConfig.CraftableIn.CraftIncubatorT1);
-
-                        if (spawnTarget != null)
+                        var candidates = GetCandidates(DataConfig.CraftableIn.CraftIncubatorT1);
+                        Shuffle(candidates);
+                        var found = false;
+                        foreach (var spawnTarget in candidates)
                         {
-                            StartNewResearch(spawnTarget, currentItems,
-                                itemCategories, incubatorInv, incubator);
+                            if (StartNewResearch(spawnTarget, currentItems,
+                                itemCategories, incubatorInv, incubator))
+                            {
+                                found = true;
+                                break;
+                            }
                         }
-                        else
+
+                        if (candidates.Count == 0)
                         {
                             log("    Sequencing: No applicable DNA sequence found");
+                        }
+                        if (!found)
+                        {
+                            log("    Sequencing: No complete set of ingredients for any DNA sequence found");
                         }
 
                     }
@@ -334,7 +359,7 @@ namespace CheatAutoSequenceDNA
                         ingredientSources = new();
                         sourcesPerCategory[cat] = ingredientSources;
                     }
-                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources);
+                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition());
                 }
 
                 foreach (var m in missing)
@@ -441,6 +466,10 @@ namespace CheatAutoSequenceDNA
             {
                 return "Phytoplankton";
             }
+            else if (ingredientGroupId.StartsWith("Frog") && ingredientGroupId.EndsWith("Eggs"))
+            {
+                return "FrogEgg";
+            }
             return "";
         }
 
@@ -512,14 +541,7 @@ namespace CheatAutoSequenceDNA
 
                         if (candidates.Count != 0)
                         {
-                            for (var i = candidates.Count; i > 1; i--)
-                            {
-                                int j = UnityEngine.Random.Range(0, i);
-                                int k = i - 1;
-                                var tmp = candidates[k];
-                                candidates[k] = candidates[j];
-                                candidates[j] = tmp;
-                            }
+                            Shuffle(candidates);
 
                             bool found = false;
                             foreach (var spawnTarget in candidates)
@@ -689,12 +711,21 @@ namespace CheatAutoSequenceDNA
             internal WorldObject wo;
         }
         
-        void FindIngredientsIn(string gid, Dictionary<string, List<WorldObject>> itemCategories, string itemKey, List<IngredientSource> result)
+        void FindIngredientsIn(string gid, 
+            Dictionary<string, List<WorldObject>> itemCategories, 
+            string itemKey, 
+            List<IngredientSource> result,
+            Vector3 incubatorDistance)
         {
+            var maxDistance = range.Value;
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
                 foreach (var container in containers)
                 {
+                    if (maxDistance > 0 && Vector3.Distance(container.GetPosition(), incubatorDistance) > maxDistance)
+                    {
+                        continue;
+                    }
                     Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
 
                     if (inv != null)
@@ -714,6 +745,18 @@ namespace CheatAutoSequenceDNA
                         }
                     }
                 }
+            }
+        }
+
+        static void Shuffle<T>(IList<T> list)
+        {
+            for (int n = list.Count - 1; n > 0; n--)
+            {
+                var k = UnityEngine.Random.Range(0, n + 1);
+
+                var t = list[k];
+                list[k] = list[n];
+                list[n] = t;
             }
         }
     }
