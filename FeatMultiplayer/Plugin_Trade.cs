@@ -288,5 +288,70 @@ namespace FeatMultiplayer
             ___updateGrowthEvery = 0.5f;
         }
         */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoryDisplayer), "Consume")]
+        static bool InventoryDisplayer_Consume(WorldObject _worldObject, Inventory ___inventory)
+        {
+            if (_worldObject.GetGroup() is GroupItem gi)
+            {
+                if (gi.GetUsableType() == DataConfig.UsableType.AquireTokens)
+                {
+                    if (updateMode == MultiplayerMode.CoopClient)
+                    {
+                        var msg = new MessageConsume
+                        {
+                            worldObjectId = _worldObject.GetId(),
+                            inventoryId = ___inventory.GetId(),
+                        };
+                        SendHost(msg);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        static void ReceiveMessageConsume(MessageConsume msg)
+        {
+            if (updateMode != MultiplayerMode.CoopHost)
+            {
+                return;
+            }
+            if (worldObjectById.TryGetValue(msg.worldObjectId, out var wo))
+            {
+                Inventory inv = null;
+                if (msg.inventoryId == 1)
+                {
+                    inv = msg.sender.shadowBackpack;
+                } else
+                {
+                    inventoryById.TryGetValue(msg.inventoryId, out inv);
+                }
+                if (inv != null)
+                {
+                    if (wo.GetGroup() is GroupItem gi)
+                    {
+                        if (gi.GetUsableType() == DataConfig.UsableType.AquireTokens)
+                        {
+                            if (inv.ContainWorldObject(wo))
+                            {
+                                // the fast sync will notify everyone about this change.
+                                TokensHandler.GainTokens(gi.GetGroupValue());
+                                inv.RemoveItem(wo, true);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    LogWarning("ReceiveMessageConsume: Unknown inventory " + msg.inventoryId);
+                }
+            }
+            else
+            {
+                LogWarning("ReceiveMessage: Unknown WorldObject " + msg.worldObjectId);
+            }
+        }
     }
 }
