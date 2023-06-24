@@ -189,7 +189,7 @@ namespace CheatAutoSequenceDNA
             {
                 var gid = wo.GetGroup().GetId();
                 var txt = wo.GetText() ?? "";
-                if (gid == "Container1" || gid == "Container2")
+                if (gid == "Container1" || gid == "Container2" || gid == "Container3")
                 {
                     foreach (var kv in keywordMapping)
                     {
@@ -464,7 +464,7 @@ namespace CheatAutoSequenceDNA
             {
                 var gid = wo.GetGroup().GetId();
                 var txt = wo.GetText() ?? "";
-                if (gid == "Container1" || gid == "Container2")
+                if (gid == "Container1" || gid == "Container2" || gid == "Container3")
                 {
                     foreach (var kv in keywordMapping)
                     {
