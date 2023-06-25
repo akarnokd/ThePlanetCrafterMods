@@ -67,6 +67,10 @@ namespace FeatCommandConsole
         static readonly float defaultTradePlatformDelay = 6;
         static float tradePlatformDelay = defaultTradePlatformDelay;
 
+        static bool suppressCommandConsoleKey;
+
+        static Plugin me;
+
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -100,6 +104,7 @@ namespace FeatCommandConsole
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+            me = this;
 
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable the detailed logging of this mod");
@@ -323,6 +328,10 @@ namespace FeatCommandConsole
             {
                 return;
             }
+            if (suppressCommandConsoleKey)
+            {
+                return;
+            }
 
             logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null?" + (background == null));
 
@@ -514,6 +523,20 @@ namespace FeatCommandConsole
         {
             // by default, Enter toggles any UI. prevent this while our console is open
             return background == null;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowTextInput), nameof(UiWindowTextInput.OnClose))]
+        static void UiWindowTextInput_OnClose()
+        {
+            suppressCommandConsoleKey = true;
+            me.StartCoroutine(ConsoleKeyUnlocker());
+        }
+
+        static IEnumerator ConsoleKeyUnlocker()
+        {
+            yield return new WaitForSecondsRealtime(0.25f);
+            suppressCommandConsoleKey = false;
         }
 
         static void addLine(string line)
@@ -1658,6 +1681,12 @@ namespace FeatCommandConsole
                         if (ulg != null)
                         {
                             addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
+                        }
+
+                        EffectOnPlayer eff = gi.GetEffectOnPlayer();
+                        if (eff != null)
+                        {
+                            addLine("<margin=2em><b>Effect on player:</b> <color=#00FF00>" + eff.effectOnPlayer + " (" + eff.durationInSeconds + " seconds");
                         }
                         addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());

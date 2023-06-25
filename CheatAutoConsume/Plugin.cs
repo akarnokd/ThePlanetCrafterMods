@@ -42,6 +42,12 @@ namespace CheatAutoConsume
                                 || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
                                 ) {
+
+                            if (groupItem.GetEffectOnPlayer() != null)
+                            {
+                                activePlayerController.GetPlayerEffects().ActivateEffect(groupItem.GetEffectOnPlayer());
+                            }
+
                             inv.RemoveItem(_worldObject, true);
                             return true;
                         }
