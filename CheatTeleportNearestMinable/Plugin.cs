@@ -21,9 +21,13 @@ namespace CheatTeleportNearestMinable
         /// <summary>
         /// List of comma-separated resource ids to look for.
         /// </summary>
-        private static HashSet<string> resourceSet;
+        static HashSet<string> resourceSet;
 
-        private static HashSet<string> larvaeSet;
+        static HashSet<string> larvaeSet;
+
+        static HashSet<string> fishSet;
+
+        static HashSet<string> frogSet;
 
         static ConfigEntry<string> modeSwitchKey;
 
@@ -69,6 +73,37 @@ namespace CheatTeleportNearestMinable
             "Butterfly19Larvae"
         });
 
+        static readonly string defaultFishSet = string.Join(",", new string[]
+        {
+            "Fish1Eggs",
+            "Fish2Eggs",
+            "Fish3Eggs",
+            "Fish4Eggs",
+            "Fish5Eggs",
+            "Fish6Eggs",
+            "Fish7Eggs",
+            "Fish8Eggs",
+            "Fish9Eggs",
+            "Fish10Eggs",
+            "Fish11Eggs",
+            "Fish12Eggs"
+        });
+
+        static readonly string defaultFrogSet = string.Join(",", new string[]
+        {
+            "Frog1Eggs",
+            "Frog2Eggs",
+            "Frog3Eggs",
+            "Frog4Eggs",
+            "Frog5Eggs",
+            "Frog6Eggs",
+            "Frog7Eggs",
+            "Frog8Eggs",
+            "Frog9Eggs",
+            "Frog10Eggs",
+            "FrogGoldEggs",
+        });
+
         private void Awake()
         {
             // Plugin startup logic
@@ -81,6 +116,14 @@ namespace CheatTeleportNearestMinable
             var larvaeSetStr = Config.Bind("General", "LarvaeSet", defaultLarvaeSet, "List of comma-separated larvae ids to look for.");
 
             larvaeSet = new HashSet<string>(larvaeSetStr.Value.Split(','));
+
+            var fishSetStr = Config.Bind("General", "FishSet", defaultFishSet, "List of comma-separated fish ids to look for.");
+
+            fishSet = new HashSet<string>(fishSetStr.Value.Split(','));
+
+            var frogSetStr = Config.Bind("General", "FrogSet", defaultFrogSet, "List of comma-separated frog ids to look for.");
+
+            frogSet = new HashSet<string>(frogSetStr.Value.Split(','));
 
             modeSwitchKey = Config.Bind("General", "ToggleAutomatic", "V", "Press this key (without modifiers) to enable automatic mining/grabbing in a radius.");
 
@@ -218,7 +261,8 @@ namespace CheatTeleportNearestMinable
             {
                 if (am.TryGetComponent<WorldObjectFromScene>(out var wos))
                 {
-                    if (larvaeSet.Contains(wos.GetGroupData().id))
+                    var id = wos.GetGroupData().id;
+                    if (larvaeSet.Contains(id) || fishSet.Contains(id) || frogSet.Contains(id))
                     {
                         result.Add(am);
                     }
@@ -227,7 +271,7 @@ namespace CheatTeleportNearestMinable
                 if (am.TryGetComponent<WorldObjectAssociated>(out var woa))
                 {
                     var gid = woa.GetWorldObject()?.GetGroup()?.GetId();
-                    if (gid != null && larvaeSet.Contains(gid))
+                    if (gid != null && (larvaeSet.Contains(gid) || fishSet.Contains(gid) || frogSet.Contains(gid)))
                     {
                         result.Add(am);
                     }
