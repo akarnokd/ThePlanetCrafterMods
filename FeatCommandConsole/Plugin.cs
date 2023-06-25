@@ -1690,11 +1690,11 @@ namespace FeatCommandConsole
                         }
                         addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
-                        addLine("<margin=2em><b>Hide in Crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
-                        addLine("<margin=2em><b>Hide in Logistics:</b> <color=#00FF00>" + gi.GetHideInLogistics());
+                        addLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
+                        addLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
                         addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
-                        addLine("<margin=2em><b>Trade Category:</b> <color=#00FF00>" + gi.GetTradeCategory());
-                        addLine("<margin=2em><b>Trade Value:</b> <color=#00FF00>" + gi.GetTradeValue());
+                        addLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
+                        addLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
                     }
                     else if (gr is GroupConstructible gc)
                     {

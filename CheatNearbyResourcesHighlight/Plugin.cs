@@ -73,7 +73,8 @@ namespace CheatNearbyResourcesHighlight
             "Butterfly15Larvae",
             "Butterfly16Larvae",
             "Butterfly17Larvae",
-            "Butterfly18Larvae"
+            "Butterfly18Larvae",
+            "Butterfly19Larvae"
         });
 
         class GameObjectTTL

@@ -101,14 +101,13 @@ namespace FeatMultiplayer
             // Signal back the client immediately
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                Group lastSpecificChipFound = null;
+                GroupItem lastSpecificChipFound = null;
 
                 foreach (var wo in mmu.sender.shadowBackpack.GetInsideWorldObjects())
                 {
-                    var groupItem = (GroupItem)wo.GetGroup();
-                    if (groupItem.GetUnlocksGroup() != null)
+                    if (wo.GetGroup() is GroupItem gri && gri.GetUnlocksGroup() != null)
                     {
-                        lastSpecificChipFound = groupItem;
+                        lastSpecificChipFound = gri;
                     }
                 }
 
@@ -116,7 +115,7 @@ namespace FeatMultiplayer
                 {
                     var inv = mmu.sender.shadowBackpack;
                     inv.RemoveItems(new List<Group>() { lastSpecificChipFound }, true, false);
-                    var unlocked = ((GroupItem)lastSpecificChipFound).GetUnlocksGroup();
+                    var unlocked = lastSpecificChipFound.GetUnlocksGroup();
                     mmu.groupId = unlocked.GetId();
                     GroupsHandler.UnlockGroupGlobally(unlocked);
                 }

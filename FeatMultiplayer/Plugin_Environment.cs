@@ -139,6 +139,7 @@ namespace FeatMultiplayer
             mts.insects = wuh.GetUnit(DataConfig.WorldUnitType.Insects).GetValue();
             mts.animals = wuh.GetUnit(DataConfig.WorldUnitType.Animals).GetValue();
             mts.tokens = TokensHandler.GetTokensNumber();
+            mts.tokensAllTime = TokensHandler.GetAllTimeTokensNumber();
 
             SendAllClients(mts);
         }
@@ -249,6 +250,7 @@ namespace FeatMultiplayer
                 {
                     Managers.GetManager<PopupsHandler>().PopupNewTokens(mts.tokens - prevTokens);
                 }
+                TokensHandler.SetAllTimeTokensNumber(mts.tokensAllTime);
 
                 firstTerraformSync = false;
             }

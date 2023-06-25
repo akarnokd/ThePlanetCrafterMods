@@ -138,9 +138,9 @@ namespace UIOverviewPanel
 
                 AddTextRow("Golden chests found", CreateSceneCounter(21, "GoldenContainer"));
 
-                AddTextRow("Unique larvae found", CreateButterflyCount(18));
+                AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
-                AddTextRow("Unique fish found", CreateFishCount(11));
+                AddTextRow("Unique fish found", CreateFishCount(12));
 
                 AddTextRow("Unique frog found", CreateFrogCount(11));
 
@@ -226,7 +226,7 @@ namespace UIOverviewPanel
         {
             return () =>
             {
-                return string.Format("{0:#,##0}", TokensHandler.GetTokensNumber());
+                return string.Format("{0:#,##0} (Total acquired: {1:#,##0})", TokensHandler.GetTokensNumber(), TokensHandler.GetAllTimeTokensNumber());
             };
         }
 

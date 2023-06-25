@@ -17,10 +17,11 @@ namespace FeatMultiplayer.MessageTypes
         internal float insects;
         internal float animals;
         internal int tokens;
+        internal int tokensAllTime;
 
         internal static bool TryParse(string str, out MessageTerraformState mts)
         {
-            if (MessageHelper.TryParseMessage("TerraformState|", str, 8, out var parameters))
+            if (MessageHelper.TryParseMessage("TerraformState|", str, 9, out var parameters))
             {
                 try
                 {
@@ -32,6 +33,7 @@ namespace FeatMultiplayer.MessageTypes
                     mts.insects = float.Parse(parameters[5], CultureInfo.InvariantCulture);
                     mts.animals = float.Parse(parameters[6], CultureInfo.InvariantCulture);
                     mts.tokens = int.Parse(parameters[7]);
+                    mts.tokensAllTime = int.Parse(parameters[8]);
                     return true;
                 }
                 catch (Exception ex)
@@ -53,6 +55,7 @@ namespace FeatMultiplayer.MessageTypes
                 + "|" + insects.ToString(CultureInfo.InvariantCulture)
                 + "|" + animals.ToString(CultureInfo.InvariantCulture)
                 + "|" + tokens
+                + "|" + tokensAllTime
                 + "\n";
         }
 

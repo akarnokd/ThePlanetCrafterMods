@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 
 namespace UIBeaconText
 {
-    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.2")]
+    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -36,8 +36,6 @@ namespace UIBeaconText
         static ConfigEntry<string> displayModeToggle;
 
         static ManualLogSource logger;
-
-        static TextMeshProUGUI mockupTMPro;
 
         static InputAction toggleAction;
 
