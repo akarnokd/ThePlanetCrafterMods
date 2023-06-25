@@ -27,6 +27,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> stackTradeRockets;
+        static ConfigEntry<bool> stackShredder;
 
         static string expectedGroupIdToAdd;
 
@@ -68,6 +69,7 @@ namespace CheatInventoryStacking
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
+            stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
 
             logger = Logger;
 
@@ -1131,6 +1133,21 @@ namespace CheatInventoryStacking
         {
             noStackingInventories.Add(_inventory.GetId());
         }
+
+        /// <summary>
+        /// Conditionally disallow stacking in shredders.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), nameof(MachineDestructInventoryIfFull.SetDestructInventoryInventory))]
+        static void MachineDestructInventoryIfFull_SetDestructInventoryInventory(Inventory _inventory)
+        {
+            if (!stackShredder.Value)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
+        }
+        
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
