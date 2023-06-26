@@ -96,7 +96,7 @@ namespace FeatMultiplayer
             float ___growSize,
             GameObject ___spawnOnThis,
             float ___downValue,
-            bool ___canRecoltOnlyWhenFullyGrown,
+            int ___canGrabAtXPercent,
             MachineOutsideGrowerSpecificRadius ___machineOutsideGrowerSpecificRadius
         )
         {
@@ -186,10 +186,7 @@ namespace FeatMultiplayer
                     var ag = spawn.GetComponent<ActionGrabable>();
                     if (ag != null)
                     {
-                        if (___canRecoltOnlyWhenFullyGrown)
-                        {
-                            ag.SetCanGrab(false);
-                        }
+                        ag.SetCanGrab(___canGrabAtXPercent <= 100 * spawnScaling / ___growSize);
 
                         spi.doRespawn = () =>
                         {
@@ -262,7 +259,8 @@ namespace FeatMultiplayer
             bool ___hasEnergy,
             WorldObject ___worldObjectGrower,
             float ___growSize,
-            float ___growSpeed
+            float ___growSpeed,
+            int ___canGrabAtXPercent
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
@@ -274,7 +272,8 @@ namespace FeatMultiplayer
                     {
                         if (spawn != null)
                         {
-                            if (spawn.transform.localScale.x <= ___growSize)
+                            float growScale = spawn.transform.localScale.x;
+                            if (growScale <= ___growSize)
                             {
                                 float num = ___growSpeed * UnityEngine.Random.Range(0f, 1f);
                                 spawn.transform.localScale += new Vector3(num, num, num);
@@ -285,13 +284,10 @@ namespace FeatMultiplayer
                                     tree.UpdateConditions();
                                 }
                             }
-                            else
+                            var ag = spawn.GetComponent<ActionGrabable>();
+                            if (ag != null)
                             {
-                                var ag = spawn.GetComponent<ActionGrabable>();
-                                if (ag != null)
-                                {
-                                    ag.SetCanGrab(true);
-                                }
+                                ag.SetCanGrab(___canGrabAtXPercent <= 100 * growScale / ___growSize);
                             }
 
                             var spi = spawn.GetComponent<OutsideGrowerSpawnInfo>();
@@ -356,7 +352,7 @@ namespace FeatMultiplayer
                                 var ag0 = espawn.GetComponent<ActionGrabable>();
                                 if (ag0 != null)
                                 {
-                                    ag0.SetCanGrab(mga.growth >= mga.growSize);
+                                    ag0.SetCanGrab(mog.canGrabAtXPercent <= 100 * mga.growth / mga.growSize);
                                 }
                                 return;
                             }
@@ -382,7 +378,7 @@ namespace FeatMultiplayer
                         var ag = spawn.GetComponent<ActionGrabable>();
                         if (ag != null)
                         {
-                            ag.SetCanGrab(mog.canRecoltOnlyWhenFullyGrown && mga.growth >= mga.growSize);
+                            ag.SetCanGrab(mog.canGrabAtXPercent <= mga.growth * 100 / mga.growSize);
                         }
                     }
                     else

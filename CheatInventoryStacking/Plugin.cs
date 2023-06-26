@@ -913,6 +913,8 @@ namespace CheatInventoryStacking
             Dictionary<int, WorldObject> inventoryParent
             )
         {
+            var pickablesByDronesWorldObjects = WorldObjectsHandler.GetPickablesByDronesWorldObjects();
+
             ___demandInventories.Sort((Inventory x, Inventory y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority()));
             
             foreach (Inventory demandInventory in ___demandInventories)
@@ -944,6 +946,18 @@ namespace CheatInventoryStacking
                                 }
                             }
                         }
+                        foreach (WorldObject worldObject2 in pickablesByDronesWorldObjects)
+                        {
+                            if (worldObject2.GetGroup() == demandGroup 
+                                && !(worldObject2.GetGameObject() == null) 
+                                && !(worldObject2.GetPosition() == Vector3.zero) 
+                                && !(worldObject2.GetGameObject().GetComponent<ActionGrabable>() == null) 
+                                && worldObject2.GetGameObject().GetComponent<ActionGrabable>().GetCanGrab() 
+                                && demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < capacity)
+                            {
+                                CreateNewTaskForWorldObjectForSpawnedObject(___allLogisticTasks, demandInventory, worldObject2, inventoryParent);
+                            }
+                        }
                     }
                 }
             }
@@ -959,16 +973,37 @@ namespace CheatInventoryStacking
             {
                 return null;
             }
-            WorldObject worldObjectForInventory = GetInventoryParent(_supplyInventory, inventoryParent);
-            WorldObject worldObjectForInventory2 = GetInventoryParent(_demandInventory, inventoryParent);
-            if (worldObjectForInventory2 == null || worldObjectForInventory == null)
+            WorldObject woSupply = GetInventoryParent(_supplyInventory, inventoryParent);
+            WorldObject woDemand = GetInventoryParent(_demandInventory, inventoryParent);
+            if (woDemand == null || woSupply == null)
             {
                 return null;
             }
-            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, worldObjectForInventory, worldObjectForInventory2);
+            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, woSupply, woDemand, false);
             ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
             return logisticTask;
         }
+
+        static LogisticTask CreateNewTaskForWorldObjectForSpawnedObject(
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Inventory _demandInventory, 
+            WorldObject _worldObject,
+            Dictionary<int, WorldObject> inventoryParent)
+        {
+            if (___allLogisticTasks.ContainsKey(_worldObject.GetId()))
+            {
+                return null;
+            }
+            WorldObject woDemand = GetInventoryParent(_demandInventory, inventoryParent);
+            if (woDemand == null)
+            {
+                return null;
+            }
+            LogisticTask logisticTask = new LogisticTask(_worldObject, null, _demandInventory, null, woDemand, true);
+            ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
+            return logisticTask;
+        }
+
 
         static WorldObject GetInventoryParent(Inventory inv, Dictionary<int, WorldObject> lookup)
         {
@@ -1057,9 +1092,10 @@ namespace CheatInventoryStacking
                 list2.Clear();
                 foreach (var machineDroneStation in ___allDroneStations)
                 {
-                    if (logisticTask.GetSupplyInventoryWorldObject() != null)
+                    if (logisticTask.GetIsSpawnedObject() || logisticTask.GetSupplyInventoryWorldObject() != null)
                     {
-                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, pos));
+                        Vector3 vector = (logisticTask.GetIsSpawnedObject() ? logisticTask.GetWorldObjectToMove().GetPosition() : logisticTask.GetSupplyInventoryWorldObject().GetPosition());
+                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, vector));
                         list2.Add(new LogisticStationDistanceToTask(machineDroneStation, (float)num2));
                     }
                 }

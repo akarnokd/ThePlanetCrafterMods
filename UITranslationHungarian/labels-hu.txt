@@ -989,3 +989,4 @@ GROUP_NAME_CookStewFish1=Halleves
 GROUP_DESC_CookStewFish1=
 GROUP_NAME_Drone2=Drón t2
 GROUP_DESC_Drone2=Gyorsabb drón
+Ui_can_recolt_yet=Nem érett még meg

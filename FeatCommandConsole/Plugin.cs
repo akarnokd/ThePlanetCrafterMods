@@ -1693,6 +1693,7 @@ namespace FeatCommandConsole
                         addLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
                         addLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
                         addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
+                        addLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
                         addLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
                         addLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
                     }
