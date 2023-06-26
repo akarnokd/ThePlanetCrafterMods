@@ -104,6 +104,7 @@ namespace FeatMultiplayer
             Inventory ___inventory,
             float ___updateSizeInterval)
         {
+            // LogAlways("MachineGrower_UpdateSize: " + updateMode);
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
                 LogInfo("MachineGrower_UpdateSize: " + DebugWorldObject(___worldObjectGrower) + ", ___inventory = " + ___inventory.GetId());
@@ -120,112 +121,120 @@ namespace FeatMultiplayer
             Inventory inventory
             )
         {
+            // LogAlways("MachineGrower_UpdateSize: Run");
             for (; ; )
             {
-                GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(instance);
-                if (goMockup != null)
+                try
                 {
-                    float growth = growerMachine.GetGrowth();
-                    if (updateMode == MultiplayerMode.CoopClient)
+                    GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(instance);
+                    if (goMockup != null)
                     {
-                        if (growth < 100f)
+                        float growth = growerMachine.GetGrowth();
+                        if (updateMode == MultiplayerMode.CoopClient)
                         {
-                            float scale = Mathf.Max(0f, Math.Min(1f, growth / 100f));
-                            goMockup.transform.localScale = new Vector3(scale, scale, scale);
-
-                            if (instance.spawnWorldObjectWhenFullyGrow)
+                            if (growth < 100f)
                             {
-                                // make sure to have the seed unlocked
-                                var entries = inventory.GetInsideWorldObjects();
-                                if (entries.Count != 0)
+                                float scale = Mathf.Max(0f, Math.Min(1f, growth / 100f));
+                                goMockup.transform.localScale = new Vector3(scale, scale, scale);
+
+                                if (instance.spawnWorldObjectWhenFullyGrow)
                                 {
-                                    entries[0].SetLockInInventoryTime(0f);
+                                    // make sure to have the seed unlocked
+                                    var entries = inventory.GetInsideWorldObjects();
+                                    if (entries.Count != 0)
+                                    {
+                                        entries[0].SetLockInInventoryTime(0f);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                growerMachine.SetGrowth(100f);
+                                if (instance.spawnWorldObjectWhenFullyGrow)
+                                {
+                                    UnityEngine.Object.Destroy(goMockup);
+                                    machineGrowerInstantiatedGameObject.SetValue(instance, null);
+
+                                    var entries = inventory.GetInsideWorldObjects();
+                                    if (entries.Count != 0)
+                                    {
+                                        entries[0].SetLockInInventoryTime(Time.time + 0.01f);
+                                    }
+                                }
+                                else
+                                {
+                                    goMockup.transform.localScale = new Vector3(1, 1, 1);
                                 }
                             }
                         }
                         else
                         {
-                            growerMachine.SetGrowth(100f);
-                            if (instance.spawnWorldObjectWhenFullyGrow)
+                            if (growth < 100f)
                             {
-                                UnityEngine.Object.Destroy(goMockup);
-                                machineGrowerInstantiatedGameObject.SetValue(instance, null);
+                                float scale = instance.growSpeed * updateSizeInterval;
+                                goMockup.transform.localScale += new Vector3(scale, scale, scale);
+                                growth = Mathf.RoundToInt(goMockup.transform.localScale.x * 100f);
+                                growerMachine.SetGrowth(growth);
 
-                                var entries = inventory.GetInsideWorldObjects();
-                                if (entries.Count != 0) 
-                                {
-                                    entries[0].SetLockInInventoryTime(Time.time + 0.01f);
-                                }
-                            }
-                            else
-                            {
-                                goMockup.transform.localScale = new Vector3(1, 1, 1);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (growth < 100f)
-                        {
-                            float scale = instance.growSpeed * updateSizeInterval;
-                            goMockup.transform.localScale += new Vector3(scale, scale, scale);
-                            growth = Mathf.RoundToInt(goMockup.transform.localScale.x * 100f);
-                            growerMachine.SetGrowth(growth);
-
-                            SendAllClients(new MessageUpdateGrowth()
-                            {
-                                machineId = growerMachine.GetId(),
-                                growth = growth
-                            }, true);
-                        }
-                        else
-                        {
-                            growerMachine.SetGrowth(100f);
-                            if (instance.spawnWorldObjectWhenFullyGrow)
-                            {
-                                var seed = inventory.GetInsideWorldObjects()[0];
-                                var vegetableGroup = ((GroupItem)seed.GetGroup()).GetGrowableGroup();
-
-                                var vegetableWo = WorldObjectsHandler.CreateNewWorldObject(vegetableGroup);
-                                vegetableWo.SetPositionAndRotation(instance.spawnPoint.transform.position, goMockup.transform.rotation);
-
-                                SendWorldObjectToClients(vegetableWo, true);
+                                // LogInfo("MachineGrower_UpdateSize: " + growerMachine.GetId() + " @ " + growth);
                                 SendAllClients(new MessageUpdateGrowth()
                                 {
                                     machineId = growerMachine.GetId(),
-                                    growth = growth,
-                                    vegetableId = vegetableWo.GetId()
+                                    growth = growth
                                 }, true);
-
-                                var vegetableGo = WorldObjectsHandler.InstantiateWorldObject(vegetableWo, false);
-
-                                ActionGrabable ag = vegetableGo.GetComponent<ActionGrabable>();
-                                if (ag == null)
-                                {
-                                    ag = vegetableGo.AddComponent<ActionGrabable>();
-                                }
-                                ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(instance, wo)));
-
-                                UnityEngine.Object.Destroy(goMockup);
-                                machineGrowerInstantiatedGameObject.SetValue(instance, null);
-
-                                var entries = inventory.GetInsideWorldObjects();
-                                if (entries.Count != 0)
-                                {
-                                    entries[0].SetLockInInventoryTime(Time.time + 0.01f);
-                                }
                             }
                             else
                             {
-                                SendAllClients(new MessageUpdateGrowth()
+                                growerMachine.SetGrowth(100f);
+                                if (instance.spawnWorldObjectWhenFullyGrow)
                                 {
-                                    machineId = growerMachine.GetId(),
-                                    growth = 100f,
-                                    vegetableId = -1 // nothing to spawn when fully grown
-                                }, true);
+                                    var seed = inventory.GetInsideWorldObjects()[0];
+                                    var vegetableGroup = ((GroupItem)seed.GetGroup()).GetGrowableGroup();
+
+                                    var vegetableWo = WorldObjectsHandler.CreateNewWorldObject(vegetableGroup);
+                                    vegetableWo.SetPositionAndRotation(instance.spawnPoint.transform.position, goMockup.transform.rotation);
+
+                                    SendWorldObjectToClients(vegetableWo, true);
+                                    SendAllClients(new MessageUpdateGrowth()
+                                    {
+                                        machineId = growerMachine.GetId(),
+                                        growth = growth,
+                                        vegetableId = vegetableWo.GetId()
+                                    }, true);
+
+                                    var vegetableGo = WorldObjectsHandler.InstantiateWorldObject(vegetableWo, false);
+
+                                    ActionGrabable ag = vegetableGo.GetComponent<ActionGrabable>();
+                                    if (ag == null)
+                                    {
+                                        ag = vegetableGo.AddComponent<ActionGrabable>();
+                                    }
+                                    ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(instance, wo)));
+
+                                    UnityEngine.Object.Destroy(goMockup);
+                                    machineGrowerInstantiatedGameObject.SetValue(instance, null);
+
+                                    var entries = inventory.GetInsideWorldObjects();
+                                    if (entries.Count != 0)
+                                    {
+                                        entries[0].SetLockInInventoryTime(Time.time + 0.01f);
+                                    }
+                                }
+                                else
+                                {
+                                    SendAllClients(new MessageUpdateGrowth()
+                                    {
+                                        machineId = growerMachine.GetId(),
+                                        growth = 100f,
+                                        vegetableId = -1 // nothing to spawn when fully grown
+                                    }, true);
+                                }
                             }
                         }
                     }
+                } catch (Exception e)
+                {
+                    LogError(e);
                 }
                 yield return new WaitForSeconds(updateSizeInterval);
             }
@@ -234,6 +243,7 @@ namespace FeatMultiplayer
         static void MachineGrower_OnVegetableGrabed_Host(MachineGrower machineGrower, WorldObject vegetableWo)
         {
             GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(machineGrower);
+            LogInfo(Environment.StackTrace);
             UnityEngine.Object.Destroy(goMockup);
             machineGrowerInstantiatedGameObject.SetValue(machineGrower, null);
 
@@ -325,10 +335,8 @@ namespace FeatMultiplayer
             {
                 if (worldObjectById.TryGetValue(mug.machineId, out var machineWo))
                 {
-                    /*
-                    LogInfo("ReceiveMessageUpdateGrowth: machine = " + mug.machineId + ", growth = " 
+                    LogAlways("ReceiveMessageUpdateGrowth: machine = " + mug.machineId + ", growth = " 
                         + mug.growth.ToString(CultureInfo.InvariantCulture) + (mug.vegetableId > 0 ? ", vegetable = " + mug.vegetableId : ""));
-                    */
 
                     machineWo.SetGrowth(mug.growth);
                     if (mug.growth >= 100f && mug.vegetableId != -1)
@@ -388,6 +396,49 @@ namespace FeatMultiplayer
                     LogWarning("ReceiveMessageUpdateGrowth: Unknown machine " + mug.machineId);
                 }
             }
+        }
+
+        /// <summary>
+        /// The vanilla instantiates a mockup vegetable when initializing the grower's inventory.
+        /// 
+        /// This mockup GameObject didn't have a WorldObjectAssociated before 0.8.x so the mockup
+        /// showed up on the client fine. However, 0.8.x added a WOA. When the vanilla method destroys the
+        /// ActionGrabable, it spawns a client side WorldObject (3xxxxxx) which is then deleted by the host,
+        /// making the mockup completely disappear from the client.
+        /// </summary>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), "InstantiatedGameObjectFromInventory")]
+        static bool MachineGrower_InstantiatedGameObjectFromInventory(
+            Inventory ___inventory, 
+            ref GameObject ___instantiatedGameObject,
+            Vector3 _scale,
+            GameObject ___spawnPoint)
+        {
+            if (updateMode == MultiplayerMode.CoopClient)
+            {
+                GroupItem growableGroup = ((GroupItem)___inventory.GetInsideWorldObjects()[0].GetGroup()).GetGrowableGroup();
+                if (growableGroup != null)
+                {
+                    GameObject associatedGameObject = growableGroup.GetAssociatedGameObject();
+                    ___instantiatedGameObject = UnityEngine.Object.Instantiate<GameObject>(associatedGameObject, ___spawnPoint.transform);
+                    ___instantiatedGameObject.transform.localScale = _scale;
+
+                    // disconnect the WorldObject spawned on the client from its GameObject
+                    var woa = ___instantiatedGameObject.GetComponent<WorldObjectAssociated>();
+                    if (woa != null)
+                    {
+                        var wo = woa.GetWorldObject();
+                        if (wo != null)
+                        {
+                            wo.SetGameObject(null);
+                        }
+                    }
+
+                    Destroy(___instantiatedGameObject.GetComponent<ActionGrabable>());
+                }
+                return false;
+            }
+            return true;
         }
     }
 }

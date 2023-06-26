@@ -151,6 +151,23 @@ namespace FeatMultiplayer
         }
 
         /// <summary>
+        /// The vanilla code grabs the world object or takes the item out of the target inventory.
+        /// 
+        /// On the host, we have to immediately update clients when the world object grab happens
+        /// as the game doesn't use grab, but destroys the rendered object.
+        /// </summary>
+        /// <param name="___logisticTask"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Drone), "DroneLoad")]
+        static void Drone_DroneLoad(LogisticTask ___logisticTask)
+        {
+            if (updateMode == MultiplayerMode.CoopHost && ___logisticTask.GetIsSpawnedObject())
+            {
+                SendWorldObjectToClients(___logisticTask.GetWorldObjectToMove(), false);
+            }
+        }
+
+        /// <summary>
         /// This evicts drones from a station periodically.
         /// 
         /// On the client, we do nothing.

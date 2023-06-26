@@ -1087,14 +1087,13 @@ namespace CheatInventoryStacking
             while (nextNonAttributedTasks.MoveNext())
             {
                 var logisticTask = nextNonAttributedTasks.Current;
-                var pos = logisticTask.GetSupplyInventoryWorldObject().GetPosition();
                 // logger.LogInfo("Try releasing more drones");
                 list2.Clear();
                 foreach (var machineDroneStation in ___allDroneStations)
                 {
                     if (logisticTask.GetIsSpawnedObject() || logisticTask.GetSupplyInventoryWorldObject() != null)
                     {
-                        Vector3 vector = (logisticTask.GetIsSpawnedObject() ? logisticTask.GetWorldObjectToMove().GetPosition() : logisticTask.GetSupplyInventoryWorldObject().GetPosition());
+                        Vector3 vector = logisticTask.GetIsSpawnedObject() ? logisticTask.GetWorldObjectToMove().GetPosition() : logisticTask.GetSupplyInventoryWorldObject().GetPosition();
                         int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, vector));
                         list2.Add(new LogisticStationDistanceToTask(machineDroneStation, (float)num2));
                     }

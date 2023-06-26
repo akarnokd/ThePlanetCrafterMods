@@ -284,10 +284,12 @@ namespace FeatMultiplayer
                                     tree.UpdateConditions();
                                 }
                             }
+                            var growthPercent = 100 * growScale / ___growSize;
+                            ___worldObjectGrower.SetGrowth(growthPercent);
                             var ag = spawn.GetComponent<ActionGrabable>();
                             if (ag != null)
                             {
-                                ag.SetCanGrab(___canGrabAtXPercent <= 100 * growScale / ___growSize);
+                                ag.SetCanGrab(___canGrabAtXPercent <= growthPercent);
                             }
 
                             var spi = spawn.GetComponent<OutsideGrowerSpawnInfo>();
@@ -310,18 +312,6 @@ namespace FeatMultiplayer
                         ___worldObjectGrower.SetGrowth(100f);
                         // keep sending growth messages
                         //__instance.StopAllCoroutines();
-                    }
-                    else
-                    {
-                        foreach (GameObject gameObject2 in ___instantiatedGameObjects)
-                        {
-                            if (!(gameObject2 == null))
-                            {
-                                int num2 = Mathf.RoundToInt(Mathf.InverseLerp(0f, ___growSize, gameObject2.transform.localScale.x) * 100f);
-                                ___worldObjectGrower.SetGrowth(num2);
-                                break;
-                            }
-                        }
                     }
                 }
                 return false;
