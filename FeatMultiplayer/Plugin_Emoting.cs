@@ -168,6 +168,7 @@ namespace FeatMultiplayer
             c.renderMode = RenderMode.ScreenSpaceOverlay;
             //ourCanvas.transform.SetParent(canvas.transform);
             emoteCanvas.transform.SetAsLastSibling();
+            c.sortingOrder = 110;
 
             for (int i = 0; i < emoteWheelSlots.Length; i++)
             {

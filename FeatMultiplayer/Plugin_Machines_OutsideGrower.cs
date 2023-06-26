@@ -304,6 +304,12 @@ namespace FeatMultiplayer
                                 position = spawn.transform.position,
                                 rotation = spawn.transform.rotation
                             });
+                            /*
+                            LogInfo("MachineOutsideGrower_Grow: " + ___worldObjectGrower.GetId() 
+                                + ", " + spi.spawnId 
+                                + ", " + growthPercent
+                                + ", " + spawn.transform.position); 
+                            */
                         }
                     }
                     SignalAllClients();
@@ -334,6 +340,14 @@ namespace FeatMultiplayer
                             var sid = espawn.GetComponent<OutsideGrowerSpawnInfo>();
                             if (sid != null && sid.spawnId == mga.spawnId)
                             {
+                                /*
+                                LogInfo("ReceiveMessageGrowAdd: " + mga.machineId
+                                    + ", " + mga.spawnId
+                                    + ", " + (mga.growth * 100 / mga.growSize)
+                                    + ", " + espawn.transform.position
+                                    + ", " + espawn.gameObject.activeSelf
+                                    );
+                                */
                                 espawn.transform.localScale = new Vector3(mga.growth, mga.growth, mga.growth);
                                 foreach (VegetationTree tree in espawn.GetComponentsInChildren<VegetationTree>())
                                 {
@@ -349,8 +363,28 @@ namespace FeatMultiplayer
                         }
 
                         var spawn = Instantiate(mog.thingsToGrow[mga.typeIndex], mog.grownThingsContainer.transform);
+                        // detach the game object from the world object
+                        var woa = spawn.GetComponent<WorldObjectAssociated>();
+                        if (woa != null)
+                        {
+                            var wog = woa.GetWorldObject();
+                            if (wog != null)
+                            {
+                                wog.SetGameObject(null);
+                            }
+                        }
+
                         spawn.transform.position = mga.position;
                         spawn.transform.rotation = mga.rotation;
+
+                        /*
+                        LogInfo("ReceiveMessageGrowAdd: " + mga.machineId
+                            + ", new " + mga.spawnId
+                            + ", " + (mga.growth * 100 / mga.growSize)
+                            + ", " + spawn.transform.position
+                            + ", " + mga.position
+                            );
+                        */
 
                         if (!mog.canRecolt)
                         {
@@ -370,6 +404,8 @@ namespace FeatMultiplayer
                         {
                             ag.SetCanGrab(mog.canGrabAtXPercent <= mga.growth * 100 / mga.growSize);
                         }
+
+                        
                     }
                     else
                     {

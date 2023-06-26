@@ -288,5 +288,12 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDroneStation), "OnDestroy")]
+        static bool MachineDroneStation_OnDestroy()
+        {
+            return Managers.GetManager<LogisticManager>() != null;
+        }
     }
 }

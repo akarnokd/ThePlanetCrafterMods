@@ -142,6 +142,10 @@ namespace FeatMultiplayer
             droneSupplyCount = 0;
             droneDemandCount = 0;
 
+            playerListGameObjects.Clear();
+            healthGaugeTransform = null;
+            waterGaugeTransform = null;
+
             clientJoinName = null;
             clientJoinPassword = null;
         }

@@ -19,6 +19,7 @@ namespace FeatMultiplayer
     {
         static FieldInfo machineGrowerInstantiatedGameObject;
         static FieldInfo machineGrowerInventory;
+        static FieldInfo machineGrowerHasEnergy;
         static MethodInfo machineGrowerOnVegetableGrabed;
         static MethodInfo machineOutsideGrowerUpdateGrowing;
         static MethodInfo machineOutsideGrowerInstantiateAtRandomPosition;
@@ -64,6 +65,8 @@ namespace FeatMultiplayer
 
             machineOutsideGrowerUpdateGrowing = AccessTools.Method(typeof(MachineOutsideGrower), "UpdateGrowing", new Type[] { typeof(float) });
             machineOutsideGrowerInstantiateAtRandomPosition = AccessTools.Method(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition", new Type[] { typeof(GameObject), typeof(bool) });
+
+            machineGrowerHasEnergy = AccessTools.Field(typeof(MachineGrower), "hasEnergy");
         }
 
         /// <summary>
@@ -95,6 +98,7 @@ namespace FeatMultiplayer
         /// <param name="___inventory">The inventory of the machine grower</param>
         /// <param name="___updateSizeInterval">How often to update the growth state?</param>
         /// <returns>true if not single player, false to override the behavior with our custom enumerator.</returns>
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGrower), "UpdateSize")]
         static bool MachineGrower_UpdateSize(
@@ -113,6 +117,34 @@ namespace FeatMultiplayer
             }
             return true;
         }
+        */
+
+        /// <summary>
+        /// The vanilla calls this upon object creation to link up with the grower's inventory.
+        /// 
+        /// Since MachineGrower::UpdateSize patching stopped working, we have to
+        /// intercept this, cancel the original grower coroutine and install our own.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="___worldObjectGrower"></param>
+        /// <param name="___inventory"></param>
+        /// <param name="___updateSizeInterval"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
+        static void MachineGrower_SetGrowerInventory(
+            MachineGrower __instance,
+            WorldObject ___worldObjectGrower,
+            Inventory ___inventory,
+            float ___updateSizeInterval
+        )
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __instance.StopAllCoroutines();
+                __instance.StartCoroutine(MachineGrower_UpdateSize_Override(
+                    __instance, ___worldObjectGrower, ___updateSizeInterval, ___inventory));
+            }
+        }
 
         static IEnumerator MachineGrower_UpdateSize_Override(
             MachineGrower instance,
@@ -121,13 +153,13 @@ namespace FeatMultiplayer
             Inventory inventory
             )
         {
-            // LogAlways("MachineGrower_UpdateSize: Run");
             for (; ; )
             {
                 try
                 {
+                    bool hasEnergy = (bool)machineGrowerHasEnergy.GetValue(instance);
                     GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(instance);
-                    if (goMockup != null)
+                    if (hasEnergy && goMockup != null)
                     {
                         float growth = growerMachine.GetGrowth();
                         if (updateMode == MultiplayerMode.CoopClient)
@@ -335,8 +367,10 @@ namespace FeatMultiplayer
             {
                 if (worldObjectById.TryGetValue(mug.machineId, out var machineWo))
                 {
+                    /*
                     LogAlways("ReceiveMessageUpdateGrowth: machine = " + mug.machineId + ", growth = " 
                         + mug.growth.ToString(CultureInfo.InvariantCulture) + (mug.vegetableId > 0 ? ", vegetable = " + mug.vegetableId : ""));
+                    */
 
                     machineWo.SetGrowth(mug.growth);
                     if (mug.growth >= 100f && mug.vegetableId != -1)
