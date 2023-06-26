@@ -13,6 +13,7 @@
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
 	  <Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
+		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 	</ItemGroup>
 
   <ItemGroup>

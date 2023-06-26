@@ -15,6 +15,7 @@
 	<ItemGroup>
 	  <Compile Include="..\LibCommon\BepInExConfigCheck.cs" Link="BepInExConfigCheck.cs" />
 		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
+		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

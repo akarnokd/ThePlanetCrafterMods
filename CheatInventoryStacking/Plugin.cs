@@ -75,6 +75,7 @@ namespace CheatInventoryStacking
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         // --------------------------------------------------------------------------------------------------------

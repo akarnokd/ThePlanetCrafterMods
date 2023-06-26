@@ -120,6 +120,7 @@ namespace FeatMultiplayer
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.GameVersionCheck.Patch(harmony, "(Feat) Multiplayer - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         static Texture2D LoadPNG(string filename)
