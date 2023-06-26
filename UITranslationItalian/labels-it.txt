@@ -918,5 +918,6 @@ UI_Drones_Valuables_items=Elementi preziosi
 TERRASTAGE_Mammals=Mammiferi
 Alert_new_tokens_gained=Hai guadagnato nuovi Gettoni Terra
 UI_ClickGainTokens=Clicca col destro per acquisire i gettoni
-Message_TradePlatform=<br><br>Dopo mesi di duro lavoro, sono riuscito finalmente a trovare il modo di accedere al processo di sblocco della Sentinel e sono riuscito a sbloccare il Razzo di Commercio Spaziale sul tuo sistema.<br><br> Di solito, i terraformer non sono in grado di utilizzarlo, ma ciò dovrebbe aiutarti.<br>Le possibilità di sopravvivenza migliorano notevolmente quando viene attivato, ma la Sentinel raramente permette ai costruttori planetari di farlo…<br><br><br>Non ho modo di sapere se sei ancora vivo o meno.<br><br>Se solo potessimo vederci di nuovo un giorno.<br>
+Message_TradePlatform=<br><br>Dopo mesi di duro lavoro, sono riuscito finalmente a trovare il modo di accedere al processo di sblocco della Sentinel e sono riuscito a sbloccare il Razzo di Commercio Spaziale sul tuo sistema.<br><br> Di solito, i terraformer non sono in grado di utilizzarlo, ma ciò dovrebbe aiutarti.<br>Le possibilità di sopravvivenza migliorano notevolmente quando viene attivato, ma la Sentinel raramente permette ai Costruttori Planetari di farlo…<br><br><br>Non ho modo di sapere se sei ancora vivo o meno.<br><br>Se solo potessimo vederci di nuovo un giorno.<br>
 UI_tradeplatform_title=Commercio Spaziale
+Ui_can_recolt_yet=Ancora non disponibile
