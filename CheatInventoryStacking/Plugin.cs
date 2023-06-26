@@ -73,7 +73,8 @@ namespace CheatInventoryStacking
 
             logger = Logger;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.SaveModInfo.Patch(harmony);
         }
 
         // --------------------------------------------------------------------------------------------------------

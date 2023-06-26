@@ -118,7 +118,8 @@ namespace FeatMultiplayer
 
             NetworkTelemetrySetup(this);
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.SaveModInfo.Patch(harmony);
         }
 
         static Texture2D LoadPNG(string filename)

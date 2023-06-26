@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", "1.0.0.6")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -101,7 +101,8 @@ namespace CheatAutoSequenceDNA
             uiWindowGeneticsWorldObject = AccessTools.Field(typeof(UiWindowGenetics), "worldObject");
             uiWindowGeneticsUpdateUiCoroutine = AccessTools.Field(typeof(UiWindowGenetics), "updateUiCoroutine");
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.SaveModInfo.Patch(harmony);
 
             StartCoroutine(SequencerCheckLoop(2.5f));
         }

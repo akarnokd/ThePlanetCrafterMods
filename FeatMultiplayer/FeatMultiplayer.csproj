@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.2.0.39</Version>
+    <Version>0.2.0.40</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,9 +14,10 @@
 	<Import Project="$(SolutionDir)\BepInEx.PluginInfoProps.props" />
 	<ItemGroup>
 	  <Compile Include="..\LibCommon\BepInExConfigCheck.cs" Link="BepInExConfigCheck.cs" />
+		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
 	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2020.3.42" IncludeAssets="compile" />

@@ -4,14 +4,17 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>UICraftEquipmentInplace</AssemblyName>
     <Description>(UI) Craft Equipment Inplace</Description>
-    <Version>1.0.0.13</Version>
+    <Version>1.0.0.14</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
-
+	<ItemGroup>
+		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
+	</ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />

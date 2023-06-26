@@ -4,15 +4,18 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>CheatMachineRemoteDeposit</AssemblyName>
     <Description>(Cheat) Machines Deposit Into Remote Containers</Description>
-    <Version>1.0.0.10</Version>
+    <Version>1.0.0.11</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
+	<ItemGroup>
+		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
