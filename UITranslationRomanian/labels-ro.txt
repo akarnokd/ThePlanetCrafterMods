@@ -989,3 +989,4 @@ GROUP_NAME_CookStewFish1=Supa de pește
 GROUP_DESC_CookStewFish1=
 GROUP_NAME_Drone2=Drona T2
 GROUP_DESC_Drone2=Dronă mai rapidă
+Ui_can_recolt_yet=Nu este încă gata.
