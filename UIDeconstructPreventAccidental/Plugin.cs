@@ -5,7 +5,7 @@ using HarmonyLib;
 
 namespace UIDeconstructPreventAccidental
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uideconstructpreventaccidental", "(UI) Prevent Accidental Deconstruct", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uideconstructpreventaccidental", "(UI) Prevent Accidental Deconstruct", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<bool> modEnabled;

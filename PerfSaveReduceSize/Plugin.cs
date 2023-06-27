@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace PerfSaveReduceSize
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.perfsavereducesize", "(Perf) Reduce Save Size", "1.0.0.3")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.perfsavereducesize", "(Perf) Reduce Save Size", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

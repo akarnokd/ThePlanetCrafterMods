@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace UIPhotomodeHideWater
+namespace CheatPhotomodeHideWater
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", "1.0.0.5")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uiphotomodehidewater", "(Cheat) Hide Water in Photomode", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

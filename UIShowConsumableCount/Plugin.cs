@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace UIShowConsumableCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowconsumablecount", "(UI) Show Consumable Counts", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 namespace LathreyDisableBuildConstraints
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.lathreydisablebuildconstraints", "(Lathrey) Disable Build Constraints", "1.0.0.0")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.lathreydisablebuildconstraints", "(Lathrey) Disable Build Constraints", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         private ConfigEntry<Key> configToggleBuildConstraintsModifierKey;

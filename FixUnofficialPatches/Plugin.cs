@@ -270,6 +270,7 @@ namespace FixUnofficialPatches
             }
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticStationDistanceToTask), nameof(LogisticStationDistanceToTask.CompareTo))]
         static bool LogisticStationDistanceToTask_CompareTo(object obj, float ___distanceToSupply, ref int __result)
@@ -289,6 +290,7 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDroneStation), "OnDestroy")]

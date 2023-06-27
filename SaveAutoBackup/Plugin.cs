@@ -12,7 +12,7 @@ using System.Text;
 
 namespace SaveAutoBackup
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveautobackup", "(Save) Auto Backup", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveautobackup", "(Save) Auto Backup", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.perfsavereducesize", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("akarnokd.theplanetcraftermods.libmodloadsavesupport", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin

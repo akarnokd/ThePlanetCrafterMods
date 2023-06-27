@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CheatNearbyResourcesHighlight
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", "1.0.0.9")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight", "(Cheat) Highlight Nearby Resources", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         /// <summary>

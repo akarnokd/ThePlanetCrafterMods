@@ -16,7 +16,7 @@ using UnityEngine.InputSystem;
 
 namespace SaveQuickSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.savequicksave", "(Save) Quick Save", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.savequicksave", "(Save) Quick Save", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

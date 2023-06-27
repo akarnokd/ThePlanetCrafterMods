@@ -13,7 +13,7 @@ using System.ComponentModel;
 
 namespace UIStackInRangeList
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uistackinrangelist", "(UI) Stack In-Range List", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uistackinrangelist", "(UI) Stack In-Range List", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

@@ -15,7 +15,7 @@ using BepInEx.Bootstrap;
 
 namespace SaveAutoSave
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveautosave", "(Save) Auto Save", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveautosave", "(Save) Auto Save", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
