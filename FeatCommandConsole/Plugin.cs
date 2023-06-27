@@ -40,6 +40,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> consoleBottom;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> fontName;
+        static ConfigEntry<float> transparency;
 
         static GameObject canvas;
         static GameObject background;
@@ -116,6 +117,7 @@ namespace FeatCommandConsole
             consoleBottom = Config.Bind("General", "ConsoleBottom", 200, "Console window's position relative to the bottom of the screen.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
+            transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -338,7 +340,7 @@ namespace FeatCommandConsole
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
             c.renderMode = RenderMode.ScreenSpaceOverlay;
-            c.transform.SetAsLastSibling();
+            c.sortingOrder = 500;
 
             log("Creating the background");
 
@@ -360,7 +362,7 @@ namespace FeatCommandConsole
             background = new GameObject("CommandConsoleBackground");
             background.transform.parent = canvas.transform;
             var img = background.AddComponent<Image>();
-            img.color = new Color(0.2f, 0.2f, 0.2f, 0.95f);
+            img.color = new Color(0.2f, 0.2f, 0.2f, transparency.Value);
             rect = img.GetComponent<RectTransform>();
             rect.localPosition = new Vector3(panelX, panelY, 0); // new Vector3(-Screen.width / 2 + consoleLeft.Value, Screen.height / 2 - consoleTop.Value, 0);
             rect.sizeDelta = new Vector2(panelWidth, panelHeight);
