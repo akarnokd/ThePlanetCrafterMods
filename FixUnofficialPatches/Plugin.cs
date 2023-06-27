@@ -11,6 +11,7 @@ using System.IO;
 using System;
 using System.Linq;
 using TMPro;
+using System.Globalization;
 
 namespace FixUnofficialPatches
 {
@@ -294,6 +295,37 @@ namespace FixUnofficialPatches
         static bool MachineDroneStation_OnDestroy()
         {
             return Managers.GetManager<LogisticManager>() != null;
+        }
+
+        static readonly Color colorTransparent = new Color(0, 0, 0, 0);
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ColorToString))]
+        static bool DataTreatments_ColorToString(ref string result, in Color _color, char ___colorDelimiter)
+        {
+            if (_color == colorTransparent)
+            {
+                result = "";
+            }
+            else
+            {
+                result = _color.r.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.g.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.b.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.a.ToString(CultureInfo.InvariantCulture)
+                    ;
+            }
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ParseStringColor))]
+        static void DataTreatments_ParseStringColor(ref string _float)
+        {
+            _float = _float.Replace('/', '.');
         }
     }
 }
