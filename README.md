@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.7.009
+## Supported Game Version: 0.8.008
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -92,6 +92,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Show Rocket Counts](#ui-show-rocket-counts)
 - [Sort Saves](#ui-sort-saves)
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
+- [Polish Translation](#ui-polish-translation)
 
 ### Other
 
