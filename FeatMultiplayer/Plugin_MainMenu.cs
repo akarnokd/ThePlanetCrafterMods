@@ -23,6 +23,7 @@ namespace FeatMultiplayer
     {
         static GameObject parent;
 
+        static GameObject modTitle;
         static GameObject hostModeCheckbox;
         static GameObject hostLocalIPText;
         static GameObject upnpCheckBox;
@@ -47,6 +48,7 @@ namespace FeatMultiplayer
         static Intro introInstance;
         static readonly List<GameObject> mpRows = new();
         static GameObject mainmenuBackground;
+        static GameObject mainmenuTitleBackground;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
@@ -77,6 +79,27 @@ namespace FeatMultiplayer
             int backgroundX = Screen.width / 2 - (200 + dw / 2) / 2 - 10;
 
             RectTransform rectTransform;
+
+            // -------------------------
+
+            mainmenuTitleBackground = new GameObject("MultiplayerMenu_Background2");
+            mainmenuTitleBackground.transform.parent = parent.transform;
+
+            var img0 = mainmenuTitleBackground.AddComponent<Image>();
+            img0.color = new Color(0.20f, 0.20f, 0.20f, 0.99f);
+
+            rectTransform = img0.GetComponent<RectTransform>();
+            rectTransform.localPosition = new Vector2(backgroundX, dy + fs + 10);
+            rectTransform.sizeDelta = new Vector2(350, fs + 20);
+
+            modTitle = CreateText("(Feat) Multiplayer Mod v" + PluginInfo.PLUGIN_VERSION, fs, false);
+
+            rectTransform = modTitle.GetComponent<Text>().GetComponent<RectTransform>();
+            rectTransform.localPosition = new Vector2(backgroundX, dy + fs + 10);
+            rectTransform.sizeDelta = new Vector2(350, fs + 5);
+
+            Text modTitleText = modTitle.GetComponent<Text>();
+            modTitleText.fontStyle = FontStyle.Bold;
 
             // -------------------------
 
@@ -183,12 +206,12 @@ namespace FeatMultiplayer
 
         static string GetHostModeString()
         {
-            return "( " + (hostMode.Value ? "X" : " ") + " ) Host a multiplayer game";
+            return "( " + (hostMode.Value ? "X" : "  ") + " ) Host a multiplayer game";
         }
 
         static string GetUPnPString()
         {
-            return "( " + (useUPnP.Value ? "X" : " ") + " ) Use UPnP";
+            return "( " + (useUPnP.Value ? "X" : "  ") + " ) Use UPnP";
         }
 
         static string GetHostLocalAddress()
@@ -292,12 +315,23 @@ namespace FeatMultiplayer
                     var w = go.GetComponent<Text>().preferredWidth;
                     maxWidth = Math.Max(maxWidth, w);
                 }
+
+                maxWidth = Math.Max(maxWidth, modTitle.GetComponent<Text>().preferredWidth);
+
                 var dx = (Screen.width - maxWidth) / 2 - 20;
                 float dy = Screen.height / 2 - mpRows.Count / 2f * (fs + 10) + 10;
 
                 var rtb = mainmenuBackground.GetComponent<RectTransform>();
                 rtb.localPosition = new Vector3(dx, Screen.height / 2 - mpRows.Count * (fs + 10) + 10 + (fs + 10) / 2, 0);
                 rtb.sizeDelta = new Vector2(maxWidth + 20, mpRows.Count * (fs + 10) + 20);
+
+                var rtb2 = mainmenuTitleBackground.GetComponent<RectTransform>();
+                rtb2.localPosition = rtb.localPosition + new Vector3(0, rtb.sizeDelta.y / 2 + fs / 2 + 10);
+                rtb2.sizeDelta = new Vector2(maxWidth + 20, fs + 20);
+
+                var tt = modTitle.GetComponent<RectTransform>();
+                tt.localPosition = rtb2.localPosition + new Vector3(10, 0, 0);
+                tt.sizeDelta = rtb2.sizeDelta;
 
                 foreach (var go in mpRows)
                 {

@@ -311,6 +311,16 @@ namespace FeatMultiplayer
                 Receive(cc, mds);
             }
             else
+            if (MessageLaunchTrade.TryParse(message, out var mlt))
+            {
+                Receive(cc, mlt);
+            }
+            else
+            if (MessageConsume.TryParse(message, out var mcs))
+            {
+                Receive(cc, mcs);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -617,6 +627,16 @@ namespace FeatMultiplayer
                 case MessageDroneStats mds:
                     {
                         ReceiveMessageDroneStats(mds);
+                        break;
+                    }
+                case MessageLaunchTrade mlt:
+                    {
+                        ReceiveMessageLaunchTrade(mlt);
+                        break;
+                    }
+                case MessageConsume mcs:
+                    {
+                        ReceiveMessageConsume(mcs);
                         break;
                     }
                 default:

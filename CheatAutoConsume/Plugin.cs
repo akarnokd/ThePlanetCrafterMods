@@ -5,7 +5,7 @@ using BepInEx.Configuration;
 
 namespace CheatAutoConsume
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautoconsume", "(Cheat) Auto Consume Oxygen-Water-Food", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -42,6 +42,12 @@ namespace CheatAutoConsume
                                 || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
                                 ) {
+
+                            if (groupItem.GetEffectOnPlayer() != null)
+                            {
+                                activePlayerController.GetPlayerEffects().ActivateEffect(groupItem.GetEffectOnPlayer());
+                            }
+
                             inv.RemoveItem(_worldObject, true);
                             return true;
                         }

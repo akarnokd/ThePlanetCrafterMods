@@ -1,26 +1,18 @@
 ﻿using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
 using System.Collections.Generic;
-using System.Globalization;
 using BepInEx.Logging;
 using BepInEx.Configuration;
 using System.IO;
 using System;
-using System.IO.Compression;
-using System.Text;
-using System.Collections;
 using UnityEngine;
-using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.Eventing.Reader;
 
 namespace UIShowCrash
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", "1.0.0.2")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowcrash", "(UI) Show Crash", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

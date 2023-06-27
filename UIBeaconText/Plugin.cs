@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 
 namespace UIBeaconText
 {
-    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", "1.0.0.2")]
+    [BepInPlugin(modUiBeaconText, "(UI) Beacon Text", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
@@ -29,11 +29,13 @@ namespace UIBeaconText
 
         static ConfigEntry<int> displayMode;
 
+        static ConfigEntry<bool> showDistanceOnTop;
+
+        static ConfigEntry<bool> hideVanillaLabel;
+
         static ConfigEntry<string> displayModeToggle;
 
         static ManualLogSource logger;
-
-        static TextMeshProUGUI mockupTMPro;
 
         static InputAction toggleAction;
 
@@ -44,9 +46,13 @@ namespace UIBeaconText
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size.");
 
-            displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.");
+            displayMode = Config.Bind("General", "DisplayMode", 1, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.");
 
             displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode.");
+
+            showDistanceOnTop = Config.Bind("General", "ShowDistanceOnTop", true, "Show the distance above the beacon hexagon if true, below if false");
+
+            hideVanillaLabel = Config.Bind("General", "HideVanillaLabel", false, "If true, the vanilla beacon text is hidden and replaced by this mod's label");
 
             if (!displayModeToggle.Value.StartsWith("<Keyboard>/"))
             {
@@ -83,12 +89,24 @@ namespace UIBeaconText
 
             if (toggleAction.WasPressedThisFrame())
             {
-                var m = displayMode.Value + 1;
-                if (m == 4)
+                var accessPressed = Managers.GetManager<PlayersManager>()
+                    ?.GetActivePlayerController()
+                    ?.GetPlayerInputDispatcher()
+                    ?.IsPressingAccessibilityKey() ?? false;
+
+                if (accessPressed)
                 {
-                    m = 0;
+                    showDistanceOnTop.Value = !showDistanceOnTop.Value;
                 }
-                displayMode.Value = m;
+                else
+                {
+                    var m = displayMode.Value + 1;
+                    if (m == 4)
+                    {
+                        m = 0;
+                    }
+                    displayMode.Value = m;
+                }
             }
         }
 
@@ -148,28 +166,10 @@ namespace UIBeaconText
                 }
             }
 
-            logger.LogInfo("Adding default TMPro");
-            if (mockupTMPro == null)
+            if (hideVanillaLabel.Value)
             {
-                mockupTMPro = new GameObject("BeaconMockupTMPro").AddComponent<TextMeshProUGUI>();
-            }
-
-            if (wo != null)
-            {
-                logger.LogInfo("Finding Antena_01");
-                var antena = __instance.gameObject.transform.Find("Container/Antena_01");
-
-                if (antena != null)
-                {
-                    logger.LogInfo("Adding WorldObjectText");
-                    var wot = antena.gameObject.AddComponent<WorldObjectText>();
-                    wot.textContainer = mockupTMPro; // Not sure why this field is even here, it is unused.
-                    wot.SetWorldObjectForText(wo);
-
-                    logger.LogInfo("Adding Action for text editor");
-                    var atwo = antena.gameObject.AddComponent<ActionTextWorldObject>();
-                    atwo.worldObjectText = wot;
-                }
+                var vanillaLabel = __instance.gameObject.transform.Find("Canvas/Image (1)");
+                vanillaLabel?.gameObject.SetActive(false);
             }
 
             logger.LogInfo("Starting updater");
@@ -184,11 +184,25 @@ namespace UIBeaconText
             for (; ; )
             {
                 var dist = (int)Vector3.Distance(canvas.transform.position, ___player.transform.position);
-                distanceText.text = dist + "m";
-                titleText.text = wo?.GetText() ?? "";
 
-                titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
-                distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
+                if (showDistanceOnTop.Value)
+                {
+                    titleText.text = dist + "m";
+                    distanceText.text = wo?.GetText() ?? "";
+
+                    titleText.gameObject.SetActive((displayMode.Value & 1) != 0);
+                    distanceText.gameObject.SetActive((displayMode.Value & 2) != 0);
+                }
+                else
+                {
+                    distanceText.text = dist + "m";
+                    titleText.text = wo?.GetText() ?? "";
+
+                    titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
+                    distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
+                }
+
+
 
                 yield return new WaitForSeconds(___updateEverySec);
             }

@@ -31,6 +31,7 @@ namespace UIOverviewPanel
         static readonly Dictionary<string, int> sceneCounts = new();
         static readonly HashSet<string> uniqueButterflies = new();
         static readonly HashSet<string> uniqueFish = new();
+        static readonly HashSet<string> uniqueFrog = new();
 
         private void Awake()
         {
@@ -135,11 +136,15 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(20, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(21, "GoldenContainer"));
 
-                AddTextRow("Unique larvae found", CreateButterflyCount(18));
+                AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
-                AddTextRow("Unique fish found", CreateFishCount(11));
+                AddTextRow("Unique fish found", CreateFishCount(12));
+
+                AddTextRow("Unique frog found", CreateFrogCount(11));
+
+                AddTextRow("Trade Tokens", CreateTradeTokens());
 
                 AddTextRow("Resources mined", CreateSceneCounter(0, 
                     "Cobalt",
@@ -214,6 +219,14 @@ namespace UIOverviewPanel
                 var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
 
                 return string.Format("{0:#,##0.00} {1}", wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec(), " /h");
+            };
+        }
+
+        Func<string> CreateTradeTokens()
+        {
+            return () =>
+            {
+                return string.Format("{0:#,##0} (Total acquired: {1:#,##0})", TokensHandler.GetTokensNumber(), TokensHandler.GetAllTimeTokensNumber());
             };
         }
 
@@ -386,6 +399,15 @@ namespace UIOverviewPanel
             };
         }
 
+        Func<string> CreateFrogCount(int max)
+        {
+            return () =>
+            {
+                int csum = uniqueFrog.Count;
+                return csum + " / " + max + " (" + string.Format("{0:##0.00}", 100f * csum / max) + " %)";
+            };
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
         static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
@@ -404,6 +426,10 @@ namespace UIOverviewPanel
             if (gid.StartsWith("Fish") && gid.EndsWith("Eggs"))
             {
                 uniqueFish.Add(gid);
+            }
+            if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
+            {
+                uniqueFrog.Add(gid);
             }
         }
 

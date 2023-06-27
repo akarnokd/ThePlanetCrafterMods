@@ -556,6 +556,11 @@ namespace CheatMinimap
                     Logger.LogInfo("        " + name + " loaded successfully");
                 }
             }
+            
+            foreach (var lg in FindObjectsOfType<LODGroup>())
+            {
+                lg.enabled = false;
+            }
 
 
             Logger.LogInfo("Screenshot all");

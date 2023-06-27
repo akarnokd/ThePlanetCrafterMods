@@ -96,7 +96,7 @@ namespace FeatMultiplayer
             float ___growSize,
             GameObject ___spawnOnThis,
             float ___downValue,
-            bool ___canRecoltOnlyWhenFullyGrown,
+            int ___canGrabAtXPercent,
             MachineOutsideGrowerSpecificRadius ___machineOutsideGrowerSpecificRadius
         )
         {
@@ -186,10 +186,7 @@ namespace FeatMultiplayer
                     var ag = spawn.GetComponent<ActionGrabable>();
                     if (ag != null)
                     {
-                        if (___canRecoltOnlyWhenFullyGrown)
-                        {
-                            ag.SetCanGrab(false);
-                        }
+                        ag.SetCanGrab(___canGrabAtXPercent <= 100 * spawnScaling / ___growSize);
 
                         spi.doRespawn = () =>
                         {
@@ -262,7 +259,8 @@ namespace FeatMultiplayer
             bool ___hasEnergy,
             WorldObject ___worldObjectGrower,
             float ___growSize,
-            float ___growSpeed
+            float ___growSpeed,
+            int ___canGrabAtXPercent
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
@@ -274,7 +272,8 @@ namespace FeatMultiplayer
                     {
                         if (spawn != null)
                         {
-                            if (spawn.transform.localScale.x <= ___growSize)
+                            float growScale = spawn.transform.localScale.x;
+                            if (growScale <= ___growSize)
                             {
                                 float num = ___growSpeed * UnityEngine.Random.Range(0f, 1f);
                                 spawn.transform.localScale += new Vector3(num, num, num);
@@ -285,13 +284,12 @@ namespace FeatMultiplayer
                                     tree.UpdateConditions();
                                 }
                             }
-                            else
+                            var growthPercent = 100 * growScale / ___growSize;
+                            ___worldObjectGrower.SetGrowth(growthPercent);
+                            var ag = spawn.GetComponent<ActionGrabable>();
+                            if (ag != null)
                             {
-                                var ag = spawn.GetComponent<ActionGrabable>();
-                                if (ag != null)
-                                {
-                                    ag.SetCanGrab(true);
-                                }
+                                ag.SetCanGrab(___canGrabAtXPercent <= growthPercent);
                             }
 
                             var spi = spawn.GetComponent<OutsideGrowerSpawnInfo>();
@@ -306,6 +304,12 @@ namespace FeatMultiplayer
                                 position = spawn.transform.position,
                                 rotation = spawn.transform.rotation
                             });
+                            /*
+                            LogInfo("MachineOutsideGrower_Grow: " + ___worldObjectGrower.GetId() 
+                                + ", " + spi.spawnId 
+                                + ", " + growthPercent
+                                + ", " + spawn.transform.position); 
+                            */
                         }
                     }
                     SignalAllClients();
@@ -314,18 +318,6 @@ namespace FeatMultiplayer
                         ___worldObjectGrower.SetGrowth(100f);
                         // keep sending growth messages
                         //__instance.StopAllCoroutines();
-                    }
-                    else
-                    {
-                        foreach (GameObject gameObject2 in ___instantiatedGameObjects)
-                        {
-                            if (!(gameObject2 == null))
-                            {
-                                int num2 = Mathf.RoundToInt(Mathf.InverseLerp(0f, ___growSize, gameObject2.transform.localScale.x) * 100f);
-                                ___worldObjectGrower.SetGrowth(num2);
-                                break;
-                            }
-                        }
                     }
                 }
                 return false;
@@ -348,6 +340,14 @@ namespace FeatMultiplayer
                             var sid = espawn.GetComponent<OutsideGrowerSpawnInfo>();
                             if (sid != null && sid.spawnId == mga.spawnId)
                             {
+                                /*
+                                LogInfo("ReceiveMessageGrowAdd: " + mga.machineId
+                                    + ", " + mga.spawnId
+                                    + ", " + (mga.growth * 100 / mga.growSize)
+                                    + ", " + espawn.transform.position
+                                    + ", " + espawn.gameObject.activeSelf
+                                    );
+                                */
                                 espawn.transform.localScale = new Vector3(mga.growth, mga.growth, mga.growth);
                                 foreach (VegetationTree tree in espawn.GetComponentsInChildren<VegetationTree>())
                                 {
@@ -356,15 +356,35 @@ namespace FeatMultiplayer
                                 var ag0 = espawn.GetComponent<ActionGrabable>();
                                 if (ag0 != null)
                                 {
-                                    ag0.SetCanGrab(mga.growth >= mga.growSize);
+                                    ag0.SetCanGrab(mog.canGrabAtXPercent <= 100 * mga.growth / mga.growSize);
                                 }
                                 return;
                             }
                         }
 
                         var spawn = Instantiate(mog.thingsToGrow[mga.typeIndex], mog.grownThingsContainer.transform);
+                        // detach the game object from the world object
+                        var woa = spawn.GetComponent<WorldObjectAssociated>();
+                        if (woa != null)
+                        {
+                            var wog = woa.GetWorldObject();
+                            if (wog != null)
+                            {
+                                wog.SetGameObject(null);
+                            }
+                        }
+
                         spawn.transform.position = mga.position;
                         spawn.transform.rotation = mga.rotation;
+
+                        /*
+                        LogInfo("ReceiveMessageGrowAdd: " + mga.machineId
+                            + ", new " + mga.spawnId
+                            + ", " + (mga.growth * 100 / mga.growSize)
+                            + ", " + spawn.transform.position
+                            + ", " + mga.position
+                            );
+                        */
 
                         if (!mog.canRecolt)
                         {
@@ -382,8 +402,10 @@ namespace FeatMultiplayer
                         var ag = spawn.GetComponent<ActionGrabable>();
                         if (ag != null)
                         {
-                            ag.SetCanGrab(mog.canRecoltOnlyWhenFullyGrown && mga.growth >= mga.growSize);
+                            ag.SetCanGrab(mog.canGrabAtXPercent <= mga.growth * 100 / mga.growSize);
                         }
+
+                        
                     }
                     else
                     {

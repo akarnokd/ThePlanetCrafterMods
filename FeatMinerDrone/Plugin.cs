@@ -18,7 +18,7 @@ using System.Collections.Concurrent;
 
 namespace FeatMinerDrone
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featminerdrone", "(Feat) Miner Drone", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.featminerdrone", "(Feat) Miner Drone", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public partial class Plugin : BaseUnityPlugin
     {

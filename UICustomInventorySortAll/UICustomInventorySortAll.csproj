@@ -4,7 +4,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>UICustomInventorySortAll</AssemblyName>
     <Description>(UI) Customize Inventory Sort Order</Description>
-    <Version>1.0.0.5</Version>
+    <Version>1.0.0.6</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

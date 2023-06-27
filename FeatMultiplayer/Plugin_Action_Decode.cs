@@ -22,7 +22,8 @@ namespace FeatMultiplayer
         /// <returns>true in singleplayer, false in multiplayer</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowBlueprints), nameof(UiWindowBlueprints.DecodeBlueprint))]
-        static bool UiWindowBlueprints_DecodeBlueprint(UiWindowBlueprints __instance, Group ___groupChip)
+        static bool UiWindowBlueprints_DecodeBlueprint(UiWindowBlueprints __instance, 
+            Group ___groupChip, Group ___lastSpecificChipFound)
         {
             if (updateMode != MultiplayerMode.SinglePlayer)
             {
@@ -34,12 +35,13 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    var unlocked = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
-                    if (unlocked != null)
+                    if (___lastSpecificChipFound != null)
                     {
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
                         GetPlayerMainController().GetPlayerBackpack().GetInventory()
-                            .RemoveItems(new List<Group> { ___groupChip }, true, true);
+                            .RemoveItems(new List<Group> { ___lastSpecificChipFound }, true, true);
+                        var unlocked = ((GroupItem)___lastSpecificChipFound).GetUnlocksGroup();
+                        GroupsHandler.UnlockGroupGlobally(unlocked);
 
                         SendAllClients(new MessageMicrochipUnlock()
                         {
@@ -48,7 +50,23 @@ namespace FeatMultiplayer
                     }
                     else
                     {
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_warn_no_more_chip_to_unlock", 3f, "");
+                        var unlocked = Managers.GetManager<UnlockingHandler>().GetUnlockableGroup();
+                        if (unlocked != null)
+                        {
+                            Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
+                            GetPlayerMainController().GetPlayerBackpack().GetInventory()
+                                .RemoveItems(new List<Group> { ___groupChip }, true, true);
+                            GroupsHandler.UnlockGroupGlobally(unlocked);
+
+                            SendAllClients(new MessageMicrochipUnlock()
+                            {
+                                groupId = unlocked.GetId()
+                            }, true);
+                        }
+                        else
+                        {
+                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_warn_no_more_chip_to_unlock", 3f, "");
+                        }
                     }
                 }
                 __instance.CloseAll();
@@ -83,17 +101,39 @@ namespace FeatMultiplayer
             // Signal back the client immediately
             if (updateMode == MultiplayerMode.CoopHost)
             {
-                var gr = Managers.GetManager<UnlockingHandler>().GetUnlockableGroupAndUnlock();
-                if (gr != null)
+                GroupItem lastSpecificChipFound = null;
+
+                foreach (var wo in mmu.sender.shadowBackpack.GetInsideWorldObjects())
                 {
-                    mmu.groupId = gr.GetId();
+                    if (wo.GetGroup() is GroupItem gri && gri.GetUnlocksGroup() != null)
+                    {
+                        lastSpecificChipFound = gri;
+                    }
+                }
+
+                if (lastSpecificChipFound != null)
+                {
                     var inv = mmu.sender.shadowBackpack;
-                    var microGroup = GroupsHandler.GetGroupViaId("BlueprintT1");
-                    inv.RemoveItems(new List<Group>() { microGroup }, true, false);
+                    inv.RemoveItems(new List<Group>() { lastSpecificChipFound }, true, false);
+                    var unlocked = lastSpecificChipFound.GetUnlocksGroup();
+                    mmu.groupId = unlocked.GetId();
+                    GroupsHandler.UnlockGroupGlobally(unlocked);
                 }
                 else
                 {
-                    mmu.groupId = "";
+                    var gr = Managers.GetManager<UnlockingHandler>().GetUnlockableGroup();
+                    if (gr != null)
+                    {
+                        mmu.groupId = gr.GetId();
+                        var inv = mmu.sender.shadowBackpack;
+                        var microGroup = GroupsHandler.GetGroupViaId("BlueprintT1");
+                        inv.RemoveItems(new List<Group>() { microGroup }, true, false);
+                        GroupsHandler.UnlockGroupGlobally(gr);
+                    }
+                    else
+                    {
+                        mmu.groupId = "";
+                    }
                 }
                 SendAllClients(mmu, true);
             }

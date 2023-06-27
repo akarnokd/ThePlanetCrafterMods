@@ -118,7 +118,9 @@ namespace FeatMultiplayer
 
             NetworkTelemetrySetup(this);
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.GameVersionCheck.Patch(harmony, "(Feat) Multiplayer - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         static Texture2D LoadPNG(string filename)
@@ -163,6 +165,12 @@ namespace FeatMultiplayer
         static AccessTools.FieldRef<PlayerLarvaeAround, int> playerLarvaeAroundNoLarvaeZoneEntered;
 
         static MethodInfo uiWindowLogisticsSetLogisticsList;
+
+        static MethodInfo machineTradePlatformUpdateGrowth;
+        static MethodInfo uiWindowTradeUpdateTokenUi;
+
+        static AccessTools.FieldRef<UiGroupLine, Group> uiGroupLineGroup;
+        static AccessTools.FieldRef<UiWindowTrade, MachineTradePlatform> uiWindowTradeMachineTradePlatform;
 
         static void InitReflectiveAccessors()
         {
@@ -213,6 +221,14 @@ namespace FeatMultiplayer
             playerLarvaeAroundNoLarvaeZoneEntered = AccessTools.FieldRefAccess<PlayerLarvaeAround, int>("noLarvaeZoneEntered");
 
             uiWindowLogisticsSetLogisticsList = AccessTools.Method(typeof(UiWindowLogistics), "SetLogisticsList", new Type[] { typeof(bool), typeof(GridLayoutGroup), typeof(List<Inventory>) });
+
+            machineTradePlatformUpdateGrowth = AccessTools.Method(typeof(MachineTradePlatform), "UpdateGrowth", new Type[] { typeof(float) });
+
+            uiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
+
+            uiGroupLineGroup = AccessTools.FieldRefAccess<UiGroupLine, Group>("group");
+
+            uiWindowTradeMachineTradePlatform = AccessTools.FieldRefAccess<UiWindowTrade, MachineTradePlatform>("machineTradePlatform");
         }
 
     }

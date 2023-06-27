@@ -138,6 +138,8 @@ namespace FeatMultiplayer
             mts.plants = wuh.GetUnit(DataConfig.WorldUnitType.Plants).GetValue();
             mts.insects = wuh.GetUnit(DataConfig.WorldUnitType.Insects).GetValue();
             mts.animals = wuh.GetUnit(DataConfig.WorldUnitType.Animals).GetValue();
+            mts.tokens = TokensHandler.GetTokensNumber();
+            mts.tokensAllTime = TokensHandler.GetAllTimeTokensNumber();
 
             SendAllClients(mts);
         }
@@ -215,7 +217,6 @@ namespace FeatMultiplayer
                 // Prevent pinging all unlocks after the join
                 if (firstTerraformSync)
                 {
-                    firstTerraformSync = false;
                     var go = FindObjectOfType<AlertUnlockables>();
                     if (go != null)
                     {
@@ -242,6 +243,16 @@ namespace FeatMultiplayer
                 {
                     ForceUpdateWorldUnitPositioning(wup, wuh);
                 }
+
+                var prevTokens = TokensHandler.GetTokensNumber();
+                TokensHandler.SetTotalTokens(mts.tokens);
+                if (prevTokens < mts.tokens && !firstTerraformSync)
+                {
+                    Managers.GetManager<PopupsHandler>().PopupNewTokens(mts.tokens - prevTokens);
+                }
+                TokensHandler.SetAllTimeTokensNumber(mts.tokensAllTime);
+
+                firstTerraformSync = false;
             }
 
             static void ForceUpdateWorldUnitPositioning(WorldUnitPositioning wup, WorldUnitsHandler wuh)

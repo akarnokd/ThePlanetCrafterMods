@@ -184,7 +184,8 @@ namespace FeatMultiplayer.MessageTypes
         /// <returns>The string representation</returns>
         internal static string Vector3ToStringReducedPrecision(Vector3 vector)
         {
-            return $"{vector.x:0.##},{vector.y:0.##},{vector.z:0.##}";
+            FormattableString fs = $"{vector.x:0.##},{vector.y:0.##},{vector.z:0.##}";
+            return fs.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

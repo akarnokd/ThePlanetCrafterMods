@@ -18,6 +18,7 @@ namespace FeatMultiplayer.MessageTypes
         public string text;
         public List<int> panelIds;
         public float growth;
+        public int settings;
         public bool makeGrabable;
 
         internal static void AppendWorldObject(StringBuilder sb, char separator, WorldObject wo, bool makeGrabable)
@@ -56,6 +57,9 @@ namespace FeatMultiplayer.MessageTypes
             {
                 sb.Append(wo.GetGrowth().ToString(CultureInfo.InvariantCulture)); // 9
             }
+            sb.Append(separator);
+            var set = wo.GetSetting();
+            sb.Append(set > 0 ? set : "");
             sb.Append(separator);
             sb.Append(makeGrabable ? "1" : ""); // 10
         }
@@ -107,12 +111,14 @@ namespace FeatMultiplayer.MessageTypes
                 sb.Append(wo.growth.ToString(CultureInfo.InvariantCulture)); // 9
             }
             sb.Append(separator);
+            sb.Append(wo.settings > 0 ? wo.settings : "");
+            sb.Append(separator);
             sb.Append(makeGrabable ? "1" : ""); // 10
         }
 
         internal static bool TryParse(string[] objs, int offset, out MessageWorldObject mwo)
         {
-            if (objs.Length - offset == 11)
+            if (objs.Length - offset == 12)
             {
                 mwo = new MessageWorldObject();
 
@@ -147,7 +153,11 @@ namespace FeatMultiplayer.MessageTypes
                 {
                     mwo.growth = float.Parse(objs[offset + 9], CultureInfo.InvariantCulture);
                 }
-                mwo.makeGrabable = "1" == objs[offset + 10];
+                if (objs[offset + 10].Length != 0)
+                {
+                    mwo.settings = int.Parse(objs[offset + 10], CultureInfo.InvariantCulture);
+                }
+                mwo.makeGrabable = "1" == objs[offset + 11];
                 return true;
             } 
             else

@@ -172,6 +172,7 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
+                //LogWarning(Environment.StackTrace);
                 for (int i = 0; i < 50; i++)
                 {
                     int randomId = 300000000 + UnityEngine.Random.Range(1000000, 9999999);
@@ -296,7 +297,7 @@ namespace FeatMultiplayer
 
                     WorldObjectsHandler.DestroyWorldObjects(inv.GetInsideWorldObjects());
 
-                    Managers.GetManager<LogisticManager>().OnDestroyInventory(inv);
+                    Managers.GetManager<LogisticManager>().RemoveInventoryFromLogistics(inv);
                     break;
                 }
             }

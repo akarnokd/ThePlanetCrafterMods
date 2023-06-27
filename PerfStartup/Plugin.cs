@@ -11,7 +11,7 @@ using System.Text;
 
 namespace PerfStartup
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.perfstartup", "(Perf) Startup", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.perfstartup", "(Perf) Startup", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
 

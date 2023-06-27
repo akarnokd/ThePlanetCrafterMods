@@ -8,7 +8,7 @@ using BepInEx.Configuration;
 
 namespace UIShowMultiToolMode
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uishowmultitoolmode", "(UI) Show MultiTool Mode", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(uiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {

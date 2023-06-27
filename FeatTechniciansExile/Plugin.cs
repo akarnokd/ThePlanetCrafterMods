@@ -99,18 +99,18 @@ namespace FeatTechniciansExile
 
             PrepareDialogChoices();
 
-            technicianMessage = new MessageData
+            technicianMessage = ScriptableObject.CreateInstance<MessageData>();
             {
-                stringId = "TechniciansExile_Message",
-                senderStringId = "TechniciansExile_Name",
-                yearSent = "Today"
+                technicianMessage.stringId = "TechniciansExile_Message";
+                technicianMessage.senderStringId = "TechniciansExile_Name";
+                technicianMessage.yearSent = "Today";
             };
 
-            technicianMessage2 = new MessageData
+            technicianMessage2 = ScriptableObject.CreateInstance<MessageData>();
             {
-                stringId = "TechniciansExile_Message2",
-                senderStringId = "TechniciansExile_Name",
-                yearSent = "Today"
+                technicianMessage2.stringId = "TechniciansExile_Message2";
+                technicianMessage2.senderStringId = "TechniciansExile_Name";
+                technicianMessage2.yearSent = "Today";
             };
 
             Font osFont = null;
@@ -1131,7 +1131,7 @@ namespace FeatTechniciansExile
                 logger.LogInfo("Rocket lines: " + lines.Length);
                 foreach (var ln in lines)
                 {
-                    logger.LogInfo("  " + ln.label.text);
+                    logger.LogInfo("  " + ln.labelText.text);
                 }
 
                 foreach (var gd in ___rocketsGenerationGroups)
@@ -1153,9 +1153,9 @@ namespace FeatTechniciansExile
                                 for (int j = 0; j < lines.Length; j++)
                                 {
                                     var ln = lines[j];
-                                    if (ln.label.text.StartsWith(unitLabel))
+                                    if (ln.labelText.text.StartsWith(unitLabel))
                                     {
-                                        ln.label.text = unitLabel
+                                        ln.labelText.text = unitLabel
                                             + " +" + (1100 * allWorldObjectsOfGroup.Count).ToString() + "%";
                                     }
                                 }

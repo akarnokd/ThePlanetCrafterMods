@@ -11,6 +11,7 @@ using System.IO;
 using System;
 using System.Linq;
 using TMPro;
+using System.Globalization;
 
 namespace FixUnofficialPatches
 {
@@ -195,6 +196,7 @@ namespace FixUnofficialPatches
             return __instance.HasDemandGroups();
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), nameof(Drone.UpdateState))]
         static void Drone_UpdateState(LogisticTask ___logisticTask)
@@ -220,19 +222,7 @@ namespace FixUnofficialPatches
                 }
             }
         }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayerLarvaeAround), "CleanFarAwayLarvae")]
-        static void PlayerLarvaeAround_CleanFarAwayLarvae(List<GameObject> ___larvaesSpawned)
-        {
-            for (int i = ___larvaesSpawned.Count - 1; i >= 0; i--)
-            {
-                if (___larvaesSpawned[i] == null)
-                {
-                    ___larvaesSpawned.RemoveAt(i);
-                }
-            }
-        }
+        */
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
@@ -280,6 +270,7 @@ namespace FixUnofficialPatches
             }
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticStationDistanceToTask), nameof(LogisticStationDistanceToTask.CompareTo))]
         static bool LogisticStationDistanceToTask_CompareTo(object obj, float ___distanceToSupply, ref int __result)
@@ -298,6 +289,45 @@ namespace FixUnofficialPatches
                 __result = 0;
             }
             return false;
+        }
+        */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDroneStation), "OnDestroy")]
+        static bool MachineDroneStation_OnDestroy()
+        {
+            return Managers.GetManager<LogisticManager>() != null;
+        }
+
+        static readonly Color colorTransparent = new(0, 0, 0, 0);
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ColorToString))]
+        static bool DataTreatments_ColorToString(ref string __result, in Color _color, char ___colorDelimiter)
+        {
+            if (_color == colorTransparent)
+            {
+                __result = "";
+            }
+            else
+            {
+                __result = _color.r.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.g.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.b.ToString(CultureInfo.InvariantCulture)
+                        + ___colorDelimiter
+                        + _color.a.ToString(CultureInfo.InvariantCulture)
+                    ;
+            }
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ParseStringColor))]
+        static void DataTreatments_ParseStringColor(ref string _float)
+        {
+            _float = _float.Replace('/', '.');
         }
     }
 }

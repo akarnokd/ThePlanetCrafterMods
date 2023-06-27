@@ -1157,5 +1157,72 @@ namespace FeatMultiplayer
             worldObjectCreated = null;
             return false;
         }
+
+        /// <summary>
+        /// Some machines can be set to clear inventory if they are full.
+        /// 
+        /// We don't do this on the client and let the host handle it.
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), "TryToCleanInventory")]
+        static bool MachineDestructInventoryIfFull_TryToCleanInventory()
+        {
+            return updateMode != MultiplayerMode.CoopClient;
+        }
+
+        /// <summary>
+        /// Vanilla calls this when the setting buttons, on the inventory screen, have been clicked.
+        /// 
+        /// We relay this to the other parties.
+        /// </summary>
+        /// <param name="___relatedWorldObject"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiContainerSettingOnOffButton), "OnClickOnOffButtons")]
+        static void UiContainerSettingOnOffButton_OnClickOnOffButtons(WorldObject ___relatedWorldObject)
+        {
+            if (updateMode == MultiplayerMode.CoopHost)
+            {
+                SendWorldObjectToClients(___relatedWorldObject, false);
+            }
+            else
+            {
+                SendWorldObjectToHost(___relatedWorldObject, false);
+            }
+        }
+
+        /// <summary>
+        /// Vanilla calls it during the setting up of the settings button, on the inventory screen.
+        /// 
+        /// We install a tracker so we can update the visuals if the other side changes the settings
+        /// </summary>
+        /// <param name="___relatedWorldObject"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiContainerSettingOnOffButton), "SetUiSettingWorldObject")]
+        static void UiContainerSettingOnOffButton_SetUiSettingWorldObject(UiContainerSettingOnOffButton __instance, 
+            WorldObject ___relatedWorldObject, UiOnOffButtons ___uiOnOffButtons)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                __instance.StartCoroutine(UiContainerSettingOnOffButton_Tracker(___relatedWorldObject, ___uiOnOffButtons, 0.25f));
+            }
+        }
+
+        static IEnumerator UiContainerSettingOnOffButton_Tracker(WorldObject ___relatedWorldObject, 
+            UiOnOffButtons ___uiOnOffButtons, float delay)
+        {
+            for (; ; )
+            {
+                // do not trigger ping-pong updates
+                var save = ___uiOnOffButtons.uiOnOffButtonsClick;
+                ___uiOnOffButtons.uiOnOffButtonsClick = e => { };
+
+                ___uiOnOffButtons.SetStatusOfOnOffButtons(___relatedWorldObject.GetSetting() != 0);
+
+                ___uiOnOffButtons.uiOnOffButtonsClick = save;
+
+                yield return new WaitForSeconds(delay);
+            }
+        }
     }
 }

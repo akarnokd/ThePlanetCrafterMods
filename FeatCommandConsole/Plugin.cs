@@ -40,6 +40,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> consoleBottom;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> fontName;
+        static ConfigEntry<float> transparency;
 
         static GameObject canvas;
         static GameObject background;
@@ -63,6 +64,13 @@ namespace FeatCommandConsole
         const int similarLimit = 3;
 
         static IEnumerator autorefillCoroutine;
+
+        static readonly float defaultTradePlatformDelay = 6;
+        static float tradePlatformDelay = defaultTradePlatformDelay;
+
+        static bool suppressCommandConsoleKey;
+
+        static Plugin me;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -97,6 +105,7 @@ namespace FeatCommandConsole
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+            me = this;
 
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable the detailed logging of this mod");
@@ -108,6 +117,7 @@ namespace FeatCommandConsole
             consoleBottom = Config.Bind("General", "ConsoleBottom", 200, "Console window's position relative to the bottom of the screen.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
+            transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -320,13 +330,17 @@ namespace FeatCommandConsole
             {
                 return;
             }
+            if (suppressCommandConsoleKey)
+            {
+                return;
+            }
 
             logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null?" + (background == null));
 
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
             c.renderMode = RenderMode.ScreenSpaceOverlay;
-            c.transform.SetAsLastSibling();
+            c.sortingOrder = 500;
 
             log("Creating the background");
 
@@ -348,7 +362,7 @@ namespace FeatCommandConsole
             background = new GameObject("CommandConsoleBackground");
             background.transform.parent = canvas.transform;
             var img = background.AddComponent<Image>();
-            img.color = new Color(0.2f, 0.2f, 0.2f, 0.95f);
+            img.color = new Color(0.2f, 0.2f, 0.2f, transparency.Value);
             rect = img.GetComponent<RectTransform>();
             rect.localPosition = new Vector3(panelX, panelY, 0); // new Vector3(-Screen.width / 2 + consoleLeft.Value, Screen.height / 2 - consoleTop.Value, 0);
             rect.sizeDelta = new Vector2(panelWidth, panelHeight);
@@ -511,6 +525,20 @@ namespace FeatCommandConsole
         {
             // by default, Enter toggles any UI. prevent this while our console is open
             return background == null;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowTextInput), nameof(UiWindowTextInput.OnClose))]
+        static void UiWindowTextInput_OnClose()
+        {
+            suppressCommandConsoleKey = true;
+            me.StartCoroutine(ConsoleKeyUnlocker());
+        }
+
+        static IEnumerator ConsoleKeyUnlocker()
+        {
+            yield return new WaitForSecondsRealtime(0.25f);
+            suppressCommandConsoleKey = false;
         }
 
         static void addLine(string line)
@@ -1649,13 +1677,27 @@ namespace FeatCommandConsole
                         var ggi = gi.GetGrowableGroup();
                         if (ggi != null)
                         {
-                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi));
+                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi) + "\"");
+                        }
+                        var ulg = gi.GetUnlocksGroup();
+                        if (ulg != null)
+                        {
+                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
+                        }
+
+                        EffectOnPlayer eff = gi.GetEffectOnPlayer();
+                        if (eff != null)
+                        {
+                            addLine("<margin=2em><b>Effect on player:</b> <color=#00FF00>" + eff.effectOnPlayer + " (" + eff.durationInSeconds + " seconds");
                         }
                         addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
-                        addLine("<margin=2em><b>Hide in Crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
-                        addLine("<margin=2em><b>Hide in Logistics:</b> <color=#00FF00>" + gi.GetHideInLogistics());
-                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled()); ;
+                        addLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
+                        addLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
+                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
+                        addLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
+                        addLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
+                        addLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -2696,6 +2738,65 @@ namespace FeatCommandConsole
                 addLine("<margin=3em>Resources: " + GetAsteroidSpawn(med.asteroidEventData));
             }
         }
+
+        [Command("/add-token", "Adds the specified amount to the Trade Token value")]
+        public void AddToken(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Adds the specified amount to the Trade Token value");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/add-token amount</color> - Trade Token += amount");
+            }
+            else
+            {
+                var n = float.Parse(args[1], CultureInfo.InvariantCulture);
+                TokensHandler.GainTokens((int)n);
+                n = TokensHandler.GetTokensNumber();
+                addLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
+            }
+        }
+
+        [Command("/set-trade-rocket-delay", "Sets the trading rockets' progress delay in seconds.")]
+        public void SetTradeDelay(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Sets the trading rocket's progress delay in seconds. Total rocket time is 100 x this amount.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/set-trade-rocket-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
+                addLine("<margin=1em>Current trading rocket progress delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+            }
+            else
+            {
+                tradePlatformDelay = float.Parse(args[1], CultureInfo.InvariantCulture);
+                
+                addLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+
+                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
+
+                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                {
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        var platform = go.GetComponent<MachineTradePlatform>();
+                        if (platform != null)
+                        {
+                            ___updateGrowthEvery.SetValue(platform, tradePlatformDelay);
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetWorldObjectForTradePlatform))]
+        static void MachineTradePlatform_SetWorldObjectForTradePlatform(ref float ___updateGrowthEvery)
+        {
+            ___updateGrowthEvery = tradePlatformDelay;
+        }
+
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

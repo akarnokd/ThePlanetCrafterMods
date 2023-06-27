@@ -15,7 +15,7 @@ using BepInEx.Logging;
 
 namespace UIPinRecipe
 {
-    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", "1.0.0.15")]
+    [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modUiCraftEquipmentInPlaceGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin

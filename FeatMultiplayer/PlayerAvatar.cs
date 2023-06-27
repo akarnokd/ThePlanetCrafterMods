@@ -16,6 +16,9 @@ namespace FeatMultiplayer
         internal GameObject light2;
         internal GameObject nameBar;
         internal GameObject emote;
+        internal string name;
+        internal Color color;
+        
 
         /// <summary>
         /// What the other side told us about their position.
@@ -52,6 +55,7 @@ namespace FeatMultiplayer
         {
             avatarFront.GetComponent<SpriteRenderer>().color = color;
             avatarBack.GetComponent<SpriteRenderer>().color = color;
+            this.color = color;
         }
 
         internal void SetName(string name)
@@ -60,6 +64,7 @@ namespace FeatMultiplayer
             {
                 HelloThereDecompiler(ref name);
             }
+            this.name = name;
             nameBar.GetComponent<TextMesh>().text = name;
         }
 

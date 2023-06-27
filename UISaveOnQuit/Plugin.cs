@@ -5,7 +5,7 @@ using HarmonyLib;
 
 namespace UISaveOnQuit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", "1.0.0.4")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.saveonquit", "(UI) Save When Quitting", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<bool> modEnabled;

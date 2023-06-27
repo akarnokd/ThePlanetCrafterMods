@@ -302,6 +302,7 @@ namespace FeatMultiplayer
             wo.SetColor(mwo.color);
             wo.SetText(mwo.text);
             wo.SetGrowth(mwo.growth);
+            wo.SetSetting(mwo.settings);
 
             wo.SetPanelsId(mwo.panelIds);
             wo.SetDontSaveMe(false);

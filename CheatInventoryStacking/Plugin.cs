@@ -26,12 +26,17 @@ namespace CheatInventoryStacking
 
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
+        static ConfigEntry<bool> stackTradeRockets;
+        static ConfigEntry<bool> stackShredder;
 
         static string expectedGroupIdToAdd;
 
         static ManualLogSource logger;
 
-        static readonly HashSet<int> noStackingInventories = new()
+        /// <summary>
+        /// The list of pre-placed inventories that should not stack
+        /// </summary>
+        static readonly HashSet<int> defaultNoStackingInventories = new()
         {
             109441691, // altar at the door in the mushroom cave
             108035701, // altar in the super alloy cave
@@ -42,6 +47,11 @@ namespace CheatInventoryStacking
             101703877, // fusion generator in the stargate
             101484917, // fusion generator in the luxury cruiser with 3 slots
         };
+
+        /// <summary>
+        /// The set of static and dynamic inventory ids that should not stack.
+        /// </summary>
+        static HashSet<int> noStackingInventories = new(defaultNoStackingInventories);
 
         public static Func<string> getMultiplayerMode;
 
@@ -58,10 +68,14 @@ namespace CheatInventoryStacking
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
+            stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
+            stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
 
             logger = Logger;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         // --------------------------------------------------------------------------------------------------------
@@ -407,7 +421,14 @@ namespace CheatInventoryStacking
                 {
                     ___originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
                 }
-                if (___inventory.GetSize() > 28)
+                if (___inventory.GetSize() > 35)
+                {
+                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 70f, ___originalSizeDelta.y);
+                    GridLayoutGroup componentInChildren = __instance.GetComponentInChildren<GridLayoutGroup>();
+                    componentInChildren.cellSize = new Vector2(76f, 76f);
+                    componentInChildren.spacing = new Vector2(3f, 3f);
+                }
+                else if (___inventory.GetSize() > 28)
                 {
                     __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(___originalSizeDelta.x + 50f, ___originalSizeDelta.y);
                 }
@@ -894,6 +915,8 @@ namespace CheatInventoryStacking
             Dictionary<int, WorldObject> inventoryParent
             )
         {
+            var pickablesByDronesWorldObjects = WorldObjectsHandler.GetPickablesByDronesWorldObjects();
+
             ___demandInventories.Sort((Inventory x, Inventory y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority()));
             
             foreach (Inventory demandInventory in ___demandInventories)
@@ -925,6 +948,18 @@ namespace CheatInventoryStacking
                                 }
                             }
                         }
+                        foreach (WorldObject worldObject2 in pickablesByDronesWorldObjects)
+                        {
+                            if (worldObject2.GetGroup() == demandGroup 
+                                && !(worldObject2.GetGameObject() == null) 
+                                && !(worldObject2.GetPosition() == Vector3.zero) 
+                                && !(worldObject2.GetGameObject().GetComponent<ActionGrabable>() == null) 
+                                && worldObject2.GetGameObject().GetComponent<ActionGrabable>().GetCanGrab() 
+                                && demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < capacity)
+                            {
+                                CreateNewTaskForWorldObjectForSpawnedObject(___allLogisticTasks, demandInventory, worldObject2, inventoryParent);
+                            }
+                        }
                     }
                 }
             }
@@ -940,16 +975,37 @@ namespace CheatInventoryStacking
             {
                 return null;
             }
-            WorldObject worldObjectForInventory = GetInventoryParent(_supplyInventory, inventoryParent);
-            WorldObject worldObjectForInventory2 = GetInventoryParent(_demandInventory, inventoryParent);
-            if (worldObjectForInventory2 == null || worldObjectForInventory == null)
+            WorldObject woSupply = GetInventoryParent(_supplyInventory, inventoryParent);
+            WorldObject woDemand = GetInventoryParent(_demandInventory, inventoryParent);
+            if (woDemand == null || woSupply == null)
             {
                 return null;
             }
-            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, worldObjectForInventory, worldObjectForInventory2);
+            LogisticTask logisticTask = new LogisticTask(_worldObject, _supplyInventory, _demandInventory, woSupply, woDemand, false);
             ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
             return logisticTask;
         }
+
+        static LogisticTask CreateNewTaskForWorldObjectForSpawnedObject(
+            Dictionary<int, LogisticTask> ___allLogisticTasks,
+            Inventory _demandInventory, 
+            WorldObject _worldObject,
+            Dictionary<int, WorldObject> inventoryParent)
+        {
+            if (___allLogisticTasks.ContainsKey(_worldObject.GetId()))
+            {
+                return null;
+            }
+            WorldObject woDemand = GetInventoryParent(_demandInventory, inventoryParent);
+            if (woDemand == null)
+            {
+                return null;
+            }
+            LogisticTask logisticTask = new LogisticTask(_worldObject, null, _demandInventory, null, woDemand, true);
+            ___allLogisticTasks[_worldObject.GetId()] = logisticTask;
+            return logisticTask;
+        }
+
 
         static WorldObject GetInventoryParent(Inventory inv, Dictionary<int, WorldObject> lookup)
         {
@@ -1033,14 +1089,14 @@ namespace CheatInventoryStacking
             while (nextNonAttributedTasks.MoveNext())
             {
                 var logisticTask = nextNonAttributedTasks.Current;
-                var pos = logisticTask.GetSupplyInventoryWorldObject().GetPosition();
                 // logger.LogInfo("Try releasing more drones");
                 list2.Clear();
                 foreach (var machineDroneStation in ___allDroneStations)
                 {
-                    if (logisticTask.GetSupplyInventoryWorldObject() != null)
+                    if (logisticTask.GetIsSpawnedObject() || logisticTask.GetSupplyInventoryWorldObject() != null)
                     {
-                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, pos));
+                        Vector3 vector = logisticTask.GetIsSpawnedObject() ? logisticTask.GetWorldObjectToMove().GetPosition() : logisticTask.GetSupplyInventoryWorldObject().GetPosition();
+                        int num2 = Mathf.RoundToInt(Vector3.Distance(machineDroneStation.gameObject.transform.position, vector));
                         list2.Add(new LogisticStationDistanceToTask(machineDroneStation, (float)num2));
                     }
                 }
@@ -1057,6 +1113,99 @@ namespace CheatInventoryStacking
             }
         }
 
+        /// <summary>
+        /// Conditionally disallow stacking in trade rockets.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
+        static void MachineTradePlatform_SetInventoryTradePlatform(Inventory _inventory)
+        {
+            if (!stackTradeRockets.Value)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
+        }
+
+        /// <summary>
+        /// Disallow stacking in growers.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
+        static void MachineGrower_SetGrowerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in outside growers.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
+        static void MachineOutsideGrower_SetGrowerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in DNA/Incubator.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowGenetics), nameof(UiWindowGenetics.SetGeneticsData))]
+        static void UiWindowGenetics_SetGeneticsData(Inventory ___inventoryRight)
+        {
+            noStackingInventories.Add(___inventoryRight.GetId());
+        }
+
+        /// <summary>
+        /// Disallow stacking in butterfly farms.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineFlockSpawner), nameof(MachineFlockSpawner.SetSpawnerInventory))]
+        static void MachineFlockSpawner_SetSpawnerInventory(Inventory _inventory)
+        {
+            noStackingInventories.Add(_inventory.GetId());
+        }
+
+        /// <summary>
+        /// Conditionally disallow stacking in shredders.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), nameof(MachineDestructInventoryIfFull.SetDestructInventoryInventory))]
+        static void MachineDestructInventoryIfFull_SetDestructInventoryInventory(Inventory _inventory)
+        {
+            if (!stackShredder.Value)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
+        }
+        
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
+        static void InventoriesHandler_DestroyInventory(int _inventoryId)
+        {
+            if (defaultNoStackingInventories.Contains(_inventoryId))
+            {
+                noStackingInventories.Remove(_inventoryId);
+            }
+        }
+
+
+        /// <summary>
+        /// When we quit, we clear the custom inventory ids that should not be stacked.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            noStackingInventories = new(defaultNoStackingInventories);
+        }
 
         /*
         static bool calledFromSetLogisticTask;

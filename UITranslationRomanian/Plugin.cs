@@ -12,16 +12,14 @@ using System.Collections;
 
 namespace UITranslationRomanian
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationromanian", "(UI) Romanian Translation", "1.0.0.1")]
+    [BepInPlugin("akarnokd.theplanetcraftermods.uitranslationromanian", "(UI) Romanian Translation", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
         const string languageKey = "romanian";
 
         static ManualLogSource logger;
 
-        static Dictionary<string, string> labels = new Dictionary<string, string>();
-
-        static ConfigEntry<bool> checkMissing;
+        static Dictionary<string, string> labels = new();
 
         static string currentLanguage;
 
@@ -33,8 +31,6 @@ namespace UITranslationRomanian
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
-
-            checkMissing = Config.Bind("General", "CheckMissing", false, "If enabled, the new language's keys are checked against the english keys to find missing translations. See the logs afterwards.");
 
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
@@ -115,22 +111,6 @@ namespace UITranslationRomanian
             }
 
             ___localizationDictionary[languageKey] = labels;
-
-            if (checkMissing.Value)
-            {
-                Dictionary<string, string> english = ___localizationDictionary["english"];
-                foreach (string key in english.Keys)
-                {
-                    if (!labels.ContainsKey(key))
-                    {
-                        logger.LogWarning("Missing translation\r\n" + key + "=" + english[key]);
-                    }
-                    else if (labels[key] == english[key])
-                    {
-                        logger.LogWarning("Not translated\r\n" + key + "=" + english[key]);
-                    }
-                }
-            }
         }
 
         [HarmonyPrefix]
@@ -142,6 +122,16 @@ namespace UITranslationRomanian
                 {
                     __instance.unitLabel.enableAutoSizing = true;
                 }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiGroupLine), nameof(UiGroupLine.SetValues))]
+        static void UiGroupLine_SetValues(ref string _replaceInLabel)
+        {
+            if (_replaceInLabel == "t1")
+            {
+                _replaceInLabel = "T1";
             }
         }
     }
