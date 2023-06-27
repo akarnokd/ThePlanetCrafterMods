@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -149,7 +150,8 @@ namespace FeatMultiplayer
                         }
                         platformWorldObject.SetGrowth(1);
 
-                        tradePlatform.StartCoroutine((IEnumerator)machineTradePlatformUpdateGrowth.Invoke(tradePlatform, new object[] { tradePlatform.updateGrowthEvery }));
+                        CoroutineRunner.StopOn(tradePlatform);
+                        CoroutineRunner.StartOn(tradePlatform, (IEnumerator)machineTradePlatformUpdateGrowth.Invoke(tradePlatform, new object[] { tradePlatform.updateGrowthEvery }));
 
                         // when launching, refresh the dialog
                         CloseTradeWindowIfOpen(tradePlatform);
@@ -351,6 +353,55 @@ namespace FeatMultiplayer
             else
             {
                 LogWarning("ReceiveMessage: Unknown WorldObject " + msg.worldObjectId);
+            }
+        }
+
+        /// <summary>
+        /// The vanilla now displays the current Terra Token amount in the equipment screen.
+        /// 
+        /// Since this can change off screen (rocket delivery, other players picking up tokens).
+        /// we need to install a periodic updater.
+        /// </summary>
+        /// <param name="___currentTokens"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowEquipment), nameof(UiWindowEquipment.OnOpen))]
+        static void UiWindowEquipment_OnOpen(UiWindowEquipment __instance, TextMeshProUGUI ___currentTokens)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                CoroutineRunner.StopOn(__instance);
+                CoroutineRunner.StartOn(__instance, UiWindowEquipment_UpdateTokens(0.25f, ___currentTokens));
+            }
+        }
+
+        /// <summary>
+        /// When the vanilla closes the dialog, we better stop the update coroutine.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="___currentTokens"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowEquipment), nameof(UiWindowEquipment.OnClose))]
+        static void UiWindowEquipment_OnClose(UiWindowEquipment __instance, TextMeshProUGUI ___currentTokens)
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer)
+            {
+                CoroutineRunner.StopOn(__instance);
+            }
+        }
+
+        static IEnumerator UiWindowEquipment_UpdateTokens(float delay, TextMeshProUGUI ___currentTokens)
+        {
+            for (; ; )
+            {
+                var wh = Managers.GetManager<WindowsHandler>();
+                if (wh == null || ___currentTokens == null)
+                {
+                    break;
+                }
+
+                ___currentTokens.text = TokensHandler.GetTokensNumber().ToString();
+
+                yield return new WaitForSeconds(delay);
             }
         }
     }

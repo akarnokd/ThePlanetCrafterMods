@@ -297,19 +297,19 @@ namespace FixUnofficialPatches
             return Managers.GetManager<LogisticManager>() != null;
         }
 
-        static readonly Color colorTransparent = new Color(0, 0, 0, 0);
+        static readonly Color colorTransparent = new(0, 0, 0, 0);
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ColorToString))]
-        static bool DataTreatments_ColorToString(ref string result, in Color _color, char ___colorDelimiter)
+        static bool DataTreatments_ColorToString(ref string __result, in Color _color, char ___colorDelimiter)
         {
             if (_color == colorTransparent)
             {
-                result = "";
+                __result = "";
             }
             else
             {
-                result = _color.r.ToString(CultureInfo.InvariantCulture)
+                __result = _color.r.ToString(CultureInfo.InvariantCulture)
                         + ___colorDelimiter
                         + _color.g.ToString(CultureInfo.InvariantCulture)
                         + ___colorDelimiter

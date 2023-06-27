@@ -2,6 +2,7 @@
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,6 +130,51 @@ namespace FeatMultiplayer
                         "Total".PadRight(mx), totalBytes, totalBytes / 1024f / dt
                 ));
             }
+        }
+
+        
+    }
+
+    /// <summary>
+    /// Remembers a coroutine IEnumerator and stops it.
+    /// </summary>
+    internal class CoroutineRunner : MonoBehaviour
+    {
+        IEnumerator enumerator;
+
+        void Stop()
+        {
+            if (enumerator != null)
+            {
+                StopCoroutine(enumerator);
+            }
+            enumerator = null;
+        }
+
+        void Start(IEnumerator coroutineEnum)
+        {
+            enumerator = coroutineEnum ?? throw new NullReferenceException(nameof(CoroutineRunner) + "::" + nameof(Start) + " " + nameof(coroutineEnum) + " is null");
+            StartCoroutine(coroutineEnum);
+        }
+
+        /// <summary>
+        /// Adds a CoroutineRunner to the parent and starts the given coroutine.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="coroutineEnum"></param>
+        internal static void StartOn(MonoBehaviour parent, IEnumerator coroutineEnum)
+        {
+            var cr = parent.GetComponent<CoroutineRunner>() ?? parent.gameObject.AddComponent<CoroutineRunner>();
+            cr.Start(coroutineEnum);
+        }
+
+        /// <summary>
+        /// Stops the CorotuineRunner on the given parent.
+        /// </summary>
+        /// <param name="parent"></param>
+        internal static void StopOn(MonoBehaviour parent)
+        {
+            parent.GetComponent<CoroutineRunner>()?.Stop();
         }
     }
 }

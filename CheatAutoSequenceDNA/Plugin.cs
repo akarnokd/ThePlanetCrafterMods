@@ -34,6 +34,8 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> incubatorSilkId;
 
+        static ConfigEntry<string> incubatorBacteriaId;
+
         static ConfigEntry<bool> sequencerEnabled;
 
         static ConfigEntry<string> sequencerMutagenId;
@@ -79,6 +81,7 @@ namespace CheatAutoSequenceDNA
             incubatorPhytoplanktonId = Config.Bind("Incubator", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
             incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
+            incubatorBacteriaId = Config.Bind("Incubator", "Bacteria", "*Bacteria", "The name of the container(s) where to to look for bacteria samples.");
 
             sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
             sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
@@ -187,6 +190,7 @@ namespace CheatAutoSequenceDNA
                 { "Phytoplankton", incubatorPhytoplanktonId.Value },
                 { "Fish", incubatorFishId.Value },
                 { "FrogEgg", incubatorFrogEggId.Value },
+                { "Bacteria", incubatorBacteriaId.Value },
             };
 
             // List of world objects per category (containers, machines)
@@ -215,6 +219,16 @@ namespace CheatAutoSequenceDNA
                 }
             }
 
+            log("Find the maximum recipe size");
+            var minInventoryCapacity = 0;
+            foreach (var gi in GroupsHandler.GetGroupsItem())
+            {
+                if (gi.CanBeCraftedIn(CraftableIn.CraftIncubatorT1))
+                {
+                    minInventoryCapacity = Math.Max(minInventoryCapacity, gi.GetRecipe()?.GetIngredientsGroupInRecipe()?.Count ?? 0);
+                }
+            }
+
             if (itemCategories.TryGetValue("Incubator", out var incubatorList))
             {
                 foreach (var incubator in incubatorList)
@@ -222,6 +236,13 @@ namespace CheatAutoSequenceDNA
                     log("  Incubator: " + DebugWorldObject(incubator));
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.GetInventoryById(incubator.GetLinkedInventoryId());
+
+                    // Fix incubators that don't have enough slots for all ingredients.
+                    if (incubatorInv.GetSize() < minInventoryCapacity)
+                    {
+                        log("    Updated inventory capacity from " + incubatorInv.GetSize() + " to " + minInventoryCapacity);
+                        incubatorInv.SetSize(minInventoryCapacity);
+                    }
 
                     var currentItems = incubatorInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
@@ -466,6 +487,10 @@ namespace CheatAutoSequenceDNA
             else if (ingredientGroupId.StartsWith("Frog") && ingredientGroupId.EndsWith("Eggs"))
             {
                 return "FrogEgg";
+            }
+            else if (ingredientGroupId.StartsWith("Bacteria1"))
+            {
+                return "Bacteria";
             }
             return "";
         }
