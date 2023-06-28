@@ -161,7 +161,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(Drone), "DroneLoad")]
         static void Drone_DroneLoad(LogisticTask ___logisticTask)
         {
-            if (updateMode == MultiplayerMode.CoopHost && ___logisticTask.GetIsSpawnedObject())
+            if (updateMode == MultiplayerMode.CoopHost && ___logisticTask != null && ___logisticTask.GetIsSpawnedObject())
             {
                 SendWorldObjectToClients(___logisticTask.GetWorldObjectToMove(), false);
             }
