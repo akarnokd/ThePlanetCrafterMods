@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using TMPro;
 using System.Globalization;
+using System.Collections;
 
 namespace FixUnofficialPatches
 {
@@ -21,12 +22,16 @@ namespace FixUnofficialPatches
 
         static ManualLogSource logger;
 
+        static MethodInfo PlayerDirectVolumeOnTriggerExit;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            PlayerDirectVolumeOnTriggerExit = AccessTools.Method(typeof(PlayerDirectEnvironment), "OnTriggerExit", new Type[] { typeof(Collider) });
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -335,6 +340,53 @@ namespace FixUnofficialPatches
         static bool InstantiatedGameObjectFromInventory(GameObject ___spawnPoint)
         {
             return ___spawnPoint != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerMainController), "SetPlayerPlacement")]
+        static bool PlayerMainController_SetPlayerPlacement(PlayerMainController __instance,
+            Vector3 _position, Quaternion _rotation)
+        {
+            var beforeColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
+
+            __instance.transform.position = _position;
+            __instance.transform.rotation = _rotation;
+            Physics.SyncTransforms();
+            PlayerFallDamage component = __instance.GetComponent<PlayerFallDamage>();
+            if (component != null)
+            {
+                component.ResetLastGroundPlace();
+            }
+
+            Managers.GetManager<DisablerManager>().ForceCheckAllDisablers();
+
+            __instance.StartCoroutine(SetPlayerPlacementAfter(1, beforeColliders, __instance));
+
+            return false;
+        }
+
+        static IEnumerator SetPlayerPlacementAfter(
+            int frames, 
+            Collider[] beforeColliders, 
+            PlayerMainController __instance)
+        {
+            for (int i = 0; i < frames; i++)
+            {
+                yield return null;
+            }
+
+            var pde = __instance.GetComponent<PlayerDirectEnvironment>();
+
+            var afterColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
+
+            foreach (var bc in beforeColliders)
+            {
+                if (Array.IndexOf(afterColliders, bc) == -1)
+                {
+                    logger.LogInfo("OnTriggerExit: Manually triggered on " + bc.name);
+                    PlayerDirectVolumeOnTriggerExit.Invoke(pde, new object[] { bc });
+                }
+            }
         }
     }
 }
