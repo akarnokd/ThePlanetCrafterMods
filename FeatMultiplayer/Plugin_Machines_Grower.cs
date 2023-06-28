@@ -275,8 +275,7 @@ namespace FeatMultiplayer
         static void MachineGrower_OnVegetableGrabed_Host(MachineGrower machineGrower, WorldObject vegetableWo)
         {
             GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(machineGrower);
-            LogInfo(Environment.StackTrace);
-            UnityEngine.Object.Destroy(goMockup);
+            Destroy(goMockup);
             machineGrowerInstantiatedGameObject.SetValue(machineGrower, null);
 
             Inventory inventory = (Inventory)machineGrowerInventory.GetValue(machineGrower);

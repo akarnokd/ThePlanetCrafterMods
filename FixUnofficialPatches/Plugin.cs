@@ -329,5 +329,12 @@ namespace FixUnofficialPatches
         {
             _float = _float.Replace('/', '.');
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), "InstantiatedGameObjectFromInventory")]
+        static bool InstantiatedGameObjectFromInventory(GameObject ___spawnPoint)
+        {
+            return ___spawnPoint != null;
+        }
     }
 }
