@@ -108,6 +108,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Auto Move](#lathrey-auto-move)
 - [Disable Build Constraints](#lathrey-disable-build-constraints)
+- [Improve Performance](#lathrey-improve-performance)
 
 ## (Cheat) Asteroid Landing Position Override
 
@@ -1544,6 +1545,37 @@ Toggle_Auto_Move_Modifier_Key = None
 Toggle_Auto_Move_Key = CapsLock
 ```
 </details>
+
+## (Lathrey) Improve Performance
+
+Disable lights and particle effects on a configurable set of buildings.
+
+:warning: This mod runs in a different namespace thus it can't pick up your old configuration.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.lathreyimproveperformance.cfg</summary>
+
+```
+[General]
+
+## List of comma separated building group ids to disable lights of.
+# Setting type: String
+# Default value: VegetableGrower1,VegetableGrower2,Heater1,Heater2,Heater3,Heater4,EnergyGenerator4,EnergyGenerator5,EnergyGenerator6,CraftStation1,CraftStation2
+DisableLights = VegetableGrower1,VegetableGrower2,Heater1,Heater2,Heater3,Heater4,EnergyGenerator4,EnergyGenerator5,EnergyGenerator6,CraftStation1,CraftStation2
+
+## List of comma separated building group ids to disable particle effects of.
+# Setting type: String
+# Default value: AlgaeSpreader1,AlgaeSpreader2,Heater1,Heater2,Heater3,Heater4,EnergyGenerator4,EnergyGenerator5,EnergyGenerator6,CraftStation1,CraftStation2,Vegetube1,VegeTube2,VegetubeOutside1,Drill0,Drill1,Drill2,Drill3,Beacon1,GasExtractor,Biodome1,Wall_Door
+DisableParticles = AlgaeSpreader1,AlgaeSpreader2,Heater1,Heater2,Heater3,Heater4,EnergyGenerator4,EnergyGenerator5,EnergyGenerator6,CraftStation1,CraftStation2,Vegetube1,VegeTube2,VegetubeOutside1,Drill0,Drill1,Drill2,Drill3,Beacon1,GasExtractor,Biodome1,Wall_Door
+
+## Is this mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+```
+</details>
+
 
 ## (UI) Logistic Select All
 
