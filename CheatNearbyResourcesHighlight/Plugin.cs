@@ -120,13 +120,6 @@ namespace CheatNearbyResourcesHighlight
             public GameObject bar2;
             public float time;
 
-            public void Hide()
-            {
-                icon.SetActive(false);
-                bar1?.SetActive(false);
-                bar2?.SetActive(false);
-            }
-
             public void Destroy()
             {
                 resource = null;
@@ -233,7 +226,6 @@ namespace CheatNearbyResourcesHighlight
                         GameObjectTTL gameObjectTTL = scannerImageList[i];
                         if (Time.time >= gameObjectTTL.time || (gameObjectTTL.resource == null || !gameObjectTTL.resource.activeSelf))
                         {
-                            gameObjectTTL.Hide();
                             gameObjectTTL.Destroy();
                             scannerImageList.RemoveAt(i);
                         }
@@ -290,7 +282,6 @@ namespace CheatNearbyResourcesHighlight
             // hide any previously shown scanner images.
             foreach (GameObjectTTL go in scannerImageList)
             {
-                go.Hide();
                 go.Destroy();
             }
             scannerImageList.Clear();
