@@ -1166,9 +1166,12 @@ namespace CheatInventoryStacking
         /// <param name="_inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineFlockSpawner), nameof(MachineFlockSpawner.SetSpawnerInventory))]
-        static void MachineFlockSpawner_SetSpawnerInventory(Inventory _inventory)
+        static void MachineFlockSpawner_SetSpawnerInventory(MachineFlockSpawner __instance, Inventory _inventory)
         {
-            noStackingInventories.Add(_inventory.GetId());
+            if (__instance.GetComponent<MachineGenerator>() == null)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
         }
 
         /// <summary>
