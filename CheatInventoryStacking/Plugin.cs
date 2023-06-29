@@ -1230,6 +1230,9 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        // prevent the reentrancy upon deleting an overfilled shredder.
+        static bool suppressTryToCleanInventory;
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDestructInventoryIfFull), "TryToCleanInventory")]
         static bool MachineDestructInventoryIfFull_TryToCleanInventory(
@@ -1239,13 +1242,26 @@ namespace CheatInventoryStacking
         {
             if (stackShredder.Value && stackSize.Value > 1)
             {
-                if (___worldObject != null 
-                    && ___worldObject.GetSetting() == 1
-                    && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count)
+                if (!suppressTryToCleanInventory)
                 {
-                    ___inventory.DestroyAllItemsInside();
-                    __instance.actionnableInteractiveToAction?.OnActionInteractive();
+                    try
+                    {
+                        suppressTryToCleanInventory = true;
+
+                        if (___worldObject != null
+                            && ___worldObject.GetSetting() == 1
+                            && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count)
+                        {
+                            ___inventory.DestroyAllItemsInside();
+                            __instance.actionnableInteractiveToAction?.OnActionInteractive();
+                        }
+                    } 
+                    finally
+                    {
+                        suppressTryToCleanInventory = false;
+                    }
                 }
+                return false;
             }
             return true;
         }
