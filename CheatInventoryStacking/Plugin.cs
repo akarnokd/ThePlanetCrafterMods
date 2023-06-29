@@ -1218,6 +1218,11 @@ namespace CheatInventoryStacking
             WorldObject ___worldObject,
             Inventory ___inventory)
         {
+            // In multiplayer mode, don't do the stuff below
+            if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
+            {
+                return false;
+            }
             if (stackTradeRockets.Value && stackSize.Value > 1)
             {
                 if (___worldObject != null 
