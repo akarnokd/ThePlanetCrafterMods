@@ -13,6 +13,7 @@ using System.Linq;
 using TMPro;
 using System.Globalization;
 using System.Collections;
+using BepInEx.Configuration;
 
 namespace FixUnofficialPatches
 {
@@ -24,12 +25,16 @@ namespace FixUnofficialPatches
 
         static MethodInfo PlayerDirectVolumeOnTriggerExit;
 
+        static ConfigEntry<bool> enableTeleportFix;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            enableTeleportFix = Config.Bind("General", "TeleportFix", true, "Enable the workaround for teleporting around and breaking larvae spawns");
 
             PlayerDirectVolumeOnTriggerExit = AccessTools.Method(typeof(PlayerDirectEnvironment), "OnTriggerExit", new Type[] { typeof(Collider) });
 
@@ -342,32 +347,46 @@ namespace FixUnofficialPatches
             return ___spawnPoint != null;
         }
 
+        static List<Collider> exitedColliders;
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerMainController), "SetPlayerPlacement")]
         static bool PlayerMainController_SetPlayerPlacement(PlayerMainController __instance,
             Vector3 _position, Quaternion _rotation)
         {
-            var beforeColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
-
-            __instance.transform.position = _position;
-            __instance.transform.rotation = _rotation;
-            Physics.SyncTransforms();
-            PlayerFallDamage component = __instance.GetComponent<PlayerFallDamage>();
-            if (component != null)
+            if (enableTeleportFix.Value)
             {
-                component.ResetLastGroundPlace();
+                var beforeColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
+                exitedColliders = new();
+
+                __instance.transform.position = _position;
+                __instance.transform.rotation = _rotation;
+                Physics.SyncTransforms();
+                PlayerFallDamage component = __instance.GetComponent<PlayerFallDamage>();
+                if (component != null)
+                {
+                    component.ResetLastGroundPlace();
+                }
+
+                Managers.GetManager<DisablerManager>().ForceCheckAllDisablers();
+
+                __instance.StartCoroutine(SetPlayerPlacementAfter(1, beforeColliders, __instance));
+
+                return false;
             }
+            return true;
+        }
 
-            Managers.GetManager<DisablerManager>().ForceCheckAllDisablers();
-
-            __instance.StartCoroutine(SetPlayerPlacementAfter(1, beforeColliders, __instance));
-
-            return false;
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerDirectEnvironment), "OnTriggerExit")]
+        static void PlayerDirectEnvironment_OnTriggerExit(Collider other)
+        {
+            exitedColliders?.Add(other);
         }
 
         static IEnumerator SetPlayerPlacementAfter(
-            int frames, 
-            Collider[] beforeColliders, 
+            int frames,
+            Collider[] beforeColliders,
             PlayerMainController __instance)
         {
             for (int i = 0; i < frames; i++)
@@ -375,16 +394,20 @@ namespace FixUnofficialPatches
                 yield return null;
             }
 
-            var pde = __instance.GetComponent<PlayerDirectEnvironment>();
-
-            var afterColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
-
-            foreach (var bc in beforeColliders)
+            var pde = __instance?.GetComponent<PlayerDirectEnvironment>();
+            if (pde != null)
             {
-                if (Array.IndexOf(afterColliders, bc) == -1)
+                var afterColliders = Physics.OverlapSphere(__instance.transform.position, 0.1f);
+
+                foreach (var bc in beforeColliders)
                 {
-                    logger.LogInfo("OnTriggerExit: Manually triggered on " + bc.name);
-                    PlayerDirectVolumeOnTriggerExit.Invoke(pde, new object[] { bc });
+                    bool inAfterColliders = Array.IndexOf(afterColliders, bc) != -1;
+                    bool hasExitedNormally = exitedColliders == null || exitedColliders.IndexOf(bc) != -1;
+                    if (!inAfterColliders && !hasExitedNormally)
+                    {
+                        logger.LogInfo("OnTriggerExit: Manually triggered on " + bc.name);
+                        PlayerDirectVolumeOnTriggerExit.Invoke(pde, new object[] { bc });
+                    }
                 }
             }
         }
