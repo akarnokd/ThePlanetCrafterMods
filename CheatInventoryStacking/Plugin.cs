@@ -15,6 +15,7 @@ using System.Collections;
 using System.Linq;
 using System.Diagnostics;
 using System.Data;
+using static UnityEngine.InputSystem.InputSettings;
 
 namespace CheatInventoryStacking
 {
@@ -1210,18 +1211,43 @@ namespace CheatInventoryStacking
             noStackingInventories = new(defaultNoStackingInventories);
         }
 
-        /*
-        static bool calledFromSetLogisticTask;
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.GetSize))]
-        static void Inventory_GetSize(ref int __result, int ___inventorySize)
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineTradePlatform), "OnTradeInventoryModified")]
+        static bool MachineTradePlatform_OnTradeInventoryModified(
+            MachineTradePlatform __instance, 
+            WorldObject ___worldObject,
+            Inventory ___inventory)
         {
-            if (calledFromSetLogisticTask)
+            if (stackTradeRockets.Value && stackSize.Value > 1)
             {
-                __result = ___inventorySize * stackSize.Value;
+                if (___worldObject != null 
+                    && ___worldObject.GetSetting() == 1 
+                    && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count) {
+                    __instance.SendTradeRocket();
+                }
+                return false;
             }
+            return true;
         }
-        */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), "TryToCleanInventory")]
+        static bool MachineDestructInventoryIfFull_TryToCleanInventory(
+            MachineDestructInventoryIfFull __instance,
+            WorldObject ___worldObject,
+            Inventory ___inventory)
+        {
+            if (stackShredder.Value && stackSize.Value > 1)
+            {
+                if (___worldObject != null 
+                    && ___worldObject.GetSetting() == 1
+                    && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count)
+                {
+                    ___inventory.DestroyAllItemsInside();
+                    __instance.actionnableInteractiveToAction?.OnActionInteractive();
+                }
+            }
+            return true;
+        }
     }
 }
