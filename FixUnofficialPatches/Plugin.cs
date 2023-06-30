@@ -136,6 +136,13 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), "OnInventoryModified")]
+        static bool MachineGrower_OnInventoryModified(MachineGrower __instance)
+        {
+            return __instance != null;
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineConvertRecipe), nameof(MachineConvertRecipe.CheckIfFullyGrown))]
         static bool MachineConvertRecipe_CheckIfFullyGrown(
             WorldObject ___worldObject
