@@ -206,7 +206,6 @@ namespace FixUnofficialPatches
             return __instance.HasDemandGroups();
         }
 
-        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), nameof(Drone.UpdateState))]
         static void Drone_UpdateState(LogisticTask ___logisticTask)
@@ -232,7 +231,6 @@ namespace FixUnofficialPatches
                 }
             }
         }
-        */
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
