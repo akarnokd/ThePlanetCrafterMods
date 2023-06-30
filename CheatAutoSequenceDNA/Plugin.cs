@@ -46,6 +46,10 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> sequencerTreeSeedId;
 
+        static ConfigEntry<string> sequencerPhytoplanktonId;
+
+        static ConfigEntry<string> sequencerFertilizerId;
+
         static ConfigEntry<string> incubatorPhytoplanktonId;
 
         static ConfigEntry<string> incubatorFishId;
@@ -87,6 +91,8 @@ namespace CheatAutoSequenceDNA
             sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
             sequencerFlowerSeedId = Config.Bind("Sequencer", "FlowerSeed", "*FlowerSeed", "The name of the container(s) where to look for Flower Seeds (all kinds).");
             sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
+            sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
+            sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
@@ -505,6 +511,8 @@ namespace CheatAutoSequenceDNA
                 { "TreeRoot", sequencerTreeRootId.Value },
                 { "FlowerSeed", sequencerFlowerSeedId.Value },
                 { "TreeSeed", sequencerTreeSeedId.Value },
+                { "Phytoplankton", sequencerPhytoplanktonId.Value },
+                { "Fertilizer", sequencerFertilizerId.Value },
             };
 
             // List of world objects per category (containers, machines)
@@ -553,6 +561,10 @@ namespace CheatAutoSequenceDNA
                             if (gid.StartsWith("Tree") && gid.EndsWith("Seed"))
                             {
                                 TryDeposit(sequencerInv, item, itemCategories, "TreeSeed");
+                            }
+                            if (gid.StartsWith("Seed"))
+                            {
+                                TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed");
                             }
                         }
                     }

@@ -263,11 +263,13 @@ following naming convention is used (can be changed in the config file):
 
 On the recipe side:
 - `*Larvae` - where the various common, uncommon and rare larvae will be searched for.
-- `*Mutagen` - where the *Mutagen* ingredient is searched for.
-- `*Fertilizer` - where the *Fertilizer* ingredient is searched for.
+- `*Mutagen` - where the *Mutagen* ingredients are searched for.
+- `*Fertilizer` - where the *Fertilizer* ingredients are searched for.
 - `*TreeRoot` - where the *Tree Root* ingredient is searched for.
-- `*FlowerSeed` - where the various *Flower Seed* ingredient is searched for.
-- `*Phytoplankton` - where the various *Phytoplankton* ingredient is searched for.
+- `*FlowerSeed` - where the various *Flower Seed* ingredients are searched for.
+- `*Phytoplankton` - where the various *Phytoplankton* ingredients are searched for.
+- `*Bacteria` - where the *Bacteria* ingredient is searched for.
+- `*FrogEgg` - where the *Frog Eggs* ingredients are searched for.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
@@ -275,6 +277,7 @@ On the product side:
 - `*Silk` - where to deposit the created *Silk Worm*s.
 - `*TreeSeed` - where to deposit the created *Tree Seed*s (all kinds).
 - `*Fish` - where to deposit the created *Fish* (all kinds).
+- `*FrogEgg` - where to deposit the created *Frog Eggs* (all kinds).
 
 (Note. Unlike other similar mods, you don't need to start the naming with the star `*` character. The defaults shown are just a convention I use.)
 
@@ -295,6 +298,11 @@ they would both get their ingredients from.
 # Setting type: Boolean
 # Default value: false
 DebugMode = false
+
+## The maximum distance to look for the named containers. 0 means unlimited.
+# Setting type: Int32
+# Default value: 30
+Range = 30
 
 [Incubator]
 
@@ -343,6 +351,16 @@ Phytoplankton = *Phytoplankton
 # Default value: *Fish
 Fish = *Fish
 
+## The name of the container(s) where to to look for frog eggs.
+# Setting type: String
+# Default value: *FrogEgg
+FrogEgg = *FrogEgg
+
+## The name of the container(s) where to to look for bacteria samples.
+# Setting type: String
+# Default value: *Bacteria
+Bacteria = *Bacteria
+
 [Sequencer]
 
 ## Should the Tree-sequencer auto sequence?
@@ -369,6 +387,16 @@ FlowerSeed = *FlowerSeed
 # Setting type: String
 # Default value: *TreeSeed
 TreeSeed = *TreeSeed
+
+## The name of the container(s) where to look for Phytoplankton.
+# Setting type: String
+# Default value: *Phytoplankton
+Phytoplankton = *Phytoplankton
+
+## The name of the container(s) where to look for fertilizer.
+# Setting type: String
+# Default value: *Fertilizer
+Fertilizer = *Fertilizer
 ```
 </details>
 
