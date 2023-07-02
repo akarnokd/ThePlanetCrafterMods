@@ -228,7 +228,8 @@ namespace FixUnofficialPatches
                         ___logisticTask.SetTaskState(LogisticData.TaskState.Done);
                     }
                 }
-                if (state == LogisticData.TaskState.ToSupply)
+                if (!___logisticTask.GetIsSpawnedObject() 
+                    && state == LogisticData.TaskState.ToSupply)
                 {
                     var go = ___logisticTask.GetSupplyInventoryWorldObject()?.GetGameObject();
                     if (go == null)
