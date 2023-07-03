@@ -2797,6 +2797,44 @@ namespace FeatCommandConsole
             ___updateGrowthEvery = tradePlatformDelay;
         }
 
+        [Command("/list-golden-containers", "Lists all loaded-in golden containers.")]
+        public void ListGoldenContainers(List<string> args)
+        {
+            int range = 0;
+            if (args.Count > 1)
+            {
+                range = int.Parse(args[1]);
+            }
+
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var player = pm.transform.position;
+
+            int i = 0;
+            foreach (var wos in FindObjectsOfType<WorldObjectFromScene>(true))
+            {
+                var gd = wos.GetGroupData();
+                if (gd.id == "GoldenContainer")
+                {
+                    if (i == 0)
+                    {
+                        addLine("<margin=1em>Golden Containers found:");
+                    }
+                    var p = wos.transform.position;
+                    var d = Vector3.Distance(player, p);
+                    if (range == 0 || d <= range)
+                    {
+                        addLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                    }
+                    i++;
+                }
+            }
+
+            if (i == 0)
+            {
+                addLine("<margin=1em>No containers found.");
+            }
+        }
+
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
