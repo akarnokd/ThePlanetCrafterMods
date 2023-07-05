@@ -120,7 +120,7 @@ namespace CheatRecyclerRemoteDeposit
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionRecycle), nameof(ActionRecycle.OnAction))]
-        static bool ActionRecycle_OnAction(ActionRecycle __instance)
+        static bool ActionRecycle_OnAction(ActionRecycle __instance, Collider ___craftSpawn)
         {
             if (modEnabled.Value)
             {
@@ -199,8 +199,7 @@ namespace CheatRecyclerRemoteDeposit
                                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Recycler: No designated container found!");
                             }
                         }
-                        WorldObjectsHandler.DestroyWorldObject(wo);
-                        return false;
+                        WorldObjectsHandler.DropOnFloor(wo, ___craftSpawn.transform.position);
                     }
                 }
 
