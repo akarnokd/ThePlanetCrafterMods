@@ -36,10 +36,18 @@ namespace LibCommon
 
                         foreach (var line in lines)
                         {
-                            if (line.StartsWith("HideManagerGameObject") && line.EndsWith("true"))
+                            if (line.StartsWith("HideManagerGameObject"))
                             {
-                                logger.LogInfo("HideManagerGameObject = true");
-                                return true;
+                                if (line.EndsWith("false"))
+                                {
+                                    logger.LogInfo("HideManagerGameObject = false");
+                                    return false;
+                                }
+                                else if (line.EndsWith("true"))
+                                {
+                                    logger.LogInfo("HideManagerGameObject = true");
+                                    return true;
+                                }
                             }
                         }
                     } 

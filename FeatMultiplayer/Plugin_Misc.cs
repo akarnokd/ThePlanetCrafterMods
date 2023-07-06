@@ -27,7 +27,7 @@ namespace FeatMultiplayer
             var background = new GameObject("Multiplayer_Notification_Background");
             background.transform.SetParent(panel.transform, false);
             var img = background.AddComponent<Image>();
-            img.color = new Color(0.5f, 0, 0, 0.95f);
+            img.color = new Color(0.5f, 0, 0, 0.98f);
 
             var text = new GameObject("Multiplayer_Notification_Text");
             text.transform.SetParent(background.transform, false);

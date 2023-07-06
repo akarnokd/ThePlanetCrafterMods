@@ -123,6 +123,11 @@ namespace FeatMultiplayer
             LibCommon.GameVersionCheck.Patch(harmony, "(Feat) Multiplayer - v" + PluginInfo.PLUGIN_VERSION);
         }
 
+        void OnDestroy()
+        {
+            theLogger.LogInfo("OnDestroy");
+        }
+
         static Texture2D LoadPNG(string filename)
         {
             Texture2D tex = new Texture2D(100, 200);
