@@ -321,6 +321,11 @@ namespace FeatMultiplayer
                 Receive(cc, mcs);
             }
             else
+            if (MessageDeconstructPanel.TryParse(message, out var mdp1))
+            {
+                Receive(cc, mdp1);
+            }
+            else
             if (message == "ENoClientSlot" && updateMode == MultiplayerMode.CoopClient)
             {
                 NotifyUserFromBackground("Host full");
@@ -637,6 +642,11 @@ namespace FeatMultiplayer
                 case MessageConsume mcs:
                     {
                         ReceiveMessageConsume(mcs);
+                        break;
+                    }
+                case MessageDeconstructPanel mdp1:
+                    {
+                        ReceiveMessageDeconstructPanel(mdp1);
                         break;
                     }
                 default:
