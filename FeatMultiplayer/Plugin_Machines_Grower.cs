@@ -241,7 +241,7 @@ namespace FeatMultiplayer
                                     {
                                         ag = vegetableGo.AddComponent<ActionGrabable>();
                                     }
-                                    ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(instance, wo)));
+                                    ag.grabedEvent = (Grabed)Delegate.Combine(ag.grabedEvent, new Grabed((wo, notif) => MachineGrower_OnVegetableGrabed_Host(instance, wo, notif)));
 
                                     UnityEngine.Object.Destroy(goMockup);
                                     machineGrowerInstantiatedGameObject.SetValue(instance, null);
@@ -272,7 +272,7 @@ namespace FeatMultiplayer
             }
         }
 
-        static void MachineGrower_OnVegetableGrabed_Host(MachineGrower machineGrower, WorldObject vegetableWo)
+        static void MachineGrower_OnVegetableGrabed_Host(MachineGrower machineGrower, WorldObject vegetableWo, bool notif)
         {
             GameObject goMockup = (GameObject)machineGrowerInstantiatedGameObject.GetValue(machineGrower);
             Destroy(goMockup);
@@ -288,7 +288,7 @@ namespace FeatMultiplayer
                 inventory.AddItem(seedWo);
 
                 // no need to display the information if the client grabbed it
-                if (!clientGrabCallback)
+                if (!clientGrabCallback && notif)
                 {
                     Managers.GetManager<DisplayersHandler>().GetInformationsDisplayer()
                         .AddInformation(2.5f, Readable.GetGroupName(seedWo.GetGroup()),
@@ -337,11 +337,11 @@ namespace FeatMultiplayer
                     Grabed newGrabEvent = null;
                     if (updateMode == MultiplayerMode.CoopHost)
                     {
-                        newGrabEvent = new Grabed((wo) => MachineGrower_OnVegetableGrabed_Host(__instance, wo));
+                        newGrabEvent = new Grabed((wo, notif) => MachineGrower_OnVegetableGrabed_Host(__instance, wo, notif));
                     }
                     else
                     {
-                        newGrabEvent = new Grabed((wo) => machineGrowerOnVegetableGrabed.Invoke(__instance, new object[] { wo }));
+                        newGrabEvent = new Grabed((wo, notif) => machineGrowerOnVegetableGrabed.Invoke(__instance, new object[] { wo, notif }));
                     }
 
                     ActionGrabable ag = vegetableGo.GetComponent<ActionGrabable>();
