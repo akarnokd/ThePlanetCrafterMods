@@ -61,7 +61,7 @@ namespace FeatMultiplayer
 
             machineGrowerInstantiatedGameObject = AccessTools.Field(typeof(MachineGrower), "instantiatedGameObject");
             machineGrowerInventory = AccessTools.Field(typeof(MachineGrower), "inventory");
-            machineGrowerOnVegetableGrabed = AccessTools.Method(typeof(MachineGrower), "OnVegetableGrabed", new Type[] { typeof(WorldObject) });
+            machineGrowerOnVegetableGrabed = AccessTools.Method(typeof(MachineGrower), "OnVegetableGrabed", new Type[] { typeof(WorldObject), typeof(bool) });
 
             machineOutsideGrowerUpdateGrowing = AccessTools.Method(typeof(MachineOutsideGrower), "UpdateGrowing", new Type[] { typeof(float) });
             machineOutsideGrowerInstantiateAtRandomPosition = AccessTools.Method(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition", new Type[] { typeof(GameObject), typeof(bool) });
