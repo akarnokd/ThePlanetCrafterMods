@@ -198,6 +198,7 @@ namespace PerfMonitor
         {
             PerfEnd("MachineGenerator_GenerateAnObject");
         }
+        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineAutoCrafter), "SetItemsInRange")]
@@ -227,6 +228,7 @@ namespace PerfMonitor
             PerfEnd("MachineAutoCrafter_CraftIfPossible");
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(RequireEnergyHandler), "UpdateAllEnergyRequester")]
         static void RequireEnergyHandler_UpdateAllEnergyRequester()
@@ -318,7 +320,6 @@ namespace PerfMonitor
         {
             PerfEnd("WorldUnitsHandler_ForceResetAllValues");
         }
-        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.GetWorldObjectForInventory))]
@@ -343,7 +344,7 @@ namespace PerfMonitor
             List<MachineDroneStation> ___allDroneStations
         )
         {
-            /*
+            / *
             logger.LogInfo("LogisticManager_SetLogisticTasks\r\n"
                 + "   droneFleet        = " + ___droneFleet.Count + "\r\n"
                 + "   allDroneStations  = " + ___allDroneStations.Count + "\r\n"
@@ -351,7 +352,7 @@ namespace PerfMonitor
                 + "   supplyInventories = " + ___supplyInventories.Count + "\r\n"
                 + "   demandInventories = " + ___demandInventories.Count
             );
-            */
+            * /
             PerfBegin("LogisticManager_SetLogisticTasks");
         }
         [HarmonyPostfix]
@@ -413,6 +414,7 @@ namespace PerfMonitor
             PerfEnd("MachineDroneStation_TryToReleaseOneDrone");
         }
 
+        */
         class IEnumeratorInterceptor : IEnumerator
         {
             readonly IEnumerator original;

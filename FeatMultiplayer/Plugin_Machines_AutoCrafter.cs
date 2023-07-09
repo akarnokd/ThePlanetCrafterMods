@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using FeatMultiplayer.MessageTypes;
+using System.Diagnostics;
 
 namespace FeatMultiplayer
 {
@@ -72,11 +73,15 @@ namespace FeatMultiplayer
             var outputInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
             autoCrafterInventoryField.SetValue(__instance, outputInventory);
 
+            Stopwatch sw = Stopwatch.StartNew();
+            LogAlways("Auto Crafter Telemetry: " + __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject()?.GetId());
+
             List<WorldObject> candidateWorldObjects = new();
 
             foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
             {
-                if (Vector3.Distance(wo.GetPosition(), thisPosition) < range)
+                var pos = wo.GetPosition();
+                if (pos != Vector3.zero && Vector3.Distance(pos, thisPosition) < range)
                 {
                     var invId = wo.GetLinkedInventoryId();
                     if (invId != 0)
@@ -93,6 +98,9 @@ namespace FeatMultiplayer
                     }
                 }
             }
+
+            LogAlways(string.Format("    Range search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
+            sw.Restart();
 
             List<WorldObject> toConsume = new();
 
@@ -117,11 +125,15 @@ namespace FeatMultiplayer
                 }
             }
 
+            LogAlways(string.Format("    Ingredient search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
+            sw.Restart();
+
             if (ingredientFound == recipe.Count)
             {
                 if (TryCreateInInventoryAndNotify(linkedGroup, outputInventory, null, out _))
                 {
                     WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
+                    LogAlways(string.Format("    Ingredient destroy: {0:0.000} ms", sw.ElapsedTicks / 10000d));
                     __instance.CraftAnimation((GroupItem)linkedGroup);
                 }
                 else
