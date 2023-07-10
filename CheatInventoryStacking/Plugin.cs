@@ -799,6 +799,8 @@ namespace CheatInventoryStacking
             }
         }
 
+        static List<WorldObject> autocrafterCandidateWorldObjects = new();
+
         static void MachineAutoCrafter_CraftIfPossible_Override(
             MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
         {
@@ -808,11 +810,23 @@ namespace CheatInventoryStacking
             var outputInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
             autoCrafterInventoryField.SetValue(__instance, outputInventory);
 
-            List<WorldObject> candidateWorldObjects = new();
+            // Stopwatch sw = Stopwatch.StartNew();
+            // LogAlways("Auto Crafter Telemetry: " + __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject()?.GetId());
+
+            var recipe = linkedGroup.GetRecipe().GetIngredientsGroupInRecipe();
+
+            var recipeSet = new HashSet<string>();
+            foreach (var ingr in recipe)
+            {
+                recipeSet.Add(ingr.id);
+            }
+
+            autocrafterCandidateWorldObjects.Clear();
 
             foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
             {
-                if (Vector3.Distance(wo.GetPosition(), thisPosition) < range)
+                var pos = wo.GetPosition();
+                if (pos != Vector3.zero && Vector3.Distance(pos, thisPosition) < range)
                 {
                     var invId = wo.GetLinkedInventoryId();
                     if (invId != 0)
@@ -820,19 +834,26 @@ namespace CheatInventoryStacking
                         var inv = InventoriesHandler.GetInventoryById(invId);
                         if (inv != null)
                         {
-                            candidateWorldObjects.AddRange(inv.GetInsideWorldObjects());
+                            foreach (var woi in inv.GetInsideWorldObjects())
+                            {
+                                if (recipeSet.Contains(woi.GetGroup().GetId()))
+                                {
+                                    autocrafterCandidateWorldObjects.Add(woi);
+                                }
+                            }
                         }
                     }
-                    else if (wo.GetGroup() is GroupItem)
+                    else if (wo.GetGroup() is GroupItem gi && recipeSet.Contains(gi.id))
                     {
-                        candidateWorldObjects.Add(wo);
+                        autocrafterCandidateWorldObjects.Add(wo);
                     }
                 }
             }
 
-            List<WorldObject> toConsume = new();
+            // LogAlways(string.Format("    Range search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
+            // sw.Restart();
 
-            List<Group> recipe = new(linkedGroup.GetRecipe().GetIngredientsGroupInRecipe());
+            List<WorldObject> toConsume = new();
 
             int ingredientFound = 0;
 
@@ -840,18 +861,21 @@ namespace CheatInventoryStacking
             {
                 var recipeGid = recipe[i].GetId();
 
-                for (int j = 0; j < candidateWorldObjects.Count; j++)
+                for (int j = 0; j < autocrafterCandidateWorldObjects.Count; j++)
                 {
-                    WorldObject lo = candidateWorldObjects[j];
+                    WorldObject lo = autocrafterCandidateWorldObjects[j];
                     if (lo != null && lo.GetGroup().GetId() == recipeGid)
                     {
                         toConsume.Add(lo);
-                        candidateWorldObjects[j] = null;
+                        autocrafterCandidateWorldObjects[j] = null;
                         ingredientFound++;
                         break;
                     }
                 }
             }
+
+            //LogAlways(string.Format("    Ingredient search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
+            //sw.Restart();
 
             if (ingredientFound == recipe.Count)
             {
@@ -859,6 +883,7 @@ namespace CheatInventoryStacking
                 if (outputInventory.AddItem(craftedWo))
                 {
                     WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
+                    // LogAlways(string.Format("    Ingredient destroy: {0:0.000} ms", sw.ElapsedTicks / 10000d));
                     __instance.CraftAnimation((GroupItem)linkedGroup);
                 }
                 else

@@ -203,7 +203,7 @@ namespace FeatMultiplayer
                             __instance.StartCoroutine(enumer);
                         };
 
-                        ag.grabedEvent = new Grabed(wo => OnGrabSpawn(spi.machineId, id, spi.doRespawn));
+                        ag.grabedEvent = new Grabed((wo, notif) => OnGrabSpawn(spi.machineId, id, spi.doRespawn));
                     }
                     ___instantiatedGameObjects.Add(spawn);
 

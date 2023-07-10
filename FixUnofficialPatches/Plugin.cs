@@ -213,6 +213,7 @@ namespace FixUnofficialPatches
             return __instance.HasDemandGroups();
         }
 
+        /* Fixed in 0.8.009
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), nameof(Drone.UpdateState))]
         static void Drone_UpdateState(LogisticTask ___logisticTask)
@@ -239,6 +240,7 @@ namespace FixUnofficialPatches
                 }
             }
         }
+        */
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
@@ -353,6 +355,7 @@ namespace FixUnofficialPatches
             return ___spawnPoint != null;
         }
 
+        /* Fixed in 0.8.009
         static List<Collider> exitedColliders;
 
         [HarmonyPrefix]
@@ -417,5 +420,6 @@ namespace FixUnofficialPatches
                 }
             }
         }
+        */
     }
 }
