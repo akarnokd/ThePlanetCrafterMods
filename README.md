@@ -1321,15 +1321,13 @@ még nem vagy már elfogadott fordításokat tartalmazza. Néhány fordítás eg
 
 Patches in labels and enables switching to Italian ("Italiano") in the game's options screen. Note that some labels do not change when switching to Italian the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
 
-The translation was kindly provided by [Lorenza](https://github.com/LorenzaMX) (Discord: 𝕷𝖔𝖗𝖊𝖓𝖟𝖆#8158).
+The translation was provided by someone who wishes to remain anonymous.
 
 :information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Italian myself.
 
 :it:
 
 Patch nelle etichette e abilita il passaggio all'italiano ("Italiano") nella schermata delle opzioni del gioco. Si noti che alcune etichette non cambiano quando si passa all'italiano per la prima volta. Questo è un bug nell'interfaccia utente del gioco vanilla e può essere risolto riavviando il gioco.
-
-La traduzione è stata gentilmente fornita da [Lorenza](https://github.com/LorenzaMX) (Discord: 𝕷𝖔𝖗𝖊𝖓𝖟𝖆#8158).
 
 
 ### Configuration
