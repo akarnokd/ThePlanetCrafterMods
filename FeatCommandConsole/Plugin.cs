@@ -1799,13 +1799,28 @@ namespace FeatCommandConsole
 
         IEnumerator AutoRefillCoroutine()
         {
-            for (; ; ) { 
-                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                var gh = pm.GetGaugesHandler();
-                gh.AddHealth(100);
-                gh.AddWater(100);
-                gh.AddOxygen(1000);
-                    yield return new WaitForSeconds(1);
+            for (; ; ) {
+                var pc = Managers.GetManager<PlayersManager>();
+                if (pc != null)
+                {
+                    var pm = pc.GetActivePlayerController();
+                    if (pm != null)
+                    {
+                        var gh = pm.GetGaugesHandler();
+                        if (gh != null)
+                        {
+                            gh.AddHealth(100);
+                            gh.AddWater(100);
+                            gh.AddOxygen(1000);
+
+                            yield return new WaitForSeconds(1);
+
+                            continue;
+                        }
+                    }
+                }
+                autorefillCoroutine = null;
+                break;
             }
         }
 
@@ -2834,6 +2849,87 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>No containers found.");
             }
         }
+
+        [Command("/save-stats", "Display save statistics.")]
+        public void SaveStats(List<string> args)
+        {
+            int totalWorldObjects = 0;
+            int sceneWorldObjects = 0;
+            int placedSceneItems = 0;
+            int sceneWorldObjectsInventory = 0;
+
+            int playerWorldObjects = 0;
+            int playerStructures = 0;
+            int playerPlacedItems = 0;
+            int playerWorldObjectsInventory = 0;
+
+            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                totalWorldObjects++;
+                if (WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()))
+                {
+                    sceneWorldObjects++;
+                    if (wo.GetIsPlaced())
+                    {
+                        placedSceneItems++;
+                    }
+                    if (wo.GetLinkedInventoryId() != 0)
+                    {
+                        sceneWorldObjectsInventory++;
+                    }
+                }
+                else
+                {
+                    playerWorldObjects++;
+                    if (wo.GetGroup() is GroupConstructible)
+                    {
+                        playerStructures++;
+                    }
+                    if (wo.GetGroup() is GroupItem && wo.GetIsPlaced())
+                    {
+                        playerPlacedItems++;
+                    }
+                    if (wo.GetLinkedInventoryId() != 0)
+                    {
+                        playerWorldObjectsInventory++;
+                    }
+                }
+            }
+
+            int totalInventories = 0;
+            int sceneInventories = 0;
+            int playerInventories = 0;
+            int totalItemsInInventory = 0;
+
+            foreach (var inv in InventoriesHandler.GetAllInventories())
+            {
+                totalInventories++;
+                if (WorldObjectsIdHandler.IsWorldObjectFromScene(inv.GetId()))
+                {
+                    sceneInventories++;
+                }
+                else
+                {
+                    playerInventories++;
+                    totalItemsInInventory += inv.GetInsideWorldObjects().Count;
+                }
+            }
+
+            addLine(string.Format("<margin=1em>Total Objects: <color=#00FF00>{0:#,##0}</color>", totalWorldObjects));
+            addLine(string.Format("<margin=1em>   Scene Objects: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjects));
+            addLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", placedSceneItems));
+            addLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjectsInventory));
+            addLine(string.Format("<margin=1em>   Player Objects: <color=#00FF00>{0:#,##0}</color>", playerWorldObjects));
+            addLine(string.Format("<margin=1em>      Structures: <color=#00FF00>{0:#,##0}</color>", playerStructures));
+            addLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", playerPlacedItems));
+            addLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", playerWorldObjectsInventory));
+            addLine(string.Format("<margin=1em>Total Inventories: <color=#00FF00>{0:#,##0}</color>", totalInventories));
+            addLine(string.Format("<margin=1em>   Scene Inventories: <color=#00FF00>{0:#,##0}</color>", sceneInventories));
+            addLine(string.Format("<margin=1em>   Player Inventories: <color=#00FF00>{0:#,##0}</color>", playerInventories));
+            addLine(string.Format("<margin=1em>      Items inside: <color=#00FF00>{0:#,##0}</color>", totalItemsInInventory));
+
+        }
+
 
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
