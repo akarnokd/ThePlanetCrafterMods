@@ -7,11 +7,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FeatMultiplayer.MessageTypes;
+using System.Numerics;
 
 namespace FeatMultiplayer
 {
     public partial class Plugin : BaseUnityPlugin
     {
+
+        static ActionMinable playerMiningTarget;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionMinable), nameof(ActionMinable.OnAction))]
+        static void ActionMinable_OnAction(ActionMinable __instance)
+        {
+            playerMiningTarget = __instance;
+        }
+
         /// <summary>
         /// The vanilla game calls ActionMinable::FinishMining when the player spent enough time aiming at the resource.
         /// 
@@ -29,6 +40,7 @@ namespace FeatMultiplayer
         {
             if (___timeMineStarted - ___timeMineStoped > ___playerSource.GetMultitool().GetMultiToolMine().GetMineTime())
             {
+                playerMiningTarget = null;
                 WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
                 if (woa != null)
                 {

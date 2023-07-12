@@ -15,6 +15,7 @@ namespace FeatMultiplayer.MessageTypes
         internal Quaternion rotation;
         internal int lightMode;
         internal string clientName;
+        internal Vector3 miningPosition;
 
         public override string GetString()
         {
@@ -37,13 +38,19 @@ namespace FeatMultiplayer.MessageTypes
             sb.Append(lightMode);
             sb.Append('|');
             sb.Append(clientName);
+            sb.Append('|');
+            sb.Append(miningPosition.x.ToString(CultureInfo.InvariantCulture));
+            sb.Append('|');
+            sb.Append(miningPosition.y.ToString(CultureInfo.InvariantCulture));
+            sb.Append('|');
+            sb.Append(miningPosition.z.ToString(CultureInfo.InvariantCulture));
             sb.Append('\n');
             return sb.ToString();
         }
 
         public static bool TryParse(string str, out MessagePlayerPosition message)
         {
-            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 10, out string[] parts))
+            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 13, out string[] parts))
             {
                 try
                 {
@@ -59,6 +66,10 @@ namespace FeatMultiplayer.MessageTypes
 
                     message.lightMode = int.Parse(parts[8]);
                     message.clientName = parts[9];
+
+                    message.miningPosition.x = float.Parse(parts[10], CultureInfo.InvariantCulture);
+                    message.miningPosition.y = float.Parse(parts[11], CultureInfo.InvariantCulture);
+                    message.miningPosition.z = float.Parse(parts[12], CultureInfo.InvariantCulture);
                     return true;
                 }
                 catch (Exception ex)

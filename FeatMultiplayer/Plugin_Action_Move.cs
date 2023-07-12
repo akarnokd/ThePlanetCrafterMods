@@ -129,7 +129,8 @@ namespace FeatMultiplayer
                     position = player.position,
                     rotation = camera.m_Camera.transform.rotation,
                     lightMode = lightMode,
-                    clientName = "" // not used when sending
+                    clientName = "", // not used when sending
+                    miningPosition = playerMiningTarget != null ? playerMiningTarget.transform.position : Vector3.zero
                 };
 
                 if (updateMode == MultiplayerMode.CoopHost)
@@ -152,7 +153,7 @@ namespace FeatMultiplayer
                 {
                     if (playerAvatars.TryGetValue(clientName, out var avatar))
                     {
-                        avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+                        avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition);
 
                         mpp.clientName = clientName;
 
@@ -164,7 +165,7 @@ namespace FeatMultiplayer
             {
                 if (playerAvatars.TryGetValue(mpp.clientName, out var avatar))
                 {
-                    avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode);
+                    avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition);
                 }
             }
 

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 
 namespace FeatMultiplayer
@@ -16,6 +17,8 @@ namespace FeatMultiplayer
         internal GameObject light2;
         internal GameObject nameBar;
         internal GameObject emote;
+        internal GameObject miningRay;
+        internal Material whiteDiffuseMat;
         internal string name;
         internal Color color;
         
@@ -32,9 +35,10 @@ namespace FeatMultiplayer
             UnityEngine.Object.Destroy(avatarBack);
             UnityEngine.Object.Destroy(nameBar);
             UnityEngine.Object.Destroy(emote);
+            UnityEngine.Object.Destroy(whiteDiffuseMat);
         }
 
-        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode)
+        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode, Vector3 miningTarget)
         {
             if (avatar != null)
             {
@@ -48,6 +52,28 @@ namespace FeatMultiplayer
                 light1.SetActive(lightMode == 1);
                 light2.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
                 light2.SetActive(lightMode == 2);
+
+                var snd = miningRay.GetComponent<AudioSource>();
+
+                if (miningTarget != Vector3.zero)
+                {
+                    var lr = miningRay.GetComponent<LineRenderer>();
+                    lr.SetPositions(new Vector3[] { avatar.transform.position, miningTarget });
+                    miningRay.SetActive(true);
+
+                    if (!snd.isPlaying)
+                    {
+                        snd.Play();
+                    }
+                }
+                else
+                {
+                    if (snd.isPlaying)
+                    {
+                        snd.Stop();
+                    }
+                    miningRay.SetActive(false);
+                }
             }
         }
 
@@ -98,6 +124,8 @@ namespace FeatMultiplayer
         internal static PlayerAvatar CreateAvatar(Color color, bool host, PlayerMainController player)
         {
             PlayerAvatar result = new PlayerAvatar();
+
+            result.whiteDiffuseMat = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply"));
 
             SpriteRenderer sr;
 
@@ -169,6 +197,27 @@ namespace FeatMultiplayer
             result.emote.transform.localPosition = new Vector3(0, 4f, 0);
 
             result.emote.AddComponent<EmoteAnimator>();
+
+            // ----------------
+
+            result.miningRay = new GameObject("MiningRay");
+            result.miningRay.transform.SetParent(result.avatar.transform);
+            var lr = result.miningRay.AddComponent<LineRenderer>();
+            lr.startWidth = 0.2f;
+            lr.endWidth = 0.1f;
+            lr.startColor = new Color(0.6f, 1f, 0.6f, 0.7f);
+            lr.endColor = new Color(0.6f, 0.6f, 1f, 0.7f);
+            lr.material = result.whiteDiffuseMat;
+
+            var sndRecolt = player.GetPlayerAudio().soundContainerRecolt;
+
+            var copyRecolt = result.miningRay.AddComponent<AudioSource>();
+            copyRecolt.clip = sndRecolt.clip;
+            copyRecolt.spatialBlend = 1f;
+
+            result.miningRay.SetActive(false);
+
+
             return result;
         }
 

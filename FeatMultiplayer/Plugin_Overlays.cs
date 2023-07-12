@@ -119,9 +119,9 @@ namespace FeatMultiplayer
         {
             var text = otherPlayer.GetComponent<Text>();
 
-            if (conn != null)
+            if (conn != null && conn.clientName != null && playerAvatars.TryGetValue(conn.clientName, out var avatar))
             {
-                var pos = playerAvatars[conn.clientName].rawPosition;
+                var pos = avatar.rawPosition;
 
                 text.text = "<b>" + (isHost ? "<Host>" : conn.clientName) + "\n(" + ((int)Vector3.Distance(pos, localPlayerPos)) + " m)</b>";
 
