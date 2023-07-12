@@ -1,6 +1,7 @@
 ﻿using SpaceCraft;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -18,10 +19,21 @@ namespace FeatMultiplayer
         internal GameObject nameBar;
         internal GameObject emote;
         internal GameObject miningRay;
+        internal GameObject jetpack;
+        internal GameObject walking;
+        AudioSource sndMining;
+        AudioSource sndWalking;
+        AudioSource sndJetpacking;
+
         internal Material whiteDiffuseMat;
+
         internal string name;
         internal Color color;
-        
+
+        internal const int MoveEffect_Running = 0x0001_0000;
+        internal const int MoveEffect_Swimming = 0x0002_0000;
+        internal const int MoveEffect_Jetpacking = 0x0004_0000;
+        internal const int MoveEffect_FallDamage = 0x0008_0000;
 
         /// <summary>
         /// What the other side told us about their position.
@@ -38,7 +50,12 @@ namespace FeatMultiplayer
             UnityEngine.Object.Destroy(whiteDiffuseMat);
         }
 
-        internal void SetPosition(Vector3 position, Quaternion rotation, int lightMode, Vector3 miningTarget)
+        internal void UpdateState(
+            Vector3 position, 
+            Quaternion rotation, 
+            int lightMode, 
+            Vector3 miningTarget,
+            int walkAudio)
         {
             if (avatar != null)
             {
@@ -53,7 +70,8 @@ namespace FeatMultiplayer
                 light2.transform.localRotation = Quaternion.Euler(rotation.eulerAngles.x, 0, 0);
                 light2.SetActive(lightMode == 2);
 
-                var snd = miningRay.GetComponent<AudioSource>();
+                // audio management
+
 
                 if (miningTarget != Vector3.zero)
                 {
@@ -61,18 +79,83 @@ namespace FeatMultiplayer
                     lr.SetPositions(new Vector3[] { avatar.transform.position, miningTarget });
                     miningRay.SetActive(true);
 
-                    if (!snd.isPlaying)
+                    if (!sndMining.isPlaying)
                     {
-                        snd.Play();
+                        sndMining.Play();
                     }
                 }
                 else
                 {
-                    if (snd.isPlaying)
+                    if (sndMining.isPlaying)
                     {
-                        snd.Stop();
+                        sndMining.Stop();
                     }
                     miningRay.SetActive(false);
+                }
+
+                if (walkAudio != 0)
+                {
+                    Plugin.LogInfo(string.Format("{0}: {1:X8}", name, walkAudio));
+                }
+
+                HandleWalkAudio(walkAudio, sndWalking);
+
+                var jpOn = (walkAudio & MoveEffect_Jetpacking) != 0;
+                if (jpOn && !sndJetpacking.isPlaying)
+                {
+                    sndJetpacking.Play();
+                }
+                else if (!jpOn && sndJetpacking.isPlaying)
+                {
+                    sndJetpacking.Stop();
+                }
+            }
+
+        }
+
+        void HandleWalkAudio(int walkAudio, AudioSource snd)
+        {
+            var audioSet = Plugin.playerAudioAudioResourcesHandler;
+            if (walkAudio != 0 && audioSet != null)
+            {
+                List<AudioClip> list = null;
+                switch (walkAudio & 0x0000_FFFF)
+                {
+                    case 1:
+                        {
+                            list = audioSet.walkOnSand;
+                            break;
+                        }
+                    case 2:
+                        {
+                            list = audioSet.walkOnMetal;
+                            break;
+                        }
+                    case 3:
+                        {
+                            list = audioSet.walkOnWood;
+                            break;
+                        }
+                    case 4:
+                        {
+                            list = audioSet.walkOnWater;
+                            break;
+                        }
+                    case 5:
+                        {
+                            list = audioSet.swimming;
+                            break;
+                        }
+                }
+
+                if (list != null && list.Count != 0)
+                {
+                    snd.PlayOneShot(list[UnityEngine.Random.Range(0, list.Count)]);
+                }
+
+                if ((walkAudio & MoveEffect_FallDamage) != 0)
+                {
+                    snd.PlayOneShot(Plugin.playerAudioAudioResourcesHandler.playerFallDamage);
                 }
             }
         }
@@ -125,7 +208,7 @@ namespace FeatMultiplayer
         {
             PlayerAvatar result = new PlayerAvatar();
 
-            result.whiteDiffuseMat = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply"));
+            result.whiteDiffuseMat = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended"));
 
             SpriteRenderer sr;
 
@@ -209,14 +292,31 @@ namespace FeatMultiplayer
             lr.endColor = new Color(0.6f, 0.6f, 1f, 0.7f);
             lr.material = result.whiteDiffuseMat;
 
-            var sndRecolt = player.GetPlayerAudio().soundContainerRecolt;
+            var paud = player.GetPlayerAudio();
+            var sndRecolt = paud.soundContainerRecolt;
 
-            var copyRecolt = result.miningRay.AddComponent<AudioSource>();
-            copyRecolt.clip = sndRecolt.clip;
-            copyRecolt.spatialBlend = 1f;
+            result.sndMining = result.miningRay.AddComponent<AudioSource>();
+            result.sndMining.clip = sndRecolt.clip;
+            result.sndMining.spatialBlend = 1f;
 
             result.miningRay.SetActive(false);
 
+            // ------------------------
+
+            result.jetpack = new GameObject("Jetpack");
+            result.jetpack.transform.SetParent(result.avatar.transform);
+
+            result.sndJetpacking = result.jetpack.AddComponent<AudioSource>();
+            result.sndJetpacking.clip = paud.soundJetPack.clip;
+            result.sndJetpacking.spatialBlend = 1f;
+
+            // ------------------------
+
+            result.walking = new GameObject("Walking");
+            result.walking.transform.SetParent(result.avatar.transform);
+
+            result.sndWalking = result.jetpack.AddComponent<AudioSource>();
+            result.sndWalking.spatialBlend = 1f;
 
             return result;
         }

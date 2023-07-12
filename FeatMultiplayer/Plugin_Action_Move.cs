@@ -124,13 +124,23 @@ namespace FeatMultiplayer
                 }
                 Transform player = pm.transform;
                 var camera = pm.GetComponentInChildren<PlayerLookable>();
+
+                var localWalkMode = playerWalkModeSnapshot;
+                playerWalkModeSnapshot = 0;
+
+                if (pm.GetPlayerAudio().soundJetPack.isPlaying)
+                {
+                    localWalkMode |= PlayerAvatar.MoveEffect_Jetpacking;
+                }
+
                 MessagePlayerPosition mpp = new MessagePlayerPosition
                 {
                     position = player.position,
                     rotation = camera.m_Camera.transform.rotation,
                     lightMode = lightMode,
                     clientName = "", // not used when sending
-                    miningPosition = playerMiningTarget != null ? playerMiningTarget.transform.position : Vector3.zero
+                    miningPosition = playerMiningTarget != null ? playerMiningTarget.transform.position : Vector3.zero,
+                    walkMode = localWalkMode
                 };
 
                 if (updateMode == MultiplayerMode.CoopHost)
@@ -153,7 +163,7 @@ namespace FeatMultiplayer
                 {
                     if (playerAvatars.TryGetValue(clientName, out var avatar))
                     {
-                        avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition);
+                        avatar.UpdateState(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition, mpp.walkMode);
 
                         mpp.clientName = clientName;
 
@@ -165,7 +175,7 @@ namespace FeatMultiplayer
             {
                 if (playerAvatars.TryGetValue(mpp.clientName, out var avatar))
                 {
-                    avatar.SetPosition(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition);
+                    avatar.UpdateState(mpp.position, mpp.rotation, mpp.lightMode, mpp.miningPosition, mpp.walkMode);
                 }
             }
 
@@ -317,6 +327,81 @@ namespace FeatMultiplayer
                 PlayerMainController pm = GetPlayerMainController();
                 pm.SetPlayerPlacement(mmp.position, pm.transform.rotation);
             }
+        }
+
+        internal static float playerAudioSoundLoopTimeSteps;
+        internal static AudioResourcesHandler playerAudioAudioResourcesHandler;
+        internal static int playerWalkModeSnapshot;
+
+        /// <summary>
+        /// Vanilla initializes the player audio handler.
+        /// 
+        /// We need the references to the resources it uses. Not expected to change
+        /// during runtime.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerAudio), "Start")]
+        static void PlayerAudio_Start(float ___soundLoopTimeSteps, AudioResourcesHandler ___audioResourcesHandler)
+        {
+            playerAudioSoundLoopTimeSteps = ___soundLoopTimeSteps;
+            playerAudioAudioResourcesHandler = ___audioResourcesHandler;
+        }
+
+        /// <summary>
+        /// Vanilla plays one of the clips of the given array.
+        /// 
+        /// We figure out which set it was, then record it so clients can sync their audio effect.
+        /// </summary>
+        /// <param name="_stepsArray"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerAudio), "PlayRandomStep")]
+        static void PlayerAudio_PlayRandomStep(List<AudioClip> _stepsArray, bool ___isRunning, bool ___isUnderWater)
+        {
+            playerWalkModeSnapshot = 0;
+            if (playerAudioAudioResourcesHandler != null)
+            {
+                if (_stepsArray == playerAudioAudioResourcesHandler.walkOnSand)
+                {
+                    playerWalkModeSnapshot = 1;
+                }
+                else if (_stepsArray == playerAudioAudioResourcesHandler.walkOnMetal)
+                {
+                    playerWalkModeSnapshot = 2;
+                }
+                else if (_stepsArray == playerAudioAudioResourcesHandler.walkOnWood)
+                {
+                    playerWalkModeSnapshot = 3;
+                }
+                else if (_stepsArray == playerAudioAudioResourcesHandler.walkOnWater)
+                {
+                    playerWalkModeSnapshot = 4;
+                }
+                else if (_stepsArray == playerAudioAudioResourcesHandler.swimming)
+                {
+                    playerWalkModeSnapshot = 5;
+                }
+
+                if (___isRunning)
+                {
+                    playerWalkModeSnapshot |= PlayerAvatar.MoveEffect_Running;
+                }
+                if (___isUnderWater)
+                {
+                    playerWalkModeSnapshot |= PlayerAvatar.MoveEffect_Swimming;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The vanilla plays the fall damage sound.
+        /// 
+        /// We send it to the others as part of the walk mode sync
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlayerAudio), nameof(PlayerAudio.PlayFallDamage))]
+        static void PlayerAudio_PlayFallDamage()
+        {
+            playerWalkModeSnapshot |= PlayerAvatar.MoveEffect_FallDamage;
         }
     }
 }

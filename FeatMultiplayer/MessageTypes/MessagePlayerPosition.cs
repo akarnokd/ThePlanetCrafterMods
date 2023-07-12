@@ -16,6 +16,7 @@ namespace FeatMultiplayer.MessageTypes
         internal int lightMode;
         internal string clientName;
         internal Vector3 miningPosition;
+        internal int walkMode;
 
         public override string GetString()
         {
@@ -44,13 +45,15 @@ namespace FeatMultiplayer.MessageTypes
             sb.Append(miningPosition.y.ToString(CultureInfo.InvariantCulture));
             sb.Append('|');
             sb.Append(miningPosition.z.ToString(CultureInfo.InvariantCulture));
+            sb.Append('|');
+            sb.Append(walkMode);
             sb.Append('\n');
             return sb.ToString();
         }
 
         public static bool TryParse(string str, out MessagePlayerPosition message)
         {
-            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 13, out string[] parts))
+            if (MessageHelper.TryParseMessage("PlayerPosition|", str, 14, out string[] parts))
             {
                 try
                 {
@@ -70,6 +73,9 @@ namespace FeatMultiplayer.MessageTypes
                     message.miningPosition.x = float.Parse(parts[10], CultureInfo.InvariantCulture);
                     message.miningPosition.y = float.Parse(parts[11], CultureInfo.InvariantCulture);
                     message.miningPosition.z = float.Parse(parts[12], CultureInfo.InvariantCulture);
+
+                    message.walkMode = int.Parse(parts[13]);
+
                     return true;
                 }
                 catch (Exception ex)
