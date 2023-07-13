@@ -384,6 +384,7 @@ namespace FeatMultiplayer
             if (d != null && d.logisticSelector != null)
             {
                 logisticSelectorSetListsDisplay.Invoke(d.logisticSelector, new object[0]);
+                d.logisticSelector.priority.text = inv.GetLogisticEntity().GetPriority().ToString();
             }
 
             if (inv.GetLogisticEntity().GetSupplyGroups() == null)

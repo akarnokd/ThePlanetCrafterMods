@@ -126,15 +126,20 @@ namespace FeatMultiplayer
                 text.text = "<b>" + (isHost ? "<Host>" : conn.clientName) + "\n(" + ((int)Vector3.Distance(pos, localPlayerPos)) + " m)</b>";
 
                 var xy = Camera.main.WorldToScreenPoint(pos) - new Vector3(Screen.width / 2, Screen.height / 2, 0);
+                var heading = pos - Camera.main.transform.position;
+                var behind = Vector3.Dot(Camera.main.transform.forward, heading) < 0;
 
                 var rect = text.GetComponent<RectTransform>();
 
-                rect.localPosition = xy; // + new Vector3(text.preferredWidth / 2, - text.preferredHeight / 2);
-
-                var x = rect.localPosition.x;
-                var y = rect.localPosition.y;
+                var x = xy.x;
+                var y = xy.y;
                 var w = text.preferredWidth;
                 var h = text.preferredHeight;
+
+                if (behind)
+                {
+                    x = -x;
+                }
 
                 var minX = -Screen.width / 2 + w / 2;
                 var maxX = Screen.width / 2 - w / 2;
@@ -143,6 +148,20 @@ namespace FeatMultiplayer
 
                 x = Mathf.Clamp(x, minX, maxX);
                 y = Mathf.Clamp(y, minY, maxY);
+               
+
+                if (behind)
+                {
+                    if (Mathf.Abs(y - minY) > Mathf.Abs(maxY - y))
+                    {
+                        y = minY;
+                    }
+                    else
+                    {
+                        y = maxY;
+                    }
+                }
+
                 rect.localPosition = new Vector2(x, y);
             }
             else
