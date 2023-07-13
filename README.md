@@ -1391,6 +1391,7 @@ Currently, the following shortcuts are supported:
 - Sequencer and Incubator
   - Sort backpack (default <kbd>G</kbd>)
 
+:note: The configuration uses the [Unity action path syntax](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputControlPath.html), such as `<Keyboard>/F`.
 
 ### Configuration
 

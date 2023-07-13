@@ -45,33 +45,29 @@ namespace UIMenuShortcutKeys
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
             {
-                configBuildToggleFilter = Config.Bind("General", "BuildToggleFilter", "F", "Toggle the tier-filter microchip's effect in the build screen");
+                configBuildToggleFilter = Config.Bind("General", "BuildToggleFilter", "<Keyboard>/F", "Toggle the tier-filter microchip's effect in the build screen");
 
-                AppendKeyboard(configBuildToggleFilter);
                 buildToggleFilter = new InputAction(name: "Toggle tier filter", binding: configBuildToggleFilter.Value);
                 buildToggleFilter.Enable();
             }
 
             {
-                configContainerTakeAll = Config.Bind("General", "ContainerTakeAll", "R", "Take everything from the currently open container");
+                configContainerTakeAll = Config.Bind("General", "ContainerTakeAll", "<Keyboard>/R", "Take everything from the currently open container");
 
-                AppendKeyboard(configContainerTakeAll);
                 containerTakeAll = new InputAction(name: "Take All", binding: configContainerTakeAll.Value);
                 containerTakeAll.Enable();
             }
 
             {
-                configSortPlayerInventory = Config.Bind("General", "SortPlayerInventory", "G", "Sort the player's inventory");
+                configSortPlayerInventory = Config.Bind("General", "SortPlayerInventory", "<Keyboard>/G", "Sort the player's inventory");
 
-                AppendKeyboard(configSortPlayerInventory);
                 sortPlayerInventory = new InputAction(name: "Sort Player Inventory", binding: configSortPlayerInventory.Value);
                 sortPlayerInventory.Enable();
             }
 
             {
-                configSortOtherInventory = Config.Bind("General", "SortOtherInventory", "T", "Sort the other inventory");
+                configSortOtherInventory = Config.Bind("General", "SortOtherInventory", "<Keyboard>/T", "Sort the other inventory");
 
-                AppendKeyboard(configSortOtherInventory);
                 sortOtherInventory = new InputAction(name: "Sort Player Inventory", binding: configSortOtherInventory.Value);
                 sortOtherInventory.Enable();
             }
@@ -81,13 +77,6 @@ namespace UIMenuShortcutKeys
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
-        }
-
-        void AppendKeyboard(ConfigEntry<string> ce)
-        {
-            if (!ce.Value.StartsWith("<Keyboard>/")) {
-                ce.Value = "<Keyboard>/" + ce.Value;
-            }
         }
 
         void Update()
