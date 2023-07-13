@@ -950,7 +950,11 @@ namespace CheatInventoryStacking
                 var f = demandInventory.IsFull();
                 if (!f)
                 {
-                    var capacity = demandInventory.GetSize() * stackSize.Value;
+                    var capacity = demandInventory.GetSize();
+                    if (!noStackingInventories.Contains(demandInventory.GetId()))
+                    {
+                        capacity *= stackSize.Value;
+                    }
 
                     foreach (Group demandGroup in demandInventory.GetLogisticEntity().GetDemandGroups())
                     {
