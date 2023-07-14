@@ -209,16 +209,6 @@ namespace FeatMultiplayer
                 if (wo != null)
                 {
                     SendWorldObjectToClients(wo, false);
-
-                    // Drones may spawn with a fresh inventory, send it too.
-                    Inventory inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
-                    if (inv != null)
-                    {
-                        var msg = new MessageInventorySize();
-                        msg.inventoryId = inv.GetId();
-                        msg.size = inv.GetSize();
-                        SendAllClients(msg);
-                    }
                 }
             }
         }
