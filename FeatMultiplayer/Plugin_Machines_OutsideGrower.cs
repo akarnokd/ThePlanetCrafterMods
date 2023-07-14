@@ -194,13 +194,15 @@ namespace FeatMultiplayer
                             {
                                 return;
                             }
-                            ___instantiatedGameObjects.Remove(spawn);
+                            if (___instantiatedGameObjects.Remove(spawn))
+                            {
 
-                            machineOutsideGrowerInstantiateAtRandomPosition.Invoke(__instance, new object[] { _objectToInstantiate, false });
+                                machineOutsideGrowerInstantiateAtRandomPosition.Invoke(__instance, new object[] { _objectToInstantiate, false });
 
-                            __instance.StopAllCoroutines();
-                            var enumer = (IEnumerator)machineOutsideGrowerUpdateGrowing.Invoke(__instance, new object[] { __instance.updateInterval });
-                            __instance.StartCoroutine(enumer);
+                                __instance.StopAllCoroutines();
+                                var enumer = (IEnumerator)machineOutsideGrowerUpdateGrowing.Invoke(__instance, new object[] { __instance.updateInterval });
+                                __instance.StartCoroutine(enumer);
+                            }
                         };
 
                         ag.grabedEvent = new Grabed((wo, notif) => OnGrabSpawn(spi.machineId, id, spi.doRespawn));
