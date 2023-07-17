@@ -212,7 +212,8 @@ namespace FeatMultiplayer
                                 SendAllClients(new MessageUpdateGrowth()
                                 {
                                     machineId = growerMachine.GetId(),
-                                    growth = growth
+                                    growth = growth,
+                                    vegetableId = -1
                                 }, true);
                             }
                             else
@@ -420,7 +421,7 @@ namespace FeatMultiplayer
                         }
                         else
                         {
-                            LogWarning("ReceiveMessageUpdateGrowth: Unknown vegetable of machine " + mug.machineId + " id " + mug.vegetableId);
+                            LogWarning("ReceiveMessageUpdateGrowth: Unknown vegetable of machine " + mug.machineId + " id " + mug.vegetableId + " growth " + mug.growth);
                         }
                     }
                 }

@@ -146,7 +146,10 @@ namespace FeatMultiplayer
 
                     LogInfo("Drone " + ___droneWorldObject?.GetId() + " hidden");
                 }
-                ___associatedDroneStation?.OnDroneEnter();
+                if (___associatedDroneStation.soundOnEnter != null)
+                {
+                    ___associatedDroneStation?.OnDroneEnter();
+                }
             }
         }
 
@@ -157,7 +160,7 @@ namespace FeatMultiplayer
         /// as the game doesn't use grab, but destroys the rendered object.
         /// </summary>
         /// <param name="___logisticTask"></param>
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "DroneLoad")]
         static void Drone_DroneLoad(LogisticTask ___logisticTask)
         {
