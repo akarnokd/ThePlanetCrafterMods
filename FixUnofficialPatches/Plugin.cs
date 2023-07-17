@@ -421,5 +421,53 @@ namespace FixUnofficialPatches
             }
         }
         */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), "SetItemsInRange")]
+        static bool MachineAutoCrafter_SetItemsInRange(
+            MachineAutoCrafter __instance,
+            List<WorldObject> ___worldObjectsInRange,
+            List<Group> ___groupsInRangeForListing,
+            ref Inventory ___autoCrafterInventory,
+            float ___range
+        )
+        {
+            ___worldObjectsInRange.Clear();
+            ___groupsInRangeForListing.Clear();
+            ___autoCrafterInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
+            var pos = __instance.transform.position;
+
+            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            {
+                Vector3 wop = wo.GetPosition();
+                if (wop != Vector3.zero && Vector3.Distance(wop, pos) < ___range)
+                {
+                    var gr = wo.GetGroup();
+                    if (wo.GetLinkedInventoryId() != 0 
+                        && gr.GetId() != "Drone1"
+                        && gr.GetId() != "Drone2")
+                    {
+                        ___groupsInRangeForListing.Add(gr);
+                        var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                        if (inv != null)
+                        {
+                            foreach (var item in inv.GetInsideWorldObjects())
+                            {
+                                if (!item.GetIsLockedInInventory())
+                                {
+                                    ___worldObjectsInRange.Add(item);
+                                }
+                            }
+                        }
+                    }
+                    else if (gr is GroupItem)
+                    {
+                        ___worldObjectsInRange.Add(wo);
+                        ___groupsInRangeForListing.Add(gr);
+                    }
+                }
+            }
+            return false;
+        }
     }
 }
