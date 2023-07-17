@@ -97,7 +97,8 @@ namespace FeatMultiplayer
             GameObject ___spawnOnThis,
             float ___downValue,
             int ___canGrabAtXPercent,
-            MachineOutsideGrowerSpecificRadius ___machineOutsideGrowerSpecificRadius
+            MachineOutsideGrowerSpecificRadius ___machineOutsideGrowerSpecificRadius,
+            Inventory ___inventory
         )
         {
             if (updateMode == MultiplayerMode.CoopHost)
@@ -194,7 +195,7 @@ namespace FeatMultiplayer
                             {
                                 return;
                             }
-                            if (___instantiatedGameObjects.Remove(spawn))
+                            if (___inventory.GetInsideWorldObjects().Count != 0)
                             {
 
                                 machineOutsideGrowerInstantiateAtRandomPosition.Invoke(__instance, new object[] { _objectToInstantiate, false });

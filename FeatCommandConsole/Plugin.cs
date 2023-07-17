@@ -68,6 +68,9 @@ namespace FeatCommandConsole
         static readonly float defaultTradePlatformDelay = 6;
         static float tradePlatformDelay = defaultTradePlatformDelay;
 
+        static readonly float defaultOutsideGrowerDelay = 1;
+        static float outsideGrowerDelay = defaultOutsideGrowerDelay;
+
         static bool suppressCommandConsoleKey;
 
         static Plugin me;
@@ -2930,7 +2933,45 @@ namespace FeatCommandConsole
 
         }
 
+        [Command("/set-outside-grower-delay", "Sets the outside growers' progress delay in seconds.")]
+        public void SetOutsideGrowerDelay(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Sets the outside growers' progress delay in seconds.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/set-outside-grower-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
+                addLine("<margin=1em>Current outside growers' delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
+            }
+            else
+            {
+                outsideGrowerDelay = float.Parse(args[1], CultureInfo.InvariantCulture);
 
+                addLine("<margin=1em>Outside growers' delay progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
+
+                FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineOutsideGrower), "updateInterval");
+
+                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                {
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        var platform = go.GetComponent<MachineOutsideGrower>();
+                        if (platform != null)
+                        {
+                            ___updeteInterval.SetValue(platform, outsideGrowerDelay);
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
+        static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
+        {
+            ___updateInterval = outsideGrowerDelay;
+        }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
