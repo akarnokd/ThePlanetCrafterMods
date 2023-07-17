@@ -90,38 +90,31 @@ namespace UIOverviewPanel
                 AddTextRow("", () => "");
 
                 AddTextRow("Oxygen", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Oxygen));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Oxygen));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Oxygen));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Oxygen));
 
                 AddTextRow("Heat", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Heat));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Heat));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Heat));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Heat));
 
                 AddTextRow("Pressure", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Pressure));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Pressure));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Pressure));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Pressure));
 
                 AddTextRow("Biomass", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Biomass));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Biomass));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Biomass));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Biomass));
 
                 AddTextRow("Plants", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Plants));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Plants));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Plants));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Plants));
 
                 AddTextRow("Insects", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Insects));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Insects));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Insects));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Insects));
 
                 // AddTextRow("Animals", () => "Not implemented in the game");
                 AddTextRow("Animals", CreateWorldUnitCurrentValue(DataConfig.WorldUnitType.Animals));
-                AddTextRow("- (growth)", CreateWorldUnitChangeValue(DataConfig.WorldUnitType.Animals));
                 AddTextRow("- (next unlock at)", CreateWorldUnitUnlock(DataConfig.WorldUnitType.Animals));
                 AddTextRow("- (next unlock item)", CreateWorldUnitUnlockItem(DataConfig.WorldUnitType.Animals));
 
@@ -174,7 +167,7 @@ namespace UIOverviewPanel
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(unitType);
 
-                return string.Format("{0:#,##0.00}", wut.GetValue());
+                return string.Format("{0:#,##0.00}    + {1:#,##0.00} /s", wut.GetValue(), wut.GetCurrentValuePersSec());
             };
         }
 
@@ -307,8 +300,23 @@ namespace UIOverviewPanel
                     var wu = Managers.GetManager<WorldUnitsHandler>();
                     var wut = wu.GetUnit(unitType);
                     var remaining = Mathf.InverseLerp(prevValue, value, wut.GetValue()) * 100;
+                    var speed = wut.GetCurrentValuePersSec();
 
-                    str += String.Format(" @ {0:#,##0} ({1:##0.00} %)", value, remaining);
+                    var eta = "\u221E";
+                    if (speed > 0)
+                    {
+                        var t = (value - wut.GetValue()) / speed;
+                        if (t >= 60 * 60)
+                        {
+                            eta = string.Format("{0}:{1:00}:{2:00}", (int)(t) / 60 / 60, ((int)(t) / 60) % 60, (int)t % 60);
+                        }
+                        else
+                        {
+                            eta = string.Format("{0}:{1:00}", (int)(t) / 60, (int)(t) % 60);
+                        }
+                    }
+
+                    str += String.Format(" @ {0:#,##0} ({1:##0.00} %, ETA {2})", value, remaining, eta);
                 }
                 return str;
             };
@@ -358,8 +366,24 @@ namespace UIOverviewPanel
                 var nstart = next.GetStageStartValue();
                 var sperc = Mathf.InverseLerp(cstart, nstart, wut.GetValue());
 
+                var value = nstart;
+                var speed = wut.GetCurrentValuePersSec();
+                var eta = "\u221E";
+                if (speed > 0)
+                {
+                    var t = (value - wut.GetValue()) / speed;
+                    if (t >= 60 * 60)
+                    {
+                        eta = string.Format("{0}:{1:00}:{2:00}", (int)(t) / 60 / 60, ((int)(t) / 60) % 60, (int)t % 60);
+                    }
+                    else
+                    {
+                        eta = string.Format("{0}:{1:00}", (int)(t) / 60, (int)(t) % 60);
+                    }
+                }
+
                 return Readable.GetTerraformStageName(next) + " @ " + 
-                    string.Format("{0:#,##0} Ti ({1:##0.00} %)", nstart, sperc * 100);
+                    string.Format("{0:#,##0} Ti ({1:##0.00} %, ETA {2})", nstart, sperc * 100, eta);
             };
         }
 
