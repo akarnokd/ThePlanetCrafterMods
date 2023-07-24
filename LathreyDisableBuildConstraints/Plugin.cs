@@ -3,6 +3,8 @@ using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using System.Linq;
 
 // Reimplemented with permission
 // https://github.com/TysonCodes/PlanetCrafterPlugins/tree/master/DisableBuildConstraints
@@ -14,9 +16,16 @@ namespace LathreyDisableBuildConstraints
     {
         private ConfigEntry<Key> configToggleBuildConstraintsModifierKey;
         private ConfigEntry<Key> configToggleBuildConstraintsKey;
+        private ConfigEntry<Key> configToggleBuildSnappingKey;
 
         private static bool constraintsDisabled = false;
+        private static bool snappingDisabled = false;
 
+        private static List<string> modes = new List<string>
+            {
+                "No Build Constraints",
+                "No Snapping"
+            };
         private void Awake()
         {
             Logger.LogInfo($"Plugin is loaded!");
@@ -25,6 +34,8 @@ namespace LathreyDisableBuildConstraints
                 "Pick the modifier key to use in combination with the key to toggle building constraints off/on.");
             configToggleBuildConstraintsKey = Config.Bind("General", "Toggle_Build_Constraints_Key", Key.G,
                 "Pick the key to use in combination with the modifier key to toggle building constraints off/on.");
+            configToggleBuildSnappingKey = Config.Bind("General", "Toggle_Build_Snap_Key", Key.H,
+                "Pick the key to use in combination with the modifier key to toggle building snapping off/on.");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
@@ -40,6 +51,18 @@ namespace LathreyDisableBuildConstraints
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SnapPoint), "OnTriggerEnter")]
+
+        private static bool SnapPoint_OnTriggerEnter_Prefix()
+        {
+            if (snappingDisabled)
+            {
+                return false;
+            }
+            return true;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(BaseHudHandler), "UpdateHud")]
         private static void BaseHudHandler_UpdateHud_Postfix(BaseHudHandler __instance)
@@ -48,9 +71,12 @@ namespace LathreyDisableBuildConstraints
             {
                 return;
             }
-            if (constraintsDisabled)
+
+            if (constraintsDisabled || snappingDisabled)
             {
-                __instance.textPositionDecoration.text += " - No Build Constraints";
+                __instance.textPositionDecoration.text += " - " + string.Join(", ", modes
+                    .Where((mode, id) => id == 0 && constraintsDisabled || id == 1 && snappingDisabled)
+                    .ToList());
             }
         }
 
@@ -70,6 +96,11 @@ namespace LathreyDisableBuildConstraints
             {
                 constraintsDisabled = !constraintsDisabled;
                 Logger.LogInfo($"Building constraints are now {!constraintsDisabled}");
+            }
+            if (Keyboard.current[configToggleBuildConstraintsModifierKey.Value].isPressed && Keyboard.current[configToggleBuildSnappingKey.Value].wasPressedThisFrame)
+            {
+                snappingDisabled = !snappingDisabled;
+                Logger.LogInfo($"Building snapping is now {!snappingDisabled}");
             }
         }
     }
