@@ -100,14 +100,17 @@ namespace FeatMultiplayer
 
                 HandleWalkAudio(walkAudio, sndWalking);
 
-                var jpOn = (walkAudio & MoveEffect_Jetpacking) != 0;
-                if (jpOn && !sndJetpacking.isPlaying)
+                if (Plugin.enableJetpackSound.Value)
                 {
-                    sndJetpacking.Play();
-                }
-                else if (!jpOn && sndJetpacking.isPlaying)
-                {
-                    sndJetpacking.Stop();
+                    var jpOn = (walkAudio & MoveEffect_Jetpacking) != 0;
+                    if (jpOn && !sndJetpacking.isPlaying)
+                    {
+                        sndJetpacking.Play();
+                    }
+                    else if (!jpOn && sndJetpacking.isPlaying)
+                    {
+                        sndJetpacking.Stop();
+                    }
                 }
             }
 
@@ -150,6 +153,7 @@ namespace FeatMultiplayer
 
                 if (list != null && list.Count != 0)
                 {
+                    
                     snd.PlayOneShot(list[UnityEngine.Random.Range(0, list.Count)]);
                 }
 
@@ -298,6 +302,7 @@ namespace FeatMultiplayer
             result.sndMining = result.miningRay.AddComponent<AudioSource>();
             result.sndMining.clip = sndRecolt.clip;
             result.sndMining.spatialBlend = 1f;
+            result.sndMining.outputAudioMixerGroup = paud.soundContainerRecolt.outputAudioMixerGroup;
 
             result.miningRay.SetActive(false);
 
@@ -309,6 +314,7 @@ namespace FeatMultiplayer
             result.sndJetpacking = result.jetpack.AddComponent<AudioSource>();
             result.sndJetpacking.clip = paud.soundJetPack.clip;
             result.sndJetpacking.spatialBlend = 1f;
+            result.sndJetpacking.outputAudioMixerGroup = paud.soundJetPack.outputAudioMixerGroup;
 
             // ------------------------
 
@@ -317,6 +323,9 @@ namespace FeatMultiplayer
 
             result.sndWalking = result.jetpack.AddComponent<AudioSource>();
             result.sndWalking.spatialBlend = 1f;
+            result.sndWalking.outputAudioMixerGroup = paud.soundContainerFootsteps.outputAudioMixerGroup;
+
+            // ------------------------
 
             return result;
         }

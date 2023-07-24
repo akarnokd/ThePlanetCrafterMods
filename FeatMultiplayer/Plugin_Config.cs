@@ -44,6 +44,9 @@ namespace FeatMultiplayer
         static ConfigEntry<bool> slowdownConsumption;
         internal static ConfigEntry<int> playerNameFontSize;
         static ConfigEntry<string> emoteKey;
+
+        internal static ConfigEntry<bool> enableJetpackSound;
+
         static InputAction emoteAction;
 
         static ConfigEntry<string> playerLocatorKey;
@@ -96,6 +99,7 @@ namespace FeatMultiplayer
             clientLogLevel = Config.Bind("Client", "LogLevel", 2, "0 - debug+, 1 - info+, 2 - warning+, 3 - error");
 
             streamerMode = Config.Bind("General", "StreamerMode", false, "Hides the IP addresses in the main menu.");
+            enableJetpackSound = Config.Bind("General", "JetpackSound", true, "Enables the jetpack sounds of the other players.");
 
             Assembly me = Assembly.GetExecutingAssembly();
             resourcesPath = Path.GetDirectoryName(me.Location);
