@@ -41,14 +41,16 @@ namespace LathreyDisableBuildConstraints
 
         }
 
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(BuildConstraint), "GetIsRespected")]
-        private static void BuildConstraint_GetIsRespected_Postfix(ref bool __result)
+        private static bool BuildConstraint_GetIsRespected_Prefix(ref bool __result)
         {
             if (constraintsDisabled)
             {
                 __result = true;
+                return false;
             }
+            return true;
         }
 
         [HarmonyPrefix]
@@ -56,8 +58,25 @@ namespace LathreyDisableBuildConstraints
 
         private static bool SnapPoint_OnTriggerEnter_Prefix()
         {
-            if (snappingDisabled)
+            return !snappingDisabled;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ConstraintAgainstPanel), "LateUpdate")]
+
+        private static bool ConstraintAgainstPanel_LateUpdate_Prefix()
+        {
+            return !snappingDisabled;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionDeconstructible), "CheckSomethingInsideIfNeeded")]
+
+        private static bool ActionDeconstructible_CheckSomethingInsideIfNeeded_Prefix(ref bool __result)
+        {
+            if (constraintsDisabled)
             {
+                __result = true;
                 return false;
             }
             return true;
