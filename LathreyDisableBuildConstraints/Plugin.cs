@@ -34,7 +34,7 @@ namespace LathreyDisableBuildConstraints
                 "Pick the modifier key to use in combination with the key to toggle building constraints off/on.");
             configToggleBuildConstraintsKey = Config.Bind("General", "Toggle_Build_Constraints_Key", Key.G,
                 "Pick the key to use in combination with the modifier key to toggle building constraints off/on.");
-            configToggleBuildSnappingKey = Config.Bind("General", "Toggle_Build_Snap_Key", Key.H,
+            configToggleBuildSnappingKey = Config.Bind("General", "Toggle_Build_Snap_Key", Key.J,
                 "Pick the key to use in combination with the modifier key to toggle building snapping off/on.");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -69,19 +69,6 @@ namespace LathreyDisableBuildConstraints
             return !snappingDisabled;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionDeconstructible), "CheckSomethingInsideIfNeeded")]
-
-        private static bool ActionDeconstructible_CheckSomethingInsideIfNeeded_Prefix(ref bool __result)
-        {
-            if (constraintsDisabled)
-            {
-                __result = true;
-                return false;
-            }
-            return true;
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch(typeof(BaseHudHandler), "UpdateHud")]
         private static void BaseHudHandler_UpdateHud_Postfix(BaseHudHandler __instance)
@@ -95,7 +82,7 @@ namespace LathreyDisableBuildConstraints
             {
                 __instance.textPositionDecoration.text += " - " + string.Join(", ", modes
                     .Where((mode, id) => id == 0 && constraintsDisabled || id == 1 && snappingDisabled)
-                    .ToList());
+                    );
             }
         }
 
