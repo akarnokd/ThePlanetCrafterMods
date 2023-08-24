@@ -511,9 +511,10 @@ You can also make the water and methane extractors deposit remotely by naming co
 
 Biodome T2 generated tree barks can be deposited remotely too via `*TreeRoot`.
 
-With Insects & Waterfalls update, the mod also works with Silk generators:
+With Insects & Waterfalls update, the mod also works with Silk generators and Beehives:
 
 - `*Silk`
+- `*Bee1Larvae`
 
 You can override the default naming convention via the `Aliases` configuration option by listing the resource id and the target naming:
 
