@@ -26,7 +26,8 @@ namespace FeatMultiplayer
             var playerStat = new JsonableGameState();
             playerStat.mode = mgm.modeIndex.ToString();
 
-            GameSettingsHandler.SetGameMode(playerStat);
+            // FIXME 0.9.x introduced a lot more game parameters
+            Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().gameMode = playerStat.gameMode;
 
             // we need to reset the consumption tracker values too
             ResetGaugeConsumptions();
@@ -57,7 +58,7 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(DyingConsequencesHandler), nameof(DyingConsequencesHandler.HandleDyingConsequences))]
         static bool DyingConsequencesHandler_HandleDyingConsequences(PlayerMainController _playerMainController)
         {
-            DataConfig.GameSettingMode gameSettingMode = GameSettingsHandler.GetGameMode();
+            DataConfig.GameSettingMode gameSettingMode = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetGameMode();
             if (updateMode == MultiplayerMode.CoopClient)
             {
                 if (gameSettingMode != DataConfig.GameSettingMode.Chill)
@@ -113,7 +114,7 @@ namespace FeatMultiplayer
             else
             {
 
-                switch (GameSettingsHandler.GetGameMode())
+                switch (Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetGameMode())
                 {
                     case DataConfig.GameSettingMode.Chill:
                         {

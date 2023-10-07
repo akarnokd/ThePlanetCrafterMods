@@ -329,7 +329,7 @@ namespace CheatInventoryStacking
 
                 bool logisticFlag = ___logisticManager.GetGlobalLogisticsEnabled() && ___inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
 
-                __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<PlayModeHandler>().GetIsFreePlay());
+                __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft());
 
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback("OnImageClicked", __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback("OnDropClicked", __instance);

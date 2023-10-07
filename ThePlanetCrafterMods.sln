@@ -138,8 +138,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeatMultiplayer", "FeatMult
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiscPluginUpdateChecker", "MiscPluginUpdateChecker\MiscPluginUpdateChecker.csproj", "{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestPlugins", "XTestPlugins\XTestPlugins.csproj", "{30903A9F-7E6B-4C0E-85EE-56F27311A472}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationItalian", "UITranslationItalian\UITranslationItalian.csproj", "{2944C6CB-7E5E-4D0E-B2FC-4A81A8200176}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaveAutoSave", "SaveAutoSave\SaveAutoSave.csproj", "{EE0618BE-099B-4502-B19C-EC3228A5F310}"
@@ -201,6 +199,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LathreyImprovePerformance", "LathreyImprovePerformance\LathreyImprovePerformance.csproj", "{441B92A2-96C1-468F-B5B6-585016090F74}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatMoreTrade", "CheatMoreTrade\CheatMoreTrade.csproj", "{8EC1089B-50C5-42BC-AFDF-5BC7DFFB916C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestPlugins", "XTestPlugins\XTestPlugins.csproj", "{1345F3E1-07BB-4AFD-8157-1A24A63ECF5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -336,10 +336,6 @@ Global
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B762CCD-8B76-49C6-B5F9-0790EF9A42D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30903A9F-7E6B-4C0E-85EE-56F27311A472}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2944C6CB-7E5E-4D0E-B2FC-4A81A8200176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2944C6CB-7E5E-4D0E-B2FC-4A81A8200176}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2944C6CB-7E5E-4D0E-B2FC-4A81A8200176}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -464,6 +460,10 @@ Global
 		{8EC1089B-50C5-42BC-AFDF-5BC7DFFB916C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EC1089B-50C5-42BC-AFDF-5BC7DFFB916C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EC1089B-50C5-42BC-AFDF-5BC7DFFB916C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1345F3E1-07BB-4AFD-8157-1A24A63ECF5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1345F3E1-07BB-4AFD-8157-1A24A63ECF5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1345F3E1-07BB-4AFD-8157-1A24A63ECF5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1345F3E1-07BB-4AFD-8157-1A24A63ECF5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

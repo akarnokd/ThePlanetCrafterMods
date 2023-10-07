@@ -278,7 +278,7 @@ namespace UIHotbar
 
         void UpdateRender(PlayerMainController player)
         {
-            bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+            bool isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
 
             int oldActiveSlot = activeSlot;
