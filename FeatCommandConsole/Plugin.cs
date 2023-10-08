@@ -145,7 +145,14 @@ namespace FeatCommandConsole
             }
 
             log("   Set asset");
-            fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            try
+            {
+                fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            } 
+            catch (Exception ex)
+            {
+                log(ex);
+            }
 
             createWelcomeText();
 
@@ -2973,9 +2980,26 @@ namespace FeatCommandConsole
             ___updateInterval = outsideGrowerDelay;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void FontWorkaround()
+        {
+            if (fontAsset == null)
+            {
+                foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsSortMode.None))
+                {
+                    if (ltext.textId == "Newsletter_Button")
+                    {
+                        fontAsset = ltext.GetComponent<TMP_Text>().font;
+                        break;
+                    }
+                }
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-        void Colorize(List<string> list, string color)
+            void Colorize(List<string> list, string color)
         {
             for (int i = 0; i < list.Count; i++)
             {

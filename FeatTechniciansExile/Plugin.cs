@@ -1184,7 +1184,22 @@ namespace FeatTechniciansExile
             return avatar?.avatar.GetComponent<ActionTalk>()?.conversationDialogCanvas == null;
         }
 
-
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void FontWorkaround()
+        {
+            if (fontAsset == null)
+            {
+                foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsSortMode.None))
+                {
+                    if (ltext.textId == "Newsletter_Button")
+                    {
+                        fontAsset = ltext.GetComponent<TMP_Text>().font;
+                        break;
+                    }
+                }
+            }
+        }
         internal class ConversationEntry
         {
             internal string owner;
