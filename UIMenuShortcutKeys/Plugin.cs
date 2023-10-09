@@ -236,7 +236,7 @@ namespace UIMenuShortcutKeys
                     }
                 }
             }
-            else if (ui == DataConfig.UiType.Container)
+            else if (ui == DataConfig.UiType.Container || ui == DataConfig.UiType.GroupSelector)
             {
                 if (window is UiWindowContainer uiWindowContainer)
                 {
@@ -308,7 +308,7 @@ namespace UIMenuShortcutKeys
                     entries.Add(CreateEntry("BuildToggleFilter", configBuildToggleFilter.Value.Replace("<Keyboard>/", ""), "Toggle Tier Filter", shortcutBar.transform));
                 }
             }
-            else if (ui == DataConfig.UiType.Container)
+            else if (ui == DataConfig.UiType.Container || ui == DataConfig.UiType.GroupSelector)
             {
                 if (window is UiWindowContainer uiWindowContainer)
                 {

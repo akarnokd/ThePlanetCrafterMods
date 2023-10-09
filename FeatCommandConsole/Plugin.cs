@@ -149,9 +149,9 @@ namespace FeatCommandConsole
             {
                 fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
             } 
-            catch (Exception ex)
+            catch (Exception)
             {
-                log(ex);
+                log("Setting custom font failed, using default game font");
             }
 
             createWelcomeText();
