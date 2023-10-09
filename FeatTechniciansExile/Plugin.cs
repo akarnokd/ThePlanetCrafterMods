@@ -113,18 +113,25 @@ namespace FeatTechniciansExile
                 technicianMessage2.yearSent = "Today";
             };
 
-            Font osFont = null;
-
-            foreach (var fp in Font.GetPathsToOSFonts())
+            try
             {
-                if (fp.ToLower().Contains("arial.ttf"))
-                {
-                    osFont = new Font(fp);
-                    break;
-                }
-            }
+                Font osFont = null;
 
-            fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+                foreach (var fp in Font.GetPathsToOSFonts())
+                {
+                    if (fp.ToLower().Contains("arial.ttf"))
+                    {
+                        osFont = new Font(fp);
+                        break;
+                    }
+                }
+
+                fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            } 
+            catch (Exception)
+            {
+                logger.LogWarning("Failed to create custom font, using the game's default font.");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
