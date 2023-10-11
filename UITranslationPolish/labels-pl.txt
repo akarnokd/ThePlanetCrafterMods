@@ -1067,3 +1067,5 @@ UI_Infos_chain_craft=Naciśnij klawisz dostępności (domyślnie: CTRL), aby zro
 GameSettings_randomizeMineables=Losowe miejsca rud
 GameSettings_Infos_randomizeMineables=Rudy na planecie będą losowe. To radykalnie zmieni wrażenia z rozgrywki.
 Menu_Options_Keys_ToggleMap=Pokaż mapę (tylko jeśli jest wyposażony w odpowiedni chip)
+GROUP_NAME_Optimizer2=Optimizator t2
+GROUP_DESC_Optimizer2=Znajdź i włóż do niego bezpieczniki, aby zwiększyć wydajność pobliskich maszyn
