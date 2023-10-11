@@ -1067,3 +1067,5 @@ UI_Infos_chain_craft=Tartsd lenyomva a kisegítő lehetőségek billentyűjét (
 GameSettings_randomizeMineables=Véletlenszerű nyersanyagok
 GameSettings_Infos_randomizeMineables=A bolygón található nyersanyagok véletlenszerű újraelosztása. Ez drasztikusan megváltoztathatja a játékélményt.
 Menu_Options_Keys_ToggleMap=Térkép mutatása (csak a megfelelő mikrocsip felszerelés megléte esetén)
+GROUP_NAME_Optimizer2=Optimalizáló t2
+GROUP_DESC_Optimizer2=Találj és helyezz be biztosítékokat ebbe a közeli gépek teljesítményének fokozásához
