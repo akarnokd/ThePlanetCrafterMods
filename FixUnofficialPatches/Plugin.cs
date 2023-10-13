@@ -483,5 +483,24 @@ namespace FixUnofficialPatches
         {
             return ___dropdown != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiDropDownAndHover), nameof(UiDropDownAndHover.SelectOption))]
+        static bool UiDropDownAndHover_SelectOption(TMP_Dropdown ___dropdown)
+        {
+            return ___dropdown != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiDropDownAndHover), nameof(UiDropDownAndHover.GetIndexOfSelectedItem))]
+        static bool UiDropDownAndHover_GetIndexOfSelectedItem(TMP_Dropdown ___dropdown, ref int __result)
+        {
+            if (___dropdown == null)
+            {
+                __result = -1;
+                return false;
+            }
+            return true;
+        }
     }
 }
