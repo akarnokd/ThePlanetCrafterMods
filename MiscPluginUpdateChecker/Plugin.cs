@@ -174,7 +174,7 @@ namespace MiscPluginUpdateChecker
             if (diffs.Count != 0)
             {
                 toHide.Clear();
-                foreach (GameObject go in FindObjectsOfType<GameObject>())
+                foreach (GameObject go in FindObjectsByType<GameObject>(FindObjectsSortMode.None))
                 {
                     if (go != aparent && go.GetComponentInChildren<Canvas>() && go.activeSelf)
                     {

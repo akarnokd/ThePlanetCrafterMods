@@ -188,7 +188,7 @@ namespace CheatMinimap
         {
             chests.Clear();
 
-            foreach (ActionOpenable ia in FindObjectsOfType<ActionOpenable>())
+            foreach (ActionOpenable ia in FindObjectsByType<ActionOpenable>(FindObjectsSortMode.None))
             {
                 try
                 {
@@ -465,7 +465,7 @@ namespace CheatMinimap
             pw.damageViewVolume.weight = 0;
             pw.damageViewVolume.enabled = false;
 
-            foreach (Light lg in FindObjectsOfType<Light>())
+            foreach (Light lg in FindObjectsByType<Light>(FindObjectsSortMode.None))
             {
                 lg.shadows = LightShadows.None;
                 lg.color = Color.white;
@@ -492,7 +492,7 @@ namespace CheatMinimap
 
             pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
             SetVisuals(4000 / 2, pm);
-            foreach (ParticleSystem ps in UnityEngine.Object.FindObjectsOfType<ParticleSystem>())
+            foreach (ParticleSystem ps in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
             {
                 var em = ps.emission;
                 em.enabled = false;
@@ -504,7 +504,7 @@ namespace CheatMinimap
             Logger.LogInfo("Begin Sector loading");
 
             // disable all decoys
-            var sectors = UnityEngine.Object.FindObjectsOfType<Sector>();
+            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
             Logger.LogInfo("Sector count: " + sectors.Length);
             foreach (Sector sector in sectors)
             {
@@ -557,7 +557,7 @@ namespace CheatMinimap
                 }
             }
             
-            foreach (var lg in FindObjectsOfType<LODGroup>())
+            foreach (var lg in FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
             {
                 lg.enabled = false;
             }

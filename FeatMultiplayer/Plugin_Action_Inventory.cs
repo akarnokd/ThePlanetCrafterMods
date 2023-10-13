@@ -743,6 +743,12 @@ namespace FeatMultiplayer
                                 _playerController.GetPlayerEquipment(), true);
                             break;
                         }
+                    case DataConfig.EquipableType.MapChip:
+                        {
+                            // Since 0.9.002: the field is not public
+                            playerEquipmentHasMapChip.SetValue(_playerController.GetPlayerEquipment(), true);
+                            break;
+                        }
                 }
             }
         }
@@ -816,6 +822,11 @@ namespace FeatMultiplayer
                 // Since 0.6.006: there is no publicly accessible field to set or method to call
                 playerEquipmentHasCleanConstructionChip.SetValue(
                     player.GetPlayerEquipment(), false);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.MapChip))
+            {
+                // Since 0.9.002: the field is not public
+                playerEquipmentHasMapChip.SetValue(player.GetPlayerEquipment(), false);
             }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;
@@ -1012,7 +1023,7 @@ namespace FeatMultiplayer
 
         static void FindAndGenerateInventoryFromScene(int iid)
         {
-            foreach (var sceneGo in FindObjectsOfType<GameObject>())
+            foreach (var sceneGo in FindObjectsByType<GameObject>(FindObjectsSortMode.None))
             {
                 var sceneInventory = sceneGo.GetComponentInChildren<InventoryFromScene>();
                 if (sceneInventory != null)

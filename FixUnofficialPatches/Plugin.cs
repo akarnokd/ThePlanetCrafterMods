@@ -469,5 +469,19 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiDropDownAndHover), nameof(UiDropDownAndHover.ClearOptions))]
+        static bool UiDropDownAndHover_ClearOptions(TMP_Dropdown ___dropdown)
+        {
+            return ___dropdown != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiDropDownAndHover), nameof(UiDropDownAndHover.AddOptions))]
+        static bool UiDropDownAndHover_AddOptions(TMP_Dropdown ___dropdown)
+        {
+            return ___dropdown != null;
+        }
     }
 }

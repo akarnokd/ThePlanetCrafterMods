@@ -29,6 +29,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> stackTradeRockets;
         static ConfigEntry<bool> stackShredder;
+        static ConfigEntry<bool> stackOptimizer;
 
         static string expectedGroupIdToAdd;
 
@@ -71,6 +72,7 @@ namespace CheatInventoryStacking
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
+            stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
 
             logger = Logger;
 
@@ -603,7 +605,8 @@ namespace CheatInventoryStacking
                         || equipType == DataConfig.EquipableType.BootsSpeed
                         || equipType == DataConfig.EquipableType.Jetpack
                         || equipType == DataConfig.EquipableType.AirFilter
-                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction)
+                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction
+                        || equipType == DataConfig.EquipableType.MapChip)
                     {
                         expectedGroupIdToAdd = groupItem.GetId();
                         return true;
@@ -661,18 +664,21 @@ namespace CheatInventoryStacking
                         }
                     }
                 }
-                foreach (Group group in list)
+                if (!Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
                 {
-                    if (IsFullStacked(___playerInventory.GetInsideWorldObjects(), ___playerInventory.GetSize(), group.GetId()))
+                    foreach (Group group in list)
                     {
-                        WorldObject worldObject = WorldObjectsHandler.CreateAndDropOnFloor(group, ___gameObjectRoot.transform.position + new Vector3(0f, 1f, 0f), 0f);
-                        informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject.GetGroup()), DataConfig.UiInformationsType.DropOnFloor, worldObject.GetGroup().GetImage());
-                    }
-                    else
-                    {
-                        WorldObject worldObject2 = WorldObjectsHandler.CreateNewWorldObject(group, 0);
-                        ___playerInventory.AddItem(worldObject2);
-                        informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject2.GetGroup()), DataConfig.UiInformationsType.InInventory, worldObject2.GetGroup().GetImage());
+                        if (IsFullStacked(___playerInventory.GetInsideWorldObjects(), ___playerInventory.GetSize(), group.GetId()))
+                        {
+                            WorldObject worldObject = WorldObjectsHandler.CreateAndDropOnFloor(group, ___gameObjectRoot.transform.position + new Vector3(0f, 1f, 0f), 0f);
+                            informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject.GetGroup()), DataConfig.UiInformationsType.DropOnFloor, worldObject.GetGroup().GetImage());
+                        }
+                        else
+                        {
+                            WorldObject worldObject2 = WorldObjectsHandler.CreateNewWorldObject(group, 0);
+                            ___playerInventory.AddItem(worldObject2);
+                            informationsDisplayer.AddInformation(lifeTime, Readable.GetGroupName(worldObject2.GetGroup()), DataConfig.UiInformationsType.InInventory, worldObject2.GetGroup().GetImage());
+                        }
                     }
                 }
                 Managers.GetManager<PlayersManager>().GetActivePlayerController().GetAnimations().AnimateRecolt(false);
@@ -1217,7 +1223,20 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(_inventory.GetId());
             }
         }
-        
+
+        /// <summary>
+        /// Conditionally disallow stackingin optimizers.
+        /// </summary>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineOptimizer), nameof(MachineOptimizer.SetOptimizerInventory))]
+        static void MachineOptimizer_SetOptimizerInventory(Inventory _inventory)
+        {
+            if (!stackOptimizer.Value)
+            {
+                noStackingInventories.Add(_inventory.GetId());
+            }
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]

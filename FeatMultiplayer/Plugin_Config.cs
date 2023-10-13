@@ -161,6 +161,10 @@ namespace FeatMultiplayer
         /// PlayerEquipment.hasCompassChip
         /// </summary>
         static FieldInfo playerEquipmentHasCompassChip;
+        /// <summary>
+        /// PlayerEquipment.hasMapChip
+        /// </summary>
+        static FieldInfo playerEquipmentHasMapChip;
 
         static FieldInfo meteoHandlerMeteoEvents;
 
@@ -213,6 +217,7 @@ namespace FeatMultiplayer
 
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
             playerEquipmentHasCompassChip = AccessTools.Field(typeof(PlayerEquipment), "hasCompassChip");
+            playerEquipmentHasMapChip = AccessTools.Field(typeof(PlayerEquipment), "hasMapChip");
 
             worldUnitsPositioningHandlerAllWorldUnitPositionings = AccessTools.Field(typeof(WorldUnitPositioningHandler), "allWorldUnitPositionings");
 

@@ -394,7 +394,7 @@ namespace UIHotbar
             // based on logic: https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CraftFromContainers/BepInExPlugin.cs#L110
             Vector3 playerAt = player.transform.position;
             Inventory playerInventory = player.GetPlayerBackpack().GetInventory();
-            foreach (InventoryAssociated ia in UnityEngine.Object.FindObjectsOfType<InventoryAssociated>())
+            foreach (InventoryAssociated ia in FindObjectsByType<InventoryAssociated>(FindObjectsSortMode.None))
             {
                 if (ia.name != null && !ia.name.Contains("GoldenContainer") && !ia.name.Contains("WorldContainer")) {
                     try

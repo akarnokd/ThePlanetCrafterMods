@@ -51,7 +51,7 @@ namespace FeatMultiplayer
             SceneManager.LoadScene(GameConfig.mainSceneName);
 
             LogInfo("Find SaveFilesSelector");
-            var selector = FindObjectOfType<SaveFilesSelector>();
+            var selector = FindFirstObjectByType<SaveFilesSelector>();
             if (selector != null)
             {
                 selector.gameObject.SetActive(false);

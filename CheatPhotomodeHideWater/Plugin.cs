@@ -31,7 +31,7 @@ namespace CheatPhotomodeHideWater
                     gameObject2.SetActive(active);
                 }
 
-                foreach (GameObject gameObject2 in FindObjectsOfType<GameObject>(true))
+                foreach (GameObject gameObject2 in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
                     if (gameObject2.name == "Water")
                     {

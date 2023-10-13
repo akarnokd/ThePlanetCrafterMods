@@ -21,16 +21,59 @@ namespace FeatMultiplayer
                 return;
             }
 
-            LogInfo("ReceiveMessageGameMode: Switching to game mode " + mgm.modeIndex);
+            LogInfo("ReceiveMessageGameMode: Switching to game mode " + mgm.gameMode);
 
-            var playerStat = new JsonableGameState();
-            playerStat.mode = mgm.modeIndex.ToString();
+            GameSettingsHandler gsh = Managers.GetManager<GameSettingsHandler>();
+            var gameSettings = gsh.GetCurrentGameSettings();
 
-            // FIXME 0.9.x introduced a lot more game parameters
-            Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().gameMode = playerStat.gameMode;
+            gameSettings.gameMode = mgm.gameMode;
+            gameSettings.gameDyingConsequences = mgm.dyingConsequences;
+            gameSettings.unlockedSpaceTrading = mgm.unlockedSpaceTrading;
+            gameSettings.unlockedOreExtrators = mgm.unlockedOreExtractors;
+            gameSettings.worldSeed = mgm.worldSeed;
+
+
+            gameSettings.unlockedTeleporters = mgm.unlockedTeleporters;
+
+            gameSettings.unlockedDrones = mgm.unlockedDrones;
+
+            gameSettings.unlockedAutocrafter = mgm.unlockedAutoCrafter;
+
+            gameSettings.unlockedEverything = mgm.unlockedEverything;
+
+            gameSettings.freeCraft = mgm.freeCraft;
+
+            gameSettings.randomizeMineables = mgm.randomizeMineables;
+
+            gameSettings.modifierTerraformationPace = mgm.terraformationPace;
+
+            gameSettings.modifierPowerConsumption = mgm.powerConsumption;
+
+            gameSettings.modifierGaugeDrain = mgm.gaugeDrain;
+
+            gameSettings.modifierMeteoOccurence = mgm.meteoOccurrence;
 
             // we need to reset the consumption tracker values too
             ResetGaugeConsumptions();
+
+            gsh.ChangeGenerationForGroups();
+            gsh.AddUnlockedGroups();
+
+            WorldRandomizer worldRandomizer = Managers.GetManager<WorldRandomizer>();
+            worldRandomizer.Init();
+
+            if (mgm.randomizeMineables)
+            {
+                foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsSortMode.None))
+                {
+                    worldRandomizer.ReplaceWorldObjectFromScene(wos);
+                }
+
+                foreach (var ov in FindObjectsByType<MachineGenerationGroupVein>(FindObjectsSortMode.None))
+                {
+                    worldRandomizer.ReplaceOreVein(ov);
+                }
+            }
         }
 
         static void ResetGaugeConsumptions()
@@ -58,22 +101,22 @@ namespace FeatMultiplayer
         [HarmonyPatch(typeof(DyingConsequencesHandler), nameof(DyingConsequencesHandler.HandleDyingConsequences))]
         static bool DyingConsequencesHandler_HandleDyingConsequences(PlayerMainController _playerMainController)
         {
-            DataConfig.GameSettingMode gameSettingMode = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetGameMode();
+            var dyingConsequnce = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetDyingConsequences();
             if (updateMode == MultiplayerMode.CoopClient)
             {
-                if (gameSettingMode != DataConfig.GameSettingMode.Chill)
+                if (dyingConsequnce != DataConfig.GameSettingDyingConsequences.NoConsequences)
                 {
                     SendHost(new MessageDeath()
                     {
                         position = _playerMainController.transform.position
                     }, true);
 
-                    if (gameSettingMode == DataConfig.GameSettingMode.Standard)
+                    if (dyingConsequnce == DataConfig.GameSettingDyingConsequences.DropSomeItems)
                     {
                         Managers.GetManager<BaseHudHandler>().DisplayCursorText("Dying_Info_Drop_Some_Items", 6f, "");
                     }
                     else
-                    if (gameSettingMode == DataConfig.GameSettingMode.Intense)
+                    if (dyingConsequnce == DataConfig.GameSettingDyingConsequences.DropAllItems)
                     {
                         Managers.GetManager<BaseHudHandler>().DisplayCursorText("Dying_Info_Lost_All_Items", 6f, "");
                     }
@@ -82,7 +125,7 @@ namespace FeatMultiplayer
                 }
             }
             else
-            if (updateMode == MultiplayerMode.CoopHost && gameSettingMode == DataConfig.GameSettingMode.Hardcore)
+            if (updateMode == MultiplayerMode.CoopHost && dyingConsequnce == DataConfig.GameSettingDyingConsequences.DeleteSaveFile)
             {
                 UiWindowPause_OnQuit();
             }

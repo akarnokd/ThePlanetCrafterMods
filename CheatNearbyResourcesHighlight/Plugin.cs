@@ -297,11 +297,11 @@ namespace CheatNearbyResourcesHighlight
             List<Component> candidates = new();
             if (hasResources)
             {
-                candidates.AddRange(FindObjectsOfType<ActionMinable>());
+                candidates.AddRange(FindObjectsByType<ActionMinable>(FindObjectsSortMode.None));
             }
             if (hasLarvae || hasFish || hasFrog)
             {
-                candidates.AddRange(FindObjectsOfType<ActionGrabable>());
+                candidates.AddRange(FindObjectsByType<ActionGrabable>(FindObjectsSortMode.None));
             }
 
             foreach (Component resource in candidates)

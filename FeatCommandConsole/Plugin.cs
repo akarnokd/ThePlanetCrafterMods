@@ -2034,7 +2034,7 @@ namespace FeatCommandConsole
         [Command("/list-larvae-zones", "Lists the larvae zones and the larvae that can spawn there.")]
         public void ListLarvaeZones(List<string> args)
         {
-            var sectors = FindObjectsOfType<Sector>();
+            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
             Logger.LogInfo("Sector count: " + sectors.Length);
             foreach (Sector sector in sectors)
             {
@@ -2048,7 +2048,7 @@ namespace FeatCommandConsole
                 SceneManager.LoadScene(name, LoadSceneMode.Additive);
             }
 
-            foreach (LarvaeZone lz in FindObjectsOfType<LarvaeZone>())
+            foreach (LarvaeZone lz in FindObjectsByType<LarvaeZone>(FindObjectsSortMode.None))
             {
                 var pool = lz.GetLarvaesToAddToPool();
                 var bounds = lz.GetComponent<Collider>().bounds;
@@ -2056,7 +2056,7 @@ namespace FeatCommandConsole
                 var extents = bounds.extents;
 
                 var captureLarvaeZoneCurrentSector = "";
-                foreach (SectorEnter sector in FindObjectsOfType<SectorEnter>())
+                foreach (SectorEnter sector in FindObjectsByType<SectorEnter>(FindObjectsSortMode.None))
                 {
                     if (sector.collider != null)
                     {
@@ -2835,7 +2835,7 @@ namespace FeatCommandConsole
             var player = pm.transform.position;
 
             int i = 0;
-            foreach (var wos in FindObjectsOfType<WorldObjectFromScene>(true))
+            foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 var gd = wos.GetGroupData();
                 if (gd.id == "GoldenContainer")

@@ -230,7 +230,7 @@ namespace CheatTeleportNearestMinable
         {
             List<ActionMinable> result = new();
 
-            foreach(var am in FindObjectsOfType<ActionMinable>())
+            foreach(var am in FindObjectsByType<ActionMinable>(FindObjectsSortMode.None))
             {
                 if (am.TryGetComponent<WorldObjectFromScene>(out var wos))
                 {
@@ -257,7 +257,7 @@ namespace CheatTeleportNearestMinable
         {
             List<ActionGrabable> result = new();
 
-            foreach (var am in FindObjectsOfType<ActionGrabable>())
+            foreach (var am in FindObjectsByType<ActionGrabable>(FindObjectsSortMode.None))
             {
                 if (am.TryGetComponent<WorldObjectFromScene>(out var wos))
                 {
