@@ -1409,7 +1409,8 @@ LeftFontSize = -1
 ## The font size of the right side text block (version + framerate). -1 to use the default.
 # Setting type: Int32
 # Default value: -1
-RightFontSize = -1```
+RightFontSize = -1
+```
 
 
 ## (UI) Menu Shortcut Keys
