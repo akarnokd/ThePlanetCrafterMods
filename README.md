@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.8.010
+## Supported Game Version: 0.9.005
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -74,6 +74,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Český překlad](#ui-cesky-preklad) (Czech translation)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
+- [Estonian Translation](#ui-estonian-translation)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
 - [Logistic Select All](#logistic-select-all)
@@ -92,6 +93,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)
 - [Show Rocket Counts](#ui-show-rocket-counts)
 - [Sort Saves](#ui-sort-saves)
+- [Telemetry Font Sizer](#ui-telemetry-font-sizer)
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
 - [Polish Translation](#ui-polish-translation)
 
@@ -1371,6 +1373,44 @@ TBD
 ### Configuration
 
 Only diagnostic options. Not relevant for the player.
+
+## (UI) Estonian Translation
+
+Patches in labels and enables switching to Polish ("Polskie") in the game's options screen. Note that some labels do not change when switching to Polish the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
+
+The translation was kindly provided by XXXX (Discord: XXX).
+
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Polish myself.
+
+:et:
+
+TBD
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
+
+## (UI) Telemetry Font Sizer
+
+Allows modifying the font size on the bottom left (coordinates) and bottom right (version, framerate) telemetry text display.
+
+### Configuration
+
+`akarnokd.theplanetcraftermods.uitelemetryfontsizer`
+
+```
+[General]
+
+## The font size of the left side text block (coordinates). -1 to use the default.
+# Setting type: Int32
+# Default value: -1
+LeftFontSize = -1
+
+## The font size of the right side text block (version + framerate). -1 to use the default.
+# Setting type: Int32
+# Default value: -1
+RightFontSize = -1```
+
 
 ## (UI) Menu Shortcut Keys
 
