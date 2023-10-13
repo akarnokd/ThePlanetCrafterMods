@@ -104,6 +104,7 @@ namespace FeatTechniciansExile
                 technicianMessage.stringId = "TechniciansExile_Message";
                 technicianMessage.senderStringId = "TechniciansExile_Name";
                 technicianMessage.yearSent = "Today";
+                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
             };
 
             technicianMessage2 = ScriptableObject.CreateInstance<MessageData>();
@@ -111,6 +112,7 @@ namespace FeatTechniciansExile
                 technicianMessage2.stringId = "TechniciansExile_Message2";
                 technicianMessage2.senderStringId = "TechniciansExile_Name";
                 technicianMessage2.yearSent = "Today";
+                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
             };
 
             try
@@ -849,7 +851,7 @@ namespace FeatTechniciansExile
                         questPhase = QuestPhase.Initial_Help;
 
                         var msh = Managers.GetManager<MessagesHandler>();
-                        msh.AddNewReceivedMessage(technicianMessage);
+                        msh.AddNewReceivedMessage(technicianMessage, true);
 
                         ShowChoice(dialogChoices["WhoAreYou"]);
                         SaveState();
@@ -876,7 +878,7 @@ namespace FeatTechniciansExile
                 SaveState();
                 SetVisibilityViaCurrentPhase();
                 var mh = Managers.GetManager<MessagesHandler>();
-                mh.AddNewReceivedMessage(technicianMessage2);
+                mh.AddNewReceivedMessage(technicianMessage2, true);
             }
         }
 

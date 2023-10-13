@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatTechniciansExile</AssemblyName>
     <Description>(Feat) Technicians Exile</Description>
-    <Version>0.1.0.10</Version>
+    <Version>0.1.0.11</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
