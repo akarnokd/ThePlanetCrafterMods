@@ -1075,3 +1075,7 @@ GROUP_NAME_Fish13Eggs=Galbea halikra
 GROUP_DESC_Fish13Eggs=
 GROUP_NAME_Frog11Eggs=Lavaum békapete
 GROUP_DESC_Frog11Eggs=
+Message_Other_Volcano1=Ez a hely melegebb, mint az előző táborhelyem, de még mindig extrém hideg. Két napja fogyott el az élelmem.<br><br> Hiányzik a családom. Olyan magányos vagyok.<br><br><br> … Elvesztettem minden reményt. <br>Hamarosan tovább kell állnom. Rettegek attól, hogy kimenjek megint, olyan sötét és hideg van...
+Message_Other_Volcano2=<br><br><b>De most Fogoly vagyok! Testileg vasba verve, szellemileg egy eszmével bebörtönözve. Egy szörnyű, förtelmes, meghódíthatatlan eszmével! Csak egy gondolat, egy meggyőződés, egy bizonyosság, halálra vagyok ítélve!</b><br><br> 
+GROUP_NAME_GoldenEffigie7=Aranyfigura
+GROUP_DESC_GoldenEffigie7=
