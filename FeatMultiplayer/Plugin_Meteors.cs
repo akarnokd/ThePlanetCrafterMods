@@ -466,7 +466,12 @@ namespace FeatMultiplayer
                             {
                                 var groupItem = _asteroid.GetAssociatedGroups()[UnityEngine.Random.Range(0, _asteroid.GetAssociatedGroups().Count)];
                                 GameObject resourceTemplateGo = groupItem.GetAssociatedGameObject();
-                                debrisGo = Instantiate<GameObject>(resourceTemplateGo);
+                                debrisGo = Instantiate(resourceTemplateGo);
+                                if (debrisGo.GetComponent<WorldObjectFromScene>() != null)
+                                {
+                                    debrisGo.GetComponent<WorldObjectFromScene>().SetDoNotRandomize();
+                                }
+
                                 CapsuleCollider componentInChildren = debrisGo.GetComponentInChildren<CapsuleCollider>();
                                 if (componentInChildren != null)
                                 {

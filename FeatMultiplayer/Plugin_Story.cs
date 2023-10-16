@@ -40,13 +40,14 @@ namespace FeatMultiplayer
         /// <param name="_messageData">The new message to be received.</param>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MessagesHandler), nameof(MessagesHandler.AddNewReceivedMessage))]
-        static void MessagesHandler_AddNewReceivedMessage(MessageData _messageData)
+        static void MessagesHandler_AddNewReceivedMessage(MessageData _messageData, bool _showPopup)
         {
             if (updateMode == MultiplayerMode.CoopHost)
             {
                 SendAllClients(new MessageMessageAdd()
                 {
-                    messageId = _messageData.stringId
+                    messageId = _messageData.stringId,
+                    showPopup = _showPopup
                 }, true);
             }
         }

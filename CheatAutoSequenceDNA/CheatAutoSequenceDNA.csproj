@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatAutoSequenceDNA</AssemblyName>
     <Description>(Cheat) Auto Sequence DNA</Description>
-    <Version>1.0.0.12</Version>
+    <Version>1.0.0.13</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,17 +14,6 @@
 	<ItemGroup>
 		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
 	</ItemGroup>
-
-	<ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.42" IncludeAssets="compile" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

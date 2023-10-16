@@ -280,5 +280,29 @@ namespace FeatMultiplayer
                 SendAllClients(msg);
             }
         }
+
+        static void SendGameMode(ClientConnection cc)
+        {
+            var settings = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings();
+            cc.Send(new MessageGameMode()
+            {
+                gameMode = settings.gameMode,
+                dyingConsequences = settings.gameDyingConsequences,
+                worldSeed = settings.worldSeed,
+                unlockedSpaceTrading = settings.unlockedSpaceTrading,
+                unlockedOreExtractors = settings.unlockedOreExtrators,
+                unlockedDrones = settings.unlockedDrones,
+                unlockedAutoCrafter = settings.unlockedAutocrafter,
+                unlockedTeleporters = settings.unlockedTeleporters,
+                unlockedEverything = settings.unlockedEverything,
+                freeCraft = settings.freeCraft,
+                randomizeMineables = settings.randomizeMineables,
+                terraformationPace = settings.modifierTerraformationPace,
+                gaugeDrain = settings.modifierGaugeDrain,
+                powerConsumption = settings.modifierPowerConsumption,
+                meteoOccurrence = settings.modifierMeteoOccurence
+            });
+            cc.Signal();
+        }
     }
 }

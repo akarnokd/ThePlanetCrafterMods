@@ -129,13 +129,13 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(21, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(23, "GoldenContainer"));
 
                 AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
-                AddTextRow("Unique fish found", CreateFishCount(12));
+                AddTextRow("Unique fish found", CreateFishCount(13));
 
-                AddTextRow("Unique frog found", CreateFrogCount(11));
+                AddTextRow("Unique frog found", CreateFrogCount(12));
 
                 AddTextRow("Trade Tokens", CreateTradeTokens());
 

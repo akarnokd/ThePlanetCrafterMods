@@ -104,6 +104,7 @@ namespace FeatTechniciansExile
                 technicianMessage.stringId = "TechniciansExile_Message";
                 technicianMessage.senderStringId = "TechniciansExile_Name";
                 technicianMessage.yearSent = "Today";
+                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
             };
 
             technicianMessage2 = ScriptableObject.CreateInstance<MessageData>();
@@ -111,20 +112,28 @@ namespace FeatTechniciansExile
                 technicianMessage2.stringId = "TechniciansExile_Message2";
                 technicianMessage2.senderStringId = "TechniciansExile_Name";
                 technicianMessage2.yearSent = "Today";
+                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
             };
 
-            Font osFont = null;
-
-            foreach (var fp in Font.GetPathsToOSFonts())
+            try
             {
-                if (fp.ToLower().Contains("arial.ttf"))
-                {
-                    osFont = new Font(fp);
-                    break;
-                }
-            }
+                Font osFont = null;
 
-            fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+                foreach (var fp in Font.GetPathsToOSFonts())
+                {
+                    if (fp.ToLower().Contains("arial.ttf"))
+                    {
+                        osFont = new Font(fp);
+                        break;
+                    }
+                }
+
+                fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            } 
+            catch (Exception)
+            {
+                logger.LogWarning("Failed to create custom font, using the game's default font.");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -842,7 +851,7 @@ namespace FeatTechniciansExile
                         questPhase = QuestPhase.Initial_Help;
 
                         var msh = Managers.GetManager<MessagesHandler>();
-                        msh.AddNewReceivedMessage(technicianMessage);
+                        msh.AddNewReceivedMessage(technicianMessage, true);
 
                         ShowChoice(dialogChoices["WhoAreYou"]);
                         SaveState();
@@ -869,7 +878,7 @@ namespace FeatTechniciansExile
                 SaveState();
                 SetVisibilityViaCurrentPhase();
                 var mh = Managers.GetManager<MessagesHandler>();
-                mh.AddNewReceivedMessage(technicianMessage2);
+                mh.AddNewReceivedMessage(technicianMessage2, true);
             }
         }
 
@@ -1184,7 +1193,22 @@ namespace FeatTechniciansExile
             return avatar?.avatar.GetComponent<ActionTalk>()?.conversationDialogCanvas == null;
         }
 
-
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void FontWorkaround()
+        {
+            if (fontAsset == null)
+            {
+                foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsSortMode.None))
+                {
+                    if (ltext.textId == "Newsletter_Button")
+                    {
+                        fontAsset = ltext.GetComponent<TMP_Text>().font;
+                        break;
+                    }
+                }
+            }
+        }
         internal class ConversationEntry
         {
             internal string owner;

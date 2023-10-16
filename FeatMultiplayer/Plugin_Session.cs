@@ -35,7 +35,11 @@ namespace FeatMultiplayer
             try
             {
                 GameConfig.positionsForEscapePod.RemoveRange(1, GameConfig.positionsForEscapePod.Count - 1);
-                JSONExport.CreateNewSaveFile(multiplayerFilename, DataConfig.GameSettingMode.Chill, DataConfig.GameSettingStartLocation.Standard);
+                JsonableGameState gs = new JsonableGameState();
+                // FIXME 0.9.x introduced a lot more game settings
+                gs.gameMode = DataConfig.GameSettingMode.Chill;
+                gs.gameStartLocation = DataConfig.GameSettingStartLocation.Standard;
+                JSONExport.CreateNewSaveFile(multiplayerFilename, gs);
             }
             finally
             {
@@ -47,7 +51,7 @@ namespace FeatMultiplayer
             SceneManager.LoadScene(GameConfig.mainSceneName);
 
             LogInfo("Find SaveFilesSelector");
-            var selector = FindObjectOfType<SaveFilesSelector>();
+            var selector = FindFirstObjectByType<SaveFilesSelector>();
             if (selector != null)
             {
                 selector.gameObject.SetActive(false);

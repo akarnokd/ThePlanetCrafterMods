@@ -43,7 +43,7 @@ namespace FeatMultiplayer
                 List<Group> recipe = groupItem.GetRecipe().GetIngredientsGroupInRecipe();
                 Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
                 bool hasAllIngredients = inventory.ContainsItems(recipe);
-                bool freeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+                bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
 
                 if (hasAllIngredients || freeCraft)
                 {
@@ -112,7 +112,7 @@ namespace FeatMultiplayer
                 List<Group> recipe = groupItem.GetRecipe().GetIngredientsGroupInRecipe();
                 Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
                 bool hasAllIngredients = inventory.ContainsItems(recipe);
-                bool freeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+                bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
 
                 if (hasAllIngredients || freeCraft)
                 {
@@ -173,7 +173,7 @@ namespace FeatMultiplayer
                 if (gri != null)
                 {
                     bool hasAllIngredients = inv.ContainsItems(recipe);
-                    bool freeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+                    bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
 
                     if (hasAllIngredients || freeCraft)
                     {
@@ -209,7 +209,7 @@ namespace FeatMultiplayer
                 if (gri != null)
                 {
                     bool hasAllIngredients = inv.ContainsItems(recipe);
-                    bool freeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+                    bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
 
                     if (hasAllIngredients || freeCraft)
                     {

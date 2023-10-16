@@ -217,7 +217,7 @@ namespace FeatMultiplayer
                 // Prevent pinging all unlocks after the join
                 if (firstTerraformSync)
                 {
-                    var go = FindObjectOfType<AlertUnlockables>();
+                    var go = FindObjectsByType<AlertUnlockables>(FindObjectsSortMode.None);
                     if (go != null)
                     {
                         AccessTools.Field(typeof(AlertUnlockables), "hasInited").SetValue(go, false);

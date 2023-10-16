@@ -145,7 +145,14 @@ namespace FeatCommandConsole
             }
 
             log("   Set asset");
-            fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            try
+            {
+                fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
+            } 
+            catch (Exception)
+            {
+                log("Setting custom font failed, using default game font");
+            }
 
             createWelcomeText();
 
@@ -2027,7 +2034,7 @@ namespace FeatCommandConsole
         [Command("/list-larvae-zones", "Lists the larvae zones and the larvae that can spawn there.")]
         public void ListLarvaeZones(List<string> args)
         {
-            var sectors = FindObjectsOfType<Sector>();
+            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
             Logger.LogInfo("Sector count: " + sectors.Length);
             foreach (Sector sector in sectors)
             {
@@ -2041,7 +2048,7 @@ namespace FeatCommandConsole
                 SceneManager.LoadScene(name, LoadSceneMode.Additive);
             }
 
-            foreach (LarvaeZone lz in FindObjectsOfType<LarvaeZone>())
+            foreach (LarvaeZone lz in FindObjectsByType<LarvaeZone>(FindObjectsSortMode.None))
             {
                 var pool = lz.GetLarvaesToAddToPool();
                 var bounds = lz.GetComponent<Collider>().bounds;
@@ -2049,7 +2056,7 @@ namespace FeatCommandConsole
                 var extents = bounds.extents;
 
                 var captureLarvaeZoneCurrentSector = "";
-                foreach (SectorEnter sector in FindObjectsOfType<SectorEnter>())
+                foreach (SectorEnter sector in FindObjectsByType<SectorEnter>(FindObjectsSortMode.None))
                 {
                     if (sector.collider != null)
                     {
@@ -2828,7 +2835,7 @@ namespace FeatCommandConsole
             var player = pm.transform.position;
 
             int i = 0;
-            foreach (var wos in FindObjectsOfType<WorldObjectFromScene>(true))
+            foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 var gd = wos.GetGroupData();
                 if (gd.id == "GoldenContainer")
@@ -2973,9 +2980,26 @@ namespace FeatCommandConsole
             ___updateInterval = outsideGrowerDelay;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void FontWorkaround()
+        {
+            if (fontAsset == null)
+            {
+                foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsSortMode.None))
+                {
+                    if (ltext.textId == "Newsletter_Button")
+                    {
+                        fontAsset = ltext.GetComponent<TMP_Text>().font;
+                        break;
+                    }
+                }
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-        void Colorize(List<string> list, string color)
+            void Colorize(List<string> list, string color)
         {
             for (int i = 0; i < list.Count; i++)
             {

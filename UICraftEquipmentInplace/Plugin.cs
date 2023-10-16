@@ -85,22 +85,6 @@ namespace UICraftEquipmentInplace
             return crafts == null || !crafts.Value || __instance.GetId() == 2;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlayModeHandler), nameof(PlayModeHandler.GetFreeCraft))]
-        static void PlayModeHandler_GetFreeCraft(ref bool __result, DataConfig.PlayMode ___playMode)
-        {
-            //logger.LogInfo("PlayModeHandler_GetFreeCraft called");
-            if (crafts != null)
-            {
-                __result = crafts.Value;
-            } 
-            else 
-            {
-                __result = ___playMode == DataConfig.PlayMode.Free
-                    || ___playMode == DataConfig.PlayMode.FreeLimited;
-            }
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.CraftAnimation))]
         static bool ActionCrafter_CraftAnimation(ActionCrafter __instance)
@@ -115,7 +99,7 @@ namespace UICraftEquipmentInplace
             ref int ___totalCraft)
         {
             // In Free Craft mode, skip this mod.
-            bool isFreeCraft = Managers.GetManager<PlayModeHandler>().GetFreeCraft();
+            bool isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
 
             // Unfortunately, the whole method has to be rewritten
             DataConfig.EquipableType equipType = groupItem.GetEquipableType();

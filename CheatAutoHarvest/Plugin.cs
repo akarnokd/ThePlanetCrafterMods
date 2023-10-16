@@ -82,14 +82,14 @@ namespace CheatAutoHarvest
             LibCommon.SaveModInfo.Patch(harmony);
         }
 
-        static void logAlgae(string s)
+        static void LogAlgae(string s)
         {
             if (debugAlgae.Value)
             {
                 logger.LogInfo(s);
             }
         }
-        static void logFood(string s)
+        static void LogFood(string s)
         {
             if (debugFood.Value)
             {
@@ -116,12 +116,12 @@ namespace CheatAutoHarvest
             }
             if (!loadCompleted)
             {
-                logAlgae("Algae: Game is still loading.");
+                LogAlgae("Algae: Game is still loading.");
                 inventoriesCache = null;
                 inventoriesCacheFrame = 0;
                 return;
             }
-            logAlgae("Algae: Ingame?");
+            LogAlgae("Algae: Ingame?");
             if (Managers.GetManager<PlayersManager>() == null)
             {
                 return;
@@ -133,14 +133,14 @@ namespace CheatAutoHarvest
 
                 bool restartCoroutine = false;
 
-                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " < " + ___spawNumber);
+                LogAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " < " + ___spawNumber);
 
                 List<InventoryAndWorldObject> inventories = inventoriesCache;
                 int frame = inventoriesCacheFrame;
                 int currentFrame = Time.frameCount;
                 if (inventories == null || frame != currentFrame)
                 {
-                    logAlgae("  Grower lookup all inventories this frame.");
+                    LogAlgae("  Grower lookup all inventories this frame.");
                     inventories = new List<InventoryAndWorldObject>();
                     FindInventories(inventories);
                     
@@ -148,7 +148,7 @@ namespace CheatAutoHarvest
                     inventoriesCacheFrame = currentFrame;
                 }
 
-                logAlgae("  Grower Inventory lookup time: " + (now.ElapsedTicks / 10000f) + " ms");
+                LogAlgae("  Grower Inventory lookup time: " + (now.ElapsedTicks / 10000f) + " ms");
                 foreach (GameObject go in new List<GameObject>(___instantiatedGameObjects))
                 {
                     if (go != null)
@@ -163,14 +163,14 @@ namespace CheatAutoHarvest
                                 if (wo != null)
                                 {
                                     float progress = 100f * go.transform.localScale.x / ___growSize;
-                                    logAlgae("  - [" + wo.GetId() + "]  "  + wo.GetGroup().GetId() + " @ " + (progress) + "%");
+                                    LogAlgae("  - [" + wo.GetId() + "]  "  + wo.GetGroup().GetId() + " @ " + (progress) + "%");
                                     if (progress >= 100f)
                                     {
                                         if (FindInventory(wo, inventories, out Inventory inv))
                                         {
                                             if (inv.AddItem(wo))
                                             {
-                                                logAlgae("    Deposited [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
+                                                LogAlgae("    Deposited [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                                                 wo.SetDontSaveMe(false);
 
                                                 ___instantiatedGameObjects.Remove(go);
@@ -187,12 +187,12 @@ namespace CheatAutoHarvest
                                             }
                                             else
                                             {
-                                                logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
+                                                LogAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                                             }
                                         }
                                         else
                                         {
-                                            logAlgae("    No inventory for [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
+                                            LogAlgae("    No inventory for [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                                         }
                                     }
                                 }
@@ -200,7 +200,7 @@ namespace CheatAutoHarvest
                         }
                     }
                 }
-                logAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " ---- DONE in " + (now.ElapsedTicks / 10000f) + " ms");
+                LogAlgae("Grower: " + ___worldObjectGrower.GetId() + " @ " + ___worldObjectGrower.GetGrowth() + " - " + ___instantiatedGameObjects.Count + " ---- DONE in " + (now.ElapsedTicks / 10000f) + " ms");
 
                 if (restartCoroutine)
                 {
@@ -221,7 +221,7 @@ namespace CheatAutoHarvest
             {
                 var t = Stopwatch.GetTimestamp();
                 CheckFoodGrowers();
-                logFood("Perf: " + (Stopwatch.GetTimestamp() - t) / 10000f);
+                LogFood("Perf: " + (Stopwatch.GetTimestamp() - t) / 10000f);
                 yield return new WaitForSeconds(delay);
             }
         }
@@ -234,36 +234,36 @@ namespace CheatAutoHarvest
             }
             if (!loadCompleted)
             {
-                logFood("Algae: Game is still loading.");
+                LogFood("Algae: Game is still loading.");
                 return;
             }
-            logFood("Edible: Ingame?");
+            LogFood("Edible: Ingame?");
             if (Managers.GetManager<PlayersManager>() == null)
             {
                 return;
             }
 
-            logFood("Edible: begin search");
+            LogFood("Edible: begin search");
             var now = new Stopwatch();
             now.Start();
             int deposited = 0;
 
-            List<MachineGrower> allMachineGrowers = new List<MachineGrower>();
-            List<WorldObject> food = new List<WorldObject>();
-            List<InventoryAndWorldObject> inventories = new List<InventoryAndWorldObject>();
+            List<MachineGrower> allMachineGrowers = new();
+            List<WorldObject> food = new();
+            List<InventoryAndWorldObject> inventories = new();
 
             FindObjects(food, inventories, allMachineGrowers);
-            logFood("  Enumerated food: " + food.Count);
-            logFood("  Enumerated inventories: " + inventories.Count);
-            logFood("  Enumerated machine growers: " + allMachineGrowers.Count);
+            LogFood("  Enumerated food: " + food.Count);
+            LogFood("  Enumerated inventories: " + inventories.Count);
+            LogFood("  Enumerated machine growers: " + allMachineGrowers.Count);
 
             foreach (WorldObject wo in food)
             {
                 Group g = wo.GetGroup();
-                logFood("Edible for grab: " + wo.GetId() + " of *" + g.id);
+                LogFood("Edible for grab: " + wo.GetId() + " of *" + g.id);
                 if (FindInventory(wo, inventories, out Inventory inv))
                 {
-                    logFood("  Found inventory.");
+                    LogFood("  Found inventory.");
 
                     bool found = false;
                     // we have to find which grower wo came from so it can be reset
@@ -272,10 +272,10 @@ namespace CheatAutoHarvest
                         if ((wo.GetPosition() - mg.spawnPoint.transform.position).magnitude < 0.2f)
                         {
                             found = true;
-                            logFood("  Found MachineGrower");
+                            LogFood("  Found MachineGrower");
                             if (inv.AddItem(wo))
                             {
-                                logFood("  Adding to target inventory");
+                                LogFood("  Adding to target inventory");
                                 var go = wo.GetGameObject();
                                 if (go != null)
                                 {
@@ -295,7 +295,7 @@ namespace CheatAutoHarvest
                             }
                             else
                             {
-                                logAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
+                                LogAlgae("    Inventory full [" + wo.GetId() + "]  *" + wo.GetGroup().GetId());
                             }
 
                             break;
@@ -303,11 +303,11 @@ namespace CheatAutoHarvest
                     }
                     if (!found)
                     {
-                        logFood("  Could not find MachineGrower of this edible");
+                        LogFood("  Could not find MachineGrower of this edible");
                     }
                 }
             }
-            logFood("Edible deposited: " + deposited + " in " + (now.ElapsedTicks / 10000f) + " ms");
+            LogFood("Edible deposited: " + deposited + " in " + (now.ElapsedTicks / 10000f) + " ms");
         }
 
         static bool IsFull(Inventory inv, WorldObject wo)

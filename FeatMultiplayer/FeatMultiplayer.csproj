@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatMultiplayer</AssemblyName>
     <Description>(Feat) Multiplayer</Description>
-    <Version>0.2.0.54</Version>
+    <Version>0.2.0.60</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -18,18 +18,8 @@
 		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 	</ItemGroup>
 
-	<ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.42" IncludeAssets="compile" />
-    <PackageReference Include="Open.Nat" Version="2.1.0" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-  </ItemGroup>
-
   <ItemGroup>
+      <PackageReference Include="Open.Nat" Version="2.1.0" />
     <Reference Include="Assembly-CSharp">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
@@ -65,7 +55,7 @@
     </PropertyGroup>
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(SourceDir)Open.NAT.dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination1)" />
@@ -77,7 +67,7 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(Destination1)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
+    <Copy SourceFiles="$(SourceDir)Open.NAT.dll" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(Destination2)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(Destination2)" />
@@ -89,7 +79,7 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(Destination2)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZip)" />
-    <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
+    <Copy SourceFiles="$(SourceDir)Open.NAT.dll" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZip)" />
     <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZip)" />
@@ -101,7 +91,7 @@
 	  <Copy SourceFiles="$(SourceDir)Assets\emote_help.png" DestinationFolder="$(ForZip)" />
 
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(ForZipAll)" />
-	  <Copy SourceFiles="$(TargetDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
+	  <Copy SourceFiles="$(SourceDir)Open.NAT.dll" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Back.png" DestinationFolder="$(ForZipAll)" />
 	  <Copy SourceFiles="$(SourceDir)Assets\Astronaut_Front_Host.png" DestinationFolder="$(ForZipAll)" />

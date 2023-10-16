@@ -46,7 +46,7 @@ namespace UIDontCloseCraftWindow
                 FieldInfo fi = AccessTools.Field(typeof(EventHoverShowGroup), "associatedGroup");
                 if (eventTriggerCallbackData.group != null)
                 {
-                    foreach (EventHoverShowGroup e in UnityEngine.Object.FindObjectsOfType<EventHoverShowGroup>())
+                    foreach (EventHoverShowGroup e in FindObjectsByType<EventHoverShowGroup>(UnityEngine.FindObjectsSortMode.None))
                     {
                         Group g = (Group)fi.GetValue(e);
                         if (g != null && g.GetId() == eventTriggerCallbackData.group.GetId())

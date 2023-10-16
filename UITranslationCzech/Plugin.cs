@@ -68,7 +68,7 @@ namespace UITranslationCzech
                 yield return new WaitForSeconds(0.1f);
                 if (loadSuccess)
                 {
-                    foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsOfType<LocalizedText>(true))
+                    foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                     {
                         ltext.UpdateTranslation();
 

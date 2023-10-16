@@ -174,14 +174,14 @@ namespace FeatMultiplayer
         {
             if (healthGaugeTransform == null)
             {
-                var gau = FindObjectOfType<PlayerGaugeHealth>();
+                var gau = FindAnyObjectByType<PlayerGaugeHealth>();
                 if (gau == null)
                 {
                     return;
                 }
                 healthGaugeTransform = gau.transform;
 
-                waterGaugeTransform = FindObjectOfType<PlayerGaugeThirst>().transform;
+                waterGaugeTransform = FindAnyObjectByType<PlayerGaugeThirst>().transform;
             }
 
             if (playerListOverlay == null)

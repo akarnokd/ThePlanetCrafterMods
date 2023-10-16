@@ -70,11 +70,8 @@ namespace FeatMultiplayer
 
                             cc.Send(CreateWelcome());
                             cc.Signal();
-                            cc.Send(new MessageGameMode()
-                            {
-                                modeIndex = (int)GameSettingsHandler.GetGameMode()
-                            });
-                            cc.Signal();
+                            // FIXME 0.9.x introduced a lot more game mode settings.
+                            SendGameMode(cc);
 
                             lastFullSync = Time.realtimeSinceStartup;
                             SendFullState();

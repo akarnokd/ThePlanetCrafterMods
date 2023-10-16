@@ -81,7 +81,7 @@ namespace UITranslationHungarian
                 logger.LogInfo("Waiting for loadSuccess...");
                 if (loadSuccess)
                 {
-                    foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsOfType<LocalizedText>(true))
+                    foreach (LocalizedText ltext in FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                     {
                         ltext.UpdateTranslation();
 
