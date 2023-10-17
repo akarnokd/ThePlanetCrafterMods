@@ -1394,15 +1394,11 @@ Only diagnostic options. Not relevant for the player.
 
 ## (UI) Estonian Translation
 
-Patches in labels and enables switching to Polish ("Polskie") in the game's options screen. Note that some labels do not change when switching to Polish the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
+Patches in labels and enables switching to Estonian ("Eesti") in the game's options screen. Note that some labels do not change when switching to Estonian the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
 
 The translation was kindly provided by Annika on the Official Discord of the game.
 
 :information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Estonian myself.
-
-:et:
-
-TBD
 
 ### Configuration
 
