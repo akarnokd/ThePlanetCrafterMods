@@ -1075,3 +1075,7 @@ GROUP_NAME_Fish13Eggs=Ikra ryby Galbea
 GROUP_DESC_Fish13Eggs=
 GROUP_NAME_Frog11Eggs=Skrzek żab Lavaum
 GROUP_DESC_Frog11Eggs=
+Message_Other_Volcano1=To nowe miejsce jest nieco cieplejsze niż mój ostatni obóz, ale nadal jest mi wyjątkowo zimno. Minęły dwa dni, odkąd skończyło mi się jedzenie.<br><br> Tęsknię za rodziną. Jestem taki samotny.<br><br><br> … Straciłem wszelką nadzieję. <br>Będę musiał wkrótce się wyprowadzić. Boję się jeszcze raz wyjść na dwór, jest tak ciemno i tak zimno…
+Message_Other_Volcano2=<br><br><b>Ale nadal jestem więźniem! Ciało w kajdanach w lochach, a psychicznie uwięziony w idei, strasznej, ohydnej, niepokonanej idei! Mam tylko jedną myśl, jedno przekonanie, jedną pewność, Skazany na śmierć!</b><br><br>
+GROUP_NAME_GoldenEffigie7=Złota figurka
+GROUP_DESC_GoldenEffigie7=
