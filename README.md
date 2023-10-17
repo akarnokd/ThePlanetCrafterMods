@@ -71,14 +71,11 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Beacon Text](#ui-beacon-text)
 - [Craft Equipment Inplace](#ui-craft-equipment-inplace)
-- [Český překlad](#ui-cesky-preklad) (Czech translation)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
-- [Estonian Translation](#ui-estonian-translation)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
 - [Logistic Select All](#logistic-select-all)
-- [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
 - [Menu Shortcut Keys](#ui-menu-shortcut-keys)
 - [Overview Panel](#ui-overview-panel)
 - [Pin Recipe to Screen](#ui-pin-recipe-to-screen)
@@ -94,8 +91,15 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Show Rocket Counts](#ui-show-rocket-counts)
 - [Sort Saves](#ui-sort-saves)
 - [Telemetry Font Sizer](#ui-telemetry-font-sizer)
+
+### Translations
+
+- [Český překlad](#ui-cesky-preklad) (Czech translation)
+- [Estonian Translation](#ui-estonian-translation)
+- [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
 - [Polish Translation](#ui-polish-translation)
+- [Romanian Translation](#ui-romanian-translation)
 
 ### Other
 
@@ -1374,13 +1378,27 @@ TBD
 
 Only diagnostic options. Not relevant for the player.
 
+## (UI) Romanian Translation
+
+Acest mod încarcă etichete în limba română și vă permite să alegeți „Română” în ecranul de selecție a limbii (Meniu principal> Opțiuni). După aceea, se recomandă să reporniți jocul.
+
+A fost un efort oficial de traducere bazat pe comunitate, dar recent a fost închis din motive necunoscute. A avut probleme de la sine. Acest mod ne permite să actualizăm traducerile mult mai rapid pe măsură ce accesul timpuriu progresează.
+
+Traducerea a fost oferită cu amabilitate de Neckro (Discord: neckro#1989).
+
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Romanian myself.
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
+
 ## (UI) Estonian Translation
 
 Patches in labels and enables switching to Polish ("Polskie") in the game's options screen. Note that some labels do not change when switching to Polish the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
 
-The translation was kindly provided by XXXX (Discord: XXX).
+The translation was kindly provided by Annika on the Official Discord of the game.
 
-:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Polish myself.
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Estonian myself.
 
 :et:
 
