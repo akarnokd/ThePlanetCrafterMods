@@ -1,0 +1,1080 @@
+LANGUAGE=한국어
+GROUP_CATEG_BaseBuilding=기지 건물
+GROUP_CATEG_Machines=기계
+GROUP_CATEG_Screens=정보 화면
+GROUP_CATEG_Furnitures=가구
+GROUP_CATEG_Misc=기타
+CRAFT=제작
+INVENTORY=인벤토리
+CONTAINER=컨테이너
+ALPHAVERSION="플래닛 크래프터"" - 개발 버전"
+EQUIPMENT=장비
+CONSTRUCTION=건설
+DESCRIPTION=설명
+RUN=달리기
+TURNLIGHT=조명 끄기/켜기
+BLUEPRINTS=설계도
+POPUP_FEEDBACK=피드백을 제공하려면 F8 키를 누르세요.
+POPUP_WISHLIST=F9를 눌러 스팀 찜목록에 추가하세요.
+MOVE=이동
+TABKEY=탭
+OPENBUILD=건설
+SHIFT=쉬프트
+ROTATE=건물 회전 / 도구 변경
+CONSTRUCTION_Controls=건설 / 채굴 / 선택
+WORLDUNIT_Oxygen=산소
+WORLDUNIT_Pressure=기압
+WORLDUNIT_Heat=열기
+WORLDUNIT_Energy=전력
+WORLDUNIT_Terraformation=테라포메이션
+WORLDUNIT_Biomass=바이오매스
+TERRASTAGE_Barren=황량함
+TERRASTAGE_Bluesky=파란 하늘
+TERRASTAGE_Clouds=구름
+TERRASTAGE_Rain=비
+TERRASTAGE_Water=액체 물
+TERRASTAGE_Lakes=호수
+TERRASTAGE_Herbs=식물
+TERRASTAGE_Insects=곤충
+TERRASTAGE_Trees=나무
+SCREEN_terraformation_title=테라포메이션 단계
+SCREEN_terraformation_current=현재 단계
+SCREEN_terraformation_next=다음 단계
+MENU_SAVE=저장
+MENU_OPTIONS=설정
+MENU_BACKTOGAME=게임으로 돌아가기
+MENU_WISHLIST=스팀 찜 목록에 추가
+MENU_GIVEFEED=피드백 제공
+MENU_QUIT=메인 메뉴로 나가기
+MULTIPLIER_Heat=열기 배율
+MULTIPLIER_Oxygen=산소 배율
+MULTIPLIER_Pressure=기압 배율
+MULTIPLIER_Biomass=바이오매스 배율
+MULTIPLIER_Energy=전력 배율
+UI_Open=열기
+UI_Craft=제작
+UI_Deconstruct=해체
+UI_InventoryFull=인벤토리 가득 참
+UI_WARN_OXYGEN_LOW=경고 - 산소 수치 낮음
+UI_WARN_OXYGEN_CRITICAL=경고 - 산소 수치 위험
+UI_WARN_THIRST_LOW=경고 - 체수분 수치 낮음
+UI_WARN_THIRST_CRITICAL=경고 - 체수분 수치 위험
+UI_WARN_FOOD_LOW=경고 - 식량 수치 낮음
+UI_WARN_FOOD_CRITICAL=경고 - 식량 수치 치명적
+UI_CantDeconstructIfInventory=해체 불가 – 인벤토리가 비어 있지 않음
+UI_CantDeconstructIfSomethingInside=해체 불가 – 내부가 비어 있지 않음
+UI_ClickUsable=우클릭으로 소비
+UI_UNLOCK_AT=잠금 해제 조건 :
+UI_Energy=전력
+UI_SAVED_OK=게임이 저장되었습니다!
+UI_Message=
+UI_Messages=메시지
+UI_Messages_too_far=범위 내에 통신 안테나 없음
+UI_warn_no_constr_chip=건설용 마이크로칩 필요
+UI_open_ui_interface=인터페이스 표시
+UI_message_read=메시지 읽기
+UI_climb=오르기
+UI_craft_contains_object=공간 부족
+UI_launch_in_space=우주로 발사
+UI_nothing_to_launch_in_space=발사 개체 없음
+Ui_clickbuildable=우클릭으로 건설
+UI_mining_speed=채굴 시간이 단축됩니다. 
+UI_boots_speed=이동 속도가 증가합니다. 
+UI_eatable_value=체력을 회복합니다. 
+UI_object_no_energy=전력 없음
+UI_chance_to_get_seed=씨앗 회수 가능성
+UI_growth=성장
+UI_jetpack_thrust=추진
+UI_Map_rocketMissing=궤도에 위성이 없습니다. 신호를 받기 위해 매핑 로켓을 우주로 보내십시오.
+UI_energy_production=생산
+UI_energy_consumption=소비
+UI_energy_alert_no_energy=전력 부족!
+UI_energy_available=사용 가능
+UI_action_drink=마시기
+UI_action_recycle=재활용
+UI_action_destroy_inventory=파괴하기
+UI_window_title_Biomass=바이오매스
+Newsletter_Title=팀의 일부가 되세요!
+Newsletter_Text=뉴스레터에 가입하여 독점 버전의 게임, 업데이트 등을 받아보세요! 
+Newsletter_YourEmail=이메일
+Newsletter_Button=합류하기
+Newsletter_Confirm=팀에 오신 것을 환영합니다!
+Energy_Lack=경고 – 전력 부족
+Energy_Restored=정보 – 전력 복구됨
+Alert_new_blueprint_unlocked=새로운 설계도 수신 완료
+Alert_new_message=새로운 메시지 수신 완료
+Alert_already_full=게이지가 이미 가득 찼습니다.
+HUD_TerraformationIndex=테라포메이션 인덱스
+HUD_Prologue_End=프롤로그의 끝에 도달했습니다! 풀 버전을 구매해 테라포메이션을 이어하세요! 이 세이브 파일로 계속 할 수 있습니다.
+Message_From=발신자
+Message_Date=년도 :
+Message_welcome=배정된 행성에 오신 것을 환영합니다. <br><br> 당신의 임무는 이 세계의 테라포메이션을 진행하는 것입니다. 그러기 위해 산소와 열기, 기압을 생성하십시오. <br><br><br> 우선 175,000Ti에 도달해 파란 하늘을 만드십시오.
+Message_YouAreAConvict=이것은 자동 발신 메시지입니다. <br><br> 죄수 번호 GP-8971-L<br><br> 당신은 형벌 대신 송환을 선택했습니다. 선고받은 형량으로부터 자유로워지려면 이 행성을 완전히 테라포밍하십시오. 당사의 센서는 주기적으로 진행 상황을 스캔하고 필요한 설계도를 보낼 것입니다. <br><br>-어떠한 경우에도 (주)센티넬에 연락을 시도하지 마시오. <br><br>-당사의 센서에 테라포메이션 과정의 진전이 없다고 감지될 경우 당신은 실종으로 간주되고 형량은 줄지 않을 것입니다. <br><br>-당신은 본 행성의 어떠한 재산이나 가치도 소유할 수 없습니다. <br><br>-당신은 테라포메이션 수치를 높이기 위해 행성의 자원만 사용할 수 있습니다. <br><br>-당신은 테라포메이션이 완료되기 전에 행성을 떠날 수 없습니다.
+Message_Help1=안녕하세요! <br>드디어 그들이 당신에게 보낸 시스템의 위치를 확인했어요. <br><br>시간이 별로 없지만 몇 가지 조언을 해드릴게요. <br> '플래닛 크래프터'는 거의 불가능한 작업이기 때문에 성공률은 극히 희박하거든요: <br><br>-당신의 포드 또는 난파선에서 우주 식량을 찾도록 해요. <br><br>조건이 충족된다면 스스로 식량 재배도 할 수 있을 거예요. 그러니 채소 씨앗도 찾아봐요. <br><br>-탐색과 개량은 필수예요. 여기저기 잘 둘러보고 장비도 업그레이드 해서 생존 가능성을 높여요. <br><br> 이 메시지가 당신에게 닿기를. <br> 
+Message_Ship_A_1=화물선 시렐라 4호<br><br>기계 기록 436번<br><br><br>오늘 아침, 스티그마로 우주여행을 떠난 지 17일차가 되었을 때 우주선이 알 수 없는 이유로 초공간 속도를 벗어났다. <br>항해 장치가 먹통이 되더니 선함의 전력이 꺼졌다, 마치 외부에서 무언가에 의해 전력이 흡수된 것처럼... <br><br>우리는 이 미확인 행성에 비상 착륙을 시도할 것이다. 그곳에서 뭘 찾을 수 있을지는 모르겠으나 표면에 거대한 폭풍이 일고 있는 것 같다. <br><br>우리가 살아남을 수 있기를... 
+Message_PlanetIdentification=당신의 행성 사양<br><br>신분 : 무명<br>법인 소유권 : 무청구<br> 거주 가능성 : 무 <br> 분야: 이지셜 프라임<br>이력 : 불명<br><br> {무명} 행성은 문명 이전의 섹터인 이지셜 프라임 섹터에 위치하고 있으며, 주로 무역선이 거대한 우주 항구 사이를 건너기 위해 지나는 구간입니다. <br> 섹터 수는 842개의 행성과 13511개의 별로, 너비는 7.000파섹입니다. <br><br>이 행성은 미래 식민지의 가능한 후보 중 하나로 확인되었습니다.<br>
+Message_dunes_cache_1=우리 우주선이 알 수 없는 이유로 추락했다. <br><br> 많은 인원이 충격으로 사망했고 몇몇은 지상에서 죽었다. <br><br>이젠 나만 남았다.<br><br>살아남으려 했지만 이 땅은 너무 가혹하다. 몸 상태가 점점 안 좋아지고 있다...<br><br> 이번을 마지막으로 물을 찾기 위해 밖으로 나갈 것이다.
+MessageSender_Friend1=라일리
+MessageSender_survivor1=이클라스
+MessageSender_Sentinel=(주)센티넬
+MainMenu_Button_Play=플레이
+MainMenu_Button_Exit=종료
+MainMenu_Loading=로딩 중
+MainMenu_Button_Options=설정
+MainMenu_Prologue=프롤로그
+Menu_Save_Load=불러오기
+Menu_Save_NewGame=새로운 게임
+Menu_Save_NewSave=새 세이브 파일
+Menu_Save_SaveName=이름
+Menu_Save_Create=생성
+Menu_Save_Warning=경고: 이 세이브 파일은 완전히 삭제될 것입니다!
+Menu_Save_DeleteYes=알아요, 삭제할게요.
+Menu_Save_DeleteNo=다시 생각해볼래요
+Menu_Save_Error=파일 오류
+Menu_Options_game=게임
+Menu_Options_audio=오디오
+Menu_Options_controls=조작법
+Menu_Options_graphics=그래픽
+Menu_Options_language=언어
+Menu_Options_ApplyClose=적용하고 닫기
+Menu_Options_GameTitle=게임 설정
+Menu_Options_Audiotitle=오디오 설정
+Menu_Options_ControlsTitle=조작법 설정
+Menu_Options_GraphicsTitle=그래픽 설정
+Menu_Options_Audio_master=마스터 볼륨
+Menu_Options_Audio_music=음악 볼륨
+Menu_Options_Audio_sounds=음향 효과 볼륨
+Menu_Options_Audio_ui=메뉴 볼륨
+Menu_Options_Controls_sensitivity=마우스 감도
+Menu_Options_Controls_togglerun=달리기 토글
+Menu_Options_Controls_invertmousex=마우스 축 X 반전
+Menu_Options_Controls_invertmousey=마우스 축 Y 반전
+Menu_Options_Graphics_fullscreen=전체화면 설정
+Menu_Options_Graphics_resolution=해상도
+Menu_Options_Graphics_refreshrate=새로고침 속도
+Menu_Options_Graphics_vsync=VSync
+Menu_Options_Graphics_framerate=목표 프레임 속도
+Menu_Options_Graphics_quality=그래픽 품질
+Menu_Options_Graphics_fov=시야
+Tutorial_title=첫 단계
+Tutorial_craft=제작하기:
+Tutorial_construct=건설하기:
+Tutorial_goBackInPod=산소를 회복하기 위해 포드로 돌아가십시오.
+Tutorial_equip=장비하기:
+Tutorial_reachBlueSky=파란 하늘 도달하기
+GROUP_NAME_CraftStation1=제작 스테이션 T2
+GROUP_NAME_OxygenCapsule1=산소 캡슐
+GROUP_NAME_pod=거주지
+GROUP_NAME_door=거주지 출입문
+GROUP_NAME_window=거주지 창문
+GROUP_NAME_FloorGlass=거주지 유리
+GROUP_NAME_WaterBottle1=물병
+GROUP_NAME_Vegetube1=베지튜브 t1
+GROUP_NAME_Vegetube2=베지튜브 t2
+GROUP_NAME_VegetubeOutside1=베지튜브 t3
+GROUP_NAME_biodome=바이오돔
+GROUP_NAME_Drill0=드릴 t1
+GROUP_NAME_Drill1=드릴 t2
+GROUP_NAME_Drill2=드릴 t3
+GROUP_NAME_EnergyGenerator1=풍력 터빈
+GROUP_NAME_EnergyGenerator2=태양광 패널 t1
+GROUP_NAME_EnergyGenerator3=태양광 패널 t2
+GROUP_NAME_ice=얼음
+GROUP_NAME_Cobalt=코발트
+GROUP_NAME_Stairs=외부 계단
+GROUP_NAME_ScreenUnlockables=화면 – 설계도
+GROUP_NAME_ScreenTerraformation=화면 – 테라포메이션
+GROUP_NAME_Container1=보관 상자
+GROUP_NAME_Desktop1=책상
+GROUP_NAME_Chair1=의자
+GROUP_NAME_MultiDeconstruct=마이크로칩 – 해체
+GROUP_NAME_MultiToolLight=마이크로칩 - 손전등
+GROUP_NAME_Backpack1=백팩 t1
+GROUP_NAME_Backpack2=백팩 t2
+GROUP_NAME_Backpack3=백팩 t3
+GROUP_NAME_EquipmentIncrease1=외골격 t1
+GROUP_NAME_OxygenTank1=산소 탱크 t1
+GROUP_NAME_OxygenTank2=산소 탱크 t2
+GROUP_NAME_OxygenTank3=산소 탱크 t3
+GROUP_NAME_ScreenEnergy=화면 – 전력 수치
+GROUP_NAME_Iridium=이리듐
+GROUP_NAME_Iron=철
+GROUP_NAME_Magnesium=마그네슘
+GROUP_NAME_Silicon=규소
+GROUP_NAME_Titanium=티타늄
+GROUP_NAME_Seed0=리르마 씨앗
+GROUP_NAME_Seed1=샹가 씨앗
+GROUP_NAME_Seed2=페스테라 씨앗
+GROUP_NAME_OutsideGrid=외부 그리드
+GROUP_NAME_OutsideLamp1=야외 조명
+GROUP_NAME_Heater1=히터 t1
+GROUP_NAME_Heater2=히터 t2
+GROUP_NAME_BedSimple=침대
+GROUP_NAME_FabricBlue=천
+GROUP_NAME_Aluminium=알루미늄
+GROUP_NAME_Sofa=소파
+GROUP_NAME_SofaAngle=곡선형 소파
+GROUP_NAME_BedDouble=더블 침대
+GROUP_NAME_TableSmall=테이블
+GROUP_NAME_MultiBuild= 마이크로칩 – 건설
+GROUP_NAME_Beacon=신호기
+GROUP_NAME_EquipmentIncrease2=외골격 t2
+GROUP_NAME_Foundation=격자 토대
+GROUP_NAME_ComAntenna=통신 안테나
+GROUP_NAME_ScreenMessage=화면 – 통신
+GROUP_NAME_Heater3=히터 t3
+GROUP_NAME_wreckpilar=잔해
+GROUP_NAME_Rod-iridium=이리듐 막대
+GROUP_NAME_Uranim=우라늄
+GROUP_NAME_Rod-uranium=우라늄 막대
+GROUP_NAME_CraftStation2=고급 제작 스테이션
+GROUP_NAME_Backpack4=백팩 t4
+GROUP_NAME_OxygenTank4=산소 탱크 t4
+GROUP_NAME_Alloy=초합금
+GROUP_NAME_Container2=사물함
+GROUP_NAME_GoldenContainer=황금 상자
+GROUP_NAME_Seed3=눌나 씨앗
+GROUP_NAME_Seed4=터스카 씨앗
+GROUP_NAME_SeedGold*=황금 씨앗
+GROUP_NAME_LaunchPlatform=발사 플랫폼
+GROUP_NAME_EscapePod=탈출 포드
+GROUP_NAME_astrofood=우주 식량
+GROUP_NAME_GoldenEffigie1=황금 피규어
+GROUP_NAME_EnergyGenerator4=원자로 t1
+GROUP_NAME_SpaceMultiplierHeat=우주 열기 배율
+GROUP_NAME_SpaceMultiplierOxygen=우주 산소 배율
+GROUP_NAME_SpaceMultiplierPressure=우주 기압 배율
+GROUP_NAME_RocketOxygen1=종자 살포 로켓
+GROUP_NAME_RocketPressure1=자기장 보호 로켓
+GROUP_NAME_RocketHeat1=소행성 유인 로켓
+GROUP_NAME_RocketReactor=로켓 엔진
+GROUP_NAME_SeedSpreader1=꽃 살포기
+GROUP_NAME_Ladder=실내 사다리
+GROUP_NAME_MultiToolMineSpeed1=마이크로칩 – 채굴 속도 t1
+GROUP_NAME_MultiToolMineSpeed2=마이크로칩 – 채굴 속도 t2
+GROUP_NAME_MultiToolMineSpeed3=마이크로칩 – 채굴 속도 t3
+GROUP_NAME_VegetableGrower1=식량 재배기
+GROUP_NAME_BootsSpeed1=민첩성 부츠 t1
+GROUP_NAME_BootsSpeed2=민첩성 부츠 t2
+GROUP_NAME_BootsSpeed3=민첩성 부츠 t3
+GROUP_NAME_ScreenTerraStage=화면 – 진행 상황
+GROUP_NAME_Seed0Growable=식물 리르마
+GROUP_NAME_Seed1Growable=식물 샹가
+GROUP_NAME_Seed2Growable=식물 페스테라
+GROUP_NAME_Seed3Growable=식물 눌나
+GROUP_NAME_Seed4Growable=식물 터스카
+GROUP_NAME_SeedGoldGrowable=황금 식물
+GROUP_NAME_Vegetable0Seed=가지 씨앗
+GROUP_NAME_Vegetable0Growable=가지
+GROUP_NAME_Vegetable1Seed=애호박 씨앗
+GROUP_NAME_Vegetable1Growable=애호박
+GROUP_NAME_Vegetable2Seed=콩 씨앗
+GROUP_NAME_Vegetable2Growable=콩
+GROUP_NAME_Vegetable3Seed=버섯 씨앗
+GROUP_NAME_Vegetable3Growable=버섯
+GROUP_NAME_Bacteria1=박테리아 샘플
+GROUP_NAME_WaterCollector1=대기 집수기
+GROUP_NAME_Fertilizer1=비료
+GROUP_NAME_Algae1Seed=조류
+GROUP_NAME_WaterCollector2=호수 집수기
+GROUP_NAME_Bioplastic1=바이오플라스틱 조각
+GROUP_NAME_AlgaeGenerator1=조류 발생기 t1
+GROUP_NAME_Biolab=바이오랩
+GROUP_NAME_AlgaeGenerator2=조류 발생기 t2
+GROUP_NAME_WaterFilter=물 필터
+GROUP_NAME_Biodome2=바이오돔 t2
+GROUP_NAME_OreExtractor1=광석 추출기
+GROUP_NAME_Osmium=오스뮴
+GROUP_NAME_GoldenEffigie2=황금 피규어
+GROUP_NAME_Sulfur=황
+GROUP_NAME_EnergyGenerator5=원자로 t2
+GROUP_NAME_HudCompass=마이크로칩 – 나침반
+GROUP_NAME_FusionEnergyCell=융합 에너지 셀
+GROUP_NAME_FusionGenerator1=융합 반응로
+GROUP_NAME_wallplain=일반 벽
+GROUP_NAME_RecyclingMachine=재활용 기계
+GROUP_NAME_Destructor1=분쇄기
+GROUP_NAME_Jetpack1=제트팩 t1
+GROUP_NAME_Jetpack2=제트팩 t2
+GROUP_NAME_Jetpack3=제트팩 t3
+GROUP_NAME_RocketMap1=GPS 위성 t1
+GROUP_NAME_RocketMap2=GPS 위성 t2
+GROUP_NAME_RocketMap3=GPS 위성 t3
+GROUP_NAME_ScreenMap1=화면 - 지도
+// Description*************
+GROUP_DESC_CraftStation1=더 나은 도구를 만들기 위해 개선된 제작 스테이션입니다. 
+GROUP_DESC_OxygenCapsule1=산소 탱크를 완전히 채워줍니다. 
+GROUP_DESC_pod=산소를 공급하는 기본 거주지입니다. 
+GROUP_DESC_door=거주지에 드나들 수 있게 됩니다. 
+GROUP_DESC_window=거주지용 유리창입니다. 
+GROUP_DESC_FloorGlass=거주지용 유리로, 바닥 또는 천장에 쓸 수 있습니다. 
+GROUP_DESC_WaterBottle1=갈증을 완전히 해소합니다. 
+GROUP_DESC_Vegetube1=이 장치에 씨앗을 배치하면 산소가 생성됩니다. 
+GROUP_DESC_Vegetube2=이 장치에 씨앗을 배치하면 산소가 생성됩니다.
+GROUP_DESC_VegetubeOutside1=이 장치에 씨앗을 배치하면 산소가 생성됩니다.
+GROUP_DESC_biodome=식물을 재배하고 산소를 생성하기에 완벽한 장소입니다. 
+GROUP_DESC_Drill0=지면에 갇힌 가스를 방출해 기압을 생성합니다.  
+GROUP_DESC_Drill1=지면에 갇힌 가스를 방출해 기압을 생성합니다.
+GROUP_DESC_Drill2=지면에 갇힌 가스를 방출해 기압을 생성합니다.
+GROUP_DESC_EnergyGenerator1=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+GROUP_DESC_EnergyGenerator2=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+GROUP_DESC_EnergyGenerator3=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+GROUP_DESC_ice*************
+GROUP_DESC_Cobalt*************
+GROUP_DESC_Stairs=높은 곳에 도달하는 좋은 방법입니다. 
+GROUP_DESC_ScreenUnlockables=새로운 설계도와 이를 해제하는 방법을 표시합니다.
+GROUP_DESC_ScreenTerraformation=테라포메이션 정보를 표시합니다.
+GROUP_DESC_Container1=중간 크기의 보관함입니다. 
+GROUP_DESC_Desktop1=화면을 올려둘 수 있는 책상입니다. 
+GROUP_DESC_Chair1*************
+GROUP_DESC_MultiDeconstruct=이 칩을 장착하면 멀티툴로 물건을 분해할 수 있습니다. 난파선에서 잔해를 수색하는 데 필요합니다. 
+GROUP_DESC_MultiToolLight=멀티툴에 손전등을 추가하려면 이 칩을 장착하십시오. 난파선에서 잔해를 수색하는 데 필요합니다. F를 눌러 토글. 
+GROUP_DESC_Backpack1=인벤토리 크기가 증가합니다. 
+GROUP_DESC_Backpack2=인벤토리 크기가 증가합니다.
+GROUP_DESC_Backpack3=인벤토리 크기가 증가합니다.
+GROUP_DESC_EquipmentIncrease1=장비 칸 크기가 증가합니다. 
+GROUP_DESC_OxygenTank1=산소 용량이 증가합니다. 
+GROUP_DESC_OxygenTank2=산소 용량이 증가합니다.
+GROUP_DESC_OxygenTank3=산소 용량이 증가합니다.
+GROUP_DESC_ScreenEnergy=전력 소비 정보를 표시합니다.
+GROUP_DESC_Iridium*************
+GROUP_DESC_Iron*************
+GROUP_DESC_Magnesium*************
+GROUP_DESC_Silicon*************
+GROUP_DESC_Titanium*************
+GROUP_DESC_Seed0*************
+GROUP_DESC_Seed1*************
+GROUP_DESC_Seed2*************
+GROUP_DESC_OutsideGrid=그리드는 외부 바닥, 계단을 만들고 새로운 공간에 도달하거나 기본적으로 상상할 수 있는 모든 것을 만드는 데 사용할 수 있습니다.
+GROUP_DESC_OutsideLamp1=어두운 곳을 밝힙니다
+GROUP_DESC_Heater1=열기를 발생시킵니다. 
+GROUP_DESC_Heater2=열기를 발생시킵니다.
+GROUP_DESC_BedSimple=1인용 침대입니다. 
+GROUP_DESC_FabricBlue*************
+GROUP_DESC_Aluminium*************
+GROUP_DESC_Sofa*************
+GROUP_DESC_SofaAngle*************
+GROUP_DESC_BedDouble*************
+GROUP_DESC_TableSmall*************
+GROUP_DESC_MultiBuild=이 칩을 장착하면 건설 키를 눌러 구조물을 건설할 수 있습니다.
+GROUP_DESC_Beacon=길을 찾도록 도와줍니다. 
+GROUP_DESC_EquipmentIncrease2=장비 칸 크기가 증가합니다.
+GROUP_DESC_Foundation=토대를 사용하여 외부에 바닥, 계단을 만들고 새로운 지역에 도달하거나 상상할 수 있는 모든 것을 만들 수 있습니다. 
+GROUP_DESC_ComAntenna=우주로부터 신호를 받습니다. 통신 화면과 함께 사용하십시오.
+GROUP_DESC_ScreenMessage=통신 안테나로 받은 신호를 표시합니다.
+GROUP_DESC_Heater3=열기를 발생시킵니다.
+GROUP_DESC_Rod-iridium=극도로 응축된 이리듐입니다. 
+GROUP_DESC_Rod-uranium=극도로 응축된 우라늄입니다.
+GROUP_DESC_CraftStation2=새로운 고급 도구 및 설계품 제작에 사용합니다. 
+GROUP_DESC_Backpack4=인벤토리 크기가 증가합니다.
+GROUP_DESC_OxygenTank4=산소 용량이 증가합니다. 
+GROUP_DESC_Alloy=고급 기술에 사용합니다. 
+GROUP_DESC_Container2=대용량 보관함입니다. 
+GROUP_DESC_GoldenContainer*************
+GROUP_DESC_GoldenEffigie1*************
+GROUP_DESC_Seed3*************
+GROUP_DESC_Seed4*************
+GROUP_DESC_SeedGold*************
+GROUP_DESC_LaunchPlatform=우주로 로켓을 보내 테라포메이션 속도를 크게 높입니다.
+GROUP_DESC_astrofood=체력을 회복합니다. 
+GROUP_DESC_EnergyGenerator4=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+GROUP_DESC_Uranim*************
+GROUP_DESC_EscapePod*************
+GROUP_DESC_SpaceMultiplierHeat*************
+GROUP_DESC_SpaceMultiplierOxygen*************
+GROUP_DESC_SpaceMultiplierPressure*************
+GROUP_DESC_RocketOxygen1=우주에서 씨앗을 퍼뜨려 전역 산소 생성 보너스를 제공합니다.
+GROUP_DESC_RocketPressure1=이리듐 소행성을 유인합니다. 자기장을 보호하여 전역 기압 생성 보너스를 제공합니다.
+GROUP_DESC_RocketHeat1=우라늄 소행성을 유인합니다. 전역 열기 생성 보너스를 제공합니다.
+GROUP_DESC_RocketReactor=로켓에 필요한 엔진입니다. 
+GROUP_DESC_SeedSpreader1=이 장치에 꽃 씨앗을 넣으면 주위에 꽃이 자랍니다.
+GROUP_DESC_Ladder=거주지 사이를 오르내리는 사다리입니다. 
+GROUP_DESC_MultiToolMineSpeed1=광석 채굴 시간을 줄이기 위해 이 칩을 장착하십시오.
+GROUP_DESC_MultiToolMineSpeed2=광석 채굴 시간을 줄이기 위해 이 칩을 장착하십시오.
+GROUP_DESC_MultiToolMineSpeed3=광석 채굴 시간을 줄이기 위해 이 칩을 장착하십시오.
+GROUP_DESC_VegetableGrower1=식량을 재배합니다. 
+GROUP_DESC_BootsSpeed1=이동 속도가 증가합니다. 
+GROUP_DESC_BootsSpeed2=이동 속도가 증가합니다.
+GROUP_DESC_BootsSpeed3=이동 속도가 증가합니다.
+GROUP_DESC_ScreenTerraStage=다양한 테라포메이션 과정의 진행 상황을 표시합니다. 
+GROUP_DESC_Seed0Growable*************
+GROUP_DESC_Seed1Growable*************
+GROUP_DESC_Seed2Growable*************
+GROUP_DESC_Seed3Growable*************
+GROUP_DESC_Seed4Growable*************
+GROUP_DESC_SeedGoldGrowable*************
+GROUP_DESC_Vegetable0Seed=우주 가지 씨앗입니다. 식량 재배기에 넣으십시오.
+GROUP_DESC_Vegetable0Growable=체력을 회복합니다. 
+GROUP_DESC_Vegetable1Seed=우주 애호박 씨앗입니다. 식량 재배기에 넣으십시오.
+GROUP_DESC_Vegetable1Growable=체력을 회복합니다.
+GROUP_DESC_Vegetable2Seed=우주 콩 씨앗입니다. 식량 재배기에 넣으십시오.
+GROUP_DESC_Vegetable2Growable=체력을 회복합니다.
+GROUP_DESC_Vegetable3Seed=우주 버섯 씨앗입니다. 식량 재배기에 넣으십시오.
+GROUP_DESC_Vegetable3Growable=체력을 회복합니다.
+GROUP_DESC_WaterCollector1=자동으로 주변의 습한 공기로부터 물을 수집합니다.
+GROUP_DESC_WaterCollector2=수면에서 물을 모으고 걸러냅니다.
+GROUP_DESC_EnergyGenerator5=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+GROUP_DESC_AlgaeGenerator1=수중에 조류를 배양하고 바이오매스를 생성합니다. 수면에 건설하세요.
+GROUP_DESC_Biolab=생물학 및 화학 연구실입니다. 바이오 레시피를 제작할 수 있습니다. 
+GROUP_DESC_AlgaeGenerator2=수중에 조류를 배양하고 바이오매스를 생성합니다. 수면에 건설하세요.
+GROUP_DESC_WaterFilter=호수에서 물을 바로 마실 수 있게 합니다. 
+GROUP_DESC_OreExtractor1=건설된 위치에 따라 광석을 추출합니다. 
+GROUP_DESC_GoldenEffigie2=황금 피규어
+GROUP_DESC_Sulfur=황
+GROUP_DESC_wreckpilar*************
+GROUP_DESC_Bacteria1*************
+GROUP_DESC_Osmium*************
+GROUP_DESC_Bioplastic1*************
+GROUP_DESC_Biodome2=나무 껍질을 생성합니다. 
+GROUP_DESC_Fertilizer1*************
+GROUP_DESC_Algae1Seed*************
+GROUP_DESC_HudCompass=화면 상단에 나침반을 추가합니다. 
+GROUP_DESC_FusionEnergyCell=핵융합 연료봉입니다. 
+GROUP_DESC_FusionGenerator1=핵융합 연료봉을 이용해 전력을 생산합니다. 
+GROUP_DESC_wallplain*************
+GROUP_DESC_RecyclingMachine=제작품을 분해하고 재료를 돌려받습니다. 
+GROUP_DESC_Destructor1=안에 넣은 물건을 파괴합니다.
+GROUP_DESC_Jetpack1=이동 속도가 증가하며 공중에 뜰 수 있게 됩니다.
+GROUP_DESC_Jetpack2=이동 속도가 증가하며 공중에 뜰 수 있게 됩니다.
+GROUP_DESC_Jetpack3=이동 속도가 증가하며 공중에 뜰 수 있게 됩니다.
+GROUP_DESC_RocketMap1=매핑 화면에 지리적 위치를 제공합니다. 
+GROUP_DESC_RocketMap2=매핑 화면에 더 나은 위치 정보를 제공합니다. 
+GROUP_DESC_RocketMap3=매핑 화면에 더 나은 위치 정보를 제공합니다.
+GROUP_DESC_ScreenMap1=주변의 지도를 보여줍니다. 
+UI_blueprints_explain=설계도 마이크로칩을 찾아 여기에서 해독하십시오.
+UI_blueprints_decode=설계도 마이크로칩 해독하기
+Message_Ship_GrandCanyon=개인 청소부. 임무명: 정찰. <br> <br>이지셜 프라임 섹터에서 비정상적으로 많고 다양한 회사의 선박이 사라졌습니다. 그곳으로 가서 실종 사건을 조사하십시오. <br><br>주요 목표: <br>-구역을 조사하고 실종된 선박에 대한 정보를 찾으십시오. <br><br>보조 목표:<br>-적대적인 생명체의 존재가 있는지 탐색한 후 보고하십시오.<br>-추락한 선박을 식별한 뒤 소유 기업에 보고하십시오. <br>-발견된 모든 물품의 위치를 기록하십시오. 
+Menu_Options_Keys_Title=키
+Menu_Options_Keys_MoveForward=앞으로 이동
+Menu_Options_Keys_MoveBackward=뒤로 이동
+Menu_Options_Keys_Moveleft=왼쪽으로 이동
+Menu_Options_Keys_Moveright=오른쪽으로 이동
+Menu_Options_Keys_Action=상호작용
+Menu_Options_Keys_Run=달리기
+Menu_Options_Keys_Jump=점프
+Menu_Options_Keys_Inventory=인벤토리
+Menu_Options_Keys_Construction=건설
+Menu_Options_Keys_ToggleLight=조명 켜기
+Menu_Options_Keys_SwitchTool=도구 전환 / 개체 회전
+Menu_Options_Keys_PhotoMode=HUD 끄기 (카메라 모드)
+Menu_Options_Keys_ResetAll=모든 키 초기화
+GROUP_NAME_BlueprintT1=설계도 마이크로칩
+GROUP_NAME_RedPowder1=폭발성 분말
+GROUP_DESC_BlueprintT1=설계도 화면에서 사용해 새로운 설계도의 잠금을 해제하시오.
+GROUP_DESC_RedPowder1*************
+Message_Help2=더 많은 정보를 빼돌려 볼 수 있었어요. <br><br>높은 곳에 기지를 건설해야 성공률이 높다는 데 당장은 그 이유가 뭔지 모르겠네요. <br><br>또, 행성의 열기가 충분해지면 동굴의 얼음이 녹으면서 드나들 수 있게 된대요. <br><br>마지막으로 하나 더 있는데...<br><br>-통신 종료 - 메시지 가로챔-
+Message_Neighbour1=이 메시지를 받는 분께. <br><br>저는 미고리아-III 행성에 파견된 '플래닛 크래프터'입니다. <br>이걸 받았다면 당신은 저와 가까이 있다는 겁니다. 어쩌면 당신도 '플래닛 크래프터'일지도 모르겠군요...<br><br>날씨가 최악이고, 행성을 테라포밍하기엔 자원이 충분하지 않은데 그나마 남은 것도 고갈되고 있습니다. <br><br>이런 지옥에 떨어진 것보다는 죽는 게 차라리 편안했을 텐데 왜 이런 선택을 했는지 모르겠어요. <br><br>거기 누군가 있다면 제발… 저 좀 도와주세요. <br>
+MessageSender_Neighbour1=죄수 GP-8971-Y
+GameMode_Chill=휴식
+GameMode_Standard=기본
+GameMode_Intense=어려움
+GameMode_Hardcore=하드코어
+GameMode_Desc_Chill=가벼운 경험입니다. 죽어도 패널티가 없으며 산소, 체력과 수분이 느리게 감소합니다.
+GameMode_Desc_Standard=기본 경험으로, 죽으면 아이템을 일부 떨어뜨립니다.
+GameMode_Desc_Intense=죽으면 인벤토리에 있는 모든 아이템이 파괴됩니다. 산소, 체력과 수분이 조금 더 빠르게 감소합니다.
+GameMode_Desc_Hardcore= 죽으면 세이브 파일이 삭제됩니다. 산소, 체력과 수분이 빠른 속도로 감소합니다.
+UI_GameMode=게임 모드
+UI_SpawnLocation=착륙 위치
+SpawnLocation_Standard=기본
+SpawnLocation_Anywhere=랜덤
+SpawnLocation_GrandRift=대협곡
+SpawnLocation_SandFalls=모래 폭포
+SpawnLocation_Desc_Standard=기본 스폰 위치. 첫 플레이 시 권장합니다. 
+SpawnLocation_Desc_Anywhere=랜덤한 위치로 스폰됩니다.
+SpawnLocation_Desc_GrandRift=대협곡에서 시작합니다. 
+SpawnLocation_Desc_SandFalls=모래 폭포에서 시작합니다. 
+TERRASTAGE_Moss=이끼
+TERRASTAGE_Fish=물고기
+TERRASTAGE_Amphibians=양서류
+UI_genetics_analyze=연구
+UI_genetics_start=조작 시작
+UI_genetics_cancel=조작 취소
+UI_genetics_no_match=일치하는 항목이 없습니다.
+UI_genetics_sequencing=조작 중
+Genetics_crafter_recipes_title=유전학 조작
+GROUP_NAME_GeneticManipulator1=DNA 조작
+GROUP_DESC_GeneticManipulator1=DNA를 조작해 새로운 유전자를 생성합니다. 
+Genetics_hover_recipes=DNA 레시피 표시
+UI_change_color=색상 변경
+UI_change_text=텍스트 변경
+Menu_Options_Keys_CloseUi=인터페이스 닫기
+GROUP_NAME_Zeolite=비석
+GROUP_DESC_Zeolite*************
+GROUP_NAME_Drill3=드릴 t4
+GROUP_DESC_Drill3=지면에 갇힌 가스를 방출해 기압을 생성합니다.
+GROUP_NAME_Heater4=히터 t4
+GROUP_DESC_Heater4=열기를 발생시킵니다.
+GROUP_DESC_GrassSpreader1=야외에 잔디가 자라게 하고 바이오매스를 생성합니다.
+GROUP_NAME_GrassSpreader1=잔디 살포기
+GROUP_NAME_SeedSpreader2=꽃 살포기 t2
+GROUP_DESC_SeedSpreader2=이 장치에 꽃 씨앗을 넣으면 주위에 꽃이 자랍니다.
+GROUP_NAME_TreeSpreader0=나무 살포기
+GROUP_DESC_TreeSpreader0=이 장치에 나무 종자를 넣어 첫 나무를 키우십시오. 물 표면에 놓입니다. 
+GROUP_NAME_TreeSpreader1=나무 살포기 t2
+GROUP_DESC_TreeSpreader1=이 장치에 나무 종자를 넣어 나무를 키우십시오. 
+GROUP_NAME_TreeSpreader2=나무 살포기 t3
+GROUP_DESC_TreeSpreader2=이 장치에 나무 종자를 넣어 나무를 키우십시오.
+GROUP_NAME_GasExtractor1=가스 추출기
+GROUP_DESC_GasExtractor1=자동으로 지면에서 가스를 추출합니다. 
+GROUP_NAME_RocketBiomass1=식물 로켓
+GROUP_DESC_RocketBiomass1=이끼가 더 널리 퍼집니다. 우주에서 박테리아를 퍼뜨려 전역 바이오매스 생성 보너스를 제공합니다.
+GROUP_NAME_TreeRoot=나무 껍질
+GROUP_DESC_TreeRoot*************
+GROUP_NAME_Fertilizer2=비료 t2
+GROUP_DESC_Fertilizer2*************
+GROUP_NAME_podAngle=거실 코너
+GROUP_DESC_podAngle*************
+GROUP_NAME_Sign=표지판
+GROUP_DESC_Sign=사용자가 직접 적은 텍스트를 표시합니다.
+GROUP_NAME_FlowerPot1=화분
+GROUP_DESC_FlowerPot1=여기에 씨앗을 넣어 꽃을 피우십시오. 
+GROUP_NAME_MethanCapsule1=메탄 카트리지
+GROUP_DESC_MethanCapsule1=메탄 가스가 들어있는 카트리지입니다.
+GROUP_NAME_PulsarQuartz=펄서 석영
+GROUP_DESC_PulsarQuartz=엄청난 양의 에너지를 함유한 석영입니다. 
+GROUP_NAME_Mutagen1=돌연변이원
+GROUP_DESC_Mutagen1=돌연변이 유발제. DNA 조작기에서 사용하십시오. 
+GROUP_NAME_Tree0Seed=이테라 나무 종자
+GROUP_DESC_Tree0Seed*************
+GROUP_NAME_Tree1Seed=리니폴리아 나무 종자
+GROUP_DESC_Tree1Seed*************
+GROUP_NAME_Tree2Seed=알레아터스 나무 종자
+GROUP_DESC_Tree2Seed*************
+GROUP_NAME_Tree3Seed=세르네아 나무 종자
+GROUP_DESC_Tree3Seed*************
+GROUP_NAME_Tree4Seed=엘레게아 나무 종자
+GROUP_DESC_Tree4Seed*************
+GROUP_NAME_Tree5Seed=휴멜로라 나무 종자
+GROUP_DESC_Tree5Seed*************
+GROUP_NAME_Tree6Seed=아에모라 나무 종자
+GROUP_DESC_Tree6Seed*************
+GROUP_NAME_Tree7Seed=플레옴 나무 종자
+GROUP_DESC_Tree7Seed*************
+GROUP_NAME_Tree8Seed=솔레우스 나무 종자
+GROUP_DESC_Tree8Seed*************
+GROUP_NAME_MultiToolMineSpeed4=마이크로칩 - 채굴 속도 t4
+GROUP_DESC_MultiToolMineSpeed4=광석 채굴 시간을 줄이기 위해 이 칩을 장착하십시오.
+GROUP_NAME_Backpack5=백팩 t5
+GROUP_DESC_Backpack5=인벤토리 크기가 증가합니다.
+INFOS_IceMeltsAt=녹는 점:
+GROUP_NAME_EnergyGenerator6=핵융합 발전기
+GROUP_DESC_EnergyGenerator6=행성의 모든 기계에 전력을 공급하는 에너지를 생성합니다. 
+Menu_Options_Keys_Unstuck=끼임 현상 해결
+Message_cache2= 추락 후 겨우 목숨을 부지한지 여섯 달이 지났다. 지금 내 목표는 로켓을 만들어 이 장소를 영원히 뜨는 것. 이 행성은 저주받았어, 난 느낄 수 있다. 추락 지점으로 돌아가야 한다 - 조종실 부근의 메인 화면 근처에 해체할 수 있는 벽이, 숨겨진 방이 있었는데, 너무 오래 되어서 기억이 가물가물하다...
+GROUP_NAME_InsideLamp1=에어리어 램프
+GROUP_DESC_InsideLamp1=어디에나 둘 수 있는 램프
+GROUP_NAME_Pod4x=큰 거실
+GROUP_DESC_Pod4x=더 큰 거실
+Message_cache3=나는 이 행성과 연을 떼기 위해 뭐든지 할 거다. <br><br>발사 플랫폼을 만들기 위해 필요한 재료를 찾으려고 깊게 파고 내려가야 했다. 요새는 폭풍이 조금 줄었다. <br><br> 커다란 운석 크레이터를 찾아 그 아래쪽에 발사 플랫폼을 만들어야만 바람으로부터 안전할 거다. 이 행성의 자기장 수치는 완전 미쳤다. 한 평생 이런 건 처음 본다. <br><br> 해낼 수 있기를 빌며 조만간 다시 이 숙소를 떠날 예정이다.
+GROUP_NAME_Seed5Growable*************
+GROUP_DESC_Seed5Growable*************
+GROUP_NAME_Seed6Growable*************
+GROUP_DESC_Seed6Growable*************
+GROUP_NAME_Seed5=오레마 식물
+GROUP_DESC_Seed5*************
+GROUP_NAME_Seed6=볼너스 식물
+GROUP_DESC_Seed6*************
+UI_growth_speed=성장 속도
+GROUP_NAME_VegetableGrower2=식량 재배기 t2
+GROUP_DESC_VegetableGrower2=식량을 더 빨리 성장시킵니다. 
+GROUP_NAME_DisplayCase=진열장
+GROUP_DESC_DisplayCase*************
+GROUP_NAME_OreExtractor2=광석 추출기 t2
+GROUP_DESC_OreExtractor2=땅에서 더 희귀한 광석을 추출합니다. 
+Message_Other1=후, 착륙지가 이렇게 척박한 곳일 거라고는 예상 못했지만, 내가 이 거대한 바윗덩이를 테라포밍하지 못할 이유야 없지! 성공하기 위한 충분한 지식도 갖췄으니까 말야. <br><br> 좋은 날씨가 유지되고 유성이 너무 많이 떨어지지만 않기를 바라며 차근차근 하다보면 언젠가는 되겠지. <br><br> 그리 어렵진 않을 거야. 
+Message_Other2=바깥은 유독하고 지하에서는 씨앗이 자라지 않아서 생각보다 힘들었다... <br><br> 계산해보니 이 행성을 테라포밍 하려면 2년 후에 하는 게 최적이라고 나온다. <br><br> 그 때까지만 살아남으면 될 거야.
+Message_Other3=대체 남은 이리듐은 어디에 처박혀서 코빼기도 안 보이는 거야?!! 갈 수 있는 곳은 다 가봤는데 사방이 얼음 천지라 힘만 빼고 아무런 수확도 못 얻었다고! <br><br> 행성을 덥히려면 이리듐이 필수인데... <br><br> 내일은 그래도 나을 거야. <br><br> 고작 이딴 것 때문에 이 말을 쓰게 된다는 것 자체가 비인간적이고 부당한 일이다.
+Message_Other4=너희는 내가 죽길 바라서 보냈어!!<br><br>애초에 이 일이 불가능하다는 걸 알고 보냈어!<br>되든 안 되든 신경도 안 쓰고 식민지와 이익만 추구하잖아<br><br>누구든 이걸 좋은 생각이라고 냈던 사람은 지옥에나 떨어져!
+MessageSender_Other1=샤오단
+Dying_Info_Drop_Some_Items=당신은 죽어서 인벤토리의 일부를 떨어뜨렸습니다.
+Dying_Info_Lost_All_Items=당신은 사망하고 모든 아이템을 잃었습니다.
+Menu_Options_Gamepad_Title=게임패드
+Menu_Options_Keys_Consume=소비
+Menu_Options_Keys_Drop=떨어트리기
+Menu_Options_Keys_Look=카메라 방향
+Menu_Options_Gamepad_sensitivity=카메라 감도
+Menu_Options_Gamepad_action_ui=인터페이스 작업
+Message_Ship_F_1=오늘은 우주 워프 게이트의 준공식이었다. 건설하는 데 자그마치 2년이 걸렸으나 마침내 우리는 이지셜 프라임 지역으로 쉽게 도달할 수 있었다. <br><br> 그러나 주 동력로를 키자마자 모든 것이 나빠졌다. 갑자기 전기가 나갔고, 모든 원자로와 안전장치가 고장 났으며 고작 몇 분 만에 우주선이 가장 가까운 행성의 중력권에 의해 움직일 수 없을 정도가 되었다. 수리하려고 온갖 노력을 쏟아부었지만, 손 쓸 도리가 없었다. 모든 승무원이 탈출 포드를 써서 대피했고 조난 신호를 보냈다. 나도 지금 내 포드로 가는 중이다. <br> 몇 달간의 노고가 한순간에 무너지다니 허망하다. <br><br>무슨 일이 일어난 것인지 모르겠다, 이런 일이 일어날 리 없었는데...
+GROUP_NAME_GoldenEffigie3=황금 피규어
+GROUP_DESC_GoldenEffigie3*************
+UI_warn_no_light_chip=손전등 마이크로칩 필요
+UI_warn_no_more_chip_to_unlock=현재 해독할 수 있는 설계도가 더 이상 없습니다.
+Message_Help3=*//\\/^/%\/ 암호화됨. ::/:/<br> ...<br> ...다양한 영역에서 광석 추출기를 사용하여 특정 자원을 추출하고..../^//\\/^/%\/.<br>.<br>.<br> ...로켓은 정말 중요하며 ... 생산 효율을 높 .../^//\\/^/%\/.<br>.<br>.<br> //::\\::/^/$/NjcyOjM6MzEzNjcyOjM6MzEzNjcyOjM6MzEz\\::/^/:/<br>//\\/^//\\/^/%\/ 암호화됨.
+Menu_Options_Graphics_screenshake=화면 흔들림 강도
+GROUP_NAME_Rod-alloy=초합금 막대
+GROUP_DESC_Rod-alloy=극도로 응축된 초합금입니다. 
+GROUP_NAME_MultiToolLight2=마이크로칩 - 손전등 t2
+GROUP_DESC_MultiToolLight2=더 나은 손전등 마이크로칩입니다. 
+GROUP_NAME_RocketInformations1=지도 정보 로켓
+GROUP_DESC_RocketInformations1=지도에 중요 지점을 표시합니다. 
+Message_cache_crater_bottom=발사 플랫폼을 설치하기에 완벽한 크레이터를 찾았다고 생각했는데 시야 확보가 전혀 되지 않는다. <br>여기서 뭔가 보내는 건 아무래도 힘들 것 같다. <br><br> 크레이터 외곽 쯤인, 더 높은 곳으로 기지를 옮겨봐야겠다. -580:85:1520 근처면 되겠지. <br><br> 안개가 빨리 걷히길...
+Message_cache_crater_middle1=이 행성에서 얼마나 지냈는지 모르겠다. <br><br> 가족은 나를 기억할까? 보고 싶어 미칠 것 같다... <br> 이 쯤 되면 붉은 돌이 아닌 모든 것이 그리울 지경이다. 고향에서 나를 기다리는 사람이 있을까? 그 전에 여기서 나갈 수 있기는 한가? <br><br> 생존을 위해 뭐든지 하다 보니 점점 능숙해지고 있긴 하다. <br><br><br> 어쩌면 누군가 도와주러 올지도 모르지, 구조 팀을 보내준다거나. 설마 아무도 와주지 않을 리가... 나를 찾기 위해...
+Message_cache_crater_middle2=하지만 만약 영원히 여기 있게 된다면 어떻게 되는 걸까? <br><br> 마시기에 충분한 양의 얼음도 찾았고, 키우는 작물도 점점 커지고 있다... <br><br> 태양광 패널 몇개로 전력 공급을 받는 데도 성공한데다, 적어도 당장은 조금 편해졌다. 평생 나 혼자 살 수 있지 않을까? 살기 위해서는 동료가 반드시 필요한가? 나는 혼자 죽게 되는 걸까? <br><br> 이 행성은 어딘가 무척 이상한 점이 있다. 뭐라고 콕 찝어서 말은 못 하겠지만, 머무르는 시간이 길수록, 더 이곳에 있고 싶게 하는...<br><br><br>...말도 안 되는 소리지...<br><br>...
+Message_cache_crater_middle3=...<br><br><86번째 메세지 송신 시도><br>...<br><87번째 메세지 송신 시도><br>...<br><89번째 메세지 송신 시도><br>...<br><90번째 메세지 송신 시도><br>...<br><91번째 메세지 송신 시도><br>...<br>
+SpawnLocation_Crater=유성 크레이터
+SpawnLocation_Desc_Crater=더 도전적인 착륙지입니다. 
+Menu_Options_Keys_Accessibility=접근성 키
+GROUP_NAME_PulsarShard=펄서 석영 조각
+GROUP_DESC_PulsarShard=텔레포터를 사용하는 데 필요합니다. 펄서 석영을 재활용하여 얻을 수 있습니다.
+Alert_teleporter_no_fuel=인벤토리에 펄서 석영 조각이 필요합니다.
+Teleporter_infos=텔레포터를 사용하려면 인벤토리에 펄서 석영 조각이 필요합니다.
+Teleporter_screen_title=텔레포터
+Teleporter_select_destination=목적지 선택:
+Teleporter_no_other_teleporter=최소 2개의 텔레포터가 필요합니다. 
+Teleporter_use=텔레포터 사용
+GROUP_NAME_Teleporter1=텔레포터
+GROUP_DESC_Teleporter1=장소 사이를 순간이동합니다.
+UI_RocketsScreen_ViewTitle=행성 보기
+UI_RocketsScreen_TerraformationsRockets_title=발사된 테라포메이션 로켓
+UI_RocketsScreen_InformationsRockets_title=발사된 정보 로켓
+GROUP_NAME_ScreenRockets=화면 – 궤도 정보
+GROUP_DESC_ScreenRockets=궤도로 보낸 로켓의 정보를 표시합니다. 
+WORLDUNIT_Plants=식물
+WORLDUNIT_Insects=곤충
+WORLDUNIT_Animals=동물
+MULTIPLIER_Plants=식물 배율
+MULTIPLIER_Insects=곤충 배율
+MULTIPLIER_Animals=동물 배율
+GROUP_NAME_Incubator1=부란기
+GROUP_DESC_Incubator1=이것을 사용해 유충과 돌연변이 유발 물질로 새로운 곤충을 만드세요. 같은 조합법에서 다양한 곤충이 나올 수 있습니다. 어떤 돌연변이는 야생에서만 발견됩니다.
+GROUP_NAME_LarvaeBase1=일반 유충
+GROUP_DESC_LarvaeBase1=부란기에 사용해 새로운 종을 만드세요. 곤충 단계에 도달하면 야생에서 발견할 수 있습니다.
+GROUP_NAME_ScreenBiomass=스크린 바이오매스
+GROUP_DESC_ScreenBiomass=바이오매스의 정보를 표시합니다.
+GROUP_NAME_SpaceMultiplierPlants*************
+GROUP_DESC_SpaceMultiplierPlants*************
+GROUP_NAME_SpaceMultiplierInsects*************
+GROUP_DESC_SpaceMultiplierInsects*************
+GROUP_NAME_SpaceMultiplierAnimals*************
+GROUP_DESC_SpaceMultiplierAnimals*************
+GROUP_NAME_Butterfly1Larvae=아주래 나비 유충
+GROUP_DESC_Butterfly1Larvae*************
+GROUP_NAME_Bee1Larvae=꿀벌 유충
+GROUP_DESC_Bee1Larvae*************
+GROUP_NAME_Bee1Hatched*************
+GROUP_DESC_Bee1Hatched*************
+GROUP_NAME_Butterfly1Hatched*************
+GROUP_DESC_Butterfly1Hatched*************
+GROUP_NAME_Butterfly2Larvae=리아니 나비 유충
+GROUP_DESC_Butterfly2Larvae*************
+GROUP_NAME_Butterfly2Hatched*************
+GROUP_DESC_Butterfly2Hatched*************
+GROUP_NAME_Firefly1Hatched=반딧불이 유충
+GROUP_DESC_Firefly1Hatched*************
+GROUP_NAME_Beehive1=벌집
+GROUP_DESC_Beehive1=식물과 곤충이 증가합니다. 
+GROUP_NAME_Butterfly3Hatched*************
+GROUP_DESC_Butterfly3Hatched*************
+GROUP_NAME_Butterfly3Larvae=펜시아 나비 유충
+GROUP_DESC_Butterfly3Larvae*************
+GROUP_NAME_Butterfly4Larvae=갤랙스 나비 유충
+GROUP_DESC_Butterfly4Larvae*************
+GROUP_NAME_Butterfly4Hatched*************
+GROUP_DESC_Butterfly4Hatched*************
+GROUP_NAME_Butterfly9Larvae=에멜 나비 유충
+GROUP_DESC_Butterfly9Larvae*************
+GROUP_NAME_Butterfly7Larvae=펭가 나비 유충
+GROUP_DESC_Butterfly7Larvae*************
+GROUP_NAME_Butterfly8Larvae=셰브론 나비 유충
+GROUP_DESC_Butterfly8Larvae*************
+GROUP_NAME_Butterfly6Larvae=엠팔리오 나비 유충
+GROUP_DESC_Butterfly6Larvae*************
+GROUP_NAME_Butterfly5Larvae=앱스트레우스 나비 유충
+GROUP_DESC_Butterfly5Larvae*************
+GROUP_NAME_Butterfly10Larvae=리우 나비 유충
+GROUP_DESC_Butterfly10Larvae*************
+GROUP_NAME_Butterfly6Hatched*************
+GROUP_DESC_Butterfly6Hatched*************
+GROUP_NAME_Butterfly7Hatched*************
+GROUP_DESC_Butterfly7Hatched*************
+GROUP_NAME_Butterfly5Hatched*************
+GROUP_DESC_Butterfly5Hatched*************
+GROUP_NAME_Butterfly9Hatched*************
+GROUP_DESC_Butterfly9Hatched*************
+GROUP_NAME_Butterfly10Hatched*************
+GROUP_DESC_Butterfly10Hatched*************
+GROUP_NAME_Butterfly8Hatched*************
+GROUP_DESC_Butterfly8Hatched*************
+GROUP_NAME_LarvaeBase2=드문 유충
+GROUP_DESC_LarvaeBase2=부란기에 사용해 새로운 종을 만드세요. 곤충 단계에 도달하면 야생에서 발견할 수 있습니다.
+GROUP_NAME_GoldenEffigie4=황금 피규어
+GROUP_DESC_GoldenEffigie4*************
+GROUP_NAME_Farm1=야외 농장
+GROUP_DESC_Farm1=채소 씨앗을 넣으면 다량으로 키울 수 있습니다.
+GROUP_NAME_honey=꿀
+GROUP_DESC_honey*************
+GROUP_NAME_astrofood2=고품질 음식
+GROUP_DESC_astrofood2=체력을 많이 회복합니다. 
+GROUP_NAME_SilkGenerator=실크 생성기
+GROUP_DESC_SilkGenerator=실크 생산
+GROUP_NAME_Silk=실크
+GROUP_DESC_Silk=재료를 만드는 데 사용합니다. 
+GROUP_NAME_Fence=울타리
+GROUP_DESC_Fence*************
+GROUP_NAME_ButterflyFarm1=나비 농장
+GROUP_DESC_ButterflyFarm1=곤충 수치를 높이려면 나비 유충을 넣으십시오.
+GROUP_NAME_SilkWorm=누에
+GROUP_DESC_SilkWorm*************
+GROUP_NAME_ButterflyDome1=나비 돔
+GROUP_DESC_ButterflyDome1=곤충 수치를 높이려면 나비 유충을 넣으십시오.
+GROUP_NAME_LarvaeBase3=희귀 유충
+GROUP_DESC_LarvaeBase3=부란기에 사용해 새로운 종을 만드십시오. 곤충 단계에 도달하면 야생에서 발견할 수 있습니다.
+GROUP_NAME_Butterfly11Hatched*************
+GROUP_DESC_Butterfly11Hatched*************
+GROUP_NAME_Butterfly12Hatched*************
+GROUP_DESC_Butterfly12Hatched*************
+GROUP_NAME_Butterfly13Hatched=콘스텔라 나비 유충
+GROUP_DESC_Butterfly13Hatched*************
+GROUP_NAME_Butterfly14Hatched*************
+GROUP_DESC_Butterfly14Hatched*************
+GROUP_NAME_Butterfly15Hatched*************
+GROUP_DESC_Butterfly15Hatched*************
+GROUP_NAME_Butterfly11Larvae=네레 나비 유충
+GROUP_DESC_Butterfly11Larvae*************
+GROUP_NAME_Butterfly12Larvae=로펜 나비 유충
+GROUP_DESC_Butterfly12Larvae*************
+GROUP_NAME_Butterfly13Larvae=피오렌테 나비 유충
+GROUP_DESC_Butterfly13Larvae*************
+GROUP_NAME_Butterfly14Larvae=알벤 나비 유충
+GROUP_DESC_Butterfly14Larvae*************
+GROUP_NAME_Butterfly15Larvae=퓨투라 나비 유충
+GROUP_DESC_Butterfly15Larvae*************
+GROUP_NAME_ButterflyDisplayer1=나비 표본 액자
+GROUP_DESC_ButterflyDisplayer1=나비를 전시하려면 나비 유충을 넣으십시오.
+MessageSender_warden1=파수꾼
+Message_warden1=이 지하 동굴은 파수꾼인 우리에게 축복이다. <br> 자원이 풍부하며 지하에 있으므로 우주로부터 몸을 숨길 수도 있다. <br><br> 이 행성이 신중히 선택된 이유를 이제야 알겠다. <br><br> 어서 정착할 곳을 짓고 운명을 이루고 싶다.
+Message_InsectsInformations=<br>저희는 당신의 행성이 야생 유충의 출현에 알맞은 환경이 되었음을 감지했습니다. <br><br>유충을 부란기에 사용하여 행성 고유종인 벌과 나비를 사육하십시오. 이러한 종은 당신의 임무를 완수하고 테라포밍의 속도를 향상하는 것에 필요할 것입니다. <br><br><br> 당신은 매우 정밀하게 관찰되고 있습니다. 센티넬 사외의 다른 이에게 연락하기 위해 통신 장치를 사용해서는 안 된다는 점을 알려 드립니다.
+GROUP_NAME_Butterfly16Larvae=이메오 나비 유충
+GROUP_NAME_Butterfly17Larvae=세레나 나비 유충
+GROUP_DESC_Butterfly17Larvae*************
+GROUP_NAME_Butterfly18Larvae=황금 나비 유충
+GROUP_DESC_Butterfly18Larvae*************
+TERRASTAGE_Breathable=숨쉴 수 있는 대기
+GROUP_NAME_AirFilter1=공기 정화기
+GROUP_DESC_AirFilter1=테라포메이션 단계에 따라 산소 소모량이 감소됩니다. 
+AutoCrafter_recipe_selection=자동 제작할 레시피 선택
+AutoCrafter_informations=필요한 재료가 범위 내에 있으면 이 레시피가 자동 제작됩니다.
+AutoCrafter_title=자동 제작기
+AutoCrafter_use=자동 제작기 열기
+OreExtractor3_ore_selection=추출할 광석 선택
+GROUP_NAME_OreExtractor3=광석 추출기 t3
+GROUP_DESC_OreExtractor3=선택한 광석을 추출합니다.
+GROUP_NAME_Mutagen2=돌연변이원 t2
+GROUP_DESC_Mutagen2=강력한 돌연변이 유발제입니다. 
+GROUP_NAME_Rod-osmium=오스뮴 막대
+GROUP_DESC_Rod-osmium=극도로 응축된 오스뮴입니다. 
+GROUP_NAME_EquipmentIncrease3=외골격 t3
+GROUP_NAME_WardenKey=파수꾼의 열쇠
+GROUP_NAME_WardenAustel=파수꾼의 제단
+GROUP_NAME_AutoCrafter1=자동 제작기
+GROUP_NAME_Tree9Seed=슈록스 나무 종자
+GROUP_NAME_Drill4=드릴 t5
+GROUP_NAME_Heater5=히터 t5
+Message_wardenRoom1="...처음에 우리는 비슷한 모습에 경악을 금치 못했다. <br><br> 우리는 거의 똑같았다. <br><br> 우리 과학자들은 우리 천체가 모든 면에서 동일하기 때문에, 따로 진화했더라도 모든 면에서 유사하다고 말했다. <br> 존재하는지도 모르고 있던 친척을 만난 것 같다. 심지어 트레하로 오기 시작했을 때도 우리를 "형제"라고 불렀으니. 우주선은 몇 개에서 몇십 개로 불어났고 우리의 불안도 그만큼 커져 나갔다. <br><br> 우리의 주된 차이는 가장 깊은 곳에 숨겨져 있었다. 생물학적으로 우리는 동일하나, 마음은 다른 형태를 갖췄다. <br><br> 운명을 따른 것인가, 자연스럽게 이렇게 된 것인가? 한 가지 확실한 건 우리가 그걸 깨달았을 때 이미 늦었다는 것이다..."
+Message_wardenRoom2=<br> 이 모든 세월과 모든 고통 끝에 우리는 고향 땅을 떠나기로 했다. <br> 새로운 보금자리를 짓기 위해, 가능한 먼 곳을 향하여. 공포로부터, 투쟁으로부터, 그들로부터 저 멀리. <br><br> 지난 몇백 년간 그래 왔듯이 꼭꼭 숨어 우리만의 삶을 살기 위해. <br><br> 우리는 안전하게 지낼 수 있을 장소를 골라, 가장 큰 배에 우리의 마지막 후손을 데리고 운명적인 그 날밤에 떠났다. <br><br><br> 그들 자체보다 그들의 채워지지 않을 욕심이 두려워 달아나며. 
+Message_wardenLostParadise1=<br><br><br><br> 우리는 한 때 살았노라.
+Message_Help4=행성을 정밀 스캔해봤는데 뭔가 이상해요. <br> 당신 근처에 기이한 지질학적 특징과 일관성 없는 지형 데이터가 있어요. <br> <br> 다음 장소를 찾아가보도록 해요: -248:42:93 <br><br> 인터페이스의 좌측 하단을 보고 찾아가도록 해요.
+GROUP_DESC_AutoCrafter1=범위 내의 보관함이나 외부 환경에 재료가 충분하면 선택된 레시피를 자동으로 제작합니다.
+GROUP_DESC_WardenKey=이 특이한 장치는 다른 장치를 여는 데 사용되는 것 같습니다.
+AutoCrafter_inRange=범위 내의 인벤토리 또는 외부의 아이템:
+UI_perimeter=둘레
+GROUP_NAME_GoldenEffigie5=황금 피규어
+GROUP_DESC_GoldenEffigie5*************
+GROUP_NAME_RocketInsects1=곤충 살포기 로켓
+GROUP_DESC_RocketInsects1=우주에서 곤충을 퍼뜨려 전역 곤충 생성 보너스를 제공합니다.
+GROUP_NAME_ButterflyFarm2=나비 농장 t2
+GROUP_DESC_ButterflyFarm2=곤충 수치를 높이기 위해 나비 유충을 넣으십시오.
+Message_wardenUnderground1=대이동 이후 여러 세대가 지났다. <br><br> 그러나 우리는 우리의 이야기를 잊지 않았으며 그 지식은 후손에게 대대로 이어져 내려졌다. <br><br> 우리 스승은 그들의 진화를 자세히 지켜본다. 우리는 그들이 얼마나 원시적이면서도 막강한 힘을 지녔는지에 대해 알았다. <br> 특이하게도 그들의 파괴적인 특성은 그들의 영역을 확장시킨다. 그리고 시나브로 그들의 손 끝이 점점 가까워져온다. 우리는 지금까지 안전하다고 생각했으나 그들과 또 마주치지 않기 위한 방법을 찾아야할 것이다. <br><br><br> 처음 때와 같은 실수를 하지는 않을 것이다.
+Message_wardenUnderground2=<br><br> 궤도 배수로 - 방어 장치. 관찰 기록: <br><br><br> 장치가 의도대로 작동했으며 실험 결과도 성공적이었다. <br> 스스로를 인간이라 칭하는 자가 이 행성으로 온다면 그들의 우주선으로부터 전류를 배출하고 통신을 방해할 것이다. <br><br> 우리의 전제는 이 장치가 그들의 무한하게 확산해 나가려는 노고를 효과적으로 줄이고, 그 이후로도 계속 확산하려 한다면 다른 곳으로 확산하도록 방향을 돌리는 것이다. <br><br> 우리의 계산 결과는 확실하다: 이는 적어도 몇 백년의 고요함을 선사할 것이다.
+Message_wardenLostParadise2=우리 백성에게 또 한 번의 재앙이 닥쳤다. <br><br> 예언이 맞다면, 며칠 후에 이 행성으로 유성이 떨어질 것이다. 우리가 쌓아올린 도시, 우리가 만든 영광이 무너져내릴 것이다. <br><br> 우리의 예술, 전통, 탐구와 삶이 사라져 버릴 것이다. 다시 한번 파멸이 도래하나, 우리는 몇 세대 전과는 달리 이번에는 달아나지 않을 것이다. <br> 죽음이 그토록 우리를 놓아주지 않는다면 달아나는 것이 무슨 소용이 있겠는가. <br> 우리는 운명을 받아들였으며, 자신들을 자랑스럽게 여겼고, 가치관에 충실했다. <br><br><br> 우리의 이야기는 화염과 먼지 아래 사라질 것이다. <br><br> 한 낱 나비의 삶처럼, 아름답고 덧없게. 우리의 끝을 마주할 시간이 왔다...
+GROUP_DESC_Drill4=지면에 갇힌 가스를 방출해 기압을 생성합니다.
+GROUP_DESC_Heater5=열기를 발생시킵니다.
+GROUP_DESC_Tree9Seed*************
+GROUP_DESC_EquipmentIncrease3=장비 칸 크기가 증가합니다.
+GROUP_NAME_Beehive2=벌집 t2
+GROUP_DESC_Beehive2=식물과 곤충이 증가합니다. 꿀과 꿀벌 유충을 생성합니다. 
+GROUP_NAME_HudChipCleanConstruction=마이크로칩 - 건설 메뉴 필터
+GROUP_DESC_HudChipCleanConstruction=건설 메뉴에서 하위 티어의 개체를 숨깁니다.
+Logistic_menu_title=물류 관리
+Logistic_menu_clear_all=모두 지우기
+Logistic_menu_supply=공급(내보내기)
+Logistic_menu_demand=수요(받기)
+UI_Deconstruct_chip2_required=해체 칩 t2 필요
+GROUP_NAME_MultiToolDeconstruct2=마이크로칩 – 해체 t2
+GROUP_DESC_MultiToolDeconstruct2=난파선에서 고급 아이템을 해체할 수 있습니다.
+GROUP_NAME_NitrogenCapsule1=질소 카트리지
+GROUP_DESC_NitrogenCapsule1=질소 가스가 들어있는 카트리지입니다.
+GROUP_NAME_Mutagen3=돌연변이원 t3
+GROUP_DESC_Mutagen3= 강력한 돌연변이 유발제입니다. 부란기에서 물고기를 만드는 데 사용할 수 있습니다.
+GROUP_NAME_DroneStation1=드론 스테이션
+GROUP_DESC_DroneStation1=물류 시스템을 활성화하고 드론을 생성할 수 있습니다. 
+GROUP_NAME_WaterLifeCollector1=수생 생물 수집기
+GROUP_DESC_WaterLifeCollector1=위치에 따라 식물성 플랑크톤과 어란을 수집합니다.
+GROUP_NAME_Phytoplankton1=식물성 플랑크톤 A
+GROUP_DESC_Phytoplankton1=부란기에서 사용하여 물고기를 만드세요.
+GROUP_NAME_Phytoplankton2=식물성 플랑크톤 B
+GROUP_DESC_Phytoplankton2=부란기에서 사용하여 물고기를 만드세요.
+GROUP_NAME_Phytoplankton3=식물 플랑크톤 C
+GROUP_DESC_Phytoplankton3=부란기에서 사용하여 물고기를 만드세요.
+GROUP_NAME_Phytoplankton4=식물성 플랑크톤 D
+GROUP_DESC_Phytoplankton4=부란기에서 사용하여 물고기를 만드세요.
+GROUP_NAME_FishDisplayer1=물고기 전시 액자
+GROUP_DESC_FishDisplayer1=물고기를 전시하려면 물고기 알을 넣으십시오.
+GROUP_NAME_FishFarm1=양어장
+GROUP_DESC_FishFarm1=동물을 생성합니다. 
+GROUP_NAME_CircuitBoard1=회로 기판
+GROUP_DESC_CircuitBoard1=고급 제작 레시피에 사용합니다. 
+GROUP_NAME_WreckServer=기기 잔해
+GROUP_DESC_WreckServer*************
+GROUP_NAME_Drone1=드론 t1
+GROUP_DESC_Drone1=공급 인벤토리에서 수요 인벤토리로 자재를 운반합니다. 
+UI_Drones_Instructions_title=설명서
+UI_Drones_list_title=드론 사용 가능
+UI_Drones_list_demand_groups=수요 인벤토리
+UI_Drones_list_supply_groups=공급 인벤토리
+GROUP_NAME_RocketDrones1=드론 시각화 로켓
+GROUP_DESC_RocketDrones1=매핑 화면에 드론을 표시합니다. 
+GROUP_NAME_Aquarium1=수족관 t1
+GROUP_DESC_Aquarium1=동물을 생성합니다. 
+GROUP_NAME_Aquarium2=수족관 t2
+GROUP_DESC_Aquarium2=동물을 생성합니다. 
+Logistic_menu_priority=우선 순위
+UI_Drones_Instructions1=드론 스테이션을 하나 이상 제작한다. 
+UI_Drones_Instructions2=드론을 하나 이상 만든다. 
+UI_Drones_Instructions3=자동으로 자재를 옮길 인벤토리를 연다. 
+UI_Drones_Instructions4=톱니바퀴 아이콘을 클릭한다. 
+UI_Drones_Instructions5=자재를 내보낼 인벤토리에서 밖으로 공급할 아이템을 설정하고, 해당 아이템을 받을 다른 인벤토리에서 동일 아이템을 수요 아이템으로 설정한다. 
+UI_Drones_Instructions6=드론이 공급 인벤토리에서 수요 인벤토리로 아이템을 운반한다.
+UI_Drones_Notes1=드론은 전원이 꺼지면 작동하지 못한다. 
+GROUP_CATEG_Biomass=바이오매스
+GROUP_NAME_GoldenEffigie6=황금 피규어
+GROUP_DESC_GoldenEffigie6*************
+GROUP_NAME_GasExtractor2=가스 추출기 t2
+GROUP_DESC_GasExtractor2=자동으로 지면에서 가스를 추출합니다.
+GROUP_NAME_RocketMap4=GPS 위성 t4
+GROUP_DESC_RocketMap4=매핑 화면에 더 나은 위치 정보를 제공합니다.
+GROUP_NAME_Fish1Eggs=쿠니 물고기 알
+GROUP_DESC_Fish1Eggs*************
+GROUP_NAME_Fish2Eggs=부리우나 물고기 알
+GROUP_DESC_Fish2Eggs*************
+GROUP_NAME_Fish3Eggs=게레로 물고기 알
+GROUP_DESC_Fish3Eggs*************
+GROUP_NAME_Fish4Eggs=크롬 물고기 알
+GROUP_DESC_Fish4Eggs*************
+GROUP_NAME_Fish5Eggs=울라니 물고기 알
+GROUP_DESC_Fish5Eggs*************
+GROUP_NAME_Fish6Eggs=아엘레라 물고기 알
+GROUP_DESC_Fish6Eggs*************
+GROUP_NAME_Fish7Eggs=오이오 물고기 알
+GROUP_DESC_Fish7Eggs*************
+GROUP_NAME_Fish8Eggs=에카루 물고기 알
+GROUP_DESC_Fish8Eggs*************
+GROUP_NAME_Fish9Eggs=부유 물고기 알
+GROUP_DESC_Fish9Eggs*************
+GROUP_NAME_Fish10Eggs=틸루 물고기 알
+GROUP_DESC_Fish10Eggs*************
+GROUP_NAME_Fish11Eggs=황금 물고기 알
+GROUP_DESC_Fish11Eggs*************
+Message_DeathCrosses=편안하고 즐거웠어야 할 시간이 악몽으로 변했다. 5주 동안 잘 알려지지 않은 우주를 가로지르게 된 우주 유람선. <br><br> 안타깝게도 우리 멍청한 선원들은 겉보기에 사소해 보이는 사고에 제대로 대응할 수 없었고, 시간이 흘른 지금 우린 불타는 난파선에서 회수 할 수 있던 몇 구의 시신을 묻고 있다... <br><br> 앞으로 우리에게 일어날 일도 비슷할 거다. 우리는 서쪽으로 향하며 과연 얼마나 더 오래 살아남을 수 있을지 볼 것이다. 기껏해야 며칠 정도 밖에 안 될 거다... <br><br><br> 적어도 시니태트 2호의 몇 안 남은 생존자들에겐...
+GROUP_NAME_CookCocoaSeed=코코아 씨앗
+GROUP_DESC_CookCocoaSeed*************
+GROUP_NAME_CookCocoaGrowable=코코아
+GROUP_DESC_CookCocoaGrowable*************
+GROUP_NAME_CookWheatGrowable=밀
+GROUP_DESC_CookWheatGrowable*************
+GROUP_NAME_CookWheatSeed=밀 씨앗
+GROUP_DESC_CookWheatSeed*************
+GROUP_NAME_CookChocolate=초콜릿
+GROUP_DESC_CookChocolate*************
+GROUP_NAME_CookFlour=밀가루
+GROUP_DESC_CookFlour*************
+GROUP_NAME_CookCroissant=크로와상
+GROUP_DESC_CookCroissant=완벽한 프랑스 크루아상
+GROUP_NAME_CookCookie1=쿠키
+GROUP_DESC_CookCookie1=초콜릿 쿠키
+GROUP_NAME_CookCake1=생일 케이크
+GROUP_DESC_CookCake1=1주년 생일 케이크
+Message_cache_cenote1=절대 굴복하지 않을 테다. <br><br> 이딴 춥고 먼지구데기인 곳이 나를 꺾게 두지 않을 거야. 모든 곳을 샅샅이 뒤져볼거고, 이 지옥바닥을 뜨기 위해서라면 여기까지라도 파내려와 자원을 찾아 나설 거다. <br> 로켓을 만들고 발사 플랫폼을 설치하기 위한 자원을 찾아야 한다. <br> 다중 도구가 없으니 시간이 너무 오래 걸린다. 하지만 극복해야만 해. <br><br><br> 절대 굴복하지 않을 거야. <br> 절대 굴복하지 않는다. <br>
+Message_wardenCenote1=« 자아란 없다 ». 저희가 태어나자마자 귀에 못이 박히도록 들은 말입니다. <br><br> « 우리는 하나로 산다 ». 우리 파수꾼은 개인이 없는 하나의 결합체입니다. 독립체가 없는데 단체라는 개념이 설립할 수 있습니까? <br><br> 개인의 목숨이 위협받고 존재가 지워질 위기가 왔는데 어떻게 이타적인 자가 되라는 겁니까? <br><br> 생존 본능과 이타심은 정령 양립할 수 없는 것입니까?
+Message_wardenCenote2=저희는 살고자 합니다. <br><br><br> 다가오는 죽음을 기다리는 것은 이타적인 것이 아닌 자살이며 자멸에 불과합니다. <br><br> 우리 중 몇몇은 피할 수 없는 운명이 도달하기 전에 다른 곳으로 떠나기로 했습니다. <br><br> 파멸을 뒤로 하며. 선택보다 운명을 중시한, 사랑하는 이들을 뒤로 하며.
+Message_wardenCenote3=우리의 미래는 앞으로 어떻게 되는 겁니까? <br> 우리의 운명은 무엇인가요? <br> 우리는 다시 한 번 살아남아, 다른 장소를 찾고, 새로운 식민지를 세우리라 믿습니다. <br><br> 오래 전에 그러하였듯 이번에도 할 수 있습니다. <br><br><br> 자매, 형제, 어머니, 아버지, 동료들이여, 미안합니다. <br>
+Message_TradePlatform=<br><br>몇 달 간의 노력 끝에 마침내 센티넬 사의 잠금 해제 시스템을 파고들어 당신의 시스템에 잠겨있던 우주 무역 로켓을 해제했어요. <br><br> 원래 테라포머들은 이걸 쓰면 안 되지만 분명 도움이 될 거예요. <br> 활성화되면 생존 확률이 치솟게 되지만, 센티넬은 플래닛 크래프터들에게 허용을 거의 안 해줘요... <br><br><br> 당신이 살았는지 죽었는지 알 길이 없네요. <br><br> 언젠가 다시 볼 수 있다면.
+Tokens_terratoken_name=테라 토큰
+Tokens_terratoken_available=사용 가능한 테라 토큰
+Tokens_terratoken_cost=총 비용
+Tokens_trade_value=거래 가치
+Ui_Trade_LaunchRocket=무역 로켓 발사
+Ui_trade_inventory_value=현재 인벤토리 가치
+Tokens_terratoken_returns_in=귀환까지:
+Ui_settings_title=설정
+Ui_settings_auto_launch_rocket=인벤토리가 가득 차면 자동으로 로켓 발사
+Ui_settings_on=활성화
+Ui_settings_off=비활성화
+Ui_settings_auto_destroy_content=인벤토리가 가득 차면 내용물을 자동으로 파기합니다.
+UI_trading_Instructions1=테라 토큰으로 아이템과 설계도를 구매할 수 있다.
+UI_trading_Instructions2=행성에 있는 몇 몇 아이템은 가치가 높아 귀중하다. 이러한 귀중품을 로켓에 넣어 우주로 보낸다. 
+UI_trading_Instructions3=일정 시간이 지나면 로켓이 돌아오고 테라 토큰을 획득하게 된다.
+UI_trading_Instructions4=테라 토큰이 충분하면 구매할 아이템을 선택할 수 있다.
+UI_trading_Instructions5=로켓을 다시 한번 보내면 선택한 아이템과 함께 돌아온다.
+UI_trading_Instructions6=드론과 여러 무역 로켓으로 프로세스를 자동화할 수 있다.
+UI_Drones_Valuables_items=귀중품
+TERRASTAGE_Mammals=포유류
+Alert_new_tokens_gained=새로운 테라 토큰 획득
+UI_ClickGainTokens=우클릭으로 토큰 획득
+UI_tradeplatform_title=우주 무역
+PlayerEffect_ReduceOxygen1=단기간 동안 산소 소비를 줄입니다.
+PlayerEffect_IncreaseSpeed1=단기간 동안 주행 속도를 높입니다.
+PlayerEffect_ReduceThirst1=단기간 동안 갈증을 줄입니다.
+GROUP_NAME_AmphibiansFarm1=양서류 농장
+GROUP_DESC_AmphibiansFarm1=개구리 알을 넣어 개구리를 만드십시오.
+GROUP_NAME_Frog1Eggs=일반 개구리 알
+GROUP_DESC_Frog1Eggs=자연에 있는 연못에서 찾으십시오. 
+GROUP_NAME_FrogGoldEggs=황금 개구리 알
+GROUP_DESC_FrogGoldEggs*************
+GROUP_NAME_Frog2Eggs=훌리 개구리 알
+GROUP_DESC_Frog2Eggs*************
+GROUP_NAME_Frog10Eggs=켄조스 개구리 알
+GROUP_DESC_Frog10Eggs*************
+GROUP_NAME_Frog9Eggs=아메도 개구리 알
+GROUP_DESC_Frog9Eggs*************
+GROUP_NAME_Frog8Eggs=실러스 개구리 알
+GROUP_DESC_Frog8Eggs*************
+GROUP_NAME_Frog7Eggs=아파에 개구리 알
+GROUP_DESC_Frog7Eggs*************
+GROUP_NAME_Frog6Eggs=아이올루스 개구리 알
+GROUP_DESC_Frog6Eggs*************
+GROUP_NAME_Frog5Eggs=트라주우 개구리 알
+GROUP_DESC_Frog5Eggs*************
+GROUP_NAME_Frog4Eggs=스트라보 개구리 알
+GROUP_DESC_Frog4Eggs*************
+GROUP_NAME_Frog3Eggs=펠리시아나 개구리 알
+GROUP_DESC_Frog3Eggs*************
+GROUP_NAME_TradePlatform1=우주 무역 로켓
+GROUP_DESC_TradePlatform1=우주에 로켓을 보내 테라 토큰을 얻을 수 있습니다. 새로운 설계도와 아이템을 해제하는데 사용할 수 있습니다.
+GROUP_NAME_SofaColored=맞춤형 소파
+GROUP_DESC_SofaColored=클릭해서 색상을 변경합니다. 
+GROUP_NAME_CookingStation1=쿠킹 스테이션
+GROUP_DESC_CookingStation1=음식을 조리할 수 있습니다. 
+GROUP_NAME_SmartFabric=스마트 패브릭
+GROUP_DESC_SmartFabric=맞춤형 아이템에 사용합니다. 
+GROUP_NAME_BedDoubleColored=맞춤형 침대
+GROUP_DESC_BedDoubleColored=클릭해서 색상을 변경합니다. 
+GROUP_NAME_Fish12Eggs=벨키아 물고기 알
+GROUP_DESC_Fish12Eggs*************
+GROUP_NAME_Butterfly19Larvae=팔레리아 나비 유충
+GROUP_DESC_Butterfly19Larvae*************
+GROUP_NAME_FrogDisplayer1=개구리 박제품
+GROUP_DESC_FrogDisplayer1=개구리를 전시하려면 개구리 알을 넣으십시오. 
+GROUP_NAME_Container3=사물함 t2
+GROUP_DESC_Container3=훨씬 더 큰 보관함입니다. 
+GROUP_NAME_Pod9xA=둥근 거실 공간
+GROUP_DESC_Pod9xA=모서리가 둥근 3x3 거실 공간입니다. 
+GROUP_NAME_Pod9xB=돔이 있는 거실
+GROUP_DESC_Pod9xB=돔이 있는 3x3 거실 공간입니다. 
+GROUP_NAME_Mutagen4=돌연변이원 t4
+GROUP_DESC_Mutagen4=강력한 돌연변이 유발제입니다. 부란기에서 개구리를 만드는 데 사용할 수 있습니다. 
+GROUP_NAME_DebrisContainer1=우주에서 온 컨테이너
+GROUP_DESC_DebrisContainer1=우주 파편
+GROUP_NAME_TerraTokens100=테라 토큰 : 100
+GROUP_NAME_TerraTokens500=테라 토큰 : 500
+GROUP_DESC_TerraTokens500*************
+GROUP_NAME_TerraTokens1000=테라 토큰 : 1000
+GROUP_DESC_TerraTokens1000*************
+GROUP_NAME_TerraTokens5000=테라 토큰 : 5000
+GROUP_DESC_TerraTokens5000*************
+GROUP_NAME_CookStew1=꿀로 볶은 콩
+GROUP_DESC_CookStew1*************
+GROUP_NAME_CookStewFish1=생선 수프
+GROUP_DESC_CookStewFish1*************
+GROUP_NAME_Drone2=드론 t2
+GROUP_DESC_Drone2=더 빠른 드론입니다. 
+Ui_can_recolt_yet=아직 준비되지 않음
+UI_trading_items_list=거래 가능 아이템
+GROUP_NAME_Pod9xC=3x3 거실
+GROUP_DESC_Pod9xC=3x3 거실입니다. 
+Menu_Options_Graphics_brightness=명도
+GROUP_NAME_Tree10Seed=로제아 나무 씨앗
+GROUP_DESC_Tree10Seed*************
+UI_generation_label=생산 시간
+MULTIPLIER_Production=생산 시간 구분
+GROUP_NAME_FusePlants1=식물 배율 퓨즈
+GROUP_DESC_FusePlants1=주변 기기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_FuseOxygen1=산소 배율 퓨즈
+GROUP_DESC_FuseOxygen1=주변 기기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_FuseHeat1=열기 배율 퓨즈
+GROUP_DESC_FuseHeat1=주변 기기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_FusePressure1=기압 배율 퓨즈
+GROUP_DESC_FusePressure1=주변 기기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_FuseEnergy1=전력 배율 퓨즈
+GROUP_DESC_FuseEnergy1=주변 전력 발전기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_FuseProduction1=생산 배율 퓨즈
+GROUP_DESC_FuseProduction1=주변 아이템 생성 기기의 성능을 향상하려면 이 퓨즈를 옵티마이저에 넣으십시오.
+GROUP_NAME_Optimizer1=기기 옵티마이저
+GROUP_DESC_Optimizer1=주변 기기의 성능을 높이려면 퓨즈를 넣으십시오. 
+UI_optimizer_maxmachines=최적화 용량
+GROUP_NAME_WreckSafe=큰 금고
+GROUP_DESC_WreckSafe*************
+GameSetting_Dying_NoConsequences=패널티 없음
+GameSetting_Dying_DropSomeItems=아이템의 일부를 떨어트림
+GameSetting_Dying_DropAllItems=모든 아이템을 잃음
+GameSetting_Dying_DeleteSaveFile=세이브 파일이 삭제 됨
+GameSetting_Dying_Desc_NoConsequences=죽어도 패널티가 없습니다. 모든 인벤토리의 아이템이 그대로 남습니다.
+GameSetting_Dying_Desc_DropSomeItems=죽은 곳에 인벤토리를 떨어트려 일부 아이템을 잃어버립니다.
+GameSetting_Dying_Desc_DropAllItems=인벤토리의 모든 아이템을 잃어버립니다.
+GameSetting_Dying_Desc_DeleteSaveFile=세이브 파일이 영구 삭제됩니다.
+GameMode_Custom=맞춤 설정
+GameMode_Desc_Custom=맞춤형 게임 설정
+GameSettings_unlockedSpaceTrading=우주 무역 잠금 해제
+GameSettings_Infos_unlockedSpaceTrading=우주 무역 발사 플랫폼이 처음부터 잠금 해제됩니다.
+GameSettings_unlockedOreExtrators=광석 추출기 잠금 해제
+GameSettings_Infos_unlockedOreExtrators=광석 추출기가 처음부터 잠금 해제됩니다.
+GameSettings_unlockedTeleporters=텔레포터 잠금 해제
+GameSettings_Infos_unlockedTeleporters=텔레포터가 처음부터 잠금 해제됩니다.
+GameSettings_unlockedDrones=드론 잠금 해제
+GameSettings_Infos_unlockedDrones=드론이 처음부터 잠금 해제됩니다.
+GameSettings_unlockedAutocrafter=자동 제작기 잠금 해제
+GameSettings_Infos_unlockedAutocrafter=자동 제작사가 처음부터 잠금 해제됩니다.
+GameSettings_unlockedEverything=모두 잠금 해제
+GameSettings_Infos_unlockedEverything=모든 레시피가 처음부터 잠금 해제됩니다. (이 옵션은 게임 업적을 달성하지 못하게 합니다)
+GameSettings_freeCraft=무료로 건설
+GameSettings_Infos_freeCraft=재료가 없어도 건축과 제작을 할 수 있습니다. (이 옵션은 게임 업적을 달성하지 못하게 합니다)
+GameSettings_modifierTerraformationPace=테라포밍 속도
+GameSettings_Infos_modifierTerraformationPace=값이 높을수록 테라포밍 속도가 빨라집니다. 값이 낮을수록 감소합니다.
+GameSettings_modifierPowerConsumption=전력 소비
+GameSettings_Infos_modifierPowerConsumption=값이 높을수록 모든 기계에 필요한 전력이 증가합니다. 값이 낮을수록 감소합니다.
+GameSettings_modifierGaugeDrain=생명 수치 감소
+GameSettings_Infos_modifierGaugeDrain=값이 높을수록 생명 수치의 감소 속도가 빨라집니다. 값이 낮을수록 감소합니다.
+GameSettings_modifierMeteoOccurence=유성 이벤트
+GameSettings_Infos_modifierMeteoOccurence=값이 높을수록 유성 이벤트 발생률이 높아집니다. 값이 낮을수록 감소합니다.
+GameMode_Label=게임 모드
+SpawnLocation_Label=착륙 지점
+GameSetting_Dying_Label=사망 시 패널티
+Menu_GameSettings_title=새로운 저장 설정을 맞춰보세요. 
+GameMode_Creative=창조 모드
+GameMode_Desc_Creative=제한 없이 건설할 수 있습니다.
+Menu_GameSettings_Apply=설정 적용
+Menu_GameSettings_Warning=경고: 맞춤 설정은 당신의 게임 경험을 바꾸고 예상치 못한 결과를 초래할 수 있습니다.
+SpawnLocation_Waterfall=폭포
+SpawnLocation_Desc_Waterfall=색다른 경험을 위해, 추후 거대한 폭포가 될 곳의 근처로.
+GROUP_NAME_WallInside=내벽
+GROUP_DESC_WallInside=거주지에 지을 수 있는 내벽입니다. 
+GROUP_NAME_MapChip=마이크로칩 – 지도
+GROUP_DESC_MapChip=어디서나 지도를 표시할 수 있습니다. 
+UI_Infos_chain_build=연속 건설하려면 접근성 키(기본:CTRL)를 누르세요.
+UI_Infos_rotate_quickly=빠르게 회전하려면 접근성 키(기본값: CTRL)를 누르세요.
+UI_Infos_chain_craft=연속 제작하려면 접근성 키(기본:CTRL)를 누르세요.
+GameSettings_randomizeMineables=광석 랜덤하게
+GameSettings_Infos_randomizeMineables=행성의 광석이 무작위로 바뀝니다. 이는 게임 플레이 경험을 크게 바꿀 것입니다.
+Menu_Options_Keys_ToggleMap=지도 표시(올바른 칩이 장착된 경우에만)
+GROUP_NAME_Optimizer2=기기 옵티마이저 t2
+GROUP_DESC_Optimizer2=주변 기기의 성능을 높이려면 퓨즈를 넣으십시오. 
+GROUP_NAME_Obsidian=흑요석
+GROUP_DESC_Obsidian*************
+GROUP_NAME_Fish13Eggs=갈베아 물고기 알
+GROUP_DESC_Fish13Eggs*************
+GROUP_NAME_Frog11Eggs=라바움 개구리 알
+GROUP_DESC_Frog11Eggs*************
+Message_Other_Volcano1=예전 캠프보다는 여기가 더 따뜻하지만 여전히 오한이 느껴진다. 식량이 떨어진지 이틀이 지났다. <br><br> 가족이 그립다. 외로워서 미칠 것 같다. <br><br><br> ...모든 희망을 잃었다. <br> 곧 다른 곳으로 가야만 하겠지. 또 밖으로 나가는 게 두려워, 너무 어둡고 춥단 말야...
+Message_Other_Volcano2=<br><br><b> 하지만 지금의 나는 포로에 지나지 않아. 몸은 철창 감옥에 내던져졌고, 정신적으로는 단 하나의 끔찍하디 끔찍하기 짝이 없는, 굴복할 수밖에 없는 생각에 사로잡혔으니! 단 하나의 생각 밖에 안 들고, 단 하나의 신념만 남았으며, 분명 확신하건대 나는 사형 선고를 받았다! </b><br><br> 
+GROUP_NAME_GoldenEffigie7=황금 피규어
+GROUP_DESC_GoldenEffigie7*************
