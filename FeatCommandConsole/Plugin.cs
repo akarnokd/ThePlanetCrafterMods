@@ -715,7 +715,7 @@ namespace FeatCommandConsole
 
                     if (g == null)
                     {
-                        DidYouMean(gid, false);
+                        DidYouMean(gid, false, true);
                     }
                     else if (!(g is GroupItem))
                     {
@@ -1452,7 +1452,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gr = GroupsHandler.GetGroupViaId(args[1]);
+                    var gr = FindGroup(args[1]);
                     if (gr != null)
                     {
                         addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
@@ -1461,7 +1461,7 @@ namespace FeatCommandConsole
                     }
                     else
                     {
-                        addLine("<margin=1em><color=#FF0000>Unknown technology");
+                        DidYouMean(args[1], true, true);
                     }
                 }
             }
@@ -1507,7 +1507,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gr = GroupsHandler.GetGroupViaId(args[1]);
+                    var gr = FindGroup(args[1]);
                     if (gr != null)
                     {
                         addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
@@ -1516,7 +1516,7 @@ namespace FeatCommandConsole
                     }
                     else
                     {
-                        addLine("<margin=1em><color=#FF0000>Unknown technology");
+                        DidYouMean(args[1], true, true);
                     }
                 }
             }
@@ -1564,7 +1564,7 @@ namespace FeatCommandConsole
             return null;
         }
 
-        void DidYouMean(string gid, bool isStructure)
+        void DidYouMean(string gid, bool isStructure, bool isItem)
         {
             List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
                 .Where(g => { 
@@ -1572,7 +1572,7 @@ namespace FeatCommandConsole
                     {
                         return true;
                     }
-                    return !isStructure && g is GroupItem;
+                    return isItem && g is GroupItem;
                 })
                 .Select(g => g.id));
             if (similar.Count != 0)
@@ -1622,7 +1622,7 @@ namespace FeatCommandConsole
                 var gr = FindGroup(args[1]);
                 if (gr == null)
                 {
-                    DidYouMean(args[1], false);
+                    DidYouMean(args[1], false, true);
                 }
                 else
                 {
@@ -2139,7 +2139,7 @@ namespace FeatCommandConsole
                     SpaceCraft.Group g = FindGroup(gid);
                     if (g == null)
                     {
-                        DidYouMean(gid, true);
+                        DidYouMean(gid, true, false);
                     }
                     else if (!(g is GroupConstructible))
                     {

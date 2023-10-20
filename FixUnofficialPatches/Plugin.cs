@@ -502,5 +502,22 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineOptimizer), "RemovePreviouslySetWorldObjects")]
+        static void MachineOptimizer_RemovePreviouslySetWorldObjects(
+                    List<WorldObject> ___modifiedWorldObjects,
+                    List<GroupItem>  ___fuseGroupsForWorldObjects
+            )
+        {
+            for (int i = ___modifiedWorldObjects.Count - 1; i >= 0; i--)
+            {
+                if (___modifiedWorldObjects[i].GetGameObject() == null)
+                {
+                    ___modifiedWorldObjects.RemoveAt(i);
+                    ___fuseGroupsForWorldObjects.RemoveAt(i);
+                }
+            }
+        }
     }
 }
