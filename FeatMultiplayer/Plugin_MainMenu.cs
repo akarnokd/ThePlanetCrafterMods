@@ -254,11 +254,20 @@ namespace FeatMultiplayer
                         LogInfo("External IP = " + ip);
                         externalIP = "    External Address = " + ip.ToString();
 
+                        // PMPNatDevice doesn't support this call apparently
                         try
                         {
                             var mapping = await device.GetSpecificMappingAsync(Protocol.Tcp, portNum).ConfigureAwait(false);
                             LogInfo("Current Mapping = " + mapping);
-
+                        }
+                        catch (Exception ex)
+                        {
+                            // Ignore it for now
+                            LogInfo("Current Mapping = error");
+                            LogInfo(ex);
+                        }
+                        try
+                        {
                             await device.CreatePortMapAsync(new Mapping(Protocol.Tcp, portNum, portNum, "The Planet Crafter Multiplayer")).ConfigureAwait(false);
                             externalMap = "    External Mapping = ok";
                         }
