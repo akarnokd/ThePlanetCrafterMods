@@ -21,7 +21,8 @@ namespace XTestPlugins
             string patternConst = "BepInPlugin\\((.*?)\\s*,\\s*\"(.*?)\"\\s*,";
             var regex = new Regex(pattern);
             var regex2 = new Regex(pattern2);
-            foreach (string dir in Directory.EnumerateDirectories("..\\..\\.."))
+            Console.WriteLine(Directory.GetCurrentDirectory());
+            foreach (string dir in Directory.EnumerateDirectories("..\\..\\..\\.."))
             {
                 string d = Path.GetFileName(dir);
                 string f = Path.Combine(dir, "Plugin.cs");
