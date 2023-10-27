@@ -38,8 +38,6 @@
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(Destination1)" />
-	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
-	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(Destination2)" />
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)SpaceCow1.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />

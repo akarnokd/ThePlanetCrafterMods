@@ -21,23 +21,10 @@
 		<GameManaged>$(GameDir)Planet Crafter_Data\Managed\</GameManaged>
 		<PluginsFolder>$(GameDir)\BepInEx\plugins</PluginsFolder>
 	</PropertyGroup>
-	<!-- Standalone Deployments -->
-	<PropertyGroup Condition="Exists('c:\Games\The Planet Crafter')">
-		<GameDir2>c:\Games\The Planet Crafter</GameDir2>
-		<GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
-		<PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="Exists('e:\Games\The Planet Crafter')">
-		<GameDir2>e:\Games\The Planet Crafter</GameDir2>
-		<GameManaged2>$(GameDir2)Planet Crafter_Data\Managed\</GameManaged2>
-		<PluginsFolder2>$(GameDir2)\BepInEx\plugins</PluginsFolder2>
-	</PropertyGroup>
 	
 	<!-- Deployment target directories -->
 	<PropertyGroup>
 		<Destination1>$(PluginsFolder)\akarnokd - $(Description)</Destination1>
-		<Destination2>$(PluginsFolder2)\akarnokd - $(Description)</Destination2>
 	</PropertyGroup>
 
 </Project>

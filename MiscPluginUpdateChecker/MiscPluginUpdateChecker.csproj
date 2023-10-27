@@ -39,9 +39,6 @@
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
       <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(Destination1)" />
       
-      <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination2)" />
-      <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(Destination2)" />
-      
       <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)lib\System.Xml.Linq.dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 
