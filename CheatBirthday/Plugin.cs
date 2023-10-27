@@ -34,7 +34,10 @@ namespace CheatBirthday
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start(SessionController __instance)
         {
-            __instance.StartCoroutine(BirthdayLocator());
+            if (isEnabled.Value)
+            {
+                __instance.StartCoroutine(BirthdayLocator());
+            }
         }
 
         static IEnumerator BirthdayLocator()
@@ -60,11 +63,14 @@ namespace CheatBirthday
         [HarmonyPatch(typeof(Sector), nameof(Sector.LoadSector))]
         static void Sector_LoadSector(Sector __instance)
         {
-            // logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
-            if (__instance.gameObject.name.Contains("Birthday-Event"))
+            if (isEnabled.Value)
             {
-                logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
-                me.StartCoroutine(Birtday_Loader_Wait());
+                // logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
+                if (__instance.gameObject.name.Contains("Birthday-Event"))
+                {
+                    logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
+                    me.StartCoroutine(Birtday_Loader_Wait());
+                }
             }
         }
 

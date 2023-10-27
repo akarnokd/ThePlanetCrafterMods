@@ -1622,7 +1622,7 @@ namespace FeatCommandConsole
                 var gr = FindGroup(args[1]);
                 if (gr == null)
                 {
-                    DidYouMean(args[1], false, true);
+                    DidYouMean(args[1], true, true);
                 }
                 else
                 {
