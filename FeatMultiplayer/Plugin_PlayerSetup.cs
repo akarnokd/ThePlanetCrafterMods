@@ -250,6 +250,10 @@ namespace FeatMultiplayer
                     {
                         continue;
                     }
+                    if (item.StartsWith("DebrisContainer"))
+                    {
+                        continue;
+                    }
                     groupsToAdd.Add(gi);
                 }
             }
