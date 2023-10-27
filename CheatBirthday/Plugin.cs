@@ -31,9 +31,36 @@ namespace CheatBirthday
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void SessionController_Start(SessionController __instance)
+        {
+            __instance.StartCoroutine(BirthdayLocator());
+        }
+
+        static IEnumerator BirthdayLocator()
+        {
+            for (int i = 1; i < 31; i++)
+            {
+                yield return new WaitForSeconds(1);
+                foreach (var go in FindObjectsByType<Sector>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (go.name == "Sector-Birthday-Event")
+                    {
+                        go.gameObject.SetActive(true);
+                        logger.LogInfo("Found Sector-Birthday-Event and enabled its GameObject after " + i + " seconds");
+                        yield break;
+                    }
+                }
+            }
+            logger.LogInfo("Sector-Birthday-Event not found.");
+
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Sector), nameof(Sector.LoadSector))]
         static void Sector_LoadSector(Sector __instance)
         {
+            // logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
             if (__instance.gameObject.name.Contains("Birthday-Event"))
             {
                 logger.LogInfo("SectorEnter_Start: " + __instance.gameObject.name);
