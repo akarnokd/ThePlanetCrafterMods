@@ -30,6 +30,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackTradeRockets;
         static ConfigEntry<bool> stackShredder;
         static ConfigEntry<bool> stackOptimizer;
+        static ConfigEntry<bool> stackBackpack;
 
         static string expectedGroupIdToAdd;
 
@@ -68,14 +69,19 @@ namespace CheatInventoryStacking
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+            logger = Logger;
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
+            stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
 
-            logger = Logger;
+            if (!stackBackpack.Value)
+            {
+                defaultNoStackingInventories.Add(1);
+            }
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
@@ -168,6 +174,20 @@ namespace CheatInventoryStacking
             }
 
             return IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), gid);
+        }
+
+        /// <summary>
+        /// Returns the total item capacity of the given inventory considering the stacking settings.
+        /// </summary>
+        /// <param name="inventory">The inventory to get the capacity of.</param>
+        /// <returns>The capacity.</returns>
+        public static int GetInventoryCapacity(Inventory inventory)
+        {
+            if (noStackingInventories.Contains(inventory.GetId()) || stackSize.Value <= 1)
+            {
+                return inventory.GetSize();
+            }
+            return inventory.GetSize() * stackSize.Value;
         }
 
         // --------------------------------------------------------------------------------------------------------

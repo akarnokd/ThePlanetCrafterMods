@@ -18,6 +18,7 @@ using System.Text;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using System.Collections;
+using BepInEx.Bootstrap;
 
 namespace FeatCommandConsole
 {
@@ -26,8 +27,11 @@ namespace FeatCommandConsole
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
     [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+
+        const string modInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
 
         static ManualLogSource logger;
 
@@ -74,6 +78,8 @@ namespace FeatCommandConsole
         static bool suppressCommandConsoleKey;
 
         static Plugin me;
+
+        static Func<Inventory, int> GetInventoryCapacity;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -171,6 +177,17 @@ namespace FeatCommandConsole
 
                     log("  " + ca.name + " - " + ca.description);
                 }
+            }
+
+            if (Chainloader.PluginInfos.TryGetValue(modInventoryStackingGuid, out var pi))
+            {
+                logger.LogInfo("Mod " + modInventoryStackingGuid + " found, using its services.");
+                var m = AccessTools.Method(pi.Instance.GetType(), "GetInventoryCapacity", new Type[] { typeof(Inventory) });
+                GetInventoryCapacity = AccessTools.MethodDelegate<Func<Inventory, int>>(m, pi.Instance);
+            }
+            else
+            {
+                logger.LogInfo("Mod " + modInventoryStackingGuid + " not found, inventories are treated as vanilla.");
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -2873,6 +2890,10 @@ namespace FeatCommandConsole
             int playerPlacedItems = 0;
             int playerWorldObjectsInventory = 0;
 
+            int drones = 0;
+            int dronesActive = 0;
+            int dronesCarrying = 0;
+
             foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
             {
                 totalWorldObjects++;
@@ -2904,12 +2925,36 @@ namespace FeatCommandConsole
                         playerWorldObjectsInventory++;
                     }
                 }
+
+                var gr = wo.GetGroup();
+                if (gr is GroupItem && gr.id.StartsWith("Drone"))
+                {
+                    drones++;
+                    if (wo.GetIsPlaced())
+                    {
+                        dronesActive++;
+                    }
+                    var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                    if (inv != null)
+                    {
+                        dronesCarrying += inv.GetInsideWorldObjects().Count;
+                    }
+                }
             }
 
             int totalInventories = 0;
             int sceneInventories = 0;
             int playerInventories = 0;
             int totalItemsInInventory = 0;
+            int totalInventoryCapacity = 0;
+
+            int supplyItemCount = 0;
+            int supplyCapacity = 0;
+            int demandItemCount = 0;
+            int demandCapacity = 0;
+            int supplyInventoryCount = 0;
+            int demandInventoryCount = 0;
+            int logisticsInventoryCount = 0;
 
             foreach (var inv in InventoriesHandler.GetAllInventories())
             {
@@ -2922,6 +2967,78 @@ namespace FeatCommandConsole
                 {
                     playerInventories++;
                     totalItemsInInventory += inv.GetInsideWorldObjects().Count;
+                }
+                if (GetInventoryCapacity != null)
+                {
+                    totalInventoryCapacity += GetInventoryCapacity(inv);
+                }
+                else
+                {
+                    totalInventoryCapacity += inv.GetSize();
+                }
+
+                var le = inv.GetLogisticEntity();
+                if (le != null)
+                {
+                    bool logisticsRelated = false;
+                    {
+                        var sg = le.GetSupplyGroups();
+                        if (sg != null && sg.Count != 0)
+                        {
+                            supplyInventoryCount++;
+                            logisticsRelated = true;
+
+                            if (GetInventoryCapacity != null)
+                            {
+                                supplyCapacity += GetInventoryCapacity(inv);
+                            }
+                            else
+                            {
+                                supplyCapacity += inv.GetSize();
+                            }
+
+                            var hash = new HashSet<string>(sg.Select(v => v.id));
+
+                            foreach (var item in inv.GetInsideWorldObjects())
+                            {
+                                if (hash.Contains(item.GetGroup().id))
+                                {
+                                    supplyItemCount++;
+                                }
+                            }
+                        }
+                    }
+                    {
+                        var gd = le.GetDemandGroups();
+                        if (gd != null && gd.Count != 0)
+                        {
+                            demandInventoryCount++;
+                            logisticsRelated = true;
+
+                            if (GetInventoryCapacity != null)
+                            {
+                                demandCapacity += GetInventoryCapacity(inv);
+                            }
+                            else
+                            {
+                                demandCapacity += inv.GetSize();
+                            }
+
+                            var hash = new HashSet<string>(gd.Select(v => v.id));
+
+                            foreach (var item in inv.GetInsideWorldObjects())
+                            {
+                                if (hash.Contains(item.GetGroup().id))
+                                {
+                                    demandItemCount++;
+                                }
+                            }
+                        }
+                    }
+                    if (logisticsRelated)
+                    {
+                        logisticsInventoryCount++;
+                    }
                 }
             }
 
@@ -2937,7 +3054,59 @@ namespace FeatCommandConsole
             addLine(string.Format("<margin=1em>   Scene Inventories: <color=#00FF00>{0:#,##0}</color>", sceneInventories));
             addLine(string.Format("<margin=1em>   Player Inventories: <color=#00FF00>{0:#,##0}</color>", playerInventories));
             addLine(string.Format("<margin=1em>      Items inside: <color=#00FF00>{0:#,##0}</color>", totalItemsInInventory));
-
+            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", totalInventoryCapacity));
+            if (totalInventoryCapacity > 0)
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", totalItemsInInventory * 100d / totalInventoryCapacity));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>Logistics: <color=#00FF00>{0:#,##0}</color> inventories", logisticsInventoryCount));
+            addLine(string.Format("<margin=1em>   Supply: <color=#00FF00>{0:#,##0}</color>", supplyInventoryCount));
+            addLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", supplyItemCount));
+            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", supplyCapacity));
+            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", supplyCapacity - supplyInventoryCount));
+            if (supplyCapacity > 0)
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", supplyInventoryCount * 100d / supplyCapacity));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>   Demand: <color=#00FF00>{0:#,##0}</color>", demandInventoryCount));
+            addLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", demandItemCount));
+            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", demandCapacity));
+            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", demandCapacity - demandItemCount));
+            if (demandCapacity > 0)
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", demandItemCount * 100d / demandCapacity));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>   Drones: <color=#00FF00>{0:#,##0}</color>", drones));
+            addLine(string.Format("<margin=1em>      Active: <color=#00FF00>{0:#,##0}</color>", dronesActive));
+            if (drones > 0)
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesActive * 100d / drones));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>      Items Carried: <color=#00FF00>{0:#,##0}</color>", dronesCarrying));
+            if (dronesActive > 0)
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesCarrying * 100d / dronesActive));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+            }
         }
 
         [Command("/set-outside-grower-delay", "Sets the outside growers' progress delay in seconds.")]
