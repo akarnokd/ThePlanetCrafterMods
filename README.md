@@ -686,12 +686,32 @@ found all places where this can be bad. Backup your saves!
 ## The stack size of all item types in the inventory
 # Setting type: Int32
 # Default value: 10
-StackSize = 10
+StackSize = 250
 
 ## The font size for the stack amount
 # Setting type: Int32
 # Default value: 25
 FontSize = 25
+
+## Should the trade rockets' inventory stack?
+# Setting type: Boolean
+# Default value: false
+StackTradeRockets = false
+
+## Should the shredder inventory stack?
+# Setting type: Boolean
+# Default value: false
+StackShredder = false
+
+## Should the Optimizer's inventory stack?
+# Setting type: Boolean
+# Default value: false
+StackOptimizer = false
+
+## Should the player backpack stack?
+# Setting type: Boolean
+# Default value: true
+StackBackpack = true
 ```
 
 ## (Perf) Load Inventories Faster
