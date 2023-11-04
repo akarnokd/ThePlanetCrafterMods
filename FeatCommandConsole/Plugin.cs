@@ -3067,10 +3067,10 @@ namespace FeatCommandConsole
             addLine(string.Format("<margin=1em>   Supply: <color=#00FF00>{0:#,##0}</color>", supplyInventoryCount));
             addLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", supplyItemCount));
             addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", supplyCapacity));
-            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", supplyCapacity - supplyInventoryCount));
+            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", supplyCapacity - supplyItemCount));
             if (supplyCapacity > 0)
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", supplyInventoryCount * 100d / supplyCapacity));
+                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", supplyItemCount * 100d / supplyCapacity));
             }
             else
             {
