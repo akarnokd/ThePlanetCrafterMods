@@ -81,6 +81,7 @@ namespace CheatInventoryStacking
             if (!stackBackpack.Value)
             {
                 defaultNoStackingInventories.Add(1);
+                noStackingInventories.Add(1);
             }
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -1263,7 +1264,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
         static void InventoriesHandler_DestroyInventory(int _inventoryId)
         {
-            if (defaultNoStackingInventories.Contains(_inventoryId))
+            if (!defaultNoStackingInventories.Contains(_inventoryId))
             {
                 noStackingInventories.Remove(_inventoryId);
             }
