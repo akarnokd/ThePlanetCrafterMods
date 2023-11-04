@@ -123,7 +123,8 @@ namespace UIModConfigMenu
 
                     var txt = amod.transform.Find("Label/Text").GetComponent<Text>();
 
-                    txt.text = pi.Metadata.Name + " v" + pi.Metadata.Version;
+                    txt.supportRichText = true;
+                    txt.text = pi.Metadata.Name + " <color=#FFFF00>v" + pi.Metadata.Version + "</color>";
 
                     amod.transform.SetParent(modScrollContent.transform, false);
 
@@ -134,24 +135,35 @@ namespace UIModConfigMenu
 
                     j -= rt.sizeDelta.y;
 
-                    foreach (var ce in pi.Instance.Config)
+                    List<string> sections = new(pi.Instance.Config.Keys.Select(e => e.Section).Distinct());
+                    sections.Sort(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var sec in sections)
                     {
-                        var amodCfg = Instantiate(otherOptions);
-                        amodCfg.name = ce.Key.Section + "-" + ce.Key.Key;
+                        foreach (var ce in pi.Instance.Config)
+                        {
+                            if (sec == ce.Key.Section)
+                            {
+                                var amodCfg = Instantiate(otherOptions);
+                                amodCfg.name = ce.Key.Section + "-" + ce.Key.Key;
 
-                        Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
+                                Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
 
-                        txt = amodCfg.transform.Find("Label/Text").GetComponent<Text>();
+                                txt = amodCfg.transform.Find("Label/Text").GetComponent<Text>();
 
-                        txt.text = ce.Key.Key;
+                                txt.supportRichText = true;
+                                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                                txt.text = "[" + ce.Key.Section + "] " + ce.Key.Key + " = <color=#00FF00>" + ce.Value.BoxedValue + "</color>";
 
-                        amodCfg.transform.SetParent(modScrollContent.transform, false);
+                                amodCfg.transform.SetParent(modScrollContent.transform, false);
 
-                        rt = amodCfg.GetComponent<RectTransform>();
+                                rt = amodCfg.GetComponent<RectTransform>();
 
-                        rt.localPosition = new Vector3(otherOptionsX, j, 0);
+                                rt.localPosition = new Vector3(otherOptionsX, j, 0);
 
-                        j -= rt.sizeDelta.y;
+                                j -= rt.sizeDelta.y;
+                            }
+                        }
                     }
                 }
 
