@@ -3042,6 +3042,41 @@ namespace FeatCommandConsole
                 }
             }
 
+            var lm = Managers.GetManager<LogisticManager>();
+            var alltasks = lm.GetAllCurrentTasks();
+            var logisticsTaskCount = alltasks.Count;
+            var logisticsTaskUnattributed = 0;
+            var logisticsTaskToSupply = 0;
+            var logisticsTaskToDemand = 0;
+            // var logisticsTaskDone = 0;
+            foreach (var lt in alltasks)
+            {
+                switch (lt.Value.GetTaskState())
+                {
+                    case LogisticData.TaskState.NotAttributed: {
+                            logisticsTaskUnattributed++;
+                            break;
+                        }
+                    case LogisticData.TaskState.ToSupply:
+                        {
+                            logisticsTaskToSupply++;
+                            break;
+                        }
+                    case LogisticData.TaskState.ToDemand:
+                        {
+                            logisticsTaskToDemand++;
+                            break;
+                        }
+                        /*
+                    case LogisticData.TaskState.Done:
+                        {
+                            logisticsTaskDone++;
+                            break;
+                        }
+                        */
+                }
+            }
+
             addLine(string.Format("<margin=1em>Total Objects: <color=#00FF00>{0:#,##0}</color>", totalWorldObjects));
             addLine(string.Format("<margin=1em>   Scene Objects: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjects));
             addLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", placedSceneItems));
@@ -3107,6 +3142,34 @@ namespace FeatCommandConsole
             {
                 addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
+            addLine(string.Format("<margin=1em>   Tasks: <color=#00FF00>{0:#,##0}</color>", logisticsTaskCount));
+            addLine(string.Format("<margin=1em>      Not attributed: <color=#00FF00>{0:#,##0}</color>", logisticsTaskUnattributed));
+            if (logisticsTaskCount > 0)
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskUnattributed * 100d / logisticsTaskCount));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>      To Supply: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToSupply));
+            if (logisticsTaskCount > 0)
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToSupply * 100d / logisticsTaskCount));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+            }
+            addLine(string.Format("<margin=1em>      To Demand: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToDemand));
+            if (logisticsTaskCount > 0)
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToDemand * 100d / logisticsTaskCount));
+            }
+            else
+            {
+                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+            }
         }
 
         [Command("/set-outside-grower-delay", "Sets the outside growers' progress delay in seconds.")]
@@ -3141,6 +3204,172 @@ namespace FeatCommandConsole
                 }
             }
         }
+
+        [Command("/logistics-item-stats", "Display statistics about a particular item type in the logistics system.")]
+        public void LogisticItemStats(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                addLine("<margin=1em>Display statistics about a particular item type in the logistics system.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/logistics-item-stats item-id</color> - Display the statistics for the item");
+            }
+            else
+            {
+                var gr = FindGroup(args[1]);
+                if (gr == null)
+                {
+                    DidYouMean(args[1], false, true);
+                }
+                else
+                {
+                    var supplyInventoryCount = 0;
+                    var supplyItemCount = 0;
+                    var supplyCapacity = 0;
+                    var supplyFree = 0;
+                    var demandInventoryCount = 0;
+                    var demandItemCount = 0;
+                    var demandCapacity = 0;
+                    var demandFree = 0;
+
+                    foreach (var inv in InventoriesHandler.GetAllInventories())
+                    {
+                        var le = inv.GetLogisticEntity();
+                        if (le != null)
+                        {
+                            {
+                                var sup = le.GetSupplyGroups();
+                                if (sup != null 
+                                    && sup.Any(g => g == gr))
+                                {
+                                    supplyInventoryCount++;
+
+                                    supplyItemCount += inv.GetInsideWorldObjects()
+                                        .Where(g => g.GetGroup() == gr).Count();
+
+                                    var cap = 0;
+                                    if (GetInventoryCapacity != null)
+                                    {
+                                        cap = GetInventoryCapacity(inv);
+                                    }
+                                    else
+                                    {
+                                        cap = inv.GetSize();
+                                    }
+                                    supplyFree += Math.Max(0, cap - inv.GetInsideWorldObjects().Count);
+                                    supplyCapacity += cap;
+                                }
+                            }
+                            {
+                                var dem = le.GetDemandGroups();
+                                if (dem != null 
+                                    && dem.Any(g => g == gr))
+                                {
+                                    demandInventoryCount++;
+                                    demandItemCount += inv.GetInsideWorldObjects()
+                                        .Where(g => g.GetGroup() == gr).Count();
+
+                                    var cap = 0;
+                                    if (GetInventoryCapacity != null)
+                                    {
+                                        cap = GetInventoryCapacity(inv);
+                                    }
+                                    else
+                                    {
+                                        cap = inv.GetSize();
+                                    }
+                                    demandFree += Math.Max(0, cap - inv.GetInsideWorldObjects().Count);
+                                    demandCapacity += cap;
+                                }
+                            }
+                        }
+                    }
+
+                    var lm = Managers.GetManager<LogisticManager>();
+                    var alltasks = lm.GetAllCurrentTasks();
+
+                    var tasks = alltasks.Count;
+                    var unassigned = 0;
+                    var tosupply = 0;
+                    var todemand = 0;
+
+                    foreach (var lt in alltasks)
+                    {
+                        var wo = lt.Value.GetWorldObjectToMove();
+                        if (wo != null)
+                        {
+                            if (wo.GetGroup() == gr)
+                            {
+                                switch (lt.Value.GetTaskState())
+                                {
+                                    case LogisticData.TaskState.NotAttributed:
+                                        {
+                                            unassigned++;
+                                            break;
+                                        }
+                                    case LogisticData.TaskState.ToSupply:
+                                        {
+                                            tosupply++;
+                                            break;
+                                        }
+                                    case LogisticData.TaskState.ToDemand:
+                                        {
+                                            todemand++;
+                                            break;
+                                        }
+
+                                }
+                            }
+                        }
+                    }
+                    var grtask = unassigned + tosupply + todemand;
+
+                    addLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
+                    addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
+                    addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
+                    addLine("<margin=1em><b>Logistics Info:</b>");
+                    addLine(string.Format("<margin=1em>   Supply: {0:#,##0} inventories", supplyInventoryCount));
+                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", supplyItemCount));
+                    addLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", supplyCapacity));
+                    addLine(string.Format("<margin=1em>      Free: {0:#,##0}", supplyFree));
+                    if (supplyCapacity > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", supplyItemCount * 100d / supplyCapacity));
+                    }
+                    addLine(string.Format("<margin=1em>   Demand: {0:#,##0} inventories", demandInventoryCount));
+                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", demandItemCount));
+                    addLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", demandCapacity));
+                    addLine(string.Format("<margin=1em>      Free: {0:#,##0}", demandFree));
+                    if (demandCapacity > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", demandItemCount * 100d / demandCapacity));
+                    }
+                    addLine(string.Format("<margin=1em>   Tasks: {0:#,##0} total", tasks));
+                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", grtask));
+                    if (tasks > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", grtask * 100d / tasks));
+                    }
+                    addLine(string.Format("<margin=1em>      Unassigned: {0:#,##0}", unassigned));
+                    if (grtask > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", unassigned * 100d / grtask));
+                    }
+                    addLine(string.Format("<margin=1em>      To Supply: {0:#,##0}", tosupply));
+                    if (grtask > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", tosupply * 100d / grtask));
+                    }
+                    addLine(string.Format("<margin=1em>      To Demand: {0:#,##0}", todemand));
+                    if (grtask > 0)
+                    {
+                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", todemand * 100d / grtask));
+                    }
+
+                }
+            }
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
