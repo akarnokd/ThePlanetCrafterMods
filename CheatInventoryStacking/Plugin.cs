@@ -34,6 +34,8 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackOreExtractors;
         static ConfigEntry<bool> stackWaterCollectors;
         static ConfigEntry<bool> stackGasExtractors;
+        static ConfigEntry<bool> stackBeehives;
+        static ConfigEntry<bool> stackBiodomes;
 
         static string expectedGroupIdToAdd;
 
@@ -83,6 +85,8 @@ namespace CheatInventoryStacking
             stackOreExtractors = Config.Bind("General", "StackOreExtractors", true, "Allow stacking in Ore Extractors.");
             stackWaterCollectors = Config.Bind("General", "StackWaterCollectors", true, "Allow stacking in Water Collectors.");
             stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
+            stackBeehives = Config.Bind("General", "StackBeehives", true, "Allow stacking in Beehives.");
+            stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
 
             if (!stackBackpack.Value)
             {
@@ -1296,6 +1300,20 @@ namespace CheatInventoryStacking
                 else if (gid.StartsWith("GasExtractor"))
                 {
                     if (!stackGasExtractors.Value)
+                    {
+                        noStackingInventories.Add(_inventory.GetId());
+                    }
+                }
+                else if (gid.StartsWith("Beehive"))
+                {
+                    if (!stackBeehives.Value)
+                    {
+                        noStackingInventories.Add(_inventory.GetId());
+                    }
+                }
+                else if (gid.StartsWith("Biodome"))
+                {
+                    if (!stackBiodomes.Value)
                     {
                         noStackingInventories.Add(_inventory.GetId());
                     }
