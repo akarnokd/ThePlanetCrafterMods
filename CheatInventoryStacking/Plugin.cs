@@ -31,6 +31,9 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackShredder;
         static ConfigEntry<bool> stackOptimizer;
         static ConfigEntry<bool> stackBackpack;
+        static ConfigEntry<bool> stackOreExtractors;
+        static ConfigEntry<bool> stackWaterCollectors;
+        static ConfigEntry<bool> stackGasExtractors;
 
         static string expectedGroupIdToAdd;
 
@@ -77,6 +80,9 @@ namespace CheatInventoryStacking
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
             stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
+            stackOreExtractors = Config.Bind("General", "StackOreExtractors", true, "Allow stacking in Ore Extractors.");
+            stackWaterCollectors = Config.Bind("General", "StackWaterCollectors", true, "Allow stacking in Water Collectors.");
+            stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
 
             if (!stackBackpack.Value)
             {
@@ -1257,6 +1263,43 @@ namespace CheatInventoryStacking
             if (!stackOptimizer.Value)
             {
                 noStackingInventories.Add(_inventory.GetId());
+            }
+        }
+
+        /// <summary>
+        /// Conditionally disallow stacking in Ore Extractors, Water and Atmosphere generators.
+        /// </summary>
+        /// <param name="__instance">The current component used to find the world object's group id</param>
+        /// <param name="_inventory">The inventory of the machine being set.</param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
+        static void MachineGenerator_SetGeneratorInventory(MachineGenerator __instance, Inventory _inventory)
+        {
+            var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+            if (wo != null)
+            {
+                var gid = wo.GetGroup().id;
+                if (gid.StartsWith("OreExtractor"))
+                {
+                    if (!stackOreExtractors.Value)
+                    {
+                        noStackingInventories.Add(_inventory.GetId());
+                    }
+                }
+                else if (gid.StartsWith("WaterCollector"))
+                {
+                    if (!stackWaterCollectors.Value)
+                    {
+                        noStackingInventories.Add(_inventory.GetId());
+                    }
+                }
+                else if (gid.StartsWith("GasExtractor"))
+                {
+                    if (!stackGasExtractors.Value)
+                    {
+                        noStackingInventories.Add(_inventory.GetId());
+                    }
+                }
             }
         }
 
