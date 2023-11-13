@@ -36,6 +36,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackGasExtractors;
         static ConfigEntry<bool> stackBeehives;
         static ConfigEntry<bool> stackBiodomes;
+        static ConfigEntry<bool> stackAutoCrafters;
 
         static string expectedGroupIdToAdd;
 
@@ -87,6 +88,7 @@ namespace CheatInventoryStacking
             stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
             stackBeehives = Config.Bind("General", "StackBeehives", true, "Allow stacking in Beehives.");
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
+            stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
 
             if (!stackBackpack.Value)
             {
@@ -1318,6 +1320,20 @@ namespace CheatInventoryStacking
                         noStackingInventories.Add(_inventory.GetId());
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Conditionally stack in AutoCrafters.
+        /// </summary>
+        /// <param name="_inventory">The inventory of the AutoCrafter.</param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), nameof(MachineAutoCrafter.SetAutoCrafterInventory))]
+        static void MachineAutoCrafter_SetAutoCrafterInventory(Inventory _autoCrafterInventory)
+        {
+            if (!stackAutoCrafters.Value)
+            {
+                noStackingInventories.Add(_autoCrafterInventory.GetId());
             }
         }
 

@@ -14,6 +14,8 @@ using System.Collections;
 using BepInEx.Bootstrap;
 using System.Reflection;
 using BepInEx.Logging;
+using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 namespace UIModConfigMenu
 {
@@ -119,7 +121,8 @@ namespace UIModConfigMenu
                     var amod = Instantiate(otherOptions);
                     amod.name = pi.Metadata.GUID;
                     Destroy(amod.GetComponentInChildren<LocalizedText>());
-                    amod.GetComponentInChildren<Image>().enabled = true;
+                    var amodImg = amod.GetComponentInChildren<Image>();
+                    amodImg.enabled = true;
 
                     var txt = amod.transform.Find("Label/Text").GetComponent<Text>();
 
@@ -128,12 +131,11 @@ namespace UIModConfigMenu
 
                     amod.transform.SetParent(modScrollContent.transform, false);
 
-                    var rt = amod.GetComponent<RectTransform>();
+                    var rtLine = amod.GetComponent<RectTransform>();
 
-                    rt.localPosition = new Vector3(otherOptionsX, j, 0);
+                    rtLine.localPosition = new Vector3(otherOptionsX, j, 0);
 
-
-                    j -= rt.sizeDelta.y;
+                    j -= rtLine.sizeDelta.y;
 
                     List<string> sections = new(pi.Instance.Config.Keys.Select(e => e.Section).Distinct());
                     sections.Sort(StringComparer.OrdinalIgnoreCase);
@@ -153,15 +155,99 @@ namespace UIModConfigMenu
 
                                 txt.supportRichText = true;
                                 txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-                                txt.text = "[" + ce.Key.Section + "] " + ce.Key.Key + " = <color=#00FF00>" + ce.Value.BoxedValue + "</color>";
 
                                 amodCfg.transform.SetParent(modScrollContent.transform, false);
 
-                                rt = amodCfg.GetComponent<RectTransform>();
+                                var rt = amodCfg.GetComponent<RectTransform>();
 
                                 rt.localPosition = new Vector3(otherOptionsX, j, 0);
 
+                                txt.text = "[" + ce.Key.Section + "] " + ce.Key.Key;
+
+                                if (ce.Value.SettingType == typeof(bool))
+                                {
+
+                                    var editorGo = new GameObject(ce.Key.Section + "-" + ce.Key.Key + "-editor");
+                                    editorGo.transform.SetParent(txt.transform, false);
+
+                                    editorGo.AddComponent<GraphicRaycaster>();
+
+                                    var editorRt = editorGo.GetComponent<RectTransform>();
+
+                                    var img = editorGo.AddComponent<Image>();
+                                    var colorOff = new Color(0.1f, 0.1f, 0.1f);
+                                    var colorOn = new Color(0f, 1f, 0f);
+                                    img.color = ce.Value.GetSerializedValue() == "true" ? colorOn : colorOff;
+
+                                    var bw = txt.fontSize + 20;
+                                    editorRt.localPosition = new Vector2(bw / 2, editorRt.localPosition.y);
+                                    editorRt.sizeDelta = new Vector2(bw, bw);
+
+                                    var btnComp = editorGo.AddComponent<Button>();
+                                    var ceb = ce.Value;
+                                    var txt2 = txt;
+
+                                    var pcfg = pi.Instance.Config;
+
+                                    btnComp.onClick.AddListener(new UnityAction(() =>
+                                    {
+                                        ceb.SetSerializedValue(ce.Value.GetSerializedValue() == "true" ? "false" : "true");
+                                        pcfg.Save();
+                                        img.color = ce.Value.GetSerializedValue() == "true" ? colorOn : colorOff;
+                                    }));
+                                }
+                                else
+                                {
+                                    var editorGo = new GameObject(ce.Key.Section + "-" + ce.Key.Key + "-editor");
+                                    editorGo.transform.SetParent(txt.transform, false);
+
+                                    editorGo.AddComponent<GraphicRaycaster>();
+
+                                    var editorRt = editorGo.GetComponent<RectTransform>();
+
+                                    var img = editorGo.AddComponent<Image>();
+                                    img.color = new Color(0.1f, 0.1f, 0.1f);
+
+                                    var editor = editorGo.AddComponent<InputField>();
+
+                                    var txt3Go = new GameObject(editorGo.name + "-text");
+                                    var txt3 = txt3Go.AddComponent<Text>();
+                                    txt3.transform.SetParent(editorGo.transform, false);
+                                    var rt3 = txt3.GetComponent<RectTransform>();
+                                    rt3.localPosition = new Vector3(5, -5, 0);
+                                    txt3.font = txt.font;
+                                    txt3.fontSize = txt.fontSize;
+                                    txt3.fontStyle = txt.fontStyle;
+                                    txt3.horizontalOverflow = HorizontalWrapMode.Overflow;
+                                    txt3.verticalOverflow = VerticalWrapMode.Overflow;
+
+                                    editor.textComponent = txt3;
+                                    editor.targetGraphic = img;
+                                    editor.caretWidth = 3;
+
+                                    editor.text = ce.Value.GetSerializedValue();
+                                    var ew = 1300;
+                                    editorRt.localPosition = new Vector2(ew / 2, editorRt.localPosition.y);
+                                    editorRt.sizeDelta = new Vector2(ew, txt.fontSize + 20);
+                                    rt3.sizeDelta = editorRt.sizeDelta;
+
+
+                                    var ceb = ce.Value;
+
+                                    var pcfg = pi.Instance.Config;
+                                    editor.onValueChanged.AddListener(new UnityAction<string>(e =>
+                                    {
+                                        ceb.SetSerializedValue(e);
+                                        pcfg.Save();
+                                    }));
+
+                                    editor.caretColor = Color.white;
+                                    editor.enabled = false;
+                                    editor.enabled = true;
+                                }
+
                                 j -= rt.sizeDelta.y;
+
                             }
                         }
                     }
@@ -193,6 +279,23 @@ namespace UIModConfigMenu
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
                 dict["ModConfigMenu_Button"] = "Mods";
+            }
+        }
+
+        class ButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        {
+            internal Action<PointerEventData> onEnter;
+
+            internal Action<PointerEventData> onExit;
+
+            public void OnPointerEnter(PointerEventData eventData)
+            {
+                onEnter?.Invoke(eventData);
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                onExit?.Invoke(eventData);
             }
         }
     }
