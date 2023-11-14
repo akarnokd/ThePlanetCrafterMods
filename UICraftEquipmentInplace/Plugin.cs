@@ -7,6 +7,7 @@ using BepInEx.Configuration;
 using System.Reflection;
 using BepInEx.Logging;
 using System.Linq;
+using UnityEngine;
 
 namespace UICraftEquipmentInplace
 {
@@ -14,12 +15,22 @@ namespace UICraftEquipmentInplace
     [BepInDependency("akarnokd.theplanetcraftermods.cheatinventorystacking", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("AdvancedMode", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(mobileCrafterGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(craftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
         const string mobileCrafterGuid = "Mobile_crafter";
 
+        const string craftFromContainersGuid = "aedenthorn.CraftFromContainers";
+
+        static ConfigEntry<bool> debugMode;
+
         static ConfigEntry<bool> crafts;
+
+        static ConfigEntry<bool> craftFromContainersEnabled;
+        static ConfigEntry<bool> craftFromContainersPullFromChests;
+        static ConfigEntry<float> craftFromContainersRange;
+
 
         static ManualLogSource logger;
 
@@ -31,15 +42,19 @@ namespace UICraftEquipmentInplace
         static FieldInfo playerEquipmentHasCleanConstructionChip;
         static FieldInfo playerEquipmentHasDeconstructT2;
 
+        static AccessTools.FieldRef<InventoryAssociated, Inventory> inventoryAssociatedInventory;
+
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
             logger = Logger;
 
+            debugMode = Config.Bind("General", "DebugMode", false, "Generate detailed logs (chatty!)?");
+
             if (Chainloader.PluginInfos.TryGetValue("AdvancedMode", out BepInEx.PluginInfo pi))
             {
-                Logger.LogInfo("Disabling AdvancedMode's Free Crafting mode.");
+                logger.LogInfo("Disabling AdvancedMode's Free Crafting mode.");
                 FieldInfo fi = AccessTools.Field(pi.Instance.GetType(), "Crafts");
                 crafts = (ConfigEntry<bool>)fi.GetValue(null);
 
@@ -50,7 +65,7 @@ namespace UICraftEquipmentInplace
             } 
             else
             {
-                Logger.LogInfo("AdvancedMode Plugin not found.");
+                Logger.LogInfo("[optional] AdvancedMode Plugin not found.");
             }
 
             if (Chainloader.PluginInfos.TryGetValue(mobileCrafterGuid, out pi))
@@ -66,7 +81,22 @@ namespace UICraftEquipmentInplace
             }
             else
             {
-                Logger.LogInfo(mobileCrafterGuid + " not found.");
+                Logger.LogInfo("[optional] " + mobileCrafterGuid + " not found.");
+            }
+
+            if (Chainloader.PluginInfos.TryGetValue(craftFromContainersGuid, out pi))
+            {
+                Logger.LogInfo(craftFromContainersGuid + " found, considering nearby containers");
+
+                craftFromContainersEnabled = pi.Instance.Config["General", "Enabled"] as ConfigEntry<bool>;
+                craftFromContainersPullFromChests = pi.Instance.Config["Options", "PullFromChests"] as ConfigEntry<bool>;
+                craftFromContainersRange = pi.Instance.Config["Options", "Range"] as ConfigEntry<float>;
+
+                inventoryAssociatedInventory = AccessTools.FieldRefAccess<InventoryAssociated, Inventory>("inventory");
+            }
+            else
+            {
+                Logger.LogInfo("[optional] " + craftFromContainersGuid + " not found.");
             }
 
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
@@ -114,21 +144,24 @@ namespace UICraftEquipmentInplace
                 || equipType == DataConfig.EquipableType.MultiToolCleanConstruction
                 || equipType == DataConfig.EquipableType.MultiToolDeconstruct)
             {
-                logger.LogInfo("Crafting inplace: " + equipType);
-                List<Group> ingredients = new List<Group>(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
+                LogInfo("Crafting inplace: " + equipType);
+                List<Group> ingredients = new(groupItem.GetRecipe().GetIngredientsGroupInRecipe());
 
                 Inventory backpack = _playerController.GetPlayerBackpack().GetInventory();
                 Inventory equipment = _playerController.GetPlayerEquipment().GetInventory();
-                List<Group> fromBackpack = new List<Group>();
-                List<Group> fromEquipment = new List<Group>();
+                List<Group> fromBackpack = new();
+                List<Group> fromEquipment = new();
+                List<GroupAndInventory> fromNearby = new();
 
-                List<WorldObject> equipments = new List<WorldObject>(equipment.GetInsideWorldObjects());
-                List<WorldObject> backpacks = new List<WorldObject>(backpack.GetInsideWorldObjects());
+                List<WorldObject> equipments = new(equipment.GetInsideWorldObjects());
+                List<WorldObject> backpacks = new(backpack.GetInsideWorldObjects());
+                List<InventoryAndContent> nearbys = GetNearbyInventories();
 
                 bool inEquipment = false;
                 for (int i = ingredients.Count - 1; i >= 0; i--)
                 {
                     bool checkBackpack = true;
+                    bool checkNearby = true;
                     Group ingredient = ingredients[i];
                     for (int j = 0; j < equipments.Count; j++)
                     {
@@ -140,7 +173,8 @@ namespace UICraftEquipmentInplace
                             fromEquipment.Add(ingredient);
                             inEquipment = true;
                             checkBackpack = false;
-                            logger.LogInfo("Found ingredient in equipment: " + ingredient.GetId());
+                            checkNearby = false;
+                            LogInfo("Found ingredient in equipment: " + ingredient.GetId());
                             break;
                         }
                     }
@@ -154,8 +188,32 @@ namespace UICraftEquipmentInplace
                                 ingredients.RemoveAt(i);
                                 backpacks.RemoveAt(j);
                                 fromBackpack.Add(ingredient);
-                                logger.LogInfo("Found ingredient in backpack: " + ingredient.GetId());
+                                checkNearby = false;
+                                LogInfo("Found ingredient in backpack: " + ingredient.GetId());
                                 break;
+                            }
+                        }
+                    }
+                    if (checkNearby)
+                    {
+                        foreach (var nbi in nearbys)
+                        {
+                            for (int j = 0; j < nbi.content.Count; j++)
+                            {
+                                WorldObject wo = nbi.content[j];
+                                if (wo.GetGroup().GetId() == ingredient.GetId())
+                                {
+                                    ingredients.RemoveAt(i);
+                                    nbi.content.RemoveAt(j);
+                                    fromNearby.Add(new GroupAndInventory
+                                    {
+                                        group = ingredient,
+                                        inventory = nbi.inventory
+                                    });
+
+                                    LogInfo("Found ingredient " + ingredient.GetId() + " in inventory " + nbi.inventory.GetId());
+                                    break;
+                                }
                             }
                         }
                     }
@@ -179,6 +237,11 @@ namespace UICraftEquipmentInplace
 
                     backpack.RemoveItems(fromBackpack, true, true);
                     equipment.RemoveItems(fromEquipment, true, true);
+
+                    foreach (var nbi in fromNearby)
+                    {
+                        nbi.inventory.RemoveItems(new List<Group> { nbi.group }, true, true);
+                    }
 
                     WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(groupItem, 0);
                     if (fromEquipment.Count != 0)
@@ -260,13 +323,112 @@ namespace UICraftEquipmentInplace
                 {
                     // missing ingredients, do nothing
                     __result = false;
-                    logger.LogInfo("Missing ingredients: " + string.Join(", ", ingredients.Select(g => g.GetId())));
+                    LogInfo("Missing ingredients: " + string.Join(", ", ingredients.Select(g => g.GetId())));
                 }
 
                 return false;
             }
             // not equipable, run the original method
             return true;
+        }
+
+        static List<InventoryAndContent> GetNearbyInventories()
+        {
+            List<InventoryAndContent> result = new();
+            if (craftFromContainersEnabled?.Value ?? false)
+            {
+                var pos = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position;
+                var range = craftFromContainersRange?.Value ?? -1f;
+                LogInfo("CraftFromContainers.Range = " + range);
+                var chests = craftFromContainersPullFromChests?.Value ?? false;
+                LogInfo("CraftFromContainers.PullFromChests = " + chests);
+
+                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                {
+                    if (wo.GetGroup().GetId().StartsWith("Container") 
+                        && wo.GetIsPlaced() && wo.GetLinkedInventoryId() > 1
+                        && !WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()))
+                    {
+                        var dist = Vector3.Distance(pos, wo.GetPosition());
+                        LogInfo("Found container: " + wo.GetId() + " - " + wo.GetGroup().GetId() + " at " + wo.GetPosition() + " (" + dist + " m)");
+                        if (dist <= range)
+                        {
+                            var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                            if (inv != null)
+                            {
+                                result.Add(new InventoryAndContent
+                                {
+                                    inventory = inv,
+                                    content = new(inv.GetInsideWorldObjects())
+                                });
+                                LogInfo("- Found nearby container: " + wo.GetId() + " at " + wo.GetPosition() + " (" + dist + " m)");
+                            }
+                            else
+                            {
+                                LogInfo("- No inventory.");
+                            }
+                        }
+                    }
+                }
+
+                if (chests)
+                {
+                    foreach (var inva in FindObjectsByType<InventoryAssociated>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (inva.name.StartsWith("GoldenContainer") || inva.name.StartsWith("Canister") || inva.name.StartsWith("WorldContainer"))
+                        {
+                            var dist = Vector3.Distance(pos, inva.transform.position);
+                            LogInfo("Found chest: " + inva.name + " at " + inva.transform.position + " (" + dist + " m)");
+                            if (dist <= range)
+                            {
+                                var invs = inva.GetComponent<InventoryFromScene>();
+                                if (invs != null)
+                                {
+                                    var inv = InventoriesHandler.GetInventoryById(invs.GetInventoryGeneratedId());
+                                    if (inv != null && WorldObjectsIdHandler.IsWorldObjectFromScene(inv.GetId()))
+                                    {
+                                        result.Add(new InventoryAndContent
+                                        {
+                                            inventory = inv,
+                                            content = new(inv.GetInsideWorldObjects())
+                                        });
+                                        LogInfo("- Found nearby chest: " + inv.GetId() + " at " + inva.transform.position + " (" + dist + " m)");
+                                    }
+                                    else
+                                    {
+                                        LogInfo("- No inventory.");
+                                    }
+                                }
+                                else
+                                {
+                                    LogInfo("- No scene inventory.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        static void LogInfo(object message)
+        {
+            if (debugMode.Value)
+            {
+                logger.LogInfo(message);
+            }
+        }
+
+        class GroupAndInventory
+        {
+            internal Group group;
+            internal Inventory inventory;
+        }
+
+        class InventoryAndContent
+        {
+            internal Inventory inventory;
+            internal List<WorldObject> content;
         }
     }
 }
