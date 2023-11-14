@@ -25,6 +25,8 @@ namespace UIModConfigMenu
     {
         static ManualLogSource logger;
 
+        static string filterValue = "";
+
         private void Awake()
         {
             // Plugin startup logic
@@ -46,6 +48,30 @@ namespace UIModConfigMenu
         {
             yield return new WaitForSeconds(0.1f);
 
+            enterMainMenu = true;
+            try
+            {
+                CreateModPanel();
+            }
+            finally
+            {
+                enterMainMenu = false;
+            }
+        }
+
+        static List<BepInEx.PluginInfo> pluginList;
+        static GameObject modScrollContent;
+        static Transform otherOptions;
+        static float otherOptionsX;
+        static GameObject buttonMods;
+        static GameObject modScroll;
+        static GameObject filterGo;
+        static GameObject filterCount;
+        static bool enterMainMenu;
+        static Coroutine coroutineRenderPluginListDelayed;
+
+        static void CreateModPanel()
+        {
             GameObject buttonControls = default;
             GameObject buttonGraphics = default;
             GameObject scrollViewControls = default;
@@ -74,7 +100,7 @@ namespace UIModConfigMenu
             if (buttonControls != null && buttonGraphics != null && scrollViewControls != null
                 && optionsPanel != null)
             {
-                var buttonMods = Instantiate(buttonGraphics);
+                buttonMods = Instantiate(buttonGraphics);
                 buttonMods.name = "ButtonMods";
                 buttonMods.transform.SetParent(buttonGraphics.transform.parent, false);
 
@@ -89,7 +115,10 @@ namespace UIModConfigMenu
                 var bc = new Button.ButtonClickedEvent();
                 btn.onClick = bc;
 
-                var modScroll = Instantiate(scrollViewControls);
+                otherOptions = scrollViewControls.transform.Find("Viewport/Content/Other Options");
+                otherOptionsX = otherOptions.GetComponent<RectTransform>().localPosition.x;
+
+                modScroll = Instantiate(scrollViewControls);
                 modScroll.name = "Scroll View Mods";
                 modScroll.transform.SetParent(scrollViewControls.transform.parent, false);
                 modScroll.SetActive(false);
@@ -97,48 +126,278 @@ namespace UIModConfigMenu
                 optionsPanel.tabsContent.Add(modScroll);
                 var tabIndex = optionsPanel.tabsContent.Count - 1;
 
-                bc.AddListener(() => optionsPanel.OnClickTab(tabIndex));
+                modScrollContent = modScroll.transform.Find("Viewport/Content").gameObject;
 
-                var modScrollContent = modScroll.transform.Find("Viewport/Content").gameObject;
-
-                var otherOptions = modScroll.transform.Find("Viewport/Content/Other Options");
-                var otherOptionsX = otherOptions.GetComponent<RectTransform>().localPosition.x;
-
-                for (int i = modScrollContent.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(modScrollContent.transform.GetChild(i).gameObject);
-                }
-
-                List<BepInEx.PluginInfo> pluginList = new(Chainloader.PluginInfos.Values);
+                pluginList = new(Chainloader.PluginInfos.Values);
                 pluginList.Sort((a, b) =>
                 {
                     return a.Metadata.Name.CompareTo(b.Metadata.Name);
                 });
 
-                var j = 0f;
-                foreach (var pi in pluginList)
-                {
-                    var amod = Instantiate(otherOptions);
-                    amod.name = pi.Metadata.GUID;
-                    Destroy(amod.GetComponentInChildren<LocalizedText>());
-                    var amodImg = amod.GetComponentInChildren<Image>();
-                    amodImg.enabled = true;
+                CreateFilterInput();
 
-                    var txt = amod.transform.Find("Label/Text").GetComponent<Text>();
+                bc.AddListener(() => {
+                    optionsPanel.OnClickTab(tabIndex);
+                    filterGo.SetActive(true);
+                });
+
+                RenderPluginList();
+            }
+            else
+            {
+                logger.LogInfo("ButtonControls" + (buttonControls != null));
+                logger.LogInfo("ButtonGraphics" + (buttonGraphics != null));
+                logger.LogInfo("Scroll View Control" + (scrollViewControls != null));
+                logger.LogInfo("OptionsPanel" + (optionsPanel != null));
+            }
+        }
+
+        void Update()
+        {
+            if (modScroll != null && filterGo != null && !modScroll.activeSelf && filterGo.activeSelf)
+            {
+                filterGo.SetActive(false);
+            }
+        }
+
+
+        static void CreateFilterInput() {
+
+            filterGo = new GameObject("ModConfigMenu_Filter");
+            filterGo.transform.SetParent(modScroll.transform.parent, false);
+
+            var filterImg = filterGo.AddComponent<Image>();
+            filterImg.color = new Color(0.4f, 0.4f, 0.4f);
+
+            var filterRt = filterGo.GetComponent<RectTransform>();
+            filterRt.localPosition = new Vector3(-900, -810, 0);
+
+            var filterInput = filterGo.AddComponent<InputField>();
+
+            var filterTextGo = new GameObject("ModConfigMenu_Filter_Text");
+            filterTextGo.transform.SetParent(filterGo.transform, false);
+
+            var buttonTxtRef = buttonMods.GetComponentInChildren<Text>();
+
+            var filterTextPlaceholderGo = new GameObject("ModConfigMenu_Filter_Text_PlaceHolder");
+            filterTextPlaceholderGo.transform.SetParent(filterGo.transform, false);
+
+            var filterPlaceholderText = filterTextPlaceholderGo.AddComponent<Text>();
+            filterPlaceholderText.font = buttonTxtRef.font;
+            filterPlaceholderText.fontSize = buttonTxtRef.fontSize;
+            filterPlaceholderText.fontStyle = FontStyle.Italic;
+            filterPlaceholderText.text = "Filter by mod name parts or #parameter name";
+            filterPlaceholderText.color = new Color(0.7f, 0.7f, 0.7f);
+
+            var filterText = filterTextGo.AddComponent<Text>();
+            filterText.font = buttonTxtRef.font;
+            filterText.fontSize = buttonTxtRef.fontSize;
+            filterText.fontStyle = buttonTxtRef.fontStyle;
+
+            filterRt.sizeDelta = new Vector2(1000, buttonTxtRef.fontSize + 20);
+            RectTransform filterTextPlaceholderRt = filterTextPlaceholderGo.GetComponent<RectTransform>();
+            filterTextPlaceholderRt.localPosition = new Vector3(5, 0, 0);
+            filterTextPlaceholderRt.sizeDelta = filterRt.sizeDelta;
+            RectTransform filterTxtRt = filterTextGo.GetComponent<RectTransform>();
+            filterTxtRt.sizeDelta = filterRt.sizeDelta;
+            filterTxtRt.localPosition = new Vector3(5, 0, 0);
+
+            filterInput.textComponent = filterText;
+            filterInput.text = filterValue;
+            filterInput.targetGraphic = filterImg;
+            filterInput.placeholder = filterPlaceholderText;
+            filterInput.caretWidth = 3;
+            filterInput.caretColor = Color.white;
+
+            filterInput.onValueChanged.AddListener(new UnityAction<string>(s =>
+            {
+                if (filterValue != s)
+                {
+                    filterValue = s ?? "";
+                    RenderPluginListDebounce();
+                }
+            }));
+
+            filterInput.enabled = false;
+            filterInput.enabled = true;
+
+
+            filterCount = new GameObject("ModConfigMenu_Filter_Count");
+            filterCount.transform.SetParent(filterGo.transform, false);
+
+            var filterCountTxt = filterCount.AddComponent<Text>();
+            filterCountTxt.font = buttonTxtRef.font;
+            filterCountTxt.fontSize = buttonTxtRef.fontSize;
+            filterCountTxt.fontStyle = buttonTxtRef.fontStyle;
+            filterCountTxt.alignment = TextAnchor.MiddleCenter;
+            filterCountTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            filterCountTxt.text = "        ";
+
+            var filterCountRt = filterCount.GetComponent<RectTransform>();
+            filterCountRt.localPosition = new Vector3(filterRt.sizeDelta.x / 2 + filterCountTxt.preferredWidth / 2 + 30, 0, 0);
+
+            filterGo.SetActive(false);
+        }
+
+
+        static void RenderPluginListDebounce()
+        {
+            var img = filterGo.GetComponent<Image>();
+            if (coroutineRenderPluginListDelayed != null)
+            {
+                img.StopCoroutine(coroutineRenderPluginListDelayed);
+            }
+            coroutineRenderPluginListDelayed = img.StartCoroutine(RenderPluginListDelayed());
+        }
+        
+        static IEnumerator RenderPluginListDelayed()
+        {
+            yield return new WaitForSeconds(0.25f);
+            RenderPluginList();
+        }
+
+        static void RenderPluginList()
+        {
+            if (!enterMainMenu)
+            {
+                // after the first create, the offsets go way off for some reason, fix it here
+                otherOptionsX = 1370;
+            }
+            for (int i = modScrollContent.transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(modScrollContent.transform.GetChild(i).gameObject);
+            }
+
+            var filterParts = filterValue.Split(' ').Where(s => s.Length != 0);
+
+            var j = 0f;
+            var cnt = 0;
+            foreach (var pi in pluginList)
+            {
+                if (filterValue != "")
+                {
+                    bool found = true;
+                    foreach (var ft in filterParts)
+                    {
+                        if (ft.StartsWith("#"))
+                        {
+                            bool foundKey = false;
+                            foreach (var cef in pi.Instance.Config.Keys)
+                            {
+                                if (cef.Key.Contains(ft.Substring(1), StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    foundKey = true;
+                                    break;
+                                }
+                            }
+                            if (!foundKey)
+                            {
+                                found = false;
+                            }
+                        }
+                        else
+                        if (!pi.Metadata.GUID.Contains(ft, StringComparison.InvariantCultureIgnoreCase) 
+                            && !pi.Metadata.Name.Contains(ft, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            found = false;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        continue;
+                    }
+                }
+
+                cnt++;
+
+                // Create the mods header row with version
+                // ---------------------------------------
+
+                var amod = Instantiate(otherOptions);
+                amod.name = pi.Metadata.GUID;
+                Destroy(amod.GetComponentInChildren<LocalizedText>());
+                var amodImg = amod.GetComponentInChildren<Image>();
+                amodImg.enabled = true;
+
+                var txt = amod.transform.Find("Label/Text").GetComponent<Text>();
+
+                txt.supportRichText = true;
+                txt.text = pi.Metadata.Name + " <color=#FFFF00>v" + pi.Metadata.Version + "</color>";
+
+                amod.transform.SetParent(modScrollContent.transform, false);
+
+                var rtLine = amod.GetComponent<RectTransform>();
+
+                rtLine.localPosition = new Vector3(otherOptionsX, j, 0);
+
+                // Create the open config file button
+                // ----------------------------------
+
+                var amodOpenCfg = new GameObject(amod.name + "-openconfig");
+                amodOpenCfg.transform.SetParent(amod.transform, false);
+
+                var amodOpenCfgImg = amodOpenCfg.AddComponent<Image>();
+                amodOpenCfgImg.color = new Color(0.5f, 0, 0.5f);
+
+                var amodOpenCfgTextGo = new GameObject(amod.name + "-openconfig-button");
+                amodOpenCfgTextGo.transform.SetParent(amodOpenCfgImg.transform, false);
+
+                var amodOpenCfgTxt = amodOpenCfgTextGo.AddComponent<Text>();
+                amodOpenCfgTxt.text = " Open .cfg ";
+                amodOpenCfgTxt.font = txt.font;
+                amodOpenCfgTxt.fontSize = txt.fontSize;
+                amodOpenCfgTxt.fontStyle = txt.fontStyle;
+                amodOpenCfgTxt.color = Color.white;
+                amodOpenCfgTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                amodOpenCfgTxt.alignment = TextAnchor.MiddleCenter;
+
+                var amodOpenCfgRt = amodOpenCfg.GetComponent<RectTransform>();
+                amodOpenCfgRt.localPosition = new Vector3(1200, -rtLine.sizeDelta.y / 2, 0);
+                amodOpenCfgRt.sizeDelta = new Vector2(amodOpenCfgTxt.preferredWidth + 20, amodOpenCfgTxt.preferredHeight + 20);
+
+                var amodOpenCfgBtn = amodOpenCfg.AddComponent<Button>();
+                var amodOpenCfgRef = pi.Instance.Config;
+                amodOpenCfgBtn.onClick.AddListener(new UnityAction(() =>
+                {
+                    Application.OpenURL("file:///" + amodOpenCfgRef.ConfigFilePath);
+                }));
+
+
+                // Create a sorted set of per mod options
+                // --------------------------------------
+
+                j -= rtLine.sizeDelta.y;
+
+                List<string> sections = new(pi.Instance.Config.Keys.Select(e => e.Section).Distinct());
+                sections.Sort(StringComparer.OrdinalIgnoreCase);
+
+                if (sections.Count == 0)
+                {
+                    var amodCfg = Instantiate(otherOptions);
+                    amodCfg.name = "NoConfig";
+                    amodCfg.transform.SetParent(modScrollContent.transform, false);
+
+                    amodCfg.GetComponentInChildren<Image>().enabled = false;
+
+                    Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
+
+                    txt = amodCfg.transform.Find("Label/Text").GetComponent<Text>();
 
                     txt.supportRichText = true;
-                    txt.text = pi.Metadata.Name + " <color=#FFFF00>v" + pi.Metadata.Version + "</color>";
+                    txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    txt.fontStyle = FontStyle.BoldAndItalic;
 
-                    amod.transform.SetParent(modScrollContent.transform, false);
+                    var rt = amodCfg.GetComponent<RectTransform>();
 
-                    var rtLine = amod.GetComponent<RectTransform>();
+                    rt.localPosition = new Vector3(otherOptionsX, j, 0);
 
-                    rtLine.localPosition = new Vector3(otherOptionsX, j, 0);
+                    txt.text = "( No configuration options declared )";
 
-                    j -= rtLine.sizeDelta.y;
-
-                    List<string> sections = new(pi.Instance.Config.Keys.Select(e => e.Section).Distinct());
-                    sections.Sort(StringComparer.OrdinalIgnoreCase);
+                    j -= rt.sizeDelta.y;
+                }
+                else
+                {
 
                     foreach (var sec in sections)
                     {
@@ -148,6 +407,9 @@ namespace UIModConfigMenu
                             {
                                 var amodCfg = Instantiate(otherOptions);
                                 amodCfg.name = ce.Key.Section + "-" + ce.Key.Key;
+                                amodCfg.transform.SetParent(modScrollContent.transform, false);
+
+                                amodCfg.GetComponentInChildren<Image>().enabled = false;
 
                                 Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
 
@@ -155,8 +417,6 @@ namespace UIModConfigMenu
 
                                 txt.supportRichText = true;
                                 txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-
-                                amodCfg.transform.SetParent(modScrollContent.transform, false);
 
                                 var rt = amodCfg.GetComponent<RectTransform>();
 
@@ -248,22 +508,28 @@ namespace UIModConfigMenu
 
                                 j -= rt.sizeDelta.y;
 
+
+                                var hover = amodCfg.gameObject.AddComponent<ModConfigEntryHover>();
+                                hover.cfg = ce.Value;
                             }
                         }
                     }
                 }
-
-                var contentRect = modScrollContent.GetComponent<RectTransform>();
-                contentRect.sizeDelta = new Vector2(contentRect.sizeDelta.x, Math.Abs(j));
             }
-            else
+
+            var contentRect = modScrollContent.GetComponent<RectTransform>();
+            contentRect.sizeDelta = new Vector2(contentRect.sizeDelta.x, Math.Abs(j));
+
+            var cntStr = cnt.ToString();
+            if (cnt != pluginList.Count)
             {
-                logger.LogInfo("ButtonControls" + (buttonControls != null));
-                logger.LogInfo("ButtonGraphics" + (buttonGraphics != null));
-                logger.LogInfo("Scroll View Control" + (scrollViewControls != null));
-                logger.LogInfo("OptionsPanel" + (optionsPanel != null));
+                cntStr += " / " + pluginList.Count;
             }
 
+            var filterCountTxt = filterCount.GetComponent<Text>();
+            filterCountTxt.text = cntStr;
+            var filterRt = filterGo.GetComponent<RectTransform>();
+            filterCount.GetComponent<RectTransform>().localPosition = new Vector3(filterRt.sizeDelta.x / 2 + filterCountTxt.preferredWidth / 2 + 30, 0, 0);
         }
 
         [HarmonyPostfix]
@@ -282,20 +548,57 @@ namespace UIModConfigMenu
             }
         }
 
-        class ButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        class ModConfigEntryHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
-            internal Action<PointerEventData> onEnter;
 
-            internal Action<PointerEventData> onExit;
+            GameObject tooltipGo;
+
+            internal ConfigEntryBase cfg;
 
             public void OnPointerEnter(PointerEventData eventData)
             {
-                onEnter?.Invoke(eventData);
+                tooltipGo = new GameObject(gameObject.name + "-tooltip");
+                tooltipGo.transform.SetParent(modScroll.transform.parent, false);
+
+                var img = tooltipGo.AddComponent<Image>();
+                img.color = new Color(0.2f, 0.2f, 0.3f);
+
+                var outl = tooltipGo.AddComponent<Outline>();
+                outl.effectColor = new Color(0.8f, 0.8f, 0.8f);
+                outl.effectDistance = new Vector2(4, 4);
+
+                var tooltipTxt = new GameObject(gameObject.name + "-tooltip-text");
+                tooltipTxt.transform.SetParent(tooltipGo.transform, false);
+
+                var txtExample = gameObject.GetComponentInChildren<Text>();
+                var txt = tooltipTxt.AddComponent<Text>();
+
+                txt.supportRichText = true;
+                txt.font = txtExample.font;
+                txt.fontSize = txtExample.fontSize;
+                txt.fontStyle = FontStyle.Normal;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+                txt.alignment = TextAnchor.MiddleCenter;
+
+                txt.text = "<color=#FFFF00>" + cfg.Description.Description + "</color>\n\n"
+                    + "Type: <color=#FF8080>" + cfg.SettingType + "</color>   |    Default: <color=#00FF00>" + cfg.DefaultValue + "</color>";
+                
+                var rtTxt = tooltipTxt.GetComponent<RectTransform>();
+
+                rtTxt.localPosition = new Vector3(0, 0, 0);
+                rtTxt.sizeDelta = new Vector3(txt.preferredWidth, txt.preferredHeight, 0);
+
+                var pos2 = tooltipGo.transform.InverseTransformPoint(gameObject.transform.position);
+
+                var rtImg = tooltipGo.GetComponent<RectTransform>();
+                rtImg.localPosition = pos2 + new Vector3(-1350 + txt.preferredWidth / 2, -txt.preferredHeight - 40); // new Vector3(-1000, -1000, 0);
+                rtImg.sizeDelta = rtTxt.sizeDelta + new Vector2(20, 20);
             }
 
             public void OnPointerExit(PointerEventData eventData)
             {
-                onExit?.Invoke(eventData);
+                Destroy(tooltipGo);
             }
         }
     }
