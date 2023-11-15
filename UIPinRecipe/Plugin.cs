@@ -251,11 +251,11 @@ namespace UIPinRecipe
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowCraft), "OnImageClicked")]
-        static bool UiWindowCraft_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData)
+        static bool UiWindowCraft_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData)
         {
-            if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
+            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
             {
-                PinUnpinGroup(eventTriggerCallbackData.group);
+                PinUnpinGroup(_eventTriggerCallbackData.group);
                 return false;
             }
             return true;
@@ -263,11 +263,11 @@ namespace UIPinRecipe
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowConstruction), "OnImageClicked")]
-        static bool UiWindowConstruction_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData)
+        static bool UiWindowConstruction_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData)
         {
-            if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
+            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
             {
-                PinUnpinGroup(eventTriggerCallbackData.group);
+                PinUnpinGroup(_eventTriggerCallbackData.group);
                 return false;
             }
             return true;

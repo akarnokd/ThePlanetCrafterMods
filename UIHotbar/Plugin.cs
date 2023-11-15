@@ -514,14 +514,14 @@ namespace UIHotbar
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowConstruction), "OnImageClicked")]
-        static bool UiWindowConstruction_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData)
+        static bool UiWindowConstruction_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData)
         {
-            if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
+            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
             {
                 int slot = WhichNumberKeyHeld();
                 if (slot >= 0)
                 {
-                    PinUnpinGroup(eventTriggerCallbackData.group, slot);
+                    PinUnpinGroup(_eventTriggerCallbackData.group, slot);
                     SaveHotbar();
                     return false;
                 }
