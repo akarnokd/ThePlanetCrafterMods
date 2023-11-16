@@ -102,8 +102,9 @@ namespace UICraftEquipmentInplace
             playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
             playerEquipmentHasDeconstructT2 = AccessTools.Field(typeof(PlayerEquipment), "hasDeconstructT2");
 
-            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            LibCommon.SaveModInfo.Patch(harmony);
+            // var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            // LibCommon.SaveModInfo.Patch(harmony);
+            logger.LogWarning("Mod discontinued since game v0.9.011. Reason: became vanilla feature.");
         }
 
         [HarmonyPrefix]

@@ -40,6 +40,13 @@ namespace FeatMultiplayer
         {
             if (updateMode == MultiplayerMode.CoopClient)
             {
+                // FIXME
+                // Vanilla 0.9.011 now supports crafting equipment inplace
+                // Which means we need to check if an ingredient is in equipment
+                // and remove it predictively.
+                // Note that stacking's TryToCraftInInventory runs before us if present
+                // and stops the chain if the inventory can't hold the new crafted item.
+
                 List<Group> recipe = groupItem.GetRecipe().GetIngredientsGroupInRecipe();
                 Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
                 bool hasAllIngredients = inventory.ContainsItems(recipe);

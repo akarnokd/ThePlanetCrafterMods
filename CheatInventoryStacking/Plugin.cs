@@ -621,10 +621,11 @@ namespace CheatInventoryStacking
         {
             if (stackSize.Value > 1)
             {
-                // FIXME Note, there are IsFull check but ingredient count would be never zero
-                // if (ingredientsGroupInRecipe.Count < 1 && inventory.IsFull())
-                // freeCraft true could be true?
-                // if (freeCraft && inventory.IsFull())
+                // FIXME
+                // With 0.9.011 upgrading inplace is a vanilla feature
+                // So we need to check if the item to be crafted would go
+                // into the backpack or the equipment.
+                // That means checking if any ingredient is only present in equipment.
 
                 // UICraftEquipmentInplace: make sure there is only one relevant IsFull check early on
                 if (Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.uicraftequipmentinplace"))
