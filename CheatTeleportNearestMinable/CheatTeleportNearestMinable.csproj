@@ -4,15 +4,18 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatTeleportNearestMinable</AssemblyName>
     <Description>(Cheat) Teleport to Nearest Minable</Description>
-    <Version>1.0.0.14</Version>
+    <Version>1.0.0.15</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
+    <ItemGroup>
+        <Compile Include="..\LibCommon\StandardResourceSets.cs" Link="StandardResourceSets.cs" />
+    </ItemGroup>
 
-  <ItemGroup>
+    <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
