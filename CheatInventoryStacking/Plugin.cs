@@ -96,6 +96,8 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(1);
             }
 
+            LibCommon.CraftInInventory.Init(Logger);
+
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -621,42 +623,45 @@ namespace CheatInventoryStacking
         {
             if (stackSize.Value > 1)
             {
-                // FIXME
-                // With 0.9.011 upgrading inplace is a vanilla feature
-                // So we need to check if the item to be crafted would go
-                // into the backpack or the equipment.
-                // That means checking if any ingredient is only present in equipment.
-
-                // UICraftEquipmentInplace: make sure there is only one relevant IsFull check early on
-                if (Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.uicraftequipmentinplace"))
+                // In multiplayer mode, don't do the stuff below
+                if (getMultiplayerMode == null || getMultiplayerMode() == "SinglePlayer")
                 {
-                    // If we have the UICraftEquipmentInplace, it does properly check IsFull,
-                    // but for equippable types only
-                    DataConfig.EquipableType equipType = groupItem.GetEquipableType();
-                    if (equipType == DataConfig.EquipableType.OxygenTank
-                        || equipType == DataConfig.EquipableType.BackpackIncrease
-                        || equipType == DataConfig.EquipableType.EquipmentIncrease
-                        || equipType == DataConfig.EquipableType.MultiToolMineSpeed
-                        || equipType == DataConfig.EquipableType.BootsSpeed
-                        || equipType == DataConfig.EquipableType.Jetpack
-                        || equipType == DataConfig.EquipableType.AirFilter
-                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction
-                        || equipType == DataConfig.EquipableType.MapChip)
-                    {
-                        expectedGroupIdToAdd = groupItem.GetId();
-                        return true;
-                    }
-                }
+                    Inventory backpack = _playerController.GetPlayerBackpack().GetInventory();
+                    Inventory equipment = _playerController.GetPlayerEquipment().GetInventory();
 
-                // otherwise, we have to manually prefix the vanilla TryToCraftInInventory with a fullness check ourselves
-                Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
-                if (IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), groupItem.GetId()))
-                {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f, "");
-                    __result = false;
+                    __result = LibCommon.CraftInInventory.TryCraft(
+                        groupItem,
+                        _playerController.transform.position,
+                        backpack,
+                        equipment,
+                        Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft(),
+                        true,
+                        (inv, gr) => !IsFullStacked(inv, gr.GetId()),
+                        null,
+                        wo =>
+                        {
+                            _playerController.GetPlayerEquipment().AddItemInEquipment(wo);
+
+                            // Undo the temporary excess storage due to possible exoskeleton/backpack upgrades
+                            backpack.SetSize(backpack.GetSize() - 50);
+                            equipment.SetSize(equipment.GetSize() - 50);
+                        },
+                        grs =>
+                        {
+                            // Since this is called if the equipment is upgraded inplace,
+                            // removing the exoskeleton or backpack would decrease the capacities temporarily
+                            // and would spill or drop the excess items from both, before the new mod could make room for them
+                            // again. Thus, we artificially increase the capacities temporarily to bridge this temporary reduction.
+                            // Of course, we have to then remove the excess storage once the new mods are added above.
+                            backpack.SetSize(backpack.GetSize() + 50);
+                            equipment.SetSize(equipment.GetSize() + 50);
+
+                            _playerController.GetPlayerEquipment().DestroyItemsFromEquipment(grs);
+                        },
+                        true
+                    );
                     return false;
                 }
-
             }
             return true;
         }

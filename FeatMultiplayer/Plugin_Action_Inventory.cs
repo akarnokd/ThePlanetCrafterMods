@@ -28,6 +28,8 @@ namespace FeatMultiplayer
 
         static ConfigEntry<int> stackSize;
 
+        static Func<Inventory, string, bool> isFullStacked;
+
         /// <summary>
         /// The vanilla game calls Inventory::AddItem all over the place to try to add to the player's backpack,
         /// equipment, chests, machines, etc. The backpack is at id 1, the equipment is at id 2.
@@ -1108,8 +1110,16 @@ namespace FeatMultiplayer
                 }
                 else
                 {
-                    LogInfo("ReceiveMessageInventorySize: Update " + mis.inventoryId + ", size = " + inv.GetSize() + " -> " + mis.size);
-                    inv.SetSize(mis.size);
+                    if (mis.relative)
+                    {
+                        LogInfo("ReceiveMessageInventorySize: Update " + mis.inventoryId + ", size = " + inv.GetSize() + (mis.size >= 0 ? " + " : " - ") + Math.Abs(mis.size) + " = " + (inv.GetSize() + mis.size));
+                        inv.SetSize(inv.GetSize() + mis.size);
+                    }
+                    else
+                    {
+                        LogInfo("ReceiveMessageInventorySize: Update " + mis.inventoryId + ", size = " + inv.GetSize() + " -> " + mis.size);
+                        inv.SetSize(mis.size);
+                    }
                 }
             }
         }
