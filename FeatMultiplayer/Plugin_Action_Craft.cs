@@ -43,7 +43,7 @@ namespace FeatMultiplayer
                 suppressInventoryChange = true;
                 try
                 {
-                    __result = LibCommon.CraftInInventory.TryCraft(
+                    __result = LibCommon.CraftHelper.TryCraftInventory(
                         groupItem,
                         _playerController.transform.position,
                         _playerController.GetPlayerBackpack().GetInventory(),
@@ -164,7 +164,7 @@ namespace FeatMultiplayer
                 {
                     var shadowBackpack = mc.sender.shadowBackpack;
                     var shadowEquipment = mc.sender.shadowEquipment;
-                    LibCommon.CraftInInventory.TryCraft(gri,
+                    LibCommon.CraftHelper.TryCraftInventory(gri,
                         playerAvatars[mc.sender.clientName].rawPosition,
                         shadowBackpack,
                         shadowEquipment,

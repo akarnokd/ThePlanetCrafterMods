@@ -122,7 +122,7 @@ namespace FeatMultiplayer
 
             NetworkTelemetrySetup(this);
 
-            LibCommon.CraftInInventory.Init(theLogger);
+            LibCommon.CraftHelper.Init(theLogger);
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);

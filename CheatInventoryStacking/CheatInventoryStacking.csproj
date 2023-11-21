@@ -12,7 +12,7 @@
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
-	  <Compile Include="..\LibCommon\CraftInInventory.cs" Link="CraftInInventory.cs" />
+	  <Compile Include="..\LibCommon\CraftHelper.cs" Link="CraftHelper.cs" />
 	  <Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
 		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 	</ItemGroup>

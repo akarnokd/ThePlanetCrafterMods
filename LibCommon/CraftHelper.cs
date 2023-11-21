@@ -11,10 +11,10 @@ namespace LibCommon
     /// <summary>
     /// Common routine to craft objects from backpack, equipment and/or nearby containers.
     /// </summary>
-    internal class CraftInInventory
+    internal class CraftHelper
     {
         /* If Craft From Containers is installed. */
-        internal const string craftFromContainersGuid = "aedenthorn.CraftFromContainers";
+        internal const string modCraftFromContainersGuid = "aedenthorn.CraftFromContainers";
         static ConfigEntry<bool> craftFromContainersEnabled;
         static ConfigEntry<bool> craftFromContainersPullFromChests;
         static ConfigEntry<float> craftFromContainersRange;
@@ -25,9 +25,9 @@ namespace LibCommon
         /// <param name="logger">The logger to use to report progress.</param>
         internal static void Init(ManualLogSource logger)
         {
-            if (Chainloader.PluginInfos.TryGetValue(craftFromContainersGuid, out var pi))
+            if (Chainloader.PluginInfos.TryGetValue(modCraftFromContainersGuid, out var pi))
             {
-                logger.LogInfo(craftFromContainersGuid + " found, considering nearby containers");
+                logger.LogInfo(modCraftFromContainersGuid + " found, considering nearby containers");
 
                 craftFromContainersEnabled = pi.Instance.Config["General", "Enabled"] as ConfigEntry<bool>;
                 craftFromContainersPullFromChests = pi.Instance.Config["Options", "PullFromChests"] as ConfigEntry<bool>;
@@ -35,7 +35,7 @@ namespace LibCommon
             }
             else
             {
-                logger.LogInfo("[optional] " + craftFromContainersGuid + " not found.");
+                logger.LogInfo("[optional] " + modCraftFromContainersGuid + " not found.");
             }
         }
 
@@ -61,7 +61,7 @@ namespace LibCommon
         /// </param>
         /// <param name="displayInfo">If true, ingredients taken and inventory full messages will be displayed on the screen.</param>
         /// <returns>True if the crafting succeeded, false if no ingredients were found or the target inventory is full.</returns>
-        internal static bool TryCraft(
+        internal static bool TryCraftInventory(
                 GroupItem item,
                 Vector3 position,
                 Inventory backpack,

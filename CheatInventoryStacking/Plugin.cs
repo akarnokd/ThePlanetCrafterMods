@@ -20,6 +20,7 @@ using static UnityEngine.InputSystem.InputSettings;
 namespace CheatInventoryStacking
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(LibCommon.CraftHelper.modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -96,7 +97,7 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(1);
             }
 
-            LibCommon.CraftInInventory.Init(Logger);
+            LibCommon.CraftHelper.Init(Logger);
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
@@ -619,7 +620,8 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
-        static bool CraftManager_TryToCraftInInventory(GroupItem groupItem, PlayerMainController _playerController, ref bool __result)
+        static bool CraftManager_TryToCraftInInventory(GroupItem groupItem, PlayerMainController _playerController, 
+            ActionCrafter _sourceCrafter, ref int ___totalCraft, ref bool __result)
         {
             if (stackSize.Value > 1)
             {
@@ -629,7 +631,7 @@ namespace CheatInventoryStacking
                     Inventory backpack = _playerController.GetPlayerBackpack().GetInventory();
                     Inventory equipment = _playerController.GetPlayerEquipment().GetInventory();
 
-                    __result = LibCommon.CraftInInventory.TryCraft(
+                    __result = LibCommon.CraftHelper.TryCraftInventory(
                         groupItem,
                         _playerController.transform.position,
                         backpack,
@@ -660,6 +662,11 @@ namespace CheatInventoryStacking
                         },
                         true
                     );
+                    if (__result)
+                    {
+                        _sourceCrafter?.CraftAnimation(groupItem);
+                        ___totalCraft++;
+                    }
                     return false;
                 }
             }
