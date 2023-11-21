@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System;
 using UnityEngine.UI;
+using LibCommon;
 
 namespace CheatNearbyResourcesHighlight
 {
@@ -46,72 +47,6 @@ namespace CheatNearbyResourcesHighlight
         /// </summary>
         private static string currentResource;
 
-        static readonly string defaultResourceSet = string.Join(",", new string[]
-        {
-            "Cobalt",
-            "Silicon",
-            "Iron",
-            "ice", // it is not capitalized in the game
-            "Magnesium",
-            "Titanium",
-            "Aluminium",
-            "Uranim", // it is misspelled in the game
-            "Iridium",
-            "Alloy",
-            "Zeolite",
-            "Osmium",
-            "Sulfur",
-            "PulsarQuartz",
-            "PulsarShard"
-        });
-
-        static readonly string defaultLarvaeSet = string.Join(",", new string[]
-        {
-            "LarvaeBase1",
-            "LarvaeBase2",
-            "LarvaeBase3",
-            "Butterfly11Larvae",
-            "Butterfly12Larvae",
-            "Butterfly13Larvae",
-            "Butterfly14Larvae",
-            "Butterfly15Larvae",
-            "Butterfly16Larvae",
-            "Butterfly17Larvae",
-            "Butterfly18Larvae",
-            "Butterfly19Larvae"
-        });
-
-        static readonly string defaultFishSet = string.Join(",", new string[]
-        {
-            "Fish1Eggs",
-            "Fish2Eggs",
-            "Fish3Eggs",
-            "Fish4Eggs",
-            "Fish5Eggs",
-            "Fish6Eggs",
-            "Fish7Eggs",
-            "Fish8Eggs",
-            "Fish9Eggs",
-            "Fish10Eggs",
-            "Fish11Eggs",
-            "Fish12Eggs"
-        });
-
-        static readonly string defaultFrogSet = string.Join(",", new string[]
-        {
-            "Frog1Eggs",
-            "Frog2Eggs",
-            "Frog3Eggs",
-            "Frog4Eggs",
-            "Frog5Eggs",
-            "Frog6Eggs",
-            "Frog7Eggs",
-            "Frog8Eggs",
-            "Frog9Eggs",
-            "Frog10Eggs",
-            "FrogGoldEggs",
-        });
-
         class GameObjectTTL
         {
             public GameObject resource;
@@ -143,11 +78,11 @@ namespace CheatNearbyResourcesHighlight
 
             radius = Config.Bind("General", "Radius", 30, "Specifies how far to look for resources.");
             stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.");
-            resourceSetStr = Config.Bind("General", "ResourceSet", defaultResourceSet, "List of comma-separated resource ids to look for.");
+            resourceSetStr = Config.Bind("General", "ResourceSet", StandardResourceSets.defaultOres, "List of comma-separated resource ids to look for.");
             cycleResourceKey = Config.Bind("General", "CycleResourceKey", "X", "Key used for cycling resources from the set");
-            larvaeSetStr = Config.Bind("General", "LarvaeSet", defaultLarvaeSet, "List of comma-separated larvae ids to look for.");
-            fishSetStr = Config.Bind("General", "FishSet", defaultFishSet, "List of comma-separated fish ids to look for.");
-            frogSetStr = Config.Bind("General", "FrogSet", defaultFrogSet, "List of comma-separated frog ids to look for.");
+            larvaeSetStr = Config.Bind("General", "LarvaeSet", StandardResourceSets.defaultLarvae, "List of comma-separated larvae ids to look for.");
+            fishSetStr = Config.Bind("General", "FishSet", StandardResourceSets.defaultFish, "List of comma-separated fish ids to look for.");
+            frogSetStr = Config.Bind("General", "FrogSet", StandardResourceSets.defaultFrogs, "List of comma-separated frog ids to look for.");
             lineIndicatorLength = Config.Bind("General", "LineIndicatorLength", 5f, "If nonzero, a thin white bar will appear and point to the resource");
             timeToLive = Config.Bind("General", "TimeToLive", 15f, "How long the resource indicators should remain visible, in seconds.");
 

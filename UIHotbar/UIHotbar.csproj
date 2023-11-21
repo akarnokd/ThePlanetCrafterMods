@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UIHotbar</AssemblyName>
     <Description>(UI) Hotbar</Description>
-    <Version>1.0.0.17</Version>
+    <Version>1.0.0.18</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

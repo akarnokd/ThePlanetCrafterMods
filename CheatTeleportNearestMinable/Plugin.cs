@@ -9,6 +9,7 @@ using System;
 using BepInEx.Bootstrap;
 using System.Collections;
 using System.Reflection;
+using LibCommon;
 
 namespace CheatTeleportNearestMinable
 {
@@ -39,89 +40,24 @@ namespace CheatTeleportNearestMinable
 
         static Func<string> getMultiplayerMode;
 
-        static readonly string defaultResourceSet = string.Join(",", new string[]
-        {
-            "Cobalt",
-            "Silicon",
-            "Iron",
-            "ice", // it is not capitalized in the game
-            "Magnesium",
-            "Titanium",
-            "Aluminium",
-            "Uranim", // it is misspelled in the game
-            "Iridium",
-            "Alloy",
-            "Zeolite",
-            "Osmium",
-            "Sulfur",
-            "PulsarQuartz",
-            "PulsarShard"
-        });
-        static readonly string defaultLarvaeSet = string.Join(",", new string[]
-        {
-            "LarvaeBase1",
-            "LarvaeBase2",
-            "LarvaeBase3",
-            "Butterfly11Larvae",
-            "Butterfly12Larvae",
-            "Butterfly13Larvae",
-            "Butterfly14Larvae",
-            "Butterfly15Larvae",
-            "Butterfly16Larvae",
-            "Butterfly17Larvae",
-            "Butterfly18Larvae",
-            "Butterfly19Larvae"
-        });
-
-        static readonly string defaultFishSet = string.Join(",", new string[]
-        {
-            "Fish1Eggs",
-            "Fish2Eggs",
-            "Fish3Eggs",
-            "Fish4Eggs",
-            "Fish5Eggs",
-            "Fish6Eggs",
-            "Fish7Eggs",
-            "Fish8Eggs",
-            "Fish9Eggs",
-            "Fish10Eggs",
-            "Fish11Eggs",
-            "Fish12Eggs"
-        });
-
-        static readonly string defaultFrogSet = string.Join(",", new string[]
-        {
-            "Frog1Eggs",
-            "Frog2Eggs",
-            "Frog3Eggs",
-            "Frog4Eggs",
-            "Frog5Eggs",
-            "Frog6Eggs",
-            "Frog7Eggs",
-            "Frog8Eggs",
-            "Frog9Eggs",
-            "Frog10Eggs",
-            "FrogGoldEggs",
-        });
-
         private void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            string resourceSetStr = Config.Bind("General", "ResourceSet", defaultResourceSet, "List of comma-separated resource ids to look for.").Value;
+            string resourceSetStr = Config.Bind("General", "ResourceSet", StandardResourceSets.defaultOres, "List of comma-separated resource ids to look for.").Value;
 
-            resourceSet = new HashSet<string>(resourceSetStr.Split(new char[] { ',' }));
+            resourceSet = new HashSet<string>(resourceSetStr.Split(','));
 
-            var larvaeSetStr = Config.Bind("General", "LarvaeSet", defaultLarvaeSet, "List of comma-separated larvae ids to look for.");
+            var larvaeSetStr = Config.Bind("General", "LarvaeSet", StandardResourceSets.defaultLarvae, "List of comma-separated larvae ids to look for.");
 
             larvaeSet = new HashSet<string>(larvaeSetStr.Value.Split(','));
 
-            var fishSetStr = Config.Bind("General", "FishSet", defaultFishSet, "List of comma-separated fish ids to look for.");
+            var fishSetStr = Config.Bind("General", "FishSet", StandardResourceSets.defaultFish, "List of comma-separated fish ids to look for.");
 
             fishSet = new HashSet<string>(fishSetStr.Value.Split(','));
 
-            var frogSetStr = Config.Bind("General", "FrogSet", defaultFrogSet, "List of comma-separated frog ids to look for.");
+            var frogSetStr = Config.Bind("General", "FrogSet", StandardResourceSets.defaultFrogs, "List of comma-separated frog ids to look for.");
 
             frogSet = new HashSet<string>(frogSetStr.Value.Split(','));
 

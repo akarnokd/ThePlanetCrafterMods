@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FeatMultiplayer.MessageTypes
 {
@@ -10,16 +6,18 @@ namespace FeatMultiplayer.MessageTypes
     {
         internal int inventoryId;
         internal int size;
+        internal bool relative;
 
         internal static bool TryParse(string str, out MessageInventorySize mis)
         {
-            if (MessageHelper.TryParseMessage("InventorySize|", str, 3, out var parameters))
+            if (MessageHelper.TryParseMessage("InventorySize|", str, 4, out var parameters))
             {
                 try
                 {
                     mis = new();
                     mis.inventoryId = int.Parse(parameters[1]);
                     mis.size = int.Parse(parameters[2]);
+                    mis.relative = "1" == parameters[3];
                     return true;
                 }
                 catch (Exception ex)
@@ -33,7 +31,7 @@ namespace FeatMultiplayer.MessageTypes
 
         public override string GetString()
         {
-            return "InventorySize|" + inventoryId + "|" + size + "\n";
+            return "InventorySize|" + inventoryId + "|" + size + "|" + (relative ? "1" : "0") + "\n";
         }
     }
 }

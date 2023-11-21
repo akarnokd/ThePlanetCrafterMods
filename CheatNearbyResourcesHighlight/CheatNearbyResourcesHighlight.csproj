@@ -4,13 +4,16 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatNearbyResourcesHighlight</AssemblyName>
     <Description>(Cheat) Highlight Nearby Resources</Description>
-    <Version>1.0.0.16</Version>
+    <Version>1.0.0.17</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
+	<ItemGroup>
+	  <Compile Include="..\LibCommon\StandardResourceSets.cs" Link="StandardResourceSets.cs" />
+	</ItemGroup>
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -34,9 +37,6 @@
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
-            SourceDirectory="$(TargetDir)\$(AssemblyName)"
-            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
-            Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(TargetDir)\$(AssemblyName)" DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip" Overwrite="true" />
   </Target>
 </Project>

@@ -30,26 +30,26 @@ namespace UIDontCloseCraftWindow
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowCraft), "OnImageClicked")]
-        static bool UiWindowCraft_OnImageClicked_Pre(EventTriggerCallbackData eventTriggerCallbackData)
+        static bool UiWindowCraft_OnImageClicked_Pre(EventTriggerCallbackData _eventTriggerCallbackData)
         {
-            rightMouseClicked = eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Right;
+            rightMouseClicked = _eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Right;
             return true;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowCraft), "OnImageClicked")]
-        static void UiWindowCraft_OnImageClickedPost(EventTriggerCallbackData eventTriggerCallbackData)
+        static void UiWindowCraft_OnImageClickedPost(EventTriggerCallbackData _eventTriggerCallbackData)
         {
             if (successfulCraft)
             {
                 successfulCraft = false;
                 FieldInfo fi = AccessTools.Field(typeof(EventHoverShowGroup), "associatedGroup");
-                if (eventTriggerCallbackData.group != null)
+                if (_eventTriggerCallbackData.group != null)
                 {
                     foreach (EventHoverShowGroup e in FindObjectsByType<EventHoverShowGroup>(UnityEngine.FindObjectsSortMode.None))
                     {
                         Group g = (Group)fi.GetValue(e);
-                        if (g != null && g.GetId() == eventTriggerCallbackData.group.GetId())
+                        if (g != null && g.GetId() == _eventTriggerCallbackData.group.GetId())
                         {
                             e.OnImageHovered();
                         }

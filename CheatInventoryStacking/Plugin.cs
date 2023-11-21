@@ -20,6 +20,7 @@ using static UnityEngine.InputSystem.InputSettings;
 namespace CheatInventoryStacking
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(LibCommon.CraftHelper.modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string featMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
@@ -95,6 +96,8 @@ namespace CheatInventoryStacking
                 defaultNoStackingInventories.Add(1);
                 noStackingInventories.Add(1);
             }
+
+            LibCommon.CraftHelper.Init(Logger);
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
@@ -617,45 +620,55 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
-        static bool CraftManager_TryToCraftInInventory(GroupItem groupItem, PlayerMainController _playerController, ref bool __result)
+        static bool CraftManager_TryToCraftInInventory(GroupItem groupItem, PlayerMainController _playerController, 
+            ActionCrafter _sourceCrafter, ref int ___totalCraft, ref bool __result)
         {
             if (stackSize.Value > 1)
             {
-                // FIXME Note, there are IsFull check but ingredient count would be never zero
-                // if (ingredientsGroupInRecipe.Count < 1 && inventory.IsFull())
-                // freeCraft true could be true?
-                // if (freeCraft && inventory.IsFull())
-
-                // UICraftEquipmentInplace: make sure there is only one relevant IsFull check early on
-                if (Chainloader.PluginInfos.ContainsKey("akarnokd.theplanetcraftermods.uicraftequipmentinplace"))
+                // In multiplayer mode, don't do the stuff below
+                if (getMultiplayerMode == null || getMultiplayerMode() == "SinglePlayer")
                 {
-                    // If we have the UICraftEquipmentInplace, it does properly check IsFull,
-                    // but for equippable types only
-                    DataConfig.EquipableType equipType = groupItem.GetEquipableType();
-                    if (equipType == DataConfig.EquipableType.OxygenTank
-                        || equipType == DataConfig.EquipableType.BackpackIncrease
-                        || equipType == DataConfig.EquipableType.EquipmentIncrease
-                        || equipType == DataConfig.EquipableType.MultiToolMineSpeed
-                        || equipType == DataConfig.EquipableType.BootsSpeed
-                        || equipType == DataConfig.EquipableType.Jetpack
-                        || equipType == DataConfig.EquipableType.AirFilter
-                        || equipType == DataConfig.EquipableType.MultiToolCleanConstruction
-                        || equipType == DataConfig.EquipableType.MapChip)
+                    Inventory backpack = _playerController.GetPlayerBackpack().GetInventory();
+                    Inventory equipment = _playerController.GetPlayerEquipment().GetInventory();
+
+                    __result = LibCommon.CraftHelper.TryCraftInventory(
+                        groupItem,
+                        _playerController.transform.position,
+                        backpack,
+                        equipment,
+                        Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft(),
+                        true,
+                        (inv, gr) => !IsFullStacked(inv, gr.GetId()),
+                        null,
+                        wo =>
+                        {
+                            _playerController.GetPlayerEquipment().AddItemInEquipment(wo);
+
+                            // Undo the temporary excess storage due to possible exoskeleton/backpack upgrades
+                            backpack.SetSize(backpack.GetSize() - 50);
+                            equipment.SetSize(equipment.GetSize() - 50);
+                        },
+                        grs =>
+                        {
+                            // Since this is called if the equipment is upgraded inplace,
+                            // removing the exoskeleton or backpack would decrease the capacities temporarily
+                            // and would spill or drop the excess items from both, before the new mod could make room for them
+                            // again. Thus, we artificially increase the capacities temporarily to bridge this temporary reduction.
+                            // Of course, we have to then remove the excess storage once the new mods are added above.
+                            backpack.SetSize(backpack.GetSize() + 50);
+                            equipment.SetSize(equipment.GetSize() + 50);
+
+                            _playerController.GetPlayerEquipment().DestroyItemsFromEquipment(grs);
+                        },
+                        true
+                    );
+                    if (__result)
                     {
-                        expectedGroupIdToAdd = groupItem.GetId();
-                        return true;
+                        _sourceCrafter?.CraftAnimation(groupItem);
+                        ___totalCraft++;
                     }
-                }
-
-                // otherwise, we have to manually prefix the vanilla TryToCraftInInventory with a fullness check ourselves
-                Inventory inventory = _playerController.GetPlayerBackpack().GetInventory();
-                if (IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), groupItem.GetId()))
-                {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f, "");
-                    __result = false;
                     return false;
                 }
-
             }
             return true;
         }

@@ -13,6 +13,8 @@ namespace FeatMultiplayer
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatMachineRemoteDepositGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modCheatAutoHarvestGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(LibCommon.CraftHelper.modCraftFromContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
+
     public partial class Plugin : BaseUnityPlugin
     {
         const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";

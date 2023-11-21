@@ -122,6 +122,8 @@ namespace FeatMultiplayer
 
             NetworkTelemetrySetup(this);
 
+            LibCommon.CraftHelper.Init(theLogger);
+
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
             LibCommon.GameVersionCheck.Patch(harmony, "(Feat) Multiplayer - v" + PluginInfo.PLUGIN_VERSION);
@@ -211,6 +213,9 @@ namespace FeatMultiplayer
 
                 var getMultiplayerModeField = AccessTools.Field(pi.Instance.GetType(), "getMultiplayerMode");
                 getMultiplayerModeField.SetValue(pi.Instance, new Func<string>(GetMultiplayerMode));
+
+                MethodInfo mi1 = AccessTools.Method(pi.Instance.GetType(), "IsFullStacked", new Type[] { typeof(Inventory), typeof(string) });
+                isFullStacked = AccessTools.MethodDelegate<Func<Inventory, string, bool>>(mi1, null);
             }
 
             uiWindowGroupSelectorWorldObject = AccessTools.Field(typeof(UiWindowGroupSelector), "worldObject");
