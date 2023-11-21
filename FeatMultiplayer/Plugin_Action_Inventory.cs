@@ -751,6 +751,11 @@ namespace FeatMultiplayer
                             playerEquipmentHasMapChip.SetValue(_playerController.GetPlayerEquipment(), true);
                             break;
                         }
+                    case DataConfig.EquipableType.PinChip:
+                        {
+                            Managers.GetManager<CanvasPinedRecipes>().SetMaxPinedItems(groupItem.GetGroupValue());
+                            break;
+                        }
                 }
             }
         }
@@ -829,6 +834,10 @@ namespace FeatMultiplayer
             {
                 // Since 0.9.002: the field is not public
                 playerEquipmentHasMapChip.SetValue(player.GetPlayerEquipment(), false);
+            }
+            if (!equipTypes.Contains(DataConfig.EquipableType.PinChip))
+            {
+                Managers.GetManager<CanvasPinedRecipes>().SetMaxPinedItems(0);
             }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;
