@@ -297,6 +297,7 @@ namespace FeatMultiplayer
             var oldColor = wo.GetColor();
             var oldText = wo.GetText();
             var oldPanelIds = wo.GetPanelsId();
+            var oldIId = wo.GetLinkedInventoryId();
 
             wo.SetPositionAndRotation(mwo.position, mwo.rotation);
             wo.SetColor(mwo.color);
@@ -323,6 +324,25 @@ namespace FeatMultiplayer
                     LogInfo("UpdateWorldObject:   Creating default inventory " + mwo.inventoryId
                         + " of WorldObject " + DebugWorldObject(wo));
                     InventoriesHandler.CreateNewInventory(1, mwo.inventoryId);
+                }
+
+                if (oldIId != mwo.inventoryId)
+                {
+                    var wh = Managers.GetManager<WindowsHandler>();
+                    if (wh != null && wh.GetOpenedUi() == DataConfig.UiType.Container)
+                    {
+                        var wc = wh.GetWindowViaUiId(DataConfig.UiType.Container) as UiWindowContainer;
+                        if (wc != null)
+                        {
+                            var ri = uiWindowContainerRightInventory(wc);
+                            if (ri != null && ri.GetId() == oldIId)
+                            {
+                                uiWindowContainerRightInventory(wc) = inv;
+                                inv.DisplayIn(wc.containerInventoryContainer, true, true, !WorldObjectsIdHandler.IsWorldObjectFromScene(mwo.id));
+                            }
+                        }
+
+                    }
                 }
             }
             else

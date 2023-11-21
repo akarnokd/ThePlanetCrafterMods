@@ -996,14 +996,34 @@ namespace FeatMultiplayer
                             Inventory inventory = InventoriesHandler.CreateNewInventory(component.GetSize(), iid);
                             __instance.SetInventory(inventory);
                             __result = ___inventory;
+                            // This will relink the world object to the generated inventory
+                            WorldObject wo = component.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+
                             if (updateMode == MultiplayerMode.CoopClient)
                             {
-                                LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
-                                SendHost(new MessageInventorySpawn() { inventoryId = iid }, true);
-                                inventorySpawning.Add(iid);
+                                if (iid > 0)
+                                {
+                                    LogInfo("InventoryAssociated_GetInventory: Request host spawn " + iid + ", Size = " + component.GetSize());
+                                    SendHost(new MessageInventorySpawn() { inventoryId = iid }, true);
+                                    inventorySpawning.Add(iid);
+                                }
+                                else
+                                {
+                                    if (wo != null)
+                                    {
+                                        LogInfo("InventoryAssociated_GetInventory: Request host spawn via WorldObject " + wo.GetId() + ", Size = " + component.GetSize());
+                                        SendHost(new MessagePrepareSpawn() { worldObjectId = wo.GetId() }, true);
+                                    }
+                                    else
+                                    {
+                                        LogWarning("InventoryAssociated_GetInventory: Unable to request host spawn for object at " + component.transform.position);
+                                    }
+                                }
                             }
                             else
                             {
+                                iid = ___inventory.GetId();
+
                                 LogInfo("InventoryAssociated_GetInventory: Generating host inventory: " + iid + ", Size = " + component.GetSize());
                                 SendAllClients(new MessageInventorySize() { inventoryId = iid, size = component.GetSize() }, true);
 
@@ -1013,6 +1033,12 @@ namespace FeatMultiplayer
                                     WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(item);
                                     SendWorldObjectToClients(worldObject, false);
                                     inventory.AddItem(worldObject);
+                                }
+
+                                if (wo != null)
+                                {
+                                    wo.SetLinkedInventoryId(iid);
+                                    SendWorldObjectToClients(wo, false);
                                 }
                             }
                         }
@@ -1104,6 +1130,46 @@ namespace FeatMultiplayer
                 {
                     FindAndGenerateInventoryFromScene(iid);
                 }
+            }
+        }
+
+        static void ReceiveMessagePrepareSpawn(MessagePrepareSpawn mps)
+        {
+                var wo = WorldObjectsHandler.GetWorldObjectViaId(mps.worldObjectId);
+            if (wo != null)
+            {
+                var go = wo.GetGameObject();
+                if (go != null)
+                {
+                    if (updateMode == MultiplayerMode.CoopClient)
+                    {
+                        go.AddComponent<WorldUniqueId>().ChangeWorldObjectIdLive(mps.worldObjectId);
+                        go.AddComponent<InventoryFromScene>();
+                    }
+                    else
+                    {
+                        var ia = go.GetComponent<InventoryAssociated>();
+                        if (ia != null)
+                        {
+                            if (ia.GetInventory() == null)
+                            {
+                                LogWarning("MessagePrepareSpawn: World Object " + mps.worldObjectId + " did not spawn any inventory. " + DebugWorldObject(wo));
+                            }
+                        }   
+                        else
+                        {
+                            LogWarning("MessagePrepareSpawn: World Object " + mps.worldObjectId + " does not have an inventory associated. " + DebugWorldObject(wo));
+                        }
+                    }
+                }
+                else
+                {
+                    LogWarning("MessagePrepareSpawn: World Object " + mps.worldObjectId + " is not placed. " + DebugWorldObject(wo));
+                }
+            }
+            else
+            {
+                LogWarning("MessagePrepareSpawn: Unknown World Object " + mps.worldObjectId);
             }
         }
 

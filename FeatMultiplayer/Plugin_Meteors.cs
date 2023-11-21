@@ -551,6 +551,11 @@ namespace FeatMultiplayer
 
                                 SendWorldObjectToClients(wo, false);
 
+                                if (debrisGo.GetComponent<InventoryFromScene>() != null)
+                                {
+                                    SendAllClients(new MessagePrepareSpawn() { worldObjectId = wo.GetId() }, true); 
+                                }
+
                                 // setup the position tracker
                                 var dt = debrisGo.AddComponent<DebrisResourceTracker>();
                                 dt.timeToLive = _asteroid.GetDebrisDestroyTime() * (float)___spawnedResourcesDestroyMultiplier;
