@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.011
+## Supported Game Version: 0.9.012
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -70,7 +70,6 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 ### User Interface or Quality of Life
 
 - [Beacon Text](#ui-beacon-text)
-- [Craft Equipment Inplace](#ui-craft-equipment-inplace)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Don't Close Craft Window](#ui-dont-close-craft-window)
 - [Hotbar](#ui-hotbar)
@@ -1190,6 +1189,8 @@ Right = 10
 
 ## (UI) Pin Recipe to Screen
 
+:information_source: There is now a vanilla pin recipe feature, which has far fewer capabilities than this mod.
+
 On the various craft screens, use <kbd>Middle click</kbd> to pin or unpin a craftable recipe to the screen.
 
 To unpin all recipes, press <kbd>C</kbd>.
@@ -1259,6 +1260,8 @@ DisplayModeToggleKey = B
 
 
 ## (UI) Craft Equipment Inplace
+
+:warning: Discontinued. Now part of the vanilla. :warning:
 
 When crafting upgrades to equimpent currently equipped, the newer equipment
 will be replaced inplace. This avoids loosing backpack capacity or equipment capacity
