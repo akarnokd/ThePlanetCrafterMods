@@ -196,7 +196,7 @@ namespace FeatMultiplayer
                                 return;
                             }
                             ___instantiatedGameObjects.Remove(spawn);
-                            if (___inventory != null && ___inventory.GetInsideWorldObjects().Count != 0)
+                            if (___inventory == null || ___inventory.GetInsideWorldObjects().Count != 0)
                             {
 
                                 machineOutsideGrowerInstantiateAtRandomPosition.Invoke(__instance, new object[] { _objectToInstantiate, false });
