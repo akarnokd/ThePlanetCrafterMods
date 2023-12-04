@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UIShowMultiToolMode</AssemblyName>
     <Description>(UI) Show MultiTool Mode</Description>
-    <Version>1.0.0.7</Version>
+    <Version>1.0.0.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

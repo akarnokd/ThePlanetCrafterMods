@@ -211,6 +211,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationKorean", "UITr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIModConfigMenu", "UIModConfigMenu\UIModConfigMenu.csproj", "{AEC90E24-D05F-4DA2-B969-C5AC037C460E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrimShadowVehicle", "CrimShadowVehicle\CrimShadowVehicle.csproj", "{E08CEBDF-535F-4DA3-B830-A8F3B2149C41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -485,6 +487,10 @@ Global
 		{AEC90E24-D05F-4DA2-B969-C5AC037C460E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEC90E24-D05F-4DA2-B969-C5AC037C460E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEC90E24-D05F-4DA2-B969-C5AC037C460E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E08CEBDF-535F-4DA3-B830-A8F3B2149C41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E08CEBDF-535F-4DA3-B830-A8F3B2149C41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E08CEBDF-535F-4DA3-B830-A8F3B2149C41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E08CEBDF-535F-4DA3-B830-A8F3B2149C41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

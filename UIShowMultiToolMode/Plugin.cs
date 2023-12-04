@@ -138,35 +138,38 @@ namespace UIShowMultiToolMode
         }
         void Show(PlayerMultitool multitool)
         {
-            iconBackground.SetActive(showIcon.Value);
-            iconObject.SetActive(showIcon.Value);
-
-            textBackground.SetActive(showText.Value);
-            textObject.SetActive(showText.Value);
-
             var state = multitool.GetState();
             var screen = multitool.GetComponentInChildren<MultiToolScreen>();
 
-            switch (state)
+            iconBackground.SetActive(showIcon.Value && screen != null);
+            iconObject.SetActive(showIcon.Value && screen != null);
+
+            textBackground.SetActive(showText.Value && screen != null);
+            textObject.SetActive(showText.Value && screen != null);
+
+            if (screen != null)
             {
-                case DataConfig.MultiToolState.Build:
-                    {
-                        textObject.GetComponent<Text>().text = Localization.GetLocalizedString("GROUP_NAME_MultiBuild");
-                        iconObject.GetComponent<Image>().sprite = screen.illustrationBuild;
-                        break;
-                    }
-                case DataConfig.MultiToolState.Deconstruct:
-                    {
-                        textObject.GetComponent<Text>().text = Localization.GetLocalizedString("GROUP_NAME_MultiDeconstruct");
-                        iconObject.GetComponent<Image>().sprite = screen.illustrationDeconstruct;
-                        break;
-                    }
-                default:
-                    {
-                        textObject.GetComponent<Text>().text = "< none >";
-                        iconObject.GetComponent<Image>().sprite = screen.illustrationDefault;
-                        break;
-                    }
+                switch (state)
+                {
+                    case DataConfig.MultiToolState.Build:
+                        {
+                            textObject.GetComponent<Text>().text = Localization.GetLocalizedString("GROUP_NAME_MultiBuild");
+                            iconObject.GetComponent<Image>().sprite = screen.illustrationBuild;
+                            break;
+                        }
+                    case DataConfig.MultiToolState.Deconstruct:
+                        {
+                            textObject.GetComponent<Text>().text = Localization.GetLocalizedString("GROUP_NAME_MultiDeconstruct");
+                            iconObject.GetComponent<Image>().sprite = screen.illustrationDeconstruct;
+                            break;
+                        }
+                    default:
+                        {
+                            textObject.GetComponent<Text>().text = "< none >";
+                            iconObject.GetComponent<Image>().sprite = screen.illustrationDefault;
+                            break;
+                        }
+                }
             }
         }
 
