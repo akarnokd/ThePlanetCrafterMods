@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.012
+## Supported Game Version: 0.9.013
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
