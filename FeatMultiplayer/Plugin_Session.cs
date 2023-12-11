@@ -152,6 +152,8 @@ namespace FeatMultiplayer
 
             clientJoinName = null;
             clientJoinPassword = null;
+
+            equipmentSwapMarker = false;
         }
 
         void OnApplicationQuit()

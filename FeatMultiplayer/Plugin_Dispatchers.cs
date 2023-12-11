@@ -186,6 +186,11 @@ namespace FeatMultiplayer
                 Receive(cc, mis2);
             }
             else
+            if (MessageEquipmentSwap.TryParse(message, out var mes2))
+            {
+                Receive(cc, mes2);
+            }
+            else
             if (MessageLaunch.TryParse(message, out var ml2)) 
             {
                 Receive(cc, ml2);
@@ -507,6 +512,11 @@ namespace FeatMultiplayer
                 case MessageInventorySize mis2:
                     {
                         ReceiveMessageInventorySize(mis2);
+                        break;
+                    }
+                case MessageEquipmentSwap mes2:
+                    {
+                        ReceiveMessageEquipmentSwap(mes2);
                         break;
                     }
                 case MessageLaunch ml:

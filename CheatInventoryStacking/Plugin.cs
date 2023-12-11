@@ -660,6 +660,7 @@ namespace CheatInventoryStacking
 
                             _playerController.GetPlayerEquipment().DestroyItemsFromEquipment(grs);
                         },
+                        true,
                         true
                     );
                     if (__result)

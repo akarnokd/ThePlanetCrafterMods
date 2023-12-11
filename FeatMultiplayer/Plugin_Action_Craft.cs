@@ -54,7 +54,8 @@ namespace FeatMultiplayer
                         null,
                         null,
                         null,
-                        true
+                        true,
+                        false
                     );
                     if (__result)
                     {
@@ -175,44 +176,18 @@ namespace FeatMultiplayer
                         wo =>
                         {
                             shadowEquipment.AddItem(wo);
-
-                            // If equipment was upgraded inplace, we need to undo the temporary capacity bump
-                            // (which was to avoid spilling items on the ground).
-
-                            mc.sender.Send(new MessageInventorySize()
-                            {
-                                inventoryId = 1,
-                                size = -50,
-                                relative = true
-                            });
-                            mc.sender.Send(new MessageInventorySize()
-                            {
-                                inventoryId = 2,
-                                size = -50,
-                                relative = true
-                            });
-                            mc.sender.Signal();
                         },
                         grs =>
                         {
                             // Since removing equipment may shrink the backpack/equipment capacity, we need
                             // increase the size temporarily so such upgrade doesn't spill items.
-                            mc.sender.Send(new MessageInventorySize() { 
-                                inventoryId = 1, 
-                                size = 50,
-                                relative = true
-                            });
-                            mc.sender.Send(new MessageInventorySize()
-                            {
-                                inventoryId = 2,
-                                size = 50,
-                                relative = true
-                            });
+                            mc.sender.Send(new MessageEquipmentSwap());
                             mc.sender.Signal();
 
                             shadowEquipment.RemoveItems(grs, true, false);
                         },
-                        false
+                        false,
+                        true
                     );
                 } 
                 else

@@ -72,7 +72,8 @@ namespace LibCommon
                 Action<WorldObject> onWorldObjectCreated,
                 Action<WorldObject> onAddEquipment,
                 Action<List<Group>> onRemoveEquipment,
-                bool displayInfo
+                bool displayInfo,
+                bool destroyItems
             )
         {
 
@@ -132,9 +133,9 @@ namespace LibCommon
 
             if (ingredients.Count == ingredientsFound || freeCraft)
             {
-                // in freeCraft, we need to check if the target inventory has room for such an item
-                // if we don't consume from either the backpack or equipment, there might be no room so check for room too
-                if ((fromEquipment.Count == 0 && fromBackpack.Count == 0) || freeCraft)
+                // if we don't take an ingredient from the equipment (which means we don't upgrade equipment)
+                // or using free crafting, we need to check if the backpack can actually hold the item crafted
+                if (fromEquipment.Count == 0 || freeCraft)
                 {
                     if (!canAdd(backpack, item))
                     {
@@ -146,10 +147,10 @@ namespace LibCommon
                     }
                 }
 
-                backpack.RemoveItems(fromBackpack, true, displayInfo);
+                backpack.RemoveItems(fromBackpack, destroyItems, displayInfo);
                 foreach (var nb in fromNearby)
                 {
-                    nb.inventory.RemoveItems(new() { nb.group }, true, displayInfo);
+                    nb.inventory.RemoveItems(new() { nb.group }, destroyItems, displayInfo);
                 }
 
                 if (create)
@@ -170,7 +171,7 @@ namespace LibCommon
                 }
                 else
                 {
-                    equipment.RemoveItems(fromEquipment, true, displayInfo);
+                    equipment.RemoveItems(fromEquipment, destroyItems, displayInfo);
                 }
                 return true;
             }

@@ -30,6 +30,8 @@ namespace FeatMultiplayer
 
         static Func<Inventory, string, bool> isFullStacked;
 
+        static bool equipmentSwapMarker;
+
         /// <summary>
         /// The vanilla game calls Inventory::AddItem all over the place to try to add to the player's backpack,
         /// equipment, chests, machines, etc. The backpack is at id 1, the equipment is at id 2.
@@ -839,6 +841,12 @@ namespace FeatMultiplayer
             {
                 Managers.GetManager<CanvasPinedRecipes>().SetMaxPinedItems(0);
             }
+            if (equipmentSwapMarker)
+            {
+                LogInfo("UnapplyEquipment: EquipmentSwapMarker received, suppressing dropping excess items for one turn");
+                equipmentSwapMarker = false;
+                return;
+            }
             // FIXME backpack and equipment mod unequipping
             float dropDistance = 0.7f;
             if (!equipTypes.Contains(DataConfig.EquipableType.BackpackIncrease))
@@ -1197,6 +1205,12 @@ namespace FeatMultiplayer
                     }
                 }
             }
+        }
+
+        static void ReceiveMessageEquipmentSwap(MessageEquipmentSwap mes)
+        {
+            equipmentSwapMarker = true;
+            LogInfo("ReceiveMessageEquipmentSwap");
         }
 
         /// <summary>
