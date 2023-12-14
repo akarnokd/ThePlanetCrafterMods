@@ -296,5 +296,20 @@ namespace FeatMultiplayer
             chestId = wo.GetId();
             return inv;
         }
+
+        /// <summary>
+        /// Called when the conditions for achievements are met.
+        /// </summary>
+        /// <returns>True in case in single player or achievements in MP are enabled</returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(AchievementsHandler), nameof(AchievementsHandler.UnlockAchievemement))]
+        static bool AchievementsHandler_UnlockAchievement()
+        {
+            if (updateMode != MultiplayerMode.SinglePlayer && !achievements.Value)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
