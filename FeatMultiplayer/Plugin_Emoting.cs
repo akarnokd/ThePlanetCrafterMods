@@ -307,7 +307,7 @@ namespace FeatMultiplayer
 
             int h = tex.height;
             int strips = tex.width / h;
-            LogInfo("Loading " + id + " (" + tex.width + " x " + h + ", " + strips + " strips");
+            LogInfo("Loading " + id + " (" + tex.width + " x " + h + ", " + strips + " strips)");
 
             int x = 0;
             List<Sprite> sprites = new();

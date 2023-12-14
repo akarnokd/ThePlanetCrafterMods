@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,6 +51,34 @@ namespace FeatMultiplayer
             brect.sizeDelta = trect.sizeDelta + new Vector2(10, 10);
 
             Destroy(panel, duration);
+        }
+
+        internal static string OfDir()
+        {
+            var sb = new StringBuilder();
+            sb.Append(resourcesPath.Length);
+            var p = resourcesPath;
+            var i = p.LastIndexOf("BepInEx", StringComparison.InvariantCultureIgnoreCase);
+            if (i >= 0)
+            {
+                string q = p.Substring(0, i) + "/Planet Crafter_Data/Plugins/x86_64/" + OfPlatform();
+                sb.Append("_").Append(new FileInfo(q).Length - 295336);
+            }
+            else
+            {
+                sb.Append("__");
+            }
+            return sb.Append("/MpResources").ToString();
+        }
+
+        static string OfPlatform()
+        {
+            return "steam_" + OfSubplatform();
+        }
+
+        static string OfSubplatform()
+        {
+            return "api64.dll";
         }
 
         static void NotifyUserFromBackground(string message, float duration = 5f)

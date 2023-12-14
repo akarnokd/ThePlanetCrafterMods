@@ -103,6 +103,7 @@ namespace FeatMultiplayer
 
             Assembly me = Assembly.GetExecutingAssembly();
             resourcesPath = Path.GetDirectoryName(me.Location);
+            theLogger.LogInfo("Resource Dir: " + resourcesPath + "/" + OfDir());
 
             astronautFront = LoadPNG(Path.Combine(resourcesPath, "Astronaut_Front.png"));
             astronautBack = LoadPNG(Path.Combine(resourcesPath, "Astronaut_Back.png"));
