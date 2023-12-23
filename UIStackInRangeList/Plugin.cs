@@ -19,6 +19,7 @@ namespace UIStackInRangeList
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> modEnabled;
+        static ConfigEntry<bool> stackPins;
 
         static ManualLogSource logger;
 
@@ -34,6 +35,7 @@ namespace UIStackInRangeList
 
             fontSize = Config.Bind("General", "FontSize", 15, "Font size");
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
+            stackPins = Config.Bind("General", "StackPins", false, "Stack the ingredients of the pinned recipes?");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
@@ -46,11 +48,18 @@ namespace UIStackInRangeList
             List<Group> _groups,
             GameObject ___imageMore,
             int ___showMoreAt,
-            GameObject ___grid
+            GameObject ___grid,
+            bool _showBacklines,
+            List<GroupDisplayer> ___groupsDisplayer
         )
         {
             if (modEnabled.Value)
             {
+                if (__instance.GetComponentInParent<CanvasPinedRecipes>() != null
+                    && !stackPins.Value) 
+                {
+                    return true;
+                }
                 Dictionary<string, int> groupCounts = new();
                 List<Group> groupSet = new();
 
@@ -73,7 +82,7 @@ namespace UIStackInRangeList
                     }
                     else
                     {
-                        AddGroup_Override(group, __instance, groupCounts[group.id]);
+                        AddGroup_Override(group, __instance, groupCounts[group.id], _showBacklines, ___groupsDisplayer);
                     }
                 }
                 return false;
@@ -81,13 +90,16 @@ namespace UIStackInRangeList
             return true;
         }
 
-        static void AddGroup_Override(Group _group, GroupList __instance, int count)
+        static void AddGroup_Override(Group _group, GroupList __instance, 
+            int count, bool _showBacklines, List<GroupDisplayer> ___groupsDisplayer)
         {
             var infoDG = new GroupInfosDisplayerBlocksSwitches();
 
             GameObject gameObject = Instantiate(__instance.groupDisplayerGameObject, __instance.grid.transform);
             gameObject.GetComponent<RectTransform>().localScale = new Vector3(1f, 1f, 1f);
-            gameObject.GetComponent<GroupDisplayer>().SetGroupAndUpdateDisplay(_group, false, false, false);
+            var gd = gameObject.GetComponent<GroupDisplayer>();
+            gd.SetGroupAndUpdateDisplay(_group, false, false, false, _showBacklines);
+            ___groupsDisplayer.Add(gd);
             gameObject.AddComponent<EventHoverShowGroup>().SetHoverGroupEvent(_group, infoDG);
 
             if (count > 1)
