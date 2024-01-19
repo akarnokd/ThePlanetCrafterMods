@@ -115,6 +115,8 @@ namespace UIModConfigMenu
                 var bc = new Button.ButtonClickedEvent();
                 btn.onClick = bc;
 
+                optionsPanel.tabsButtons.Add(buttonMods);
+
                 otherOptions = scrollViewControls.transform.Find("Viewport/Content/Other Options");
                 otherOptionsX = otherOptions.GetComponent<RectTransform>().localPosition.x;
 

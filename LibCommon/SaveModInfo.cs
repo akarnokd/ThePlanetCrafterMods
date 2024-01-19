@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Netcode;
 
 namespace LibCommon
 {
@@ -25,29 +26,32 @@ namespace LibCommon
         [HarmonyPatch(typeof(SessionController), "Start")]
         static void SessionController_Start()
         {
-            var sb = new StringBuilder();
-
-            foreach (var pi in Chainloader.PluginInfos)
+            if (NetworkManager.Singleton.IsServer)
             {
-                if (sb.Length > 0)
-                {
-                    sb.Append(";");
-                }
-                sb.Append(pi.Key).Append("=").Append(pi.Value.Metadata.Version);
-            }
+                var sb = new StringBuilder();
 
-            var wo = WorldObjectsHandler.GetWorldObjectViaId(storeInWorldObjectId);
-            if (wo == null)
-            {
-                var gr = GroupsHandler.GetGroupViaId("Iron");
-                if (gr == null)
+                foreach (var pi in Chainloader.PluginInfos)
                 {
-                    return;
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(";");
+                    }
+                    sb.Append(pi.Key).Append("=").Append(pi.Value.Metadata.Version);
                 }
-                wo = WorldObjectsHandler.CreateNewWorldObject(gr, storeInWorldObjectId);
-                wo.SetDontSaveMe(false);
+
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(storeInWorldObjectId);
+                if (wo == null)
+                {
+                    var gr = GroupsHandler.GetGroupViaId("Iron");
+                    if (gr == null)
+                    {
+                        return;
+                    }
+                    wo = WorldObjectsHandler.Instance.CreateNewWorldObject(gr, storeInWorldObjectId);
+                    wo.SetDontSaveMe(false);
+                }
+                wo.SetText(sb.ToString().Replace("@", " ").Replace("|", " "));
             }
-            wo.SetText(sb.ToString().Replace("@", " ").Replace("|", " "));
         }
     }
 }

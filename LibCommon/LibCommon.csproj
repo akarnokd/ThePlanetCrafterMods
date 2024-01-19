@@ -12,34 +12,6 @@
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-	  <Reference Include="UnityEngine.UI">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-	  <Reference Include="Unity.InputSystem">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-	  <Reference Include="Unity.TextMeshPro">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-    <Reference Include="Unity.HSVPicker">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)HSVPicker.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-
 <!--
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />

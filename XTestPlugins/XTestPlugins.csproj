@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FeatMultiplayer\FeatMultiplayer.csproj" />
     <ProjectReference Include="..\MiscPluginUpdateChecker\MiscPluginUpdateChecker.csproj" />
   </ItemGroup>
 
