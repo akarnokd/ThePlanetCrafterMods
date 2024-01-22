@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using BepInEx.Bootstrap;
 using System.Reflection;
 using BepInEx.Configuration;
+using System.Collections.ObjectModel;
 
 namespace UIShowPlayerInventoryCount
 {
@@ -21,19 +22,29 @@ namespace UIShowPlayerInventoryCount
         /// <summary>
         /// If the CheatInventoryStacking is installed, consider the stack counts when displaying information.
         /// </summary>
-        static Func<List<WorldObject>, int> getStackCount;
+        static Func<ReadOnlyCollection<WorldObject>, int> getStackCount;
         static ConfigEntry<int> stackSize;
+        static ConfigEntry<bool> stackBackpack;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             if (Chainloader.PluginInfos.TryGetValue(modInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
-                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", new Type[] { typeof(List<WorldObject>) });
-                getStackCount = AccessTools.MethodDelegate<Func<List<WorldObject>, int>>(mi, null);
+                Logger.LogInfo("Mod " + modInventoryStackingGuid + " found, considering stacking in backpack");
+
+                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", [typeof(ReadOnlyCollection<WorldObject>)]);
+                getStackCount = AccessTools.MethodDelegate<Func<ReadOnlyCollection<WorldObject>, int>>(mi, null);
                 stackSize = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
+                stackBackpack = (ConfigEntry<bool>)AccessTools.Field(pi.Instance.GetType(), "stackBackpack").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modInventoryStackingGuid + " not found");
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -41,10 +52,11 @@ namespace UIShowPlayerInventoryCount
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(BaseHudHandler), nameof(BaseHudHandler.UpdateHud))]
-        static void BaseHudHandler_UpdateHud(TextMeshProUGUI ___textPositionDecoration, GameObject ___subjectPositionDecoration, PlayerCanAct ___playerCanAct)
+        static void BaseHudHandler_UpdateHud(
+            TextMeshProUGUI ___textPositionDecoration)
         {
             Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
-            List<WorldObject> inv = inventory.GetInsideWorldObjects();
+            var inv = inventory.GetInsideWorldObjects();
             int cnt = inv.Count;
             int max = inventory.GetSize();
 
@@ -52,7 +64,7 @@ namespace UIShowPlayerInventoryCount
             string postfix = "  )]>";
             string addition;
 
-            if (getStackCount != null)
+            if (getStackCount != null && stackBackpack != null && stackBackpack.Value)
             {
                 int stack = getStackCount(inv); // fine, player inventory always stacks
                 addition = prefix + stack + " / " + max + "  (  " + cnt + "  /  " + (max * stackSize.Value) + postfix;

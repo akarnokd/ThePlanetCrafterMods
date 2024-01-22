@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiscPluginUpdateChecker", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIDeconstructPreventAccidental", "UIDeconstructPreventAccidental\UIDeconstructPreventAccidental.csproj", "{ADD7C990-C03B-4550-BC32-2B47A2C40B38}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIShowPlayerInventoryCount", "UIShowPlayerInventoryCount\UIShowPlayerInventoryCount.csproj", "{68FB05EA-5DF9-4155-98A4-589E8A7FC283}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{ADD7C990-C03B-4550-BC32-2B47A2C40B38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADD7C990-C03B-4550-BC32-2B47A2C40B38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADD7C990-C03B-4550-BC32-2B47A2C40B38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68FB05EA-5DF9-4155-98A4-589E8A7FC283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68FB05EA-5DF9-4155-98A4-589E8A7FC283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68FB05EA-5DF9-4155-98A4-589E8A7FC283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68FB05EA-5DF9-4155-98A4-589E8A7FC283}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
