@@ -13,16 +13,13 @@ using System.Collections;
 using UnityEngine;
 using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 namespace SaveQuickSave
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.savequicksave", "(Save) Quick Save", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         static ManualLogSource logger;
 
         static ConfigEntry<bool> modEnabled;
@@ -31,10 +28,10 @@ namespace SaveQuickSave
 
         static InputAction quickSaveAction;
 
-        static Func<string> multiplayerMode;
-
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -50,10 +47,6 @@ namespace SaveQuickSave
             quickSaveAction = new InputAction(name: "QuickSave", binding: shortcutKey.Value);
             quickSaveAction.Enable();
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                multiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-            }
         }
 
         void Update()
@@ -61,9 +54,9 @@ namespace SaveQuickSave
             if (modEnabled.Value && quickSaveAction.WasPressedThisFrame())
             {
                 logger.LogInfo("Quick Save Action");
-                if (multiplayerMode != null && multiplayerMode() == "CoopClient")
+                if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
                 {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Multiplayer Client mode not supported");
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Can't save on the client in multiplayer!");
                     return;
                 }
                 PlayersManager p = Managers.GetManager<PlayersManager>();

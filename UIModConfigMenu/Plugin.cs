@@ -78,6 +78,7 @@ namespace UIModConfigMenu
             GameObject buttonGraphics = default;
             GameObject scrollViewControls = default;
             OptionsPanel optionsPanel = default;
+            GameObject applyBtn = default;
 
             foreach (var go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
@@ -97,17 +98,24 @@ namespace UIModConfigMenu
                 {
                     optionsPanel = go.GetComponent<OptionsPanel>();
                 }
+                if (go.name == "ApplyButton")
+                {
+                    applyBtn = go;
+                }
             }
 
             if (buttonControls != null && buttonGraphics != null && scrollViewControls != null
-                && optionsPanel != null)
+                && optionsPanel != null && applyBtn != null)
             {
                 buttonMods = Instantiate(buttonGraphics);
                 buttonMods.name = "ButtonMods";
                 buttonMods.transform.SetParent(buttonGraphics.transform.parent, false);
 
+                /*
                 buttonMods.transform.localPosition = buttonGraphics.transform.localPosition
                     + new Vector3(buttonGraphics.transform.localPosition.x - buttonControls.transform.localPosition.x, 0, 0);
+                */
+                buttonMods.transform.SetSiblingIndex(buttonGraphics.transform.parent.childCount - 2);
 
                 var lt = buttonMods.GetComponentInChildren<LocalizedText>();
                 lt.textId = "ModConfigMenu_Button";
@@ -145,14 +153,21 @@ namespace UIModConfigMenu
                     filterGo.SetActive(true);
                 });
 
+                if (applyBtn != null)
+                {
+                    var applyRt = applyBtn.GetComponent<RectTransform>();
+                    applyRt.localPosition -= new Vector3(0, applyRt.sizeDelta.y * 1.5f, 0);
+                }
+
                 RenderPluginList();
             }
             else
             {
-                logger.LogInfo("ButtonControls" + (buttonControls != null));
-                logger.LogInfo("ButtonGraphics" + (buttonGraphics != null));
-                logger.LogInfo("Scroll View Control" + (scrollViewControls != null));
-                logger.LogInfo("OptionsPanel" + (optionsPanel != null));
+                logger.LogInfo("ButtonControls: " + (buttonControls != null));
+                logger.LogInfo("ButtonGraphics: " + (buttonGraphics != null));
+                logger.LogInfo("Scroll View Control: " + (scrollViewControls != null));
+                logger.LogInfo("OptionsPanel: " + (optionsPanel != null));
+                logger.LogInfo("ApplyBtn: " + (optionsPanel != null));
             }
         }
 

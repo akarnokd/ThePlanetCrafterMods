@@ -151,19 +151,22 @@ namespace UISortSaves
 
         static void CreateOrUpdateButtons()
         {
-            if (lastScreenWidth == Screen.width && lastScreenHeight == Screen.height)
+            if (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height)
+            {
+                Destroy(parent);
+                lastScreenWidth = Screen.width;
+                lastScreenHeight = Screen.height;
+            }
+
+            if (parent != null)
             {
                 return;
             }
 
-            lastScreenWidth = Screen.width;
-            lastScreenHeight = Screen.height;
-
-            Destroy(parent);
 
             Font font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            parent = new GameObject();
+            parent = new GameObject("SaveFilesSelectorSorting");
             Canvas canvas = parent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -333,7 +336,10 @@ namespace UISortSaves
         static void Intro_ShowSaveFilesList()
         {
             CreateOrUpdateButtons();
-            parent?.SetActive(true);
+            if (parent != null)
+            {
+                parent.SetActive(true);
+            }
         }
 
     }
