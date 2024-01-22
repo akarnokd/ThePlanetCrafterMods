@@ -18,12 +18,8 @@ namespace UIContinue
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("akarnokd.theplanetcraftermods.uitranslationitalian", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         static GameObject continueButton;
         static GameObject lastSaveInfo;
         static GameObject lastSaveDate;
@@ -32,17 +28,12 @@ namespace UIContinue
         static string lastSaveInfoText;
         static string lastSaveDateText;
 
-        static MethodInfo multiplayerContinue;
-
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
-
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                multiplayerContinue = AccessTools.Method(pi.Instance.GetType(), "MainMenuContinue");
-            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -89,14 +80,14 @@ namespace UIContinue
                     lastSave = files[i];
                     if (!lastSave.ToLower().EndsWith("backup.json"))
                     {
-                        lastSaveInfoText = Path.GetFileName(lastSave);
+                        lastSaveInfoText = Path.GetFileNameWithoutExtension(lastSave);
                         lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
 
-                        var tis = File.ReadLines(lastSave).Skip(1).Take(1).SingleOrDefault();
-                        if (!string.IsNullOrEmpty(tis))
+                        var tis = File.ReadLines(lastSave).Skip(1).Take(3).ToList();
+                        if (tis.Count != 0)
                         {
                             JsonableWorldState ws = new();
-                            JsonUtility.FromJsonOverwrite(tis.Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
+                            JsonUtility.FromJsonOverwrite(tis[0].Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
 
                             var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
 
@@ -139,7 +130,20 @@ namespace UIContinue
                             }
 
 
+                            if (tis.Count >= 3)
+                            {
+                                if (tis[2].Contains("\"id\":0,"))
+                                {
+                                    lastSaveInfoText += "     <i><color=#FFFF00>[Single]</color></i>";
+                                }
+                                else
+                                {
+                                    lastSaveInfoText += "     <i><color=#00FF00>[Multi]</color></i>";
+                                }
+                            }
+
                             lastSaveInfoText += "    " + tiAndUnit;
+
                             continueButton.SetActive(true);
                         }
                         break;
@@ -147,25 +151,27 @@ namespace UIContinue
                 }
             }
 
-            continueButton.transform.localPosition = playButton.transform.localPosition + new Vector3(0, Mathf.Abs(playButton.transform.localPosition.y - optionsButton.transform.localPosition.y));
+            continueButton.transform.SetAsFirstSibling();
 
             if (lastSaveInfo == null)
             {
                 lastSaveInfo = Instantiate(continueButton);
                 lastSaveInfo.name = "ContinueLastSaveInfo";
-                lastSaveInfo.transform.SetParent(continueButton.transform.parent, false);
-                Destroy(lastSaveInfo.GetComponentInChildren<Image>());
+                lastSaveInfo.transform.SetParent(continueButton.transform.parent.parent, false);
+                var img = lastSaveInfo.GetComponentInChildren<Image>();
+                img.sprite = null;
+                img.color = Color.black;
                 Destroy(lastSaveInfo.GetComponentInChildren<Button>());
                 Destroy(lastSaveInfo.GetComponentInChildren<LocalizedText>());
 
                 var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
                 txtInfo.text = lastSaveInfoText;
                 txtInfo.overflowMode = TextOverflowModes.Overflow;
-                txtInfo.enableWordWrapping = false;
+                txtInfo.textWrappingMode = TextWrappingModes.NoWrap;
 
                 lastSaveDate = Instantiate(continueButton);
                 lastSaveDate.name = "ContinueLastSaveDate";
-                lastSaveDate.transform.SetParent(continueButton.transform.parent, false);
+                lastSaveDate.transform.SetParent(continueButton.transform.parent.parent, false);
                 Destroy(lastSaveDate.GetComponentInChildren<Image>());
                 Destroy(lastSaveDate.GetComponentInChildren<Button>());
                 Destroy(lastSaveDate.GetComponentInChildren<LocalizedText>());
@@ -173,7 +179,7 @@ namespace UIContinue
                 var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
                 txtDate.text = lastSaveDateText;
                 txtDate.overflowMode = TextOverflowModes.Overflow;
-                txtDate.enableWordWrapping = false;
+                txtDate.textWrappingMode = TextWrappingModes.NoWrap;
             }
 
             {
@@ -181,11 +187,13 @@ namespace UIContinue
                 var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
                 var rect = continueButton.GetComponent<RectTransform>();
 
-                lastSaveInfo.transform.localPosition = continueButton.transform.localPosition
-                    + new Vector3(rect.sizeDelta.x * rect.localScale.x + txtInfo.preferredWidth / 2, txtInfo.preferredHeight / 2, 0);
+                lastSaveInfo.transform.position = continueButton.transform.position
+                    + new Vector3(rect.sizeDelta.x * rect.localScale.x / 1.75f + txtInfo.preferredWidth / 2, txtInfo.preferredHeight / 2, 0)
+                    ;
 
-                lastSaveDate.transform.localPosition = continueButton.transform.localPosition
-                    + new Vector3(rect.sizeDelta.x * rect.localScale.x + txtDate.preferredWidth / 2, -txtInfo.preferredHeight, 0);
+                lastSaveDate.transform.position = continueButton.transform.position
+                    + new Vector3(rect.sizeDelta.x * rect.localScale.x / 1.75f + txtDate.preferredWidth / 2, -txtInfo.preferredHeight, 0)
+                    ;
             }
         }
 
@@ -202,11 +210,18 @@ namespace UIContinue
             {
                 Managers.GetManager<SavedDataHandler>().SetSaveFileName(Path.GetFileNameWithoutExtension(lastSave));
                 lastSave = null;
-                if (multiplayerContinue != null)
-                {
-                    multiplayerContinue.Invoke(null, new object[0]);
-                }
                 SceneManager.LoadScene(GameConfig.mainSceneName);
+                foreach (var go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (go.name == "CanvasLoading")
+                    {
+                        go.SetActive(true);
+                    }
+                    if (go.name == "CanvasBase")
+                    {
+                        go.SetActive(false);
+                    }
+                }
             }
         }
 

@@ -333,7 +333,7 @@ namespace UISortSaves
         static void Intro_ShowSaveFilesList()
         {
             CreateOrUpdateButtons();
-            parent.SetActive(true);
+            parent?.SetActive(true);
         }
 
     }
