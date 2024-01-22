@@ -27,6 +27,8 @@ namespace UISortSaves
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -42,7 +44,7 @@ namespace UISortSaves
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.RefreshList))]
-        static bool SaveFilesSelector_RefreshList(SaveFilesSelector __instance, List<GameObject> ___objectsInList)
+        static bool SaveFilesSelector_RefreshList(SaveFilesSelector __instance, List<GameObject> ____objectsInList)
         {
             instance = __instance;
             Text currentText = currentMode.GetComponent<Text>();
@@ -50,15 +52,15 @@ namespace UISortSaves
             if (mode > 0)
             {
                 logger.LogInfo("RefreshList: " + mode);
-                MethodInfo mi = AccessTools.Method(typeof(SaveFilesSelector), "AddSaveToList", new Type[] { typeof(string) });
+                MethodInfo mi = AccessTools.Method(typeof(SaveFilesSelector), "AddSaveToList", [typeof(string)]);
                 Func<string, GameObject> addSaveToList = AccessTools.MethodDelegate<Func<string, GameObject>>(mi, __instance);
 
                 string[] files = Directory.GetFiles(Application.persistentDataPath, "*.json");
-                foreach (GameObject obj in ___objectsInList)
+                foreach (GameObject obj in ____objectsInList)
                 {
                     UnityEngine.Object.Destroy(obj);
                 }
-                ___objectsInList.Clear();
+                ____objectsInList.Clear();
 
                 // The vanilla AddSaveToList() adds items reversed, so sorting must be reversed
                 switch (mode)
@@ -114,7 +116,7 @@ namespace UISortSaves
                     if (!(nameOfSave == GameConfig.saveHiddenIdentifier))
                     {
                         GameObject item = addSaveToList(nameOfSave);
-                        ___objectsInList.Add(item);
+                        ____objectsInList.Add(item);
                     }
                 }
                 __instance.filesListContainer.GetComponentInChildren<ScrollRect>().normalizedPosition = new Vector2(500f, 500f);
@@ -126,7 +128,7 @@ namespace UISortSaves
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.SelectedSaveFile))]
-        static void SaveFilesSelector_SelectedSaveFile(string _fileName)
+        static void SaveFilesSelector_SelectedSaveFile()
         {
             instance = null;
             parent.SetActive(false);
@@ -138,9 +140,29 @@ namespace UISortSaves
         static GameObject currentMode;
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(SaveFilesSelector), nameof(SaveFilesSelector.Start))]
-        static void SaveFilesSelector_Start(SaveFilesSelector __instance)
+        [HarmonyPatch(typeof(SaveFilesSelector), "Start")]
+        static void SaveFilesSelector_Start()
         {
+            CreateOrUpdateButtons();
+        }
+
+        static int lastScreenWidth;
+        static int lastScreenHeight;
+
+        static void CreateOrUpdateButtons()
+        {
+            if (lastScreenWidth == Screen.width && lastScreenHeight == Screen.height)
+            {
+                return;
+            }
+
+            lastScreenWidth = Screen.width;
+            lastScreenHeight = Screen.height;
+
+            Destroy(parent);
+
+            Font font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
             parent = new GameObject();
             Canvas canvas = parent.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -158,7 +180,7 @@ namespace UISortSaves
             prev.transform.parent = parent.transform;
 
             text = prev.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = font;
             text.text = "[ <- ]";
             text.color = new Color(1f, 1f, 1f, 1f);
             text.fontSize = (int)fs;
@@ -178,7 +200,7 @@ namespace UISortSaves
             currentMode.transform.parent = parent.transform;
 
             text = currentMode.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = font;
             text.text = "";
             text.color = new Color(1f, 1f, 1f, 1f);
             text.fontSize = (int)fs;
@@ -191,13 +213,42 @@ namespace UISortSaves
             rectTransform.localPosition = new Vector2(dx + 150 + fs * 7, dy + fs);
             rectTransform.sizeDelta = new Vector2(300, fs + 5);
 
+            switch (sortMode.Value)
+            {
+                case 1:
+                    {
+                        text.text = "Newest";
+                        break;
+                    }
+                case 2:
+                    {
+                        text.text = "Oldest";
+                        break;
+                    }
+                case 3:
+                    {
+                        text.text = "Name Asc";
+                        break;
+                    }
+                case 4:
+                    {
+                        text.text = "Name Desc";
+                        break;
+                    }
+                default:
+                    {
+                        text.text = "Default";
+                        break;
+                    }
+            }
+
             // -------------------------
 
             next = new GameObject("SaveListNext");
             next.transform.parent = parent.transform;
 
             text = next.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = font;
             text.text = "[ -> ]";
             text.color = new Color(1f, 1f, 1f, 1f);
             text.fontSize = (int)fs;
@@ -221,6 +272,8 @@ namespace UISortSaves
 
             if (instance != null)
             {
+                CreateOrUpdateButtons();
+
                 if (Mouse.current.leftButton.wasPressedThisFrame)
                 {
                     var mouse = Mouse.current.position.ReadValue();
@@ -279,6 +332,7 @@ namespace UISortSaves
         [HarmonyPatch(typeof(Intro), nameof(Intro.ShowSaveFilesList))]
         static void Intro_ShowSaveFilesList()
         {
+            CreateOrUpdateButtons();
             parent.SetActive(true);
         }
 
