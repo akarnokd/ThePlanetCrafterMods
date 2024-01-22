@@ -83,7 +83,7 @@ namespace UIContinue
                         lastSaveInfoText = Path.GetFileNameWithoutExtension(lastSave);
                         lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
 
-                        var tis = File.ReadLines(lastSave).Skip(1).Take(3).ToList();
+                        var tis = File.ReadLines(lastSave).Skip(1).Take(4).ToList();
                         if (tis.Count != 0)
                         {
                             JsonableWorldState ws = new();
@@ -130,9 +130,9 @@ namespace UIContinue
                             }
 
 
-                            if (tis.Count >= 3)
+                            if (tis.Count >= 4)
                             {
-                                if (tis[2].Contains("\"id\":0,"))
+                                if (tis[3].StartsWith("@"))
                                 {
                                     lastSaveInfoText += "     <i><color=#FFFF00>[Single]</color></i>";
                                 }
@@ -158,16 +158,23 @@ namespace UIContinue
                 lastSaveInfo = Instantiate(continueButton);
                 lastSaveInfo.name = "ContinueLastSaveInfo";
                 lastSaveInfo.transform.SetParent(continueButton.transform.parent.parent, false);
-                var img = lastSaveInfo.GetComponentInChildren<Image>();
-                img.sprite = null;
-                img.color = Color.black;
+                DestroyImmediate(lastSaveInfo.GetComponentInChildren<Image>());
                 Destroy(lastSaveInfo.GetComponentInChildren<Button>());
                 Destroy(lastSaveInfo.GetComponentInChildren<LocalizedText>());
+
+                var lastSaveInfoBackground = new GameObject("ContinueLastSaveInfoBackground");
+                lastSaveInfoBackground.transform.SetParent(lastSaveInfo.transform, false);
+                lastSaveInfoBackground.transform.SetAsFirstSibling();
+                var img = lastSaveInfoBackground.AddComponent<Image>();
+                img.color = Color.black;
+                var lastSaveInfoBackgroundRT = lastSaveInfoBackground.GetComponent<RectTransform>();
 
                 var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
                 txtInfo.text = lastSaveInfoText;
                 txtInfo.overflowMode = TextOverflowModes.Overflow;
                 txtInfo.textWrappingMode = TextWrappingModes.NoWrap;
+
+                lastSaveInfoBackgroundRT.sizeDelta = new Vector2(txtInfo.preferredWidth + 20, txtInfo.preferredHeight);
 
                 lastSaveDate = Instantiate(continueButton);
                 lastSaveDate.name = "ContinueLastSaveDate";
