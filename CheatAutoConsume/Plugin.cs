@@ -17,6 +17,8 @@ namespace CheatAutoConsume
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -32,23 +34,24 @@ namespace CheatAutoConsume
             PlayerGaugesHandler gh = activePlayerController.GetGaugesHandler();
             foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
             {
-                if (_worldObject.GetGroup() is GroupItem)
+                if (_worldObject.GetGroup() is GroupItem groupItem)
                 {
-                    GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
                     int groupValue = groupItem.GetGroupValue();
                     if (groupItem.GetUsableType() == type)
                     {
                         if ((type == DataConfig.UsableType.Eatable && gh.Eat(groupValue))
                                 || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
-                                ) {
+                                )
+                        {
 
                             if (groupItem.GetEffectOnPlayer() != null)
                             {
                                 activePlayerController.GetPlayerEffects().ActivateEffect(groupItem.GetEffectOnPlayer());
                             }
 
-                            inv.RemoveItem(_worldObject, true);
+                            InventoriesHandler.Instance.RemoveItemFromInventory(_worldObject, inv, true, null);
+
                             return true;
                         }
                     }

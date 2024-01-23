@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using UnityEngine.UI;
+using System.Collections.ObjectModel;
 
 namespace UIShowConsumableCount
 {
@@ -19,11 +20,13 @@ namespace UIShowConsumableCount
         static GameObject waterCount;
 
         static GameObject oxygenCount;
-        
-        Dictionary<DataConfig.UsableType, GameObject> counts = new Dictionary<DataConfig.UsableType, GameObject>();
 
-        private void Awake()
+        readonly Dictionary<DataConfig.UsableType, GameObject> counts = [];
+
+        void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -58,9 +61,9 @@ namespace UIShowConsumableCount
         {
             Logger.LogInfo("Begin adding UI elements");
 
-            healthCount = AddTextForGauge(FindAnyObjectByType<PlayerGaugeHealth>(), "FoodConsumableCounter");
-            waterCount = AddTextForGauge(FindAnyObjectByType<PlayerGaugeThirst>(), "WaterConsumableCounter");
-            oxygenCount = AddTextForGauge(FindAnyObjectByType<PlayerGaugeOxygen>(), "OxygenConsumableCounter");
+            healthCount = AddTextForGauge(PlayerGaugeHealth.Instance, "FoodConsumableCounter");
+            waterCount = AddTextForGauge(PlayerGaugeThirst.Instance, "WaterConsumableCounter");
+            oxygenCount = AddTextForGauge(PlayerGaugeOxygen.Instance, "OxygenConsumableCounter");
 
             counts[DataConfig.UsableType.Eatable] = healthCount;
             counts[DataConfig.UsableType.Drinkable] = waterCount;
@@ -69,7 +72,7 @@ namespace UIShowConsumableCount
             Logger.LogInfo("Done adding UI elements");
         }
 
-        GameObject AddTextForGauge(PlayerGauge gauge, string name)
+        GameObject AddTextForGauge<T>(PlayerGauge<T> gauge, string name) where T : PlayerGauge<T>
         {
             int fs = fontSize.Value;
 
@@ -107,15 +110,14 @@ namespace UIShowConsumableCount
             return result;
         }
 
-        void UpdateText(List<WorldObject> inventory)
+        void UpdateText(ReadOnlyCollection<WorldObject> inventory)
         {
-            Dictionary<DataConfig.UsableType, int> consumableCounts = new Dictionary<DataConfig.UsableType, int>();
+            Dictionary<DataConfig.UsableType, int> consumableCounts = [];
 
             foreach (WorldObject wo in inventory)
             {
-                if (wo.GetGroup() is GroupItem)
+                if (wo.GetGroup() is GroupItem groupItem)
                 {
-                    GroupItem groupItem = (GroupItem)wo.GetGroup();
                     DataConfig.UsableType key = groupItem.GetUsableType();
                     consumableCounts.TryGetValue(key, out int c);
                     consumableCounts[key] = c + 1;
