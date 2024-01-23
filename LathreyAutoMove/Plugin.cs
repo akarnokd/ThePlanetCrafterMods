@@ -20,6 +20,8 @@ namespace LathreyAutoMove
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             Logger.LogInfo($"Plugin is loaded!");
 
             configToggleAutoMoveModifierKey = Config.Bind("General", "Toggle_Auto_Move_Modifier_Key", Key.None,

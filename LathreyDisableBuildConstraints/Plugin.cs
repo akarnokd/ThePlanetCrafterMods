@@ -28,6 +28,8 @@ namespace LathreyDisableBuildConstraints
             };
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             Logger.LogInfo($"Plugin is loaded!");
 
             configToggleBuildConstraintsModifierKey = Config.Bind("General", "Toggle_Build_Constraints_Modifier_Key", Key.LeftCtrl,
@@ -55,7 +57,6 @@ namespace LathreyDisableBuildConstraints
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SnapPoint), "OnTriggerEnter")]
-
         private static bool SnapPoint_OnTriggerEnter_Prefix()
         {
             return !snappingDisabled;
