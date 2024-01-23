@@ -1,13 +1,4 @@
 ﻿using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
-using UnityEngine;
-using UnityEngine.UI;
-using System.Reflection;
-using System.IO;
-using System;
-using System.Globalization;
-using BepInEx.Logging;
 
 namespace MiscDebug
 {
@@ -15,7 +6,7 @@ namespace MiscDebug
     public class Plugin : BaseUnityPlugin
     {
 
-        private void Awake()
+        void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
         }

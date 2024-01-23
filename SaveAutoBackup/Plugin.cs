@@ -26,8 +26,10 @@ namespace SaveAutoBackup
         static ConfigEntry<int> keepAge;
         static ConfigEntry<bool> doAsync;
 
-        private void Awake()
+        void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
