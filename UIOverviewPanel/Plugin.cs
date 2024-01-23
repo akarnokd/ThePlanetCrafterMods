@@ -10,7 +10,6 @@ using System.Reflection;
 using BepInEx.Configuration;
 using System;
 using Unity.Netcode;
-using System.Reflection.Emit;
 using System.Collections;
 
 namespace UIOverviewPanel
