@@ -18,6 +18,7 @@ using System.Text;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using System.Collections;
+using Unity.Netcode;
 using BepInEx.Bootstrap;
 
 namespace FeatCommandConsole
@@ -27,12 +28,8 @@ namespace FeatCommandConsole
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
     [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-
-        const string modInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
-
         static ManualLogSource logger;
 
         static ConfigEntry<bool> modEnabled;
@@ -54,6 +51,7 @@ namespace FeatCommandConsole
         static readonly List<GameObject> outputFieldLines = new();
         static List<string> consoleText = new();
         static TMP_FontAsset fontAsset;
+        static int fontMargin = 5;
 
         static int scrollOffset;
         static int commandHistoryIndex;
@@ -80,6 +78,8 @@ namespace FeatCommandConsole
         static Plugin me;
 
         static Func<Inventory, int> GetInventoryCapacity;
+
+        static Func<Inventory, string, bool> InventoryCanAdd;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -110,6 +110,8 @@ namespace FeatCommandConsole
 
         void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -160,7 +162,7 @@ namespace FeatCommandConsole
                 log("Setting custom font failed, using default game font");
             }
 
-            createWelcomeText();
+            CreateWelcomeText();
 
             log("Setting up command registry");
             foreach (MethodInfo mi in typeof(Plugin).GetMethods())
@@ -171,7 +173,7 @@ namespace FeatCommandConsole
                     commandRegistry[ca.name] = new CommandRegistryEntry
                     {
                         description = ca.description,
-                        method = (list => mi.Invoke(this, new object[] { list })),
+                        method = (list => mi.Invoke(this, [list])),
                         standard = true
                     };
 
@@ -179,16 +181,9 @@ namespace FeatCommandConsole
                 }
             }
 
-            if (Chainloader.PluginInfos.TryGetValue(modInventoryStackingGuid, out var pi))
-            {
-                logger.LogInfo("Mod " + modInventoryStackingGuid + " found, using its services.");
-                var m = AccessTools.Method(pi.Instance.GetType(), "GetInventoryCapacity", new Type[] { typeof(Inventory) });
-                GetInventoryCapacity = AccessTools.MethodDelegate<Func<Inventory, int>>(m, pi.Instance);
-            }
-            else
-            {
-                logger.LogInfo("Mod " + modInventoryStackingGuid + " not found, inventories are treated as vanilla.");
-            }
+            InventoryCanAdd = (inv, gid) => !inv.IsFull();
+
+            // TODO Stacking
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -201,7 +196,7 @@ namespace FeatCommandConsole
             }
         }
 
-        static void createWelcomeText()
+        static void CreateWelcomeText()
         {
             var ver = typeof(Plugin).GetCustomAttribute<BepInPlugin>().Version;
             consoleText.Add("Welcome to <b>Command Console</b> version <color=#00FF00>" + ver + "</color>.");
@@ -233,7 +228,6 @@ namespace FeatCommandConsole
             separator = null;
         }
 
-
         void Update()
         {
             var wh = Managers.GetManager<WindowsHandler>();
@@ -256,7 +250,7 @@ namespace FeatCommandConsole
             {
                 if (Keyboard.current[Key.Escape].wasPressedThisFrame)
                 {
-                    log("Escape pressed. closing GUI");
+                    log("Escape pressed. Closing GUI");
                     DestroyConsoleGUI();
                     wh.CloseAllWindows();
                 }
@@ -362,7 +356,7 @@ namespace FeatCommandConsole
                 return;
             }
 
-            logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null?" + (background == null));
+            logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null? " + (background == null));
 
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
@@ -400,7 +394,7 @@ namespace FeatCommandConsole
             img.color = new Color(0.9f, 0.9f, 0.9f, 1f);
 
             rect = img.GetComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, -panelHeight / 2 + (5 + fontSize.Value), 0);
+            rect.localPosition = new Vector3(0, -panelHeight / 2 + (fontMargin + fontSize.Value), 0);
             rect.sizeDelta = new Vector2(panelWidth - 10, 2);
 
             // ---------------------------------------------
@@ -427,13 +421,13 @@ namespace FeatCommandConsole
 
             log("   Set position");
             rect = inputField.GetComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, -panelHeight / 2 + (5 + fontSize.Value) / 2, 0);
-            rect.sizeDelta = new Vector2(panelWidth - 10, 5 + fontSize.Value);
+            rect.localPosition = new Vector3(0, -panelHeight / 2 + (fontMargin + fontSize.Value) / 2, 0);
+            rect.sizeDelta = new Vector2(panelWidth - 10, fontMargin + fontSize.Value);
 
             createOutputLines();
 
             log("Patch in the custom text window");
-            AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
+            AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "_openedUi") = DataConfig.UiType.TextInput;
 
             log("Activating the field");
             inputFieldText.enabled = false;
@@ -460,7 +454,7 @@ namespace FeatCommandConsole
             outputFieldLines.Clear();
 
             log("Set output lines");
-            int outputY = -panelHeight / 2 + (5 + fontSize.Value) * 3 / 2;
+            int outputY = -panelHeight / 2 + (fontMargin + fontSize.Value) * 3 / 2;
 
             int j = 0;
             for (int i = consoleText.Count - scrollOffset - 1; i >= 0; i--)
@@ -478,17 +472,17 @@ namespace FeatCommandConsole
                 outputFieldText.font = fontAsset;
                 outputFieldText.fontSize = fontSize.Value;
                 outputFieldText.richText = true;
-                outputFieldText.enableWordWrapping = false;
+                outputFieldText.textWrappingMode = TextWrappingModes.NoWrap;
                 outputFieldText.text = line;
 
                 var rect = outputFieldText.GetComponent<RectTransform>();
                 rect.localPosition = new Vector3(0, outputY, 0);
-                rect.sizeDelta = new Vector2(panelWidth - 10, 5 + fontSize.Value);
+                rect.sizeDelta = new Vector2(panelWidth - 10, fontMargin + fontSize.Value);
 
                 outputFieldLines.Add(outputField);
 
                 j++;
-                outputY += (5 + fontSize.Value);
+                outputY += (fontMargin + fontSize.Value);
             }
         }
 
@@ -528,6 +522,11 @@ namespace FeatCommandConsole
                 }
 
             }
+            else
+            {
+                ChatHandler.Instance?.SendChatMessage(text);
+            }
+
             scrollOffset = 0;
             createOutputLines();
 
@@ -577,7 +576,7 @@ namespace FeatCommandConsole
         // command methods
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-        [Command("/help", "Displays the list of commands or their own descriptions")]
+        [Command("/help", "Displays the list of commands or their own descriptions.")]
         public void Help(List<string> args)
         {
             if (args.Count == 1)
@@ -641,7 +640,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/clear", "Clears the console history")]
+        [Command("/clear", "Clears the console history.")]
         public void Clear(List<string> args)
         {
             consoleText.Clear();
@@ -745,14 +744,10 @@ namespace FeatCommandConsole
                         int added = 0;
                         for (int i = 0; i < count; i++)
                         {
-                            var wo = WorldObjectsHandler.CreateNewWorldObject(g);
-
-                            if (!inv.AddItem(wo))
+                            if (TryAddToInventory(inv, g))
                             {
-                                WorldObjectsHandler.DestroyWorldObject(wo);
-                                break;
+                                added++;
                             }
-                            added++;
                         }
 
                         if (added == count)
@@ -772,6 +767,22 @@ namespace FeatCommandConsole
             }
         }
 
+        bool TryAddToInventory(Inventory inventory, SpaceCraft.Group gr)
+        {
+            if (InventoryCanAdd(inventory, gr.id))
+            {
+                InventoriesHandler.Instance.AddItemToInventory(gr, inventory, (success, id) =>
+                {
+                    if (!success && id != 0)
+                    {
+                        WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                    }
+                });
+                return true;
+            }
+            return false;
+        }
+
         void SpawnInItems(int amount, string[] resources)
         {
             int added = 0;
@@ -785,14 +796,9 @@ namespace FeatCommandConsole
                     var gr = GroupsHandler.GetGroupViaId(gid);
                     if (gr != null)
                     {
-                        var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
-                        if (inv.AddItem(wo))
+                        if (TryAddToInventory(inv, gr))
                         {
                             added++;
-                        }
-                        else
-                        {
-                            WorldObjectsHandler.DestroyWorldObject(wo);
                         }
                     }
                     else
@@ -817,7 +823,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/tp", "Teleport to a user-named location or an x, y, z position")]
+        [Command("/tp", "Teleport to a user-named location or an x, y, z position.")]
         public void Teleport(List<string> args)
         {
             if (args.Count != 2 && args.Count != 4)
@@ -827,7 +833,7 @@ namespace FeatCommandConsole
                 addLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
                 addLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
                 addLine("<margin=2em><color=#FFFF00>/tp x:y:z</color> - teleport to a specific coordinate described by the colon format");
-                addLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>, ");
+                addLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>.");
             }
             else
             if (args.Count == 2)
@@ -886,7 +892,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/tpr", "Teleport relative to the current location")]
+        [Command("/tpr", "Teleport relative to the current location.")]
         public void TeleportRelative(List<string> args)
         {
             if (args.Count != 2 && args.Count != 4)
@@ -942,7 +948,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/tp-list", "List all known user-named teleport locations; can specify name prefix")]
+        [Command("/tp-list", "List all known user-named teleport locations; can specify name prefix.")]
         public void TeleportList(List<string> args)
         {
             EnsureTeleportLocations();
@@ -980,7 +986,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/tp-create", "Save the current player location as a named location")]
+        [Command("/tp-create", "Save the current player location as a named location.")]
         public void TeleportCreate(List<string> args)
         {
             if (args.Count != 2)
@@ -1006,7 +1012,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/tp-remove", "Remove a user-named teleport location")]
+        [Command("/tp-remove", "Remove a user-named teleport location.")]
         public void TeleportRemove(List<string> args)
         {
             if (args.Count != 2)
@@ -1103,7 +1109,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/list-stages", "List the terraformation stages along with their Ti amounts")]
+        [Command("/list-stages", "List the terraformation stages along with their Ti amounts.")]
         public void ListStages(List<string> args)
         {
             var tfm = Managers.GetManager<TerraformStagesHandler>();
@@ -1116,7 +1122,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-ti", "Adds the specified amount to the Ti value")]
+        [Command("/add-ti", "Adds the specified amount to the Ti value.")]
         public void AddTi(List<string> args)
         {
             if (args.Count != 2)
@@ -1134,7 +1140,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-heat", "Adds the specified amount to the Heat value")]
+        [Command("/add-heat", "Adds the specified amount to the Heat value.")]
         public void AddHeat(List<string> args)
         {
             if (args.Count != 2)
@@ -1152,7 +1158,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-oxygen", "Adds the specified amount to the Oxygen value")]
+        [Command("/add-oxygen", "Adds the specified amount to the Oxygen value.")]
         public void AddOxygen(List<string> args)
         {
             if (args.Count != 2)
@@ -1169,8 +1175,8 @@ namespace FeatCommandConsole
                 addLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
-
-        [Command("/add-pressure", "Adds the specified amount to the Pressure value")]
+        
+        [Command("/add-pressure", "Adds the specified amount to the Pressure value.")]
         public void AddPressure(List<string> args)
         {
             if (args.Count != 2)
@@ -1188,7 +1194,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-biomass", "Adds the specified amount to the Biomass value")]
+        [Command("/add-biomass", "Adds the specified amount to the Biomass value.")]
         public void AddBiomass(List<string> args)
         {
             if (args.Count != 2)
@@ -1206,7 +1212,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-plants", "Adds the specified amount to the Plants value")]
+        [Command("/add-plants", "Adds the specified amount to the Plants value.")]
         public void AddPlants(List<string> args)
         {
             if (args.Count != 2)
@@ -1224,7 +1230,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-insects", "Adds the specified amount to the Insects value")]
+        [Command("/add-insects", "Adds the specified amount to the Insects value.")]
         public void AddInsects(List<string> args)
         {
             if (args.Count != 2)
@@ -1242,7 +1248,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-animals", "Adds the specified amount to the Animals value")]
+        [Command("/add-animals", "Adds the specified amount to the Animals value.")]
         public void AddAnimals(List<string> args)
         {
             if (args.Count != 2)
@@ -1263,7 +1269,7 @@ namespace FeatCommandConsole
         float AddToWorldUnit(DataConfig.WorldUnitType wut, float amount)
         {
             var result = 0.0f;
-            var worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "currentTotalValue");
+            var worldUnitCurrentTotalValue = AccessTools.Field(typeof(WorldUnit), "_currentTotalValue");
             var worldUnitsPositioningWorldUnitsHandler = AccessTools.Field(typeof(WorldUnitPositioning), "worldUnitsHandler");
             var worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
 
@@ -1312,7 +1318,7 @@ namespace FeatCommandConsole
             return result;
         }
 
-        [Command("/list-microchip-tiers", "Lists all unlock tiers and unlock items of the microchips")]
+        [Command("/list-microchip-tiers", "Lists all unlock tiers and unlock items of the microchips.")]
         public void ListMicrochipTiers(List<string> args)
         {
             UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
@@ -1357,7 +1363,7 @@ namespace FeatCommandConsole
 
         }
 
-        [Command("/list-microchip-unlocks", "List the identifiers of microchip unlocks; can specify prefix")]
+        [Command("/list-microchip-unlocks", "List the identifiers of microchip unlocks; can specify prefix.")]
         public void ListMicrochipUnlocks(List<string> args)
         {
             UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
@@ -1415,7 +1421,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/unlock-microchip", "Unlocks a specific microchip techology")]
+        [Command("/unlock-microchip", "Unlocks a specific microchip techology.")]
         public void UnlockMicrochip(List<string> args)
         {
             if (args.Count < 2)
@@ -1452,7 +1458,7 @@ namespace FeatCommandConsole
                     foreach (var gd in tiers)
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
-                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
+                        if (!UnlockedGroupsHandler.Instance.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             list.Add(g.id);
                         }
@@ -1473,7 +1479,7 @@ namespace FeatCommandConsole
                     if (gr != null)
                     {
                         addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
-                        GroupsHandler.UnlockGroupGlobally(gr);
+                        UnlockedGroupsHandler.Instance.UnlockGroupGlobally(gr);
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
                     }
                     else
@@ -1484,7 +1490,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/unlock", "Unlocks a specific techology")]
+        [Command("/unlock", "Unlocks a specific techology.")]
         public void Unlock(List<string> args)
         {
             if (args.Count < 2)
@@ -1507,7 +1513,7 @@ namespace FeatCommandConsole
                     foreach (var gd in GroupsHandler.GetAllGroups())
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
-                        if (!GroupsHandler.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
+                        if (!UnlockedGroupsHandler.Instance.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
                             list.Add(g.id);
                         }
@@ -1528,7 +1534,7 @@ namespace FeatCommandConsole
                     if (gr != null)
                     {
                         addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
-                        GroupsHandler.UnlockGroupGlobally(gr);
+                        UnlockedGroupsHandler.Instance.UnlockGroupGlobally(gr);
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
                     }
                     else
@@ -1539,7 +1545,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/list-tech", "Lists all technology identifiers; can filter via prefix")]
+        [Command("/list-tech", "Lists all technology identifiers; can filter via prefix.")]
         public void ListTech(List<string> args)
         {
             var prefix = "";
@@ -1624,7 +1630,7 @@ namespace FeatCommandConsole
 
         }
 
-        [Command("/tech-info", "Shows detailed information about a technology")]
+        [Command("/tech-info", "Shows detailed information about a technology.")]
         public void TechInfo(List<string> args)
         {
             if (args.Count < 2)
@@ -1648,7 +1654,7 @@ namespace FeatCommandConsole
                     addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
                     var unlockInfo = gr.GetUnlockingInfos();
                     addLine("<margin=1em><b>Is Unlocked:</b>");
-                    addLine("<margin=2em><b>Globally:</b> <color=#00FF00>" + GroupsHandler.IsGloballyUnlocked(gr));
+                    addLine("<margin=2em><b>Globally:</b> <color=#00FF00>" + gr.GetIsGloballyUnlocked());
                     addLine("<margin=2em><b>Blueprint:</b> <color=#00FF00>" + unlockInfo.GetIsUnlockedViaBlueprint());
                     addLine("<margin=2em><b>Progress:</b> <color=#00FF00>" + unlockInfo.GetIsUnlocked());
                     addLine("<margin=2em><b>At:</b> <color=#00FF00>" + string.Format("{0:#,##0}", unlockInfo.GetUnlockingValue()) + " " + unlockInfo.GetWorldUnit());
@@ -1672,7 +1678,7 @@ namespace FeatCommandConsole
                             addLine("<margin=2em><b>Subcategory:</b> <color=#00FF00>" + gi.GetItemSubCategory());
                         }
                         addLine("<margin=2em><b>Value:</b> <color=#00FF00>" + gi.GetGroupValue());
-                        List<string> list = new();
+                        List<string> list = [];
                         foreach (var e in Enum.GetValues(typeof(DataConfig.CraftableIn)))
                         {
                             if (gi.CanBeCraftedIn((DataConfig.CraftableIn)e))
@@ -1709,7 +1715,7 @@ namespace FeatCommandConsole
                         var ulg = gi.GetUnlocksGroup();
                         if (ulg != null)
                         {
-                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
+                            addLine("<margin=2em><b>Unlocks group:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
                         }
 
                         EffectOnPlayer eff = gi.GetEffectOnPlayer();
@@ -1778,13 +1784,13 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/copy-to-clipboard", "Copies the console history to the system clipboard")]
+        [Command("/copy-to-clipboard", "Copies the console history to the system clipboard.")]
         public void CopyToClipboard(List<string> args)
         {
             GUIUtility.systemCopyBuffer = string.Join("\n", consoleText);
         }
 
-        [Command("/ctc", "Copies the console history to the system clipboard without formatting")]
+        [Command("/ctc", "Copies the console history to the system clipboard without formatting.")]
         public void CopyToClipboard2(List<string> args)
         {
             var str = string.Join("\n", consoleText);
@@ -1796,7 +1802,7 @@ namespace FeatCommandConsole
             GUIUtility.systemCopyBuffer = Regex.Replace(str, "<\\/?.*?>", "");
         }
 
-        [Command("/refill", "Refills the Health, Water and Oxygen meters")]
+        [Command("/refill", "Refills the Health, Water and Oxygen meters.")]
         public void Refill(List<string> args)
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
@@ -1851,7 +1857,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-health", "Adds a specific Health amount to the player")]
+        [Command("/add-health", "Adds a specific Health amount to the player.")]
         public void AddHealth(List<string> args)
         {
             if (args.Count != 2)
@@ -1869,7 +1875,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-water", "Adds a specific Water amount to the player")]
+        [Command("/add-water", "Adds a specific Water amount to the player.")]
         public void AddWater(List<string> args)
         {
             if (args.Count != 2)
@@ -1887,7 +1893,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-air", "Adds a specific Air amount to the player")]
+        [Command("/add-air", "Adds a specific Air amount to the player.")]
         public void AddAir(List<string> args)
         {
             if (args.Count != 2)
@@ -1905,7 +1911,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/die", "Kills the player")]
+        [Command("/die", "Kills the player.")]
         public void Die(List<string> args)
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
@@ -1916,7 +1922,7 @@ namespace FeatCommandConsole
             //Managers.GetManager<WindowsHandler>().CloseAllWindows();
         }
 
-        [Command("/list-larvae", "Show information about larvae sequencing; can use prefix filter")]
+        [Command("/list-larvae", "Show information about larvae sequencing; can use prefix filter.")]
         public void LarvaeSequenceInfo(List<string> args)
         {
             var prefix = "";
@@ -2003,7 +2009,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/list-loot", "List chest loot information")]
+        [Command("/list-loot", "List chest loot information.")]
         public void ListLoot(List<string> args)
         {
             var stagesLH = Managers.GetManager<InventoryLootHandler>();
@@ -2180,11 +2186,9 @@ namespace FeatCommandConsole
                         {
                             foreach (var ri in recipe)
                             {
-                                var wo = WorldObjectsHandler.CreateNewWorldObject(ri);
-                                if (!inv.AddItem(wo))
+                                if (!TryAddToInventory(inv, ri))
                                 {
-                                    WorldObjectsHandler.DestroyWorldObject(wo);
-                                    full = true;
+                                    full = true; 
                                     break;
                                 }
                             }
@@ -2222,7 +2226,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/raise", "Raises player-placed objects in a radius (cylindrically)")]
+        [Command("/raise", "Raises player-placed objects in a radius (cylindrically).")]
         public void Raise(List<string> args)
         {
             if (args.Count != 3)
@@ -2241,7 +2245,7 @@ namespace FeatCommandConsole
                 var posXY = new Vector2(pos.x, pos.z);
 
                 int i = 0;
-                foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+                foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
                 {
                     if (!WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()) && wo.GetIsPlaced())
                     {
@@ -2264,7 +2268,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/console-set-left", "Sets the Command Console's window's left position on the screen")]
+        [Command("/console-set-left", "Sets the Command Console's window's left position on the screen.")]
         public void ConsoleLeft(List<string> args)
         {
             if (args.Count != 2)
@@ -2281,7 +2285,7 @@ namespace FeatCommandConsole
             RecreateBackground(Managers.GetManager<WindowsHandler>());
         }
 
-        [Command("/console-set-right", "Sets the Command Console's window's right position on the screen")]
+        [Command("/console-set-right", "Sets the Command Console's window's right position on the screen.")]
         public void ConsoleRight(List<string> args)
         {
             if (args.Count != 2)
@@ -2298,7 +2302,7 @@ namespace FeatCommandConsole
             RecreateBackground(Managers.GetManager<WindowsHandler>());
         }
 
-        [Command("/meteor", "Triggers or lists the available meteor events")]
+        [Command("/meteor", "Triggers or lists the available meteor events.")]
         public void Meteor(List<string> args)
         {
             if (args.Count != 2)
@@ -2313,15 +2317,15 @@ namespace FeatCommandConsole
             else 
             {
                 var mh = Managers.GetManager<MeteoHandler>();
-                var list = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEvents").GetValue(mh);
-                var queue = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "meteoEventQueue").GetValue(mh);
-                var curr = (MeteoEventData)AccessTools.Field(typeof(MeteoHandler), "selectedDataMeteoEvent").GetValue(mh);
+                var list = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "_meteoEvents").GetValue(mh);
+                var queue = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "_meteoEventQueue").GetValue(mh);
+                var currIndex = (NetworkVariable<int>)AccessTools.Field(typeof(MeteoHandler), "_selectedDataMeteoEventIndex").GetValue(mh);
                 if (args[1] == "list")
                 {
                     addLine("<margin=1em>Current meteor event:");
-                    if (curr != null)
+                    if (currIndex.Value != -1)
                     {
-                        CreateMeteorEventLines(0, curr);
+                        CreateMeteorEventLines(0, list[currIndex.Value]);
                     }
                     else
                     {
@@ -2424,7 +2428,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/list-items-nearby", "Lists the world object ids and their types within a radius")]
+        [Command("/list-items-nearby", "Lists the world object ids and their types within a radius.")]
         public void ItemsNearby(List<string> args)
         {
             if (args.Count == 1)
@@ -2446,7 +2450,7 @@ namespace FeatCommandConsole
                 var pp = pm.transform.position;
 
                 List<WorldObject> found = new();
-                foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+                foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
                 {
                     if (wo.GetIsPlaced() && Vector3.Distance(pp, wo.GetPosition()) < radius)
                     {
@@ -2467,7 +2471,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/delete-item", "Deletes a world object specified by its unique id")]
+        [Command("/delete-item", "Deletes a world object specified by its unique id.")]
         public void DeleteItem(List<string> args)
         {
             if (args.Count != 2)
@@ -2479,31 +2483,20 @@ namespace FeatCommandConsole
             else
             {
                 int id = int.Parse(args[1]);
-
-                int cnt = 0;
-                var wos = WorldObjectsHandler.GetAllWorldObjects();
-                for (int i = wos.Count - 1; i >= 0; i--)
+                bool found = false;
+                if (WorldObjectsHandler.Instance.GetWorldObjectViaId(id) != null)
                 {
-                    var wo = wos[i];
-                    if (wo.GetId() == id)
-                    {
-                        wos.RemoveAt(i);
-                        Destroy(wo.GetGameObject());
-                        cnt++;
-                    }
+                    WorldObjectsHandler.Instance.DestroyWorldObject(id, true);
+                    found = true;
                 }
 
-                if (cnt == 0)
-                {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
-                }
-                else if (cnt == 1)
+                if (found)
                 {
                     addLine("<margin=1em>World object deleted.");
                 }
                 else
                 {
-                    addLine("<margin=1em>World object & duplicates deleted x " + cnt + ".");
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
                 }
             }
         }
@@ -2524,41 +2517,56 @@ namespace FeatCommandConsole
                 float y = float.Parse(args[3], CultureInfo.InvariantCulture);
                 float z = float.Parse(args[4], CultureInfo.InvariantCulture);
 
-                int cnt = 0;
-                var wos = WorldObjectsHandler.GetAllWorldObjects();
-                for (int i = 0; i < wos.Count; i++)
+                bool found = false;
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo != null && wo.GetIsPlaced())
                 {
-                    var wo = wos[i];
-                    if (wo.GetId() == id && wo.GetIsPlaced())
+                    wo.SetPositionAndRotation(new Vector3(x, y, z), wo.GetRotation());
+
+                    var go = wo.GetGameObject();
+                    if (go != null)
                     {
-                        wo.SetPositionAndRotation(new Vector3(x, y, z), wo.GetRotation());
+                        go.transform.position = wo.GetPosition();
 
-                        var go = wo.GetGameObject();
-                        if (go != null)
-                        {
-                            go.transform.position = wo.GetPosition();
-                        }
-
-                        cnt++;
+                        SyncPosition(go.GetComponent<GroupNetworkContainer>());
                     }
+                    found = true;
                 }
-
-                if (cnt == 0)
-                {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
-                }
-                else if (cnt == 1)
+                if (found)
                 {
                     addLine("<margin=1em>World object moved.");
                 }
                 else
                 {
-                    addLine("<margin=1em>World object & duplicates moved x " + cnt + ".");
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
                 }
             }
         }
 
-        [Command("/move-item-relative", "Moves an item by the specified relative amount")]
+        /// <summary>
+        /// We need to piggyback to the GroupNetworkContainer._transformSync,
+        /// used when dropping items, to sync the gameobject's transform for us.
+        /// </summary>
+        /// <param name="gnc"></param>
+        void SyncPosition(GroupNetworkContainer gnc)
+        {
+            if (gnc != null)
+            {
+                var _syncTransform = (NetworkVariable<bool>)AccessTools.Field(typeof(GroupNetworkContainer), "_transformSync").GetValue(gnc);
+                if (_syncTransform != null)
+                {
+                    _syncTransform.Value = true;
+                    gnc.StartCoroutine(SyncPositionDelay(_syncTransform));
+                }
+            }
+        }
+        IEnumerator SyncPositionDelay(NetworkVariable<bool> _syncTransform)
+        {
+            yield return null;
+            _syncTransform.Value = false;
+        }
+
+        [Command("/move-item-relative", "Moves an item by the specified relative amount.")]
         public void MoveItemRelative(List<string> args)
         {
             if (args.Count != 5)
@@ -2574,181 +2582,29 @@ namespace FeatCommandConsole
                 float y = float.Parse(args[3], CultureInfo.InvariantCulture);
                 float z = float.Parse(args[4], CultureInfo.InvariantCulture);
 
-                int cnt = 0;
-                var wos = WorldObjectsHandler.GetAllWorldObjects();
-                for (int i = 0; i < wos.Count; i++)
+                bool found = false;
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo != null && wo.GetIsPlaced())
                 {
-                    var wo = wos[i];
-                    if (wo.GetId() == id && wo.GetIsPlaced())
-                    {
-                        wo.SetPositionAndRotation(wo.GetPosition() + new Vector3(x, y, z), wo.GetRotation());
-                        var go = wo.GetGameObject();
-                        if (go != null)
-                        {
-                            go.transform.position = wo.GetPosition();
-                        }
-                        cnt++;
-                    }
-                }
+                    wo.SetPositionAndRotation(wo.GetPosition() + new Vector3(x, y, z), wo.GetRotation());
 
-                if (cnt == 0)
-                {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        go.transform.position = wo.GetPosition();
+
+                        SyncPosition(go.GetComponent<GroupNetworkContainer>());
+                    }
+                    found = true;
                 }
-                else if (cnt == 1)
+                if (found)
                 {
                     addLine("<margin=1em>World object moved.");
                 }
                 else
                 {
-                    addLine("<margin=1em>World object & duplicates moved x " + cnt + ".");
+                    addLine("<margin=1em><color=#FF0000>World object not found.");
                 }
-            }
-        }
-
-        [Command("/list-duplicates", "Lists the ids of duplicated world objects")]
-        public void ListDuplicates(List<string> args)
-        {
-            HashSet<int> ids = new();
-            Dictionary<int, int> duplicates = new();
-
-            var wos = WorldObjectsHandler.GetAllWorldObjects();
-            for (int i = 0; i < wos.Count; i++)
-            {
-                var wo = wos[i];
-                var id = wo.GetId();
-                if (!ids.Add(id))
-                {
-                    duplicates.TryGetValue(id, out var c);
-                    duplicates[id] = c + 1;
-                }
-            }
-
-            if (duplicates.Count > 0)
-            {
-                addLine("<margin=1em>Item duplicates found: " + duplicates.Count);
-                foreach (var kv in duplicates)
-                {
-                    var wo = WorldObjectsHandler.GetWorldObjectViaId(kv.Key);
-                    addLine("<margin=2em>" + (kv.Value + 1) + " x " + kv.Key + " - " 
-                        + wo.GetGroup().GetId() 
-                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
-                }
-            }
-            else
-            {
-                addLine("<margin=1em>No item duplicates found.");
-            }
-
-            duplicates.Clear();
-            ids.Clear();
-
-            foreach (var inv in InventoriesHandler.GetAllInventories())
-            {
-                foreach (var wo in inv.GetInsideWorldObjects())
-                {
-                    int id = wo.GetId();
-                    if (!duplicates.ContainsKey(id))
-                    {
-                        duplicates.Add(id, inv.GetId());
-                    }
-                    else
-                    {
-                        ids.Add(id);
-                    }
-                }
-            }
-            if (ids.Count > 0)
-            {
-                addLine("<margin=1em>Inventory duplicates found: " + duplicates.Count);
-                foreach (var kv in ids)
-                {
-                    var wo = WorldObjectsHandler.GetWorldObjectViaId(kv);
-                    addLine("<margin=2em>" + kv + " - "
-                        + wo.GetGroup().GetId()
-                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
-                }
-            }
-            else
-            {
-                addLine("<margin=1em>No inventory duplicates found.");
-            }
-        }
-
-        [Command("/delete-duplicates", "Deletes all but one of each duplicate world objects.")]
-        public void DeleteDuplicates(List<string> args)
-        {
-            HashSet<int> ids = new();
-            Dictionary<int, int> duplicates = new();
-            int excess = 0;
-
-            var wos = WorldObjectsHandler.GetAllWorldObjects();
-            for (int i = 0; i < wos.Count; i++)
-            {
-                var wo = wos[i];
-                var id = wo.GetId();
-                if (!ids.Add(id))
-                {
-                    duplicates.TryGetValue(id, out var c);
-                    duplicates[id] = c + 1;
-                    excess++;
-                }
-            }
-
-            for (int i = wos.Count - 1; i >= 0; i--)
-            {
-                WorldObject wo = wos[i];
-                var id = wo.GetId();
-                duplicates.TryGetValue(id, out var c);
-                if (c > 0)
-                {
-                    wos.RemoveAt(i);
-                    duplicates[id] = c - 1;
-
-                    Destroy(wo.GetGameObject());
-                }
-            }
-
-            if (duplicates.Count > 0)
-            {
-                addLine("<margin=1em>Item duplicates removed: " + excess);
-            }
-            else
-            {
-                addLine("<margin=1em>No item duplicates found.");
-            }
-
-            duplicates.Clear();
-            ids.Clear();
-
-            foreach (var inv in InventoriesHandler.GetAllInventories())
-            {
-                List<WorldObject> list = inv.GetInsideWorldObjects();
-
-                for (int i = list.Count - 1; i >= 0; i--)
-                {
-                    WorldObject wo = list[i];
-                    int id = wo.GetId();
-
-                    if (!duplicates.ContainsKey(id))
-                    {
-                        duplicates.Add(id, inv.GetId());
-                    }
-                    else
-                    {
-                        ids.Add(id);
-                        list.RemoveAt(i);
-                    }
-                }
-            }
-
-            if (ids.Count > 0)
-            {
-                addLine("<margin=1em>Inventory duplicates removed: " + ids.Count);
-            }
-            else
-            {
-                addLine("<margin=1em>No inventory duplicates found.");
             }
         }
 
@@ -2781,7 +2637,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/add-token", "Adds the specified amount to the Trade Token value")]
+        [Command("/add-token", "Adds the specified amount to the Trade Token value.")]
         public void AddToken(List<string> args)
         {
             if (args.Count != 2)
@@ -2793,8 +2649,8 @@ namespace FeatCommandConsole
             else
             {
                 var n = float.Parse(args[1], CultureInfo.InvariantCulture);
-                TokensHandler.GainTokens((int)n);
-                n = TokensHandler.GetTokensNumber();
+                TokensHandler.Instance.GainTokens((int)n);
+                n = TokensHandler.Instance.GetTokensNumber();
                 addLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
             }
         }
@@ -2817,7 +2673,7 @@ namespace FeatCommandConsole
 
                 FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
 
-                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
@@ -2833,8 +2689,8 @@ namespace FeatCommandConsole
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetWorldObjectForTradePlatform))]
-        static void MachineTradePlatform_SetWorldObjectForTradePlatform(ref float ___updateGrowthEvery)
+        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
+        static void MachineTradePlatform_SetInventoryTradePlatform(ref float ___updateGrowthEvery)
         {
             ___updateGrowthEvery = tradePlatformDelay;
         }
@@ -2894,7 +2750,7 @@ namespace FeatCommandConsole
             int dronesActive = 0;
             int dronesCarrying = 0;
 
-            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
             {
                 totalWorldObjects++;
                 if (WorldObjectsIdHandler.IsWorldObjectFromScene(wo.GetId()))
@@ -2934,7 +2790,7 @@ namespace FeatCommandConsole
                     {
                         dronesActive++;
                     }
-                    var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                    var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
                     if (inv != null)
                     {
                         dronesCarrying += inv.GetInsideWorldObjects().Count;
@@ -2956,7 +2812,7 @@ namespace FeatCommandConsole
             int demandInventoryCount = 0;
             int logisticsInventoryCount = 0;
 
-            foreach (var inv in InventoriesHandler.GetAllInventories())
+            foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
             {
                 totalInventories++;
                 if (WorldObjectsIdHandler.IsWorldObjectFromScene(inv.GetId()))
@@ -3190,7 +3046,7 @@ namespace FeatCommandConsole
 
                 FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineOutsideGrower), "updateInterval");
 
-                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
@@ -3232,7 +3088,7 @@ namespace FeatCommandConsole
                     var demandCapacity = 0;
                     var demandFree = 0;
 
-                    foreach (var inv in InventoriesHandler.GetAllInventories())
+                    foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
                     {
                         var le = inv.GetLogisticEntity();
                         if (le != null)
@@ -3370,6 +3226,141 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/list", "Lists all currently connected players (vanilla command).")]
+        public void List(List<string> args)
+        {
+            for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
+            {
+                var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
+                addLine("<margin=1em>" + pd.id + " - " + pd.name);
+            }
+        }
+
+        [Command("/listAll", "Lists all players ever joined the current world (vanilla command).")]
+        public void ListAll(List<string> args)
+        {
+            if (PlayersDataManager.Instance.IsServer) {
+                var pm = Managers.GetManager<PlayersManager>();
+
+                foreach (var pd in pm.GetAllTimeListOfPlayers())
+                {
+                    addLine("<margin=1em>" + pd.Key + " - " + pd.Value);
+                }
+
+            }
+            else {
+                addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+            }
+        }
+
+        [Command("/kick", "Kick a specific player identified by its number or name (vanilla command).")]
+        public void Kick(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                addLine("<margin=1em>Kick a specific player identified by its number or name (vanilla command).");
+                addLine("<margin=1em>Host only command.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/kick id|name</color> - Kick a player identified by its id or name");
+                addLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
+            }
+            else
+            {
+                if (PlayersDataManager.Instance.IsServer)
+                {
+
+                    for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
+                    {
+                        var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
+
+                        if (pd.id != PlayersDataManager.Instance.OwnerClientId)
+                        {
+                            if (pd.id.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
+                                || pd.name.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
+                            )
+                            {
+                                addLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
+                                NetworkManager.Singleton.DisconnectClient(pd.id);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+                }
+            }
+        }
+
+        [Command("/remove", "Kick a specific player - identified by its number or name - and remove all their data from the world (vanilla command).")]
+        public void Remove(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                addLine("<margin=1em>Kick a specific player - identified by its number or name - and remove all their data from the world (vanilla command)");
+                addLine("<margin=1em>Host only command.");
+                addLine("<margin=1em>Usage:");
+                addLine("<margin=2em><color=#FFFF00>/remove id|name</color> - Kick a player and remove all their data");
+                addLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
+            }
+            else
+            {
+                if (PlayersDataManager.Instance.IsServer)
+                {
+                    var save = Managers.GetManager<SavedDataHandler>().GetLastLoadedPlayerData();
+
+                    for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
+                    {
+                        var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
+
+                        if (pd.id != PlayersDataManager.Instance.OwnerClientId)
+                        {
+                            if (pd.id.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
+                                || pd.name.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
+                            )
+                            {
+                                addLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
+                                NetworkManager.Singleton.DisconnectClient(pd.id);
+
+                                for (int j = save.Count - 1; j >= 0; j--)
+                                {
+                                    var se = save[j];
+                                    if (se.name.Equals(pd.name.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                                    {
+                                        save.RemoveAt(j);
+                                        addLine("<margin=2em>Save data also removed.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+                }
+            }
+        }
+
+        [Command("/list-mods", "Lists all or a filtered set of mods.")]
+        public void ListMods(List<string> args)
+        {
+            string filterText = string.Empty;
+            if (args.Count > 1)
+            {
+                filterText = args[1];
+            }
+            var mods = Chainloader.PluginInfos.Values
+                .Where(m => m.Metadata.GUID.Contains(filterText, StringComparison.InvariantCultureIgnoreCase))
+                .OrderBy(m => m.Metadata.GUID);
+
+            foreach (var mod in mods)
+            {
+                addLine("<margin=1em><color=#FFFFFF>" + mod.Metadata.GUID + "</color> - <color=#FFFF00>" + mod.Metadata.Version + "</color>");
+                addLine("<margin=2em><color=#FFFFFF>" + mod.Metadata.Name + "</color>");
+            }
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
@@ -3389,15 +3380,50 @@ namespace FeatCommandConsole
                     if (ltext.textId == "Newsletter_Button")
                     {
                         fontAsset = ltext.GetComponent<TMP_Text>().font;
+                        fontMargin = 10;
                         break;
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Vanilla opens a chat window when pressing an enter. We take over that
+        /// functionality completely.
+        /// </summary>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerInputDispatcher), "OnOpenChatWindow")]
+        static bool PlayerInputDispatcher_OnOpenChatWindow()
+        {
+            if (modEnabled.Value)
+            {
+                log("Vanilla Chat Window Suppressed");
+            }
+            return !modEnabled.Value;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowChat), "OnTextReceived")]
+        static void UiWindowChat_OnTextReceived(UiWindowChat __instance, ref PlayerData? player, string message)
+        {
+            if (modEnabled.Value)
+            {
+                addLine(player != null
+                    ? string.Format("<b><i>{0}</b></i>: {1}", player.Value.name, message)
+                    : ("<i>" + message + "</i>")
+                    );
+
+                if (background != null)
+                {
+                    __instance.gameObject.SetActive(false);
+                }
+            }
+        }
+
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-            void Colorize(List<string> list, string color)
+        void Colorize(List<string> list, string color)
         {
             for (int i = 0; i < list.Count; i++)
             {
