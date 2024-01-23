@@ -9,15 +9,20 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using BepInEx.Configuration;
 using System;
+using Unity.Netcode;
+using System.Reflection.Emit;
+using System.Collections;
 
 namespace UIOverviewPanel
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        static Plugin me;
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> key;
+        static ConfigEntry<int> updateFrequency;
 
         static ManualLogSource logger;
 
@@ -33,15 +38,21 @@ namespace UIOverviewPanel
         static readonly HashSet<string> uniqueFish = new();
         static readonly HashSet<string> uniqueFrog = new();
 
+        static Coroutine statisticsUpdater;
+
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+            me = this;
 
             fontSize = Config.Bind("General", "FontSize", 16, "Font size");
             key = Config.Bind("General", "Key", "F1", "The keyboard key to toggle the panel (no modifiers)");
+            updateFrequency = Config.Bind("General", "UpdateFrequency", 7, "How often to update the item statistics, in seconds");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
@@ -82,6 +93,11 @@ namespace UIOverviewPanel
                 backgroundRectTransform.localPosition = new Vector3(0, 0, 0);
 
                 entries.Clear();
+
+                AddTextRow("Mode", CreateMode());
+
+                AddTextRow("", () => "");
+
 
                 AddTextRow("Power", CreateEnergyProduction());
                 AddTextRow("- (demand)", CreateEnergyDemand());
@@ -192,6 +208,24 @@ namespace UIOverviewPanel
                 return string.Format("{0:#,##0.00} {1}", Math.Abs(wut.GetDecreaseValuePersSec()), " /h");
             };
         }
+        Func<string> CreateMode()
+        {
+            return () =>
+            {
+                if (NetworkManager.Singleton != null)
+                {
+                    if ((Managers.GetManager<PlayersManager>()?.GetAllTimeListOfPlayers().Count ?? 1) > 1)
+                    {
+                        if (NetworkManager.Singleton.IsHost)
+                        {
+                            return "Host";
+                        }
+                        return "Client";
+                    }
+                }
+                return "Singleplayer";
+            };
+        }
 
         Func<string> CreateEnergyProduction()
         {
@@ -219,7 +253,7 @@ namespace UIOverviewPanel
         {
             return () =>
             {
-                return string.Format("{0:#,##0} (Total acquired: {1:#,##0})", TokensHandler.GetTokensNumber(), TokensHandler.GetAllTimeTokensNumber());
+                return string.Format("{0:#,##0} (Total acquired: {1:#,##0})", TokensHandler.Instance.GetTokensNumber(), TokensHandler.Instance.GetAllTimeTokensNumber());
             };
         }
 
@@ -245,7 +279,7 @@ namespace UIOverviewPanel
 
                 HashSet<string> unlockedIds = new();
 
-                foreach (var g in GroupsHandler.GetUnlockedGroups())
+                foreach (var g in UnlockedGroupsHandler.Instance.GetUnlockedGroups())
                 {
                     unlockedIds.Add(g.GetId());
                 }
@@ -432,47 +466,93 @@ namespace UIOverviewPanel
             };
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
-        static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
+        static void UpdateCounters(WorldObject worldObject)
         {
-            var id = _worldObject.GetId();
-            var gid = _worldObject.GetGroup().GetId();
-            if (WorldObjectsIdHandler.IsWorldObjectFromScene(id))
+            if (!worldObject.GetDontSaveMe())
             {
-                sceneCounts.TryGetValue(gid, out var c);
-                sceneCounts[gid] = c + 1;
-            }
-            if (gid.StartsWith("Butterfly") && gid.EndsWith("Larvae"))
-            {
-                uniqueButterflies.Add(gid);
-            }
-            if (gid.StartsWith("Fish") && gid.EndsWith("Eggs"))
-            {
-                uniqueFish.Add(gid);
-            }
-            if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
-            {
-                uniqueFrog.Add(gid);
+                /*
+                logger.LogInfo(worldObject.GetId() + ", " + worldObject.GetGroup().GetId() + ", " + worldObject.GetPosition());
+                logger.LogInfo(Environment.StackTrace);
+                */
+
+                var id = worldObject.GetId();
+                var gid = worldObject.GetGroup().GetId();
+                if (WorldObjectsIdHandler.IsWorldObjectFromScene(id))
+                {
+                    sceneCounts.TryGetValue(gid, out var c);
+                    sceneCounts[gid] = c + 1;
+                }
+                if (gid.StartsWith("Butterfly") && gid.EndsWith("Larvae"))
+                {
+                    uniqueButterflies.Add(gid);
+                }
+                if (gid.StartsWith("Fish") && gid.EndsWith("Eggs"))
+                {
+                    uniqueFish.Add(gid);
+                }
+                if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
+                {
+                    uniqueFrog.Add(gid);
+                }
             }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.SetAllWorldObjects))]
-        static void WorldObjectsHandler_SetAllWorldObjects(List<WorldObject> _allWorldObjects)
+        static void WorldObjectsHandler_SetAllWorldObjects(List<WorldObject> allWorldObjects)
         {
-            foreach (WorldObject wo in _allWorldObjects)
+            ClearCounters();
+            foreach (WorldObject wo in allWorldObjects)
             {
-                WorldObjectsHandler_StoreNewWorldObject(wo);
+                UpdateCounters(wo);
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad()
+        {
+            if (statisticsUpdater != null)
+            {
+                me.StopCoroutine(statisticsUpdater);
+                statisticsUpdater = null;
+            }
+            statisticsUpdater = me.StartCoroutine(PeriodicStatistics());
+        }
+
+        static IEnumerator PeriodicStatistics()
+        {
+            var wait = new WaitForSeconds(updateFrequency.Value);
+
+            while (WorldObjectsHandler.Instance != null)
+            {
+                ClearCounters();
+                foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects())
+                {
+                    UpdateCounters(wo.Value);
+                }
+                yield return wait;
+            }
+        }
+
+        static void ClearCounters()
+        {
+            sceneCounts.Clear();
+            uniqueButterflies.Clear();
+            uniqueFish.Clear();
+            uniqueFrog.Clear();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
-            sceneCounts.Clear();
-            uniqueButterflies.Clear();
+            ClearCounters();
+            if (statisticsUpdater != null)
+            {
+                me.StopCoroutine(statisticsUpdater);
+                statisticsUpdater = null;
+            }
         }
 
         class OverviewEntry
