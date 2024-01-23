@@ -2,11 +2,6 @@
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using UnityEngine;
-using System;
-using System.Collections.Generic;
-using BepInEx.Bootstrap;
-using System.Reflection;
 using BepInEx.Configuration;
 
 namespace UITelemetryFontSizer
@@ -19,8 +14,10 @@ namespace UITelemetryFontSizer
 
         static ConfigEntry<int> rightTelemetryFontSize;
 
-        private void Awake()
+        void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -39,7 +36,7 @@ namespace UITelemetryFontSizer
             if (fs > 0)
             {
                 ___textPositionDecoration.fontSize = fs;
-                ___textPositionDecoration.enableWordWrapping = false;
+                ___textPositionDecoration.textWrappingMode = TextWrappingModes.NoWrap;
                 ___textPositionDecoration.overflowMode = TextOverflowModes.Overflow;
             }
 
@@ -47,7 +44,7 @@ namespace UITelemetryFontSizer
             if (fs > 0)
             {
                 ___textBottomRight.fontSize = fs;
-                ___textBottomRight.enableWordWrapping = false;
+                ___textBottomRight.textWrappingMode = TextWrappingModes.NoWrap;
                 ___textBottomRight.overflowMode = TextOverflowModes.Overflow;
             }
         }
