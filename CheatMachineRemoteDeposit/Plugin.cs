@@ -13,16 +13,29 @@ using UnityEngine;
 namespace CheatMachineRemoteDeposit
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+
         static ManualLogSource logger;
 
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> debugMode;
 
-        static readonly Dictionary<string, string> depositAliases = new();
+        static readonly Dictionary<string, string> depositAliases = [];
 
+        /// <summary>
+        /// If the stacking mod is present, this will delegate to its apiIsFullStackedInventory call
+        /// that considers the stackability of the target inventory with respect to the groupId to be added to i.
+        /// </summary>
         static Func<Inventory, string, bool> InventoryCanAdd;
+
+        /// <summary>
+        /// If set, the <see cref="MachineGenerator_GenerateAnObject(List{GroupData}, bool, WorldObject, List{GroupData}, ref WorldUnitsHandler, TerraformStage)"/>
+        /// won't be executed because the business logic has been taken care of by the stacking mod.
+        /// </summary>
+        static bool stackingOverridden;
 
         void Awake()
         {
@@ -40,7 +53,34 @@ namespace CheatMachineRemoteDeposit
 
             InventoryCanAdd = (inv, gid) => !inv.IsFull();
 
-            // TODO, if Stacking then use its item dependent IsFull check.
+            // If present, we interoperate with the stacking mod.
+            // It has places to override the inventory into which items should be added in some machines.
+            // However, when this mod looks for suitable inventories, we need to use stacking to correctly
+            // determine if a stackable inventory can take an item.
+            if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var info))
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " found, overriding FindInventoryForGroupID.");
+
+                var modType = info.Instance.GetType();
+
+                // make sure stacking knowns when this mod is enabled before calling that callback
+                AccessTools.Field(modType, "IsFindInventoryForGroupIDEnabled")
+                    .SetValue(null, new Func<bool>(() => modEnabled.Value));
+                // tell stacking to use this callback to find an inventory for a group id
+                AccessTools.Field(modType, "FindInventoryForGroupID")
+                    .SetValue(null, new Func<string, Inventory>(FindInventoryForOre));
+
+                // get the function that can tell if an inventory can't take one item of a provided group id
+                var apiIsFullStackedInventory = (Func<Inventory, string, bool>)AccessTools.Field(modType, "apiIsFullStackedInventory").GetValue(null);
+                // we need to logically invert it as we need it as "can-do"
+                InventoryCanAdd = (inv, gid) => !apiIsFullStackedInventory(inv, gid);
+
+                stackingOverridden = true;
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -87,7 +127,7 @@ namespace CheatMachineRemoteDeposit
             TerraformStage ___terraStage
         )
         {
-            if (!modEnabled.Value)
+            if (!modEnabled.Value || stackingOverridden)
             {
                 return true;
             }
@@ -127,7 +167,7 @@ namespace CheatMachineRemoteDeposit
                 }
             }
 
-            // let's figure out what ore we generate
+            // deposit the ore
 
             if (group != null)
             {
@@ -226,6 +266,8 @@ namespace CheatMachineRemoteDeposit
                 yield return wait;
             }
         }
+
+
 
         static Inventory FindInventoryForOre(string oreId)
         {

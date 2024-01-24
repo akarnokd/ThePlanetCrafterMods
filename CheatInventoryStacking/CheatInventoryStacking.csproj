@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName></AssemblyName>
     <Description>(Cheat) Inventory Stacking</Description>
-    <Version>1.0.0.65</Version>
+    <Version>1.0.0.66</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -12,9 +12,8 @@
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
-	  <Compile Include="..\LibCommon\CraftHelper.cs" Link="CraftHelper.cs" />
-	  <Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
 		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
+		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
 	</ItemGroup>
 
   <ItemGroup>
