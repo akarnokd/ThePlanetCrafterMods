@@ -16,6 +16,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Data;
 using static UnityEngine.InputSystem.InputSettings;
+using System.Collections.ObjectModel;
 
 namespace CheatInventoryStacking
 {
@@ -70,7 +71,15 @@ namespace CheatInventoryStacking
         static MethodInfo mInventoryDisplayerOnActionViaGamepad;
         static MethodInfo mInventoryDisplayerOnConsumeViaGamepad;
         static MethodInfo mInventoryDisplayerOnDropViaGamepad;
+
+        // This is needed by CraftManager.TryToCraftInInventory due to the need of access it from delegates
         static AccessTools.FieldRef<object, bool> fCraftManagerCrafting;
+        
+        // These are needed by MachineAutoCrafter.TryCraft overrides
+        static AccessTools.FieldRef<MachineAutoCrafter, bool> fMachineAutoCrafterHasEnergy;
+        static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
+        static MethodInfo mMachineAutoCrafterSetItemsInRange;
+        static MethodInfo mMachineAutoCrafterCraftIfPossible;
 
         private void Awake()
         {
@@ -100,7 +109,13 @@ namespace CheatInventoryStacking
             mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
             mInventoryDisplayerOnConsumeViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
             mInventoryDisplayerOnDropViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
+            
             fCraftManagerCrafting = AccessTools.FieldRefAccess<object, bool>(AccessTools.Field(typeof(CraftManager), "_crafting"));
+            
+            fMachineAutoCrafterHasEnergy = AccessTools.FieldRefAccess<MachineAutoCrafter, bool>("_hasEnergy");
+            fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
+            mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
+            mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -1045,9 +1060,12 @@ namespace CheatInventoryStacking
         /// <returns>false when running with stack size > 1 and not multiplayer, true otherwise.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineAutoCrafter), "TryToCraft")]
-        static bool MachineAutoCrafter_TryToCraft_Patch(MachineAutoCrafter __instance, float timeRepeat, ref IEnumerator __result)
+        static bool MachineAutoCrafter_TryToCraft_Patch(
+            MachineAutoCrafter __instance, 
+            float timeRepeat, 
+            ref IEnumerator __result)
         {
-            if (stackSize.Value > 1 && !Chainloader.PluginInfos.ContainsKey(featMultiplayerGuid))
+            if (stackSize.Value > 1)
             {
                 __result = MachineAutoCrafter_TryToCraft_Override(__instance, timeRepeat);
                 return false;
@@ -1057,118 +1075,33 @@ namespace CheatInventoryStacking
 
         static IEnumerator MachineAutoCrafter_TryToCraft_Override(MachineAutoCrafter __instance, float timeRepeat)
         {
-            var hasEnergyField = AccessTools.Field(typeof(MachineAutoCrafter), "hasEnergy");
-            var autoCrafterInventoryField = AccessTools.Field(typeof(MachineAutoCrafter), "autoCrafterInventory");
+            var wait = new WaitForSeconds(timeRepeat);
+            
+            var mSetItemsInRange = AccessTools.MethodDelegate<Action>(mMachineAutoCrafterSetItemsInRange, __instance);
+            var mCraftIfPossible = AccessTools.MethodDelegate<Action<Group>>(mMachineAutoCrafterCraftIfPossible, __instance);
+            var inv = fMachineAutoCrafterInventory(__instance);
+
             for (; ; )
             {
-                var inv = (Inventory)autoCrafterInventoryField.GetValue(__instance);
-                if ((bool)hasEnergyField.GetValue(__instance) && inv != null)
+                if (fMachineAutoCrafterHasEnergy(__instance) && inv != null)
                 {
-                    var machineWo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                    var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
                     if (machineWo != null)
                     {
                         var linkedGroups = machineWo.GetLinkedGroups();
                         if (linkedGroups != null && linkedGroups.Count != 0)
                         {
-                            MachineAutoCrafter_CraftIfPossible_Override(__instance, autoCrafterInventoryField, linkedGroups[0]);
-                        }
-                    }
-                }
-                yield return new WaitForSeconds(timeRepeat);
-            }
-        }
+                            var gr = linkedGroups[0];
 
-        static List<WorldObject> autocrafterCandidateWorldObjects = new();
-
-        static void MachineAutoCrafter_CraftIfPossible_Override(
-            MachineAutoCrafter __instance, FieldInfo autoCrafterInventoryField, Group linkedGroup)
-        {
-            var range = __instance.range;
-            var thisPosition = __instance.gameObject.transform.position;
-
-            var outputInventory = __instance.GetComponent<InventoryAssociated>().GetInventory();
-            autoCrafterInventoryField.SetValue(__instance, outputInventory);
-
-            // Stopwatch sw = Stopwatch.StartNew();
-            // LogAlways("Auto Crafter Telemetry: " + __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject()?.GetId());
-
-            var recipe = linkedGroup.GetRecipe().GetIngredientsGroupInRecipe();
-
-            var recipeSet = new HashSet<string>();
-            foreach (var ingr in recipe)
-            {
-                recipeSet.Add(ingr.id);
-            }
-
-            autocrafterCandidateWorldObjects.Clear();
-
-            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
-            {
-                var pos = wo.GetPosition();
-                if (pos != Vector3.zero && Vector3.Distance(pos, thisPosition) < range)
-                {
-                    var invId = wo.GetLinkedInventoryId();
-                    if (invId != 0)
-                    {
-                        var inv = InventoriesHandler.GetInventoryById(invId);
-                        if (inv != null)
-                        {
-                            foreach (var woi in inv.GetInsideWorldObjects())
+                            if (!IsFullStackedOfInventory(inv, gr.id))
                             {
-                                if (recipeSet.Contains(woi.GetGroup().GetId()))
-                                {
-                                    autocrafterCandidateWorldObjects.Add(woi);
-                                }
+                                mSetItemsInRange();
+                                mCraftIfPossible(gr);
                             }
                         }
                     }
-                    else if (wo.GetGroup() is GroupItem gi && recipeSet.Contains(gi.id))
-                    {
-                        autocrafterCandidateWorldObjects.Add(wo);
-                    }
                 }
-            }
-
-            // LogAlways(string.Format("    Range search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
-            // sw.Restart();
-
-            List<WorldObject> toConsume = new();
-
-            int ingredientFound = 0;
-
-            for (int i = 0; i < recipe.Count; i++)
-            {
-                var recipeGid = recipe[i].GetId();
-
-                for (int j = 0; j < autocrafterCandidateWorldObjects.Count; j++)
-                {
-                    WorldObject lo = autocrafterCandidateWorldObjects[j];
-                    if (lo != null && lo.GetGroup().GetId() == recipeGid)
-                    {
-                        toConsume.Add(lo);
-                        autocrafterCandidateWorldObjects[j] = null;
-                        ingredientFound++;
-                        break;
-                    }
-                }
-            }
-
-            //LogAlways(string.Format("    Ingredient search: {0:0.000} ms", sw.ElapsedTicks / 10000d));
-            //sw.Restart();
-
-            if (ingredientFound == recipe.Count)
-            {
-                var craftedWo = WorldObjectsHandler.CreateNewWorldObject(linkedGroup);
-                if (outputInventory.AddItem(craftedWo))
-                {
-                    WorldObjectsHandler.DestroyWorldObjects(toConsume, true);
-                    // LogAlways(string.Format("    Ingredient destroy: {0:0.000} ms", sw.ElapsedTicks / 10000d));
-                    __instance.CraftAnimation((GroupItem)linkedGroup);
-                }
-                else
-                {
-                    WorldObjectsHandler.DestroyWorldObject(craftedWo);
-                }
+                yield return wait;
             }
         }
 
