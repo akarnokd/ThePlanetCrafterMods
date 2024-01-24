@@ -10,7 +10,7 @@ namespace CheatInventoryStacking
     {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(
+        static bool Patch_MachineGenerator_GenerateAnObject(
             Inventory ___inventory,
             List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
@@ -110,7 +110,7 @@ namespace CheatInventoryStacking
         /// <param name="_inventory">The inventory of the machine being set.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
-        static void MachineGenerator_SetGeneratorInventory(MachineGenerator __instance, Inventory _inventory)
+        static void Patch_MachineGenerator_SetGeneratorInventory(MachineGenerator __instance, Inventory _inventory)
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
             if (wo != null)
@@ -120,35 +120,35 @@ namespace CheatInventoryStacking
                 {
                     if (!stackOreExtractors.Value)
                     {
-                        _noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(_inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("WaterCollector"))
                 {
                     if (!stackWaterCollectors.Value)
                     {
-                        _noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(_inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("GasExtractor"))
                 {
                     if (!stackGasExtractors.Value)
                     {
-                        _noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(_inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Beehive"))
                 {
                     if (!stackBeehives.Value)
                     {
-                        _noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(_inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Biodome"))
                 {
                     if (!stackBiodomes.Value)
                     {
-                        _noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(_inventory.GetId());
                     }
                 }
             }

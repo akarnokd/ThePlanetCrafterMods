@@ -35,11 +35,17 @@ namespace UIShowContainerInfo
 
             if (Chainloader.PluginInfos.TryGetValue(modInventoryStackingGuid, out BepInEx.PluginInfo pi))
             {
-                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", [typeof(IEnumerable<WorldObject>)]);
-                getStackCount = AccessTools.MethodDelegate<Func<IEnumerable<WorldObject>, int>>(mi, null);
+                Logger.LogInfo("Mod " + modInventoryStackingGuid + " found, considering stacking in various inventories");
 
-                stackSizeConfig = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
-                noStackingInventories = (HashSet<int>)AccessTools.Field(pi.Instance.GetType(), "noStackingInventories").GetValue(null);
+                Type modType = pi.Instance.GetType();
+
+                getStackCount = (Func<IEnumerable<WorldObject>, int>)AccessTools.Field(modType, "apiGetStackCount").GetValue(null);
+                stackSizeConfig = (ConfigEntry<int>)AccessTools.Field(modType, "stackSize").GetValue(null);
+                noStackingInventories = (HashSet<int>)AccessTools.Field(modType, "noStackingInventories").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modInventoryStackingGuid + " not found");
             }
 
             mActionableHandleHoverMaterial = AccessTools.Method(typeof(Actionnable), "HandleHoverMaterial", [typeof(bool), typeof(GameObject)]);

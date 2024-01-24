@@ -22,7 +22,7 @@ namespace UIShowPlayerInventoryCount
         /// <summary>
         /// If the CheatInventoryStacking is installed, consider the stack counts when displaying information.
         /// </summary>
-        static Func<ReadOnlyCollection<WorldObject>, int> getStackCount;
+        static Func<IEnumerable<WorldObject>, int> getStackCount;
         static ConfigEntry<int> stackSize;
         static ConfigEntry<bool> stackBackpack;
 
@@ -37,8 +37,9 @@ namespace UIShowPlayerInventoryCount
             {
                 Logger.LogInfo("Mod " + modInventoryStackingGuid + " found, considering stacking in backpack");
 
-                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "GetStackCount", [typeof(ReadOnlyCollection<WorldObject>)]);
-                getStackCount = AccessTools.MethodDelegate<Func<ReadOnlyCollection<WorldObject>, int>>(mi, null);
+                Type modType = pi.Instance.GetType();
+
+                getStackCount = (Func<IEnumerable<WorldObject>, int>)AccessTools.Field(modType, "apiGetStackCount").GetValue(null);
                 stackSize = (ConfigEntry<int>)AccessTools.Field(pi.Instance.GetType(), "stackSize").GetValue(null);
                 stackBackpack = (ConfigEntry<bool>)AccessTools.Field(pi.Instance.GetType(), "stackBackpack").GetValue(null);
             }

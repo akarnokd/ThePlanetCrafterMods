@@ -14,20 +14,20 @@ namespace CheatInventoryStacking
         /// <summary>
         /// Conditionally disallow stacking in shredders.
         /// </summary>
-        /// <param name="_inventory"></param>
+        /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineDestructInventoryIfFull), nameof(MachineDestructInventoryIfFull.SetDestructInventoryInventory))]
-        static void MachineDestructInventoryIfFull_SetDestructInventoryInventory(Inventory _inventory)
+        static void Patch_MachineDestructInventoryIfFull_SetDestructInventoryInventory(Inventory inventory)
         {
             if (!stackShredder.Value)
             {
-                _noStackingInventories.Add(_inventory.GetId());
+                noStackingInventories.Add(inventory.GetId());
             }
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDestructInventoryIfFull), "TryToCleanInventory")]
-        static bool MachineDestructInventoryIfFull_TryToCleanInventory(
+        static bool Patch_MachineDestructInventoryIfFull_TryToCleanInventory(
             MachineDestructInventoryIfFull __instance,
             WorldObject ____worldObject,
             Inventory ____inventory)

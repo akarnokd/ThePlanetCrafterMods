@@ -20,7 +20,7 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
-        static bool LogisticManager_SetLogisticTasks(
+        static bool Patch_LogisticManager_SetLogisticTasks(
             LogisticManager __instance,
             NetworkVariable<bool> ____hasLogisticsEnabled,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
@@ -144,11 +144,6 @@ namespace CheatInventoryStacking
                 }
             }
 
-            if (nextNonAttributedTaskIndex >= nonAttributedTasksCache.Count)
-            {
-                return false;
-            }
-
             for (int i = nextNonAttributedTaskIndex; i < nonAttributedTasksCache.Count; i++)
             {
                 var task = nonAttributedTasksCache[i];
@@ -213,7 +208,7 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "FindDemandForDroneOrDestroyContent")]
-        static bool LogisticManager_FindDemandForDroneOrDestroyContent(
+        static bool Patch_LogisticManager_FindDemandForDroneOrDestroyContent(
             Drone drone,
             List<Inventory> ____demandInventories,
             Dictionary<int, LogisticTask> ____allLogisticTasks
@@ -327,6 +322,72 @@ namespace CheatInventoryStacking
             var task = new LogisticTask(worldObject, null, demandInventory, null, demandWorldObject, _isSpawnedObject: true);
             _allLogisticTasks[worldObject.GetId()] = task;
             return task;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineDroneStation), nameof(MachineDroneStation.SetDroneStationInventory))]
+        static void Patch_MachineDroneStation_SetDroneStationInventory(Inventory inventory)
+        {
+            if (!stackDroneStation.Value)
+            {
+                noStackingInventories.Add(inventory.GetId());
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Drone), "SetClosestAvailableDroneStation")]
+        static bool Patch_Drone_SetClosestAvailableDroneStation(
+            Drone __instance,
+            ref MachineDroneStation ____associatedDroneStation,
+            GameObject ____droneRoot,
+            WorldObject ____droneWorldObject,
+            List<MachineDroneStation> allDroneStations
+        )
+        {
+            if (stackSize.Value <= 1 || !stackDroneStation.Value)
+            {
+                return false;
+            }
+
+            var droneGroupId = ____droneWorldObject?.GetGroup().id;
+
+            if (droneGroupId != null )
+            {
+                if (allDroneStations.Count == 1)
+                {
+                    var onlyDroneStation = allDroneStations[0];
+                    var inv = onlyDroneStation.GetDroneStationInventory();
+                    if (!IsFullStackedOfInventory(inv, droneGroupId))
+                    {
+                        ____associatedDroneStation = onlyDroneStation;
+                        return false;
+                    }
+                }
+
+                var maxDistance = float.MaxValue;
+                var pos = ____droneRoot.transform.position;
+
+                foreach (var ds in allDroneStations)
+                {
+                    var inv = ds.GetDroneStationInventory();
+                    if (!IsFullStackedOfInventory(inv, droneGroupId))
+                    {
+                        var dist = Vector3.Distance(ds.gameObject.transform.position, pos);
+                        if (dist < maxDistance)
+                        {
+                            maxDistance = dist;
+                            ____associatedDroneStation = ds;
+                        }
+                    }
+                }
+            }
+
+            if (____associatedDroneStation == null && allDroneStations.Count != 0)
+            {
+                ____associatedDroneStation = allDroneStations[UnityEngine.Random.Range(0, allDroneStations.Count)];
+            }
+
+            return false;
         }
     }
 }

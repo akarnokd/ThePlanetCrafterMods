@@ -2,8 +2,6 @@
 using SpaceCraft;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace CheatInventoryStacking
@@ -16,11 +14,11 @@ namespace CheatInventoryStacking
         /// <param name="_inventory">The inventory of the AutoCrafter.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineAutoCrafter), nameof(MachineAutoCrafter.SetAutoCrafterInventory))]
-        static void MachineAutoCrafter_SetAutoCrafterInventory(Inventory _autoCrafterInventory)
+        static void Patch_MachineAutoCrafter_SetAutoCrafterInventory(Inventory autoCrafterInventory)
         {
             if (!stackAutoCrafters.Value)
             {
-                _noStackingInventories.Add(_autoCrafterInventory.GetId());
+                noStackingInventories.Add(autoCrafterInventory.GetId());
             }
         }
 
@@ -38,20 +36,20 @@ namespace CheatInventoryStacking
         /// <returns>false when running with stack size > 1 and not multiplayer, true otherwise.</returns>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineAutoCrafter), "TryToCraft")]
-        static bool MachineAutoCrafter_TryToCraft_Patch(
+        static bool Patch_MachineAutoCrafter_TryToCraft_Patch(
             MachineAutoCrafter __instance,
             float timeRepeat,
             ref IEnumerator __result)
         {
             if (stackSize.Value > 1)
             {
-                __result = MachineAutoCrafter_TryToCraft_Override(__instance, timeRepeat);
+                __result = MachineAutoCrafterTryToCraftOverride(__instance, timeRepeat);
                 return false;
             }
             return true;
         }
 
-        static IEnumerator MachineAutoCrafter_TryToCraft_Override(MachineAutoCrafter __instance, float timeRepeat)
+        static IEnumerator MachineAutoCrafterTryToCraftOverride(MachineAutoCrafter __instance, float timeRepeat)
         {
             var wait = new WaitForSeconds(timeRepeat);
 

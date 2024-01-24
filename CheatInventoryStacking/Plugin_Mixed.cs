@@ -1,8 +1,5 @@
 ﻿using HarmonyLib;
 using SpaceCraft;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CheatInventoryStacking
 {
@@ -11,23 +8,23 @@ namespace CheatInventoryStacking
         /// <summary>
         /// Disallow stacking in growers.
         /// </summary>
-        /// <param name="_inventory"></param>
+        /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
-        static void MachineGrower_SetGrowerInventory(Inventory _inventory)
+        static void Patch_MachineGrower_SetGrowerInventory(Inventory inventory)
         {
-            _noStackingInventories.Add(_inventory.GetId());
+            noStackingInventories.Add(inventory.GetId());
         }
 
         /// <summary>
         /// Disallow stacking in outside growers.
         /// </summary>
-        /// <param name="_inventory"></param>
+        /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
-        static void MachineOutsideGrower_SetGrowerInventory(Inventory _inventory)
+        static void Patch_MachineOutsideGrower_SetGrowerInventory(Inventory inventory)
         {
-            _noStackingInventories.Add(_inventory.GetId());
+            noStackingInventories.Add(inventory.GetId());
         }
 
         /// <summary>
@@ -35,10 +32,10 @@ namespace CheatInventoryStacking
         /// </summary>
         /// <param name="_inventory"></param>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(UiWindowGenetics), nameof(UiWindowGenetics.SetGeneticsData))]
-        static void UiWindowGenetics_SetGeneticsData(Inventory ___inventoryRight)
+        [HarmonyPatch(typeof(MachineConvertRecipe), nameof(MachineConvertRecipe.SetConverterInventory))]
+        static void Patch_MachineConvertRecipe_SetConverterInventory(Inventory inventory)
         {
-            _noStackingInventories.Add(___inventoryRight.GetId());
+            noStackingInventories.Add(inventory.GetId());
         }
 
         /// <summary>
@@ -47,14 +44,14 @@ namespace CheatInventoryStacking
         /// <param name="_inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineFlockSpawner), "Start")]
-        static void MachineFlockSpawner_SetSpawnerInventory(
+        static void Patch_MachineFlockSpawner_SetSpawnerInventory(
             MachineFlockSpawner __instance)
         {
             if (__instance.GetComponent<MachineGenerator>() == null)
             {
                 if (__instance.TryGetComponent<InventoryAssociatedProxy>(out var iap))
                 {
-                    iap.GetInventory((inv, _) => _noStackingInventories.Add(inv.GetId()));
+                    iap.GetInventory((inv, _) => noStackingInventories.Add(inv.GetId()));
                 }
             }
         }
@@ -62,14 +59,14 @@ namespace CheatInventoryStacking
         /// <summary>
         /// Conditionally disallow stackingin optimizers.
         /// </summary>
-        /// <param name="_inventory"></param>
+        /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineOptimizer), nameof(MachineOptimizer.SetOptimizerInventory))]
-        static void MachineOptimizer_SetOptimizerInventory(Inventory _inventory)
+        static void Patch_MachineOptimizer_SetOptimizerInventory(Inventory inventory)
         {
             if (!stackOptimizer.Value)
             {
-                _noStackingInventories.Add(_inventory.GetId());
+                noStackingInventories.Add(inventory.GetId());
             }
         }
     }

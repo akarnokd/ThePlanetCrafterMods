@@ -177,7 +177,7 @@ namespace CheatInventoryStacking
         /// <returns>True if the target inventory can stack.</returns>
         static bool CanStack(int inventoryId)
         {
-            if (_noStackingInventories.Contains(inventoryId))
+            if (noStackingInventories.Contains(inventoryId))
             {
                 return false;
             }
@@ -186,7 +186,7 @@ namespace CheatInventoryStacking
             // Not as snappy as checking the hashset from before, but we do this only if
             // backpack stacking was explicitly disabled. Usually it won't be for most players.
 
-            if (!_stackBackpack.Value)
+            if (!stackBackpack.Value)
             {
                 // We cache the PlayersManager here.
                 if (playersManager == null)

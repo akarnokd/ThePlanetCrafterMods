@@ -9,15 +9,8 @@ using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using BepInEx.Bootstrap;
 using BepInEx.Logging;
-using System.Collections;
 using System.Linq;
-using System.Diagnostics;
-using System.Data;
-using static UnityEngine.InputSystem.InputSettings;
-using System.Collections.ObjectModel;
-using Unity.Netcode;
 
 namespace CheatInventoryStacking
 {
@@ -29,13 +22,14 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackTradeRockets;
         static ConfigEntry<bool> stackShredder;
         static ConfigEntry<bool> stackOptimizer;
-        static ConfigEntry<bool> _stackBackpack;
+        static ConfigEntry<bool> stackBackpack;
         static ConfigEntry<bool> stackOreExtractors;
         static ConfigEntry<bool> stackWaterCollectors;
         static ConfigEntry<bool> stackGasExtractors;
         static ConfigEntry<bool> stackBeehives;
         static ConfigEntry<bool> stackBiodomes;
         static ConfigEntry<bool> stackAutoCrafters;
+        static ConfigEntry<bool> stackDroneStation;
 
         static ConfigEntry<bool> debugMode;
 
@@ -62,7 +56,7 @@ namespace CheatInventoryStacking
         /// <summary>
         /// The set of static and dynamic inventory ids that should not stack.
         /// </summary>
-        static HashSet<int> _noStackingInventories = new(defaultNoStackingInventories);
+        static HashSet<int> noStackingInventories = new(defaultNoStackingInventories);
 
         static PlayersManager playersManager;
 
@@ -81,8 +75,9 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
+        static MethodInfo mUiWindowTradeUpdateTokenUi;
 
-        private void Awake()
+        void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -97,13 +92,14 @@ namespace CheatInventoryStacking
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
-            _stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
+            stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
             stackOreExtractors = Config.Bind("General", "StackOreExtractors", true, "Allow stacking in Ore Extractors.");
             stackWaterCollectors = Config.Bind("General", "StackWaterCollectors", true, "Allow stacking in Water Collectors.");
             stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
             stackBeehives = Config.Bind("General", "StackBeehives", true, "Allow stacking in Beehives.");
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
+            stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
 
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
@@ -117,6 +113,8 @@ namespace CheatInventoryStacking
             fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
             mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
+
+            mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -197,7 +195,7 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.IsFull))]
-        static bool Inventory_IsFull(
+        static bool Patch_Inventory_IsFull(
             ref bool __result, 
             List<WorldObject> ____worldObjectsInInventory, 
             int ____inventorySize, 
@@ -215,12 +213,12 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.DropObjectsIfNotEnoughSpace))]
-        static bool Inventory_DropObjectsIfNotEnoughSpace(
+        static bool Patch_Inventory_DropObjectsIfNotEnoughSpace(
             Inventory __instance,
             ref List<WorldObject> __result, 
             List<WorldObject> ____worldObjectsInInventory, 
             int ____inventorySize,
-            Vector3 _dropPosition,
+            Vector3 dropPosition,
             bool removeOnly
         )
         {
@@ -236,7 +234,7 @@ namespace CheatInventoryStacking
 
                     if (!removeOnly)
                     {
-                        WorldObjectsHandler.Instance.DropOnFloor(worldObject, _dropPosition, 0f);
+                        WorldObjectsHandler.Instance.DropOnFloor(worldObject, dropPosition, 0f);
                     }
                     ____worldObjectsInInventory.RemoveAt(lastIdx);
                 }
@@ -249,14 +247,14 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
-        static void Inventory_AddItemInInventory(WorldObject _worldObject)
+        static void Patch_Inventory_AddItemInInventory(WorldObject worldObject)
         {
-            expectedGroupIdToAdd = _worldObject.GetGroup().GetId();
+            expectedGroupIdToAdd = worldObject.GetGroup().GetId();
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
-        static bool InventoryDisplayer_TrueRefreshContent(
+        static bool Patch_InventoryDisplayer_TrueRefreshContent(
             InventoryDisplayer __instance,
             LogisticManager ____logisticManager,
             Inventory ____inventory, 
@@ -481,7 +479,7 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
-        static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData, Inventory ____inventory)
+        static bool Patch_InventoryDisplayer_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData, Inventory ____inventory)
         {
             var n = stackSize.Value;
             if (n > 1 && CanStack(____inventory.GetId()))
@@ -519,11 +517,11 @@ namespace CheatInventoryStacking
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
-        static void InventoriesHandler_DestroyInventory(int _inventoryId)
+        static void Patch_InventoriesHandler_DestroyInventory(int inventoryId)
         {
-            if (!defaultNoStackingInventories.Contains(_inventoryId))
+            if (!defaultNoStackingInventories.Contains(inventoryId))
             {
-                _noStackingInventories.Remove(_inventoryId);
+                noStackingInventories.Remove(inventoryId);
             }
         }
 
@@ -533,9 +531,9 @@ namespace CheatInventoryStacking
         /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit()
+        static void Patch_UiWindowPause_OnQuit()
         {
-            _noStackingInventories = new(defaultNoStackingInventories);
+            noStackingInventories = new(defaultNoStackingInventories);
             inventoryOwnerCache.Clear();
             stationDistancesCache.Clear();
             nonAttributedTasksCache.Clear();

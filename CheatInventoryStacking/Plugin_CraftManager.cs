@@ -16,7 +16,7 @@ namespace CheatInventoryStacking
         /// </summary>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
-        static bool CraftManager_TryToCraftInInventory(
+        static bool Patch_CraftManager_TryToCraftInInventory(
             GroupItem groupItem,
             PlayerMainController playerController,
             ActionCrafter sourceCrafter,
