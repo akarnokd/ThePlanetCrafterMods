@@ -46,26 +46,16 @@ namespace CheatInventoryStacking
         /// </summary>
         /// <param name="_inventory"></param>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineFlockSpawner), nameof(MachineFlockSpawner.SetSpawnerInventory))]
-        static void MachineFlockSpawner_SetSpawnerInventory(MachineFlockSpawner __instance, Inventory _inventory)
+        [HarmonyPatch(typeof(MachineFlockSpawner), "Start")]
+        static void MachineFlockSpawner_SetSpawnerInventory(
+            MachineFlockSpawner __instance)
         {
             if (__instance.GetComponent<MachineGenerator>() == null)
             {
-                _noStackingInventories.Add(_inventory.GetId());
-            }
-        }
-
-        /// <summary>
-        /// Conditionally disallow stacking in shredders.
-        /// </summary>
-        /// <param name="_inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), nameof(MachineDestructInventoryIfFull.SetDestructInventoryInventory))]
-        static void MachineDestructInventoryIfFull_SetDestructInventoryInventory(Inventory _inventory)
-        {
-            if (!stackShredder.Value)
-            {
-                noStackingInventories.Add(_inventory.GetId());
+                if (__instance.TryGetComponent<InventoryAssociatedProxy>(out var iap))
+                {
+                    iap.GetInventory((inv, _) => _noStackingInventories.Add(inv.GetId()));
+                }
             }
         }
 
@@ -79,7 +69,7 @@ namespace CheatInventoryStacking
         {
             if (!stackOptimizer.Value)
             {
-                noStackingInventories.Add(_inventory.GetId());
+                _noStackingInventories.Add(_inventory.GetId());
             }
         }
     }

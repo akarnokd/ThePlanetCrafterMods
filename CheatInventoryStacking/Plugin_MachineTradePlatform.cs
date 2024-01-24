@@ -27,23 +27,33 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(MachineTradePlatform), "OnTradeInventoryModified")]
         static bool MachineTradePlatform_OnTradeInventoryModified(
             MachineTradePlatform __instance,
-            WorldObject ___worldObject,
-            Inventory ___inventory)
+            WorldObject ____worldObject,
+            Inventory ____inventory)
         {
-            // In multiplayer mode, don't do the stuff below
-            if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
-            {
-                return false;
-            }
             if (stackTradeRockets.Value && stackSize.Value > 1)
             {
-                if (___worldObject != null
-                    && ___worldObject.GetSetting() == 1
-                    && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count)
+                if (____worldObject != null
+                    && ____worldObject.GetSetting() == 1
+                    && ____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count)
                 {
                     __instance.SendTradeRocket();
                 }
                 return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowTrade), "OnClickButtons")]
+        static bool UiWindowTrade_OnClickButtons(
+            UiWindowTrade __instance,
+            UiGroupLine uiGroupLine, 
+            Group group, 
+            int changeOfValue)
+        {
+            if (stackSize.Value > 1 && stackTradeRockets.Value)
+            {
+                // TODO implement
             }
             return true;
         }

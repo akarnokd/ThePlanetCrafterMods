@@ -40,7 +40,7 @@ namespace CheatAsteroidLandingPosition
             Logger.LogInfo($"Plugin is loaded!");
 
             deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).");
-            deltaX = Config.Bind("General", "DeltaY", 0, "Relative position up-down.");
+            deltaY = Config.Bind("General", "DeltaY", 0, "Relative position up-down.");
             deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
             absolute = Config.Bind("General", "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.");
 
@@ -93,7 +93,7 @@ namespace CheatAsteroidLandingPosition
                 }
             }
             // Vector2 vector = UnityEngine.Random.insideUnitCircle * (float)_asteroidEvent.distanceFromPlayer;
-            Vector3 landingPosition = new Vector3(deltaX.Value, deltaY.Value, deltaZ.Value);
+            var landingPosition = new Vector3(deltaX.Value, deltaY.Value, deltaZ.Value);
             if (!absolute.Value)
             {
                 landingPosition += playerPosition;
@@ -113,14 +113,12 @@ namespace CheatAsteroidLandingPosition
 
         static bool AsteroidsHandler_IsInAuthorizedBounds(Vector2 _position, List<Collider> authorizedPlaces)
         {
-            using (List<Collider>.Enumerator enumerator = authorizedPlaces.GetEnumerator())
+            using List<Collider>.Enumerator enumerator = authorizedPlaces.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                while (enumerator.MoveNext())
+                if (enumerator.Current.bounds.Contains(_position))
                 {
-                    if (enumerator.Current.bounds.Contains(_position))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;

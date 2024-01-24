@@ -46,8 +46,8 @@ namespace CheatInventoryStacking
         /// <summary>
         /// The list of pre-placed inventories that should not stack
         /// </summary>
-        static readonly HashSet<int> defaultNoStackingInventories = new()
-        {
+        static readonly HashSet<int> defaultNoStackingInventories =
+        [
             109441691, // altar at the door in the mushroom cave
             108035701, // altar in the super alloy cave
             109811866, // altar at the entrance to paradise canyon with 3 slots
@@ -57,7 +57,7 @@ namespace CheatInventoryStacking
             101703877, // fusion generator in the stargate
             101484917, // fusion generator in the luxury cruiser with 3 slots
             107983344, // fusion generator in the lava ship with 2 slots
-        };
+        ];
 
         /// <summary>
         /// The set of static and dynamic inventory ids that should not stack.
@@ -192,7 +192,7 @@ namespace CheatInventoryStacking
         }
 
         // --------------------------------------------------------------------------------------------------------
-        // Patches
+        // Main patches
         // --------------------------------------------------------------------------------------------------------
 
         [HarmonyPrefix]
@@ -290,7 +290,7 @@ namespace CheatInventoryStacking
 
                 WindowsGamepadHandler manager = Managers.GetManager<WindowsGamepadHandler>();
 
-                GroupInfosDisplayerBlocksSwitches groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches 
+                var groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches 
                 {
                     showActions = true,
                     showDescription = true,
@@ -348,7 +348,7 @@ namespace CheatInventoryStacking
 
                         if (slot.Count > 1)
                         {
-                            GameObject countBackground = new GameObject();
+                            var countBackground = new GameObject();
                             countBackground.transform.SetParent(component.transform, false);
 
                             Image image = countBackground.AddComponent<Image>();
@@ -358,7 +358,7 @@ namespace CheatInventoryStacking
                             rectTransform.localPosition = new Vector3(0, 0, 0);
                             rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
 
-                            GameObject count = new GameObject();
+                            var count = new GameObject();
                             count.transform.SetParent(component.transform, false);
                             Text text = count.AddComponent<Text>();
                             text.text = slot.Count.ToString();
@@ -517,232 +517,6 @@ namespace CheatInventoryStacking
             return true;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionMinable), nameof(ActionMinable.OnAction))]
-        static bool ActionMinable_OnAction(ActionMinable __instance)
-        {
-            if (stackSize.Value > 1)
-            {
-                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
-                {
-                    WorldObject wo = woa.GetWorldObject();
-                    if (wo != null)
-                    {
-                        expectedGroupIdToAdd = wo.GetGroup().GetId();
-                    }
-                }
-            }
-            return true;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionGrabable), nameof(ActionGrabable.OnAction))]
-        static bool ActionGrabable_OnAction(ActionGrabable __instance)
-        {
-            if (stackSize.Value > 1)
-            {
-                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
-                {
-                    WorldObject wo = woa.GetWorldObject();
-                    if (wo != null)
-                    {
-                        expectedGroupIdToAdd = wo.GetGroup().GetId();
-                    }
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Vanilla creates the object in the player's backpack
-        /// or replaces the equipment inplace.
-        /// It calls Inventory::IsFull 0 to 2 times so we can't sneak in the groupId.
-        /// </summary>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(CraftManager), nameof(CraftManager.TryToCraftInInventory))]
-        static bool CraftManager_TryToCraftInInventory(
-            GroupItem groupItem, 
-            PlayerMainController playerController, 
-            ActionCrafter sourceCrafter, 
-            ref bool ____crafting,
-            ref int ____totalCraft, 
-            int ____tempSpaceInInventory,
-            ref bool __result
-        )
-        {
-            if (stackSize.Value > 1)
-            {
-                var ingredients = groupItem.GetRecipe().GetIngredientsGroupInRecipe();
-                var backpack = playerController.GetPlayerBackpack();
-                var backpackInventory = backpack.GetInventory();
-                var equipment = playerController.GetPlayerEquipment();
-                var equipmentInventory = equipment.GetInventory();
-
-                var isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
-
-                var useFromEquipment = new List<Group>();
-                
-                // Should allow Craft From Containers to work on its own by overriding ItemsContainsStatus.
-                var availableBackpack = backpackInventory.ItemsContainsStatus(ingredients);
-                
-                if (availableBackpack.Contains(item: false))
-                {
-                    var availableEquipment = equipmentInventory.ItemsContainsStatus(ingredients);
-
-                    for (int i = 0; i < availableEquipment.Count; i++)
-                    {
-                        if (!availableBackpack[i] && availableEquipment[i])
-                        {
-                            availableBackpack[i] = true;
-                            useFromEquipment.Add(ingredients[i]);
-                        }
-                    }
-                }
-                if (!availableBackpack.Contains(item: false) || isFreeCraft)
-                {
-
-                    if (ingredients.Count == 0 && IsFullStackedOfInventory(backpackInventory, groupItem.id))
-                    {
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
-                        __result = false;
-                        return false;
-                    }
-                    if (isFreeCraft && IsFullStackedOfInventory(backpackInventory, groupItem.id))
-                    {
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
-                        __result = false;
-                        return false;
-                    }
-
-                    ____crafting = true;
-
-                    sourceCrafter?.CraftAnimation(groupItem);
-
-                    if (useFromEquipment.Count != 0)
-                    {
-                        InventoriesHandler.Instance.SetInventorySize(equipmentInventory, ____tempSpaceInInventory, Vector3.zero);
-                        InventoriesHandler.Instance.SetInventorySize(backpackInventory, ____tempSpaceInInventory, Vector3.zero);
-                    }
-
-                    InventoriesHandler.Instance.RemoveItemsFromInventory(ingredients, backpackInventory, true, true);
-
-                    equipment.DestroyItemsFromEquipment(useFromEquipment, success =>
-                    {
-                        InventoriesHandler.Instance.AddItemToInventory(groupItem, backpackInventory, (success, id) =>
-                        {
-                            fCraftManagerCrafting(null) = false;
-
-                            if (!success)
-                            {
-                                if (id > 0)
-                                {
-                                    WorldObjectsHandler.Instance.DestroyWorldObject(id);
-                                }
-                                RestoreInventorySizes(backpackInventory, equipment, 
-                                    -____tempSpaceInInventory, useFromEquipment.Count != 0);
-                            }
-                            else
-                            {
-                                if (useFromEquipment.Count != 0 && groupItem.GetEquipableType() != DataConfig.EquipableType.Null)
-                                {
-                                    equipment.WatchForModifications(enabled: true);
-                                    var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
-
-                                    InventoriesHandler.Instance.TransferItem(backpackInventory, equipmentInventory, 
-                                        wo, _ => RestoreInventorySizes(backpackInventory, equipment, 
-                                                    -____tempSpaceInInventory, useFromEquipment.Count != 0)
-                                    );
-                                }
-                                else
-                                {
-                                    RestoreInventorySizes(backpackInventory, equipment, 
-                                        -____tempSpaceInInventory, useFromEquipment.Count != 0);
-                                }
-                            }
-
-                        });
-                    });
-
-                    ____totalCraft++;
-                    __result = true;
-                    return false;
-                }
-                __result = false;
-                return false;
-            }
-            return true;
-        }
-
-        static void RestoreInventorySizes(Inventory backpack, PlayerEquipment equipment, int delta, bool equipmentUsed) 
-        { 
-            if (equipmentUsed)
-            {
-                equipment.WatchForModifications(false);
-                InventoriesHandler.Instance.SetInventorySize(equipment.GetInventory(), delta, Vector3.zero);
-                InventoriesHandler.Instance.SetInventorySize(backpack, delta, Vector3.zero);
-            }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.RetrieveResources))]
-        static bool ActionDeconstructible_RetrieveResources(
-            GameObject ___gameObjectRoot,
-            Inventory playerInventory, 
-            out List<int> dropped, 
-            out List<int> stored)
-        {
-            if (stackSize.Value > 1)
-            {
-                dropped = [];
-                stored = [];
-
-                var woa = ___gameObjectRoot.GetComponent<WorldObjectAssociated>();
-
-                if (woa == null || woa.GetWorldObject() == null || woa.GetWorldObject().GetGroup() == null)
-                {
-                    return false;
-                }
-
-                if (Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
-                {
-                    return false;
-                }
-
-                var ingredients = new List<Group>(woa.GetWorldObject().GetGroup().GetRecipe().GetIngredientsGroupInRecipe());
-
-                var panels = ___gameObjectRoot.GetComponentsInChildren<Panel>();
-                foreach (var panel in panels)
-                {
-                    var pconstr = panel.GetPanelGroupConstructible();
-                    if (pconstr != null)
-                    {
-                        ingredients.AddRange(pconstr.GetRecipe().GetIngredientsGroupInRecipe());
-                    }
-                }
-
-                foreach (var gr in ingredients)
-                {
-                    if (playerInventory == null || IsFullStackedOfInventory(playerInventory, gr.id))
-                    {
-                        WorldObjectsHandler.Instance.CreateAndDropOnFloor(gr, ___gameObjectRoot.transform.position + new Vector3(0f, 1f, 0f));
-                        dropped.Add(gr.stableHashCode);
-                    }
-                    else
-                    {
-                        InventoriesHandler.Instance.AddItemToInventory(gr, playerInventory);
-                        stored.Add(gr.stableHashCode);
-                    }
-                }
-
-                return false;
-            }
-            dropped = null;
-            stored = null;
-            return true;
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoriesHandler), nameof(InventoriesHandler.DestroyInventory))]
         static void InventoriesHandler_DestroyInventory(int _inventoryId)
@@ -762,47 +536,6 @@ namespace CheatInventoryStacking
         static void UiWindowPause_OnQuit()
         {
             _noStackingInventories = new(defaultNoStackingInventories);
-        }
-
-        // prevent the reentrancy upon deleting an overfilled shredder.
-        static bool suppressTryToCleanInventory;
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineDestructInventoryIfFull), "TryToCleanInventory")]
-        static bool MachineDestructInventoryIfFull_TryToCleanInventory(
-            MachineDestructInventoryIfFull __instance,
-            WorldObject ___worldObject,
-            Inventory ___inventory)
-        {
-            // In multiplayer mode, don't do the stuff below
-            if (getMultiplayerMode != null && getMultiplayerMode() == "CoopClient")
-            {
-                return false;
-            }
-            if (stackShredder.Value && stackSize.Value > 1)
-            {
-                if (!suppressTryToCleanInventory)
-                {
-                    try
-                    {
-                        suppressTryToCleanInventory = true;
-
-                        if (___worldObject != null
-                            && ___worldObject.GetSetting() == 1
-                            && ___inventory.GetSize() * stackSize.Value <= ___inventory.GetInsideWorldObjects().Count)
-                        {
-                            ___inventory.DestroyAllItemsInside();
-                            __instance.actionnableInteractiveToAction?.OnActionInteractive();
-                        }
-                    } 
-                    finally
-                    {
-                        suppressTryToCleanInventory = false;
-                    }
-                }
-                return false;
-            }
-            return true;
         }
     }
 }

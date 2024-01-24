@@ -28,8 +28,11 @@ namespace FeatCommandConsole
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
     [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+
         static ManualLogSource logger;
 
         static ConfigEntry<bool> modEnabled;
@@ -48,14 +51,14 @@ namespace FeatCommandConsole
         static GameObject separator;
         static GameObject inputField;
         static TMP_InputField inputFieldText;
-        static readonly List<GameObject> outputFieldLines = new();
-        static List<string> consoleText = new();
+        static readonly List<GameObject> outputFieldLines = [];
+        static List<string> consoleText = [];
         static TMP_FontAsset fontAsset;
         static int fontMargin = 5;
 
         static int scrollOffset;
         static int commandHistoryIndex;
-        static readonly List<string> commandHistory = new();
+        static readonly List<string> commandHistory = [];
 
         static InputAction toggleAction;
 
@@ -183,7 +186,22 @@ namespace FeatCommandConsole
 
             InventoryCanAdd = (inv, gid) => !inv.IsFull();
 
-            // TODO Stacking
+            if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var info))
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " found, using it's services.");
+
+                var modType = info.Instance.GetType();
+
+                var apiIsFullStackedInventory = (Func<Inventory, string, bool>)AccessTools.Field(modType, "apiIsFullStackedInventory").GetValue(null);
+                // we need to logically invert it as we need it as "can-do"
+                InventoryCanAdd = (inv, gid) => !apiIsFullStackedInventory(inv, gid);
+
+                GetInventoryCapacity = (Func<Inventory, int>)AccessTools.Field(modType, "apiGetCapacityInventory").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
