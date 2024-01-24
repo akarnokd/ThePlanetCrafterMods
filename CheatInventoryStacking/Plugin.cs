@@ -536,6 +536,9 @@ namespace CheatInventoryStacking
         static void UiWindowPause_OnQuit()
         {
             _noStackingInventories = new(defaultNoStackingInventories);
+            inventoryOwnerCache.Clear();
+            stationDistancesCache.Clear();
+            nonAttributedTasksCache.Clear();
         }
     }
 }
