@@ -22,7 +22,6 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
         static bool Patch_LogisticManager_SetLogisticTasks(
-            LogisticManager __instance,
             NetworkVariable<bool> ____hasLogisticsEnabled,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             List<MachineDroneStation> ____allDroneStations,
@@ -35,6 +34,11 @@ namespace CheatInventoryStacking
             if (n <= 1)
             {
                 return true;
+            }
+
+            if (!____hasLogisticsEnabled.Value)
+            {
+                return false;
             }
 
             UpdateInventoryOwnerCache();
