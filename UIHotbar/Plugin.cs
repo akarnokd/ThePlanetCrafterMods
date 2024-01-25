@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using BepInEx.Logging;
 using System.Linq;
 using System.Reflection;
+using Unity.Netcode;
 
 namespace UIHotbar
 {
@@ -546,26 +547,34 @@ namespace UIHotbar
         static void SaveHotbar()
         {
             // FIXME Multiplayer
-
-            var wo = EnsureHiddenContainer();
-            var str = string.Join(",", slots.Select(slot =>
+            if (NetworkManager.Singleton?.IsServer ?? true)
             {
-                var g = slot.currentGroup;
-                if (g == null)
+                var wo = EnsureHiddenContainer();
+                var str = string.Join(",", slots.Select(slot =>
                 {
-                    return "";
-                }
-                return g.id;
-            }));
-            wo.SetText(str);
+                    var g = slot.currentGroup;
+                    if (g == null)
+                    {
+                        return "";
+                    }
+                    return g.id;
+                }));
+                wo.SetText(str);
+            }
         }
 
         static void RestoreHotbar()
         {
             // FIXME Multiplayer
-
-            var wo = EnsureHiddenContainer();
-            RestoreHotbarFromString(wo.GetText());
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                var wo = EnsureHiddenContainer();
+                RestoreHotbarFromString(wo.GetText());
+            }
+            else
+            {
+                RestoreHotbarFromString("");
+            }
         }
 
         static void RestoreHotbarFromString(string s)
