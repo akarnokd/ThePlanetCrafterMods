@@ -37,6 +37,12 @@ namespace CheatMachineRemoteDeposit
         /// </summary>
         static bool stackingOverridden;
 
+        /// <summary>
+        /// We need to know if the stackSize > 1 because otherwise stacking does nothing and we have to do it in
+        /// GenerateAnObject.
+        /// </summary>
+        static ConfigEntry<int> stackSize;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -75,6 +81,7 @@ namespace CheatMachineRemoteDeposit
                 // we need to logically invert it as we need it as "can-do"
                 InventoryCanAdd = (inv, gid) => !apiIsFullStackedInventory(inv, gid);
 
+                stackSize = (ConfigEntry<int>)AccessTools.Field(modType, "stackSize").GetValue(null);
                 stackingOverridden = true;
             }
             else
@@ -127,7 +134,11 @@ namespace CheatMachineRemoteDeposit
             TerraformStage ___terraStage
         )
         {
-            if (!modEnabled.Value || stackingOverridden)
+            if (!modEnabled.Value)
+            {
+                return true;
+            }
+            if (stackingOverridden && stackSize.Value > 1)
             {
                 return true;
             }

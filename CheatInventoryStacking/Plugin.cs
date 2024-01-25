@@ -537,6 +537,7 @@ namespace CheatInventoryStacking
             inventoryOwnerCache.Clear();
             stationDistancesCache.Clear();
             nonAttributedTasksCache.Clear();
+            inventoryGroupIsFull.Clear();
         }
     }
 }

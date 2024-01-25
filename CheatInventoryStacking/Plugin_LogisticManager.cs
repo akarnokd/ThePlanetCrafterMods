@@ -14,6 +14,7 @@ namespace CheatInventoryStacking
         static readonly List<int> taskKeysToRemove = [];
         static readonly List<LogisticStationDistanceToTask> stationDistancesCache = [];
         static readonly List<LogisticTask> nonAttributedTasksCache = [];
+        static readonly Dictionary<string, bool> inventoryGroupIsFull = [];
 
         static readonly Comparison<Inventory> CompareInventoryPriorityDesc =
             (x, y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority());
@@ -37,6 +38,7 @@ namespace CheatInventoryStacking
             }
 
             UpdateInventoryOwnerCache();
+            inventoryGroupIsFull.Clear();
             
             var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
             ____demandInventories.Sort(CompareInventoryPriorityDesc);
@@ -50,7 +52,11 @@ namespace CheatInventoryStacking
                 }
                 foreach (var demandGroup in demandInventory.GetLogisticEntity().GetDemandGroups())
                 {
-                    if (!IsFullStackedOfInventory(demandInventory, demandGroup.id))
+                    var isFull = IsFullStackedOfInventory(demandInventory, demandGroup.id);
+                    var fullKey = demandInventory.GetId() + " " + demandGroup.id;
+                    inventoryGroupIsFull[fullKey] = isFull;
+
+                    if (!isFull)
                     {
                         foreach (var supplyInventory in ____supplyInventories)
                         {
@@ -109,8 +115,15 @@ namespace CheatInventoryStacking
             {
                 var key = taskEntry.Key;
                 var task = taskEntry.Value;
-                if (IsFullStackedOfInventory(task.GetDemandInventory(), 
-                    task.GetWorldObjectToMove().GetGroup().id))
+                var inv = task.GetDemandInventory();
+                var gr = task.GetWorldObjectToMove().GetGroup().GetId();
+                var fullKey = inv.GetId() + " " + gr;
+                if (!inventoryGroupIsFull.TryGetValue(fullKey, out var isFull))
+                {
+                    isFull = IsFullStackedOfInventory(inv, gr);
+                    inventoryGroupIsFull[fullKey] = isFull;
+                }
+                if (isFull)
                 {
                     task.SetTaskState(LogisticData.TaskState.Done);
                     taskKeysToRemove.Add(key);
