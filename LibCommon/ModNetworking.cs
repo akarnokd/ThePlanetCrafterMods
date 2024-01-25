@@ -211,17 +211,21 @@ namespace LibCommon
 
             cmm.RegisterNamedMessageHandler(_modGuid, HandleMessage);
 
-            nm.OnClientConnectedCallback += HandleClientConnected;
-            nm.OnClientDisconnectCallback += HandleClientDisconnected;
+            var pm = Managers.GetManager<PlayersManager>();
+
+            pm.RegisterToPlayerStarted(pmc =>
+            {
+                DoCallback(pmc.OwnerClientId, FunctionClientConnected, pmc.playerName);
+            });
+            pm.RegisterToPlayerStopped(pmc =>
+            {
+                DoCallback(pmc.OwnerClientId, FunctionClientDisconnected, pmc.playerName);
+            });
         }
 
         static void Detach()
         {
             var nm = NetworkManager.Singleton;
-
-            nm.OnClientConnectedCallback -= HandleClientConnected;
-            nm.OnClientDisconnectCallback -= HandleClientDisconnected;
-
             var cmm = nm.CustomMessagingManager;
             cmm.UnregisterNamedMessageHandler(_modGuid);
         }
@@ -259,15 +263,15 @@ namespace LibCommon
         // ------------------------------------------------------------------------------------
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(WorldObjectsHandler), "OnNetworkSpawn")]
-        static void Patch_WorldObjectsHandler_OnNetworkSpawn()
+        [HarmonyPatch(typeof(PlayersDataManager), nameof(PlayersDataManager.OnNetworkSpawn))]
+        static void Patch_PlayersDataManager_OnNetworkSpawn()
         {
             Attach();
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(WorldObjectsHandler), "OnDestroy")]
-        static void Patch_WorldObjectsHandler_OnDestroy()
+        [HarmonyPatch(typeof(PlayersDataManager), nameof(PlayersDataManager.OnDestroy))]
+        static void Patch_PlayersDataManager_OnDestroy()
         {
             Detach();
         }
@@ -307,16 +311,6 @@ namespace LibCommon
                     _logger.LogWarning("No callback for received message from " + senderClientId + " with function " + function + " (argument.Length = " + arguments.Length + ")");
                 }
             }
-        }
-
-        static void HandleClientConnected(ulong senderId)
-        {
-            DoCallback(senderId, FunctionClientConnected, "");
-        }
-
-        static void HandleClientDisconnected(ulong senderId)
-        {
-            DoCallback(senderId, FunctionClientDisconnected, "");
         }
     }
 }
