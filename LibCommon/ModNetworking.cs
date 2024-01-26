@@ -226,8 +226,11 @@ namespace LibCommon
         static void Detach()
         {
             var nm = NetworkManager.Singleton;
-            var cmm = nm.CustomMessagingManager;
-            cmm.UnregisterNamedMessageHandler(_modGuid);
+            if (nm != null)
+            {
+                var cmm = nm.CustomMessagingManager;
+                cmm.UnregisterNamedMessageHandler(_modGuid);
+            }
         }
 
         static NetworkManager RequireServer(string function)

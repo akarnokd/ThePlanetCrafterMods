@@ -16,11 +16,12 @@ using UnityEngine.SceneManagement;
 namespace CheatMinimap
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", PluginInfo.PLUGIN_VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public partial class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
         Texture2D lush;
         Texture2D marker;
+        Texture2D marker2;
         Texture2D chest;
         Texture2D golden;
 
@@ -33,9 +34,10 @@ namespace CheatMinimap
         ConfigEntry<int> zoomOutMouseButton;
         ConfigEntry<int> autoScanForChests;
         ConfigEntry<int> fixedRotation;
+        static ConfigEntry<bool> mapManualVisible;
+        static ConfigEntry<int> fontSize;
 
         static bool mapVisible = true;
-        static bool mapManualVisible = true;
         static int autoScanEnabled = 0;
         static bool coroutineRunning = false;
         static ConfigEntry<bool> photographMap;
@@ -44,6 +46,8 @@ namespace CheatMinimap
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -53,6 +57,7 @@ namespace CheatMinimap
             barren = LoadPNG(Path.Combine(dir, "map_barren.png"));
             lush = LoadPNG(Path.Combine(dir, "map_lush.png"));
             marker = LoadPNG(Path.Combine(dir, "player_marker.png"));
+            marker2 = LoadPNG(Path.Combine(dir, "player_marker_2.png"));
             chest = LoadPNG(Path.Combine(dir, "chest.png"));
             golden = LoadPNG(Path.Combine(dir, "chest_golden.png"));
 
@@ -66,6 +71,8 @@ namespace CheatMinimap
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
             fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
             photographMap = Config.Bind("General", "PhotographMap", false, "Not meant for end-users. (Photographs the map when pressing U for development purposes.)");
+            mapManualVisible = Config.Bind("General", "MapVisible", true, "Should the map be visible?");
+            fontSize = Config.Bind("General", "FontSize", 16, "The size of the names of other players, use 0 to disable showing their name.");
 
             self = this;
 
@@ -85,14 +92,14 @@ namespace CheatMinimap
             }
         }
 
-        static List<GameObject> chests = new List<GameObject>();
+        static List<GameObject> chests = [];
 
         IEnumerator AutoScan()
         {
             for (; ; )
             {
                 int n = autoScanForChests.Value;
-                if (mapManualVisible && n > 0 && autoScanEnabled == 1)
+                if (mapManualVisible.Value && n > 0 && autoScanEnabled == 1)
                 {
                     FindChests();
                 }
@@ -177,7 +184,7 @@ namespace CheatMinimap
                     }
                     else
                     {
-                        mapManualVisible = !mapManualVisible;
+                        mapManualVisible.Value = !mapManualVisible.Value;
                     }
                 }
             }
@@ -211,7 +218,7 @@ namespace CheatMinimap
 
         void OnGUI()
         {
-            if (mapVisible && mapManualVisible)
+            if (mapVisible && mapManualVisible.Value)
             {
                 PlayersManager pm = Managers.GetManager<PlayersManager>();
                 PlayerMainController player = pm?.GetActivePlayerController();
@@ -283,14 +290,10 @@ namespace CheatMinimap
 
                     GUI.BeginGroup(minimapRect);
 
-                    if (fixRot >= 0)
-                    {
-                        GUIUtility.RotateAroundPivot(fixedAngle, mapCenter);
-                    }
-                    else
-                    {
-                        GUIUtility.RotateAroundPivot(-angle, mapCenter);
-                    }
+                    var unrotatedMatrix = GUI.matrix;
+                    float rotateAround = fixRot >= 0 ? fixedAngle : -angle;
+                    GUIUtility.RotateAroundPivot(rotateAround, mapCenter);
+
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
@@ -329,6 +332,65 @@ namespace CheatMinimap
                         }
 
                     }
+
+                    List<PlayerMainController> players = pm.playersControllers; // [player /*, player, player */];
+                    int i = 1;
+                    foreach (var controller in players)
+                    {
+                        if (controller != player)
+                        {
+                            var vec = controller.transform.position + new Vector3(100, 0, 100) * i;
+                            i++;
+                            float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
+                            float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
+
+                            GUI.DrawTexture(new Rect(chestX - 8, chestY - 8, 16, 16), marker2, ScaleMode.ScaleAndCrop, true);
+
+                            var fs = fontSize.Value;
+                            if (fs > 0)
+                            {
+                                var labelStyle = new GUIStyle("label")
+                                {
+                                    fontSize = fs,
+                                    alignment = TextAnchor.UpperCenter,
+                                    clipping = TextClipping.Overflow,
+                                    wordWrap = false,
+                                    fontStyle = FontStyle.Bold
+                                };
+
+                                var colorSave = GUI.color;
+                                var matrixSave = GUI.matrix;
+                                GUI.color = Color.blue;
+
+                                var chest = new Vector2(chestX, chestY);
+                                /*
+                                var pt = GUIUtility.GUIToScreenPoint(chest);
+                                GUI.matrix = unrotatedMatrix;
+                                var gp = GUIUtility.ScreenToGUIPoint(pt);
+                                GUI.Label(new Rect(gp.x, gp.y + 9, 1, 1), controller.playerName, labelStyle);
+                                */
+                                /*
+                                GUIUtility.RotateAroundPivot(-rotateAround, chest);
+                                GUI.Label(new Rect(chest.x, chest.y + 9, 1, 1), controller.playerName, labelStyle);
+                                */
+                                GUI.matrix = unrotatedMatrix;
+                                var chestToCenter = chest - mapCenter;
+                                var beta = Mathf.Deg2Rad * rotateAround;
+
+                                var x2 = Mathf.Cos(beta) * chestToCenter.x - Mathf.Sin(beta) * chestToCenter.y;
+                                var y2 = Mathf.Sin(beta) * chestToCenter.x + Mathf.Cos(beta) * chestToCenter.y;
+
+                                var newPos = new Vector2(mapCenter.x + x2, mapCenter.y + y2);
+
+                                GUI.Label(new Rect(newPos.x, newPos.y + 9, 1, 1), controller.playerName, labelStyle);
+
+                                // restore color and pivot
+                                GUI.color = colorSave;
+                                GUI.matrix = matrixSave;
+                            }
+                        }
+                    }
+
                     GUI.EndGroup();
 
                     GUI.BeginGroup(minimapRect);
@@ -378,232 +440,6 @@ namespace CheatMinimap
             self.StopAllCoroutines();
             coroutineRunning = false;
             chests.Clear();
-        }
-
-
-
-        void UpdatePhoto()
-        {
-            if (photographMap.Value)
-            {
-                var healthGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseHealthChangeValuePerSec");
-                healthGauge.SetValue(null, 0.0001f);
-                var waterGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseThirstChangeValuePerSec");
-                waterGauge.SetValue(null, 0.0001f);
-                var oxygenGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseOxygenChangeValuePerSec");
-                oxygenGauge.SetValue(null, 0.0001f);
-
-                PlayersManager playersManager = Managers.GetManager<PlayersManager>();
-                if (playersManager != null)
-                {
-                    PlayerMainController pm = playersManager.GetActivePlayerController();
-                    if (Keyboard.current[Key.U].wasPressedThisFrame)
-                    {
-                        if (photoroutine == null)
-                        {
-                            Assembly me = Assembly.GetExecutingAssembly();
-                            string dir = Path.GetDirectoryName(me.Location) + "\\map";
-
-                            if (!Directory.Exists(dir))
-                            {
-                                Directory.CreateDirectory(dir);
-                            }
-                            else
-                            {
-                                foreach (string f in Directory.EnumerateFiles(dir))
-                                {
-                                    string n = Path.GetFileName(f);
-                                    if (n.StartsWith("map_") && n.EndsWith(".png"))
-                                    {
-                                        File.Delete(f);
-                                    }
-                                }
-                            }
-
-                            photoroutine = PhotographMap(dir, pm);
-                        }
-                        else
-                        {
-                            photoroutine = null;
-                        }
-                    }
-                }
-
-                if (photoroutine != null)
-                {
-                    if (!photoroutine.MoveNext())
-                    {
-                        photoroutine = null;
-                    }
-                }
-            }
-        }
-
-        static IEnumerator photoroutine;
-
-        void SetVisuals(int step, PlayerMainController pm)
-        {
-            Camera.main.orthographic = true;
-            Camera.main.orthographicSize = step;
-            Camera.main.aspect = 1;
-            Camera.main.farClipPlane = 700;
-            Camera.main.nearClipPlane = -400;
-            Camera.main.layerCullDistances = new float[32];
-
-            RenderSettings.fog = false;
-            RenderSettings.ambientSkyColor = Color.white;
-            RenderSettings.ambientGroundColor = Color.white;
-            RenderSettings.ambientEquatorColor = Color.white;
-            RenderSettings.ambientLight = Color.white;
-            RenderSettings.sun.color = Color.white;
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-
-            QualitySettings.shadows = ShadowQuality.Disable;
-
-            var pw = pm.GetComponentInChildren<PlayerView>();
-            pw.enabled = false;
-            pw.damageViewVolume.weight = 0;
-            pw.damageViewVolume.enabled = false;
-
-            foreach (Light lg in FindObjectsByType<Light>(FindObjectsSortMode.None))
-            {
-                lg.shadows = LightShadows.None;
-                lg.color = Color.white;
-                lg.range = 1000;
-            }
-            /*
-            foreach (var ps in FindObjectsOfType<ParticleSystem>())
-            {
-                ps.gameObject.SetActive(false);
-            }
-            */
-        }
-
-        public static bool allowUnload = true;
-        static bool loaded;
-
-        IEnumerator PhotographMap(string dir, PlayerMainController pm)
-        {
-            var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
-            var move = pm.GetPlayerMovable();
-            move.flyMode = true;
-            int playerX = 400;
-            int playerZ = 800;
-
-            pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
-            SetVisuals(4000 / 2, pm);
-            foreach (ParticleSystem ps in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
-            {
-                var em = ps.emission;
-                em.enabled = false;
-            }
-
-            allowUnload = false;
-            Time.timeScale = 1f;
-
-            Logger.LogInfo("Begin Sector loading");
-
-            // disable all decoys
-            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
-            Logger.LogInfo("Sector count: " + sectors.Length);
-            foreach (Sector sector in sectors)
-            {
-                Logger.LogInfo("Checking a sector");
-                if (sector == null || sector.gameObject == null)
-                {
-                    continue;
-                }
-                string name = sector.gameObject.name;
-                Logger.LogInfo("Sector: " + name);
-                if (/*name.StartsWith("Sector-Cave-") || */name.Contains("_Interior"))
-                {
-                    Logger.LogInfo("Sector: " + name + " Ignored");
-                    continue;
-                }
-                bool found = false;
-                /*
-                for (int i = 0; i < SceneManager.sceneCount; i++)
-                {
-                    var sc = SceneManager.GetSceneAt(i);
-                    if (sc.name == name)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                */
-                if (!found)
-                {
-                    var info = "Sector: " + name + " loading";
-                    Logger.LogInfo(info);
-                    //File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
-                    loaded = false;
-                    SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
-
-                    while (!loaded)
-                    {
-                        yield return 0;
-                    }
-
-                    Logger.LogInfo("        " + name + " hiding decoys");
-                    foreach (GameObject gameObject in sector.decoyGameObjects)
-                    {
-                        if (gameObject != null)
-                        {
-                            gameObject.SetActive(true);
-                        }
-                    }
-                    Logger.LogInfo("        " + name + " loaded successfully");
-                }
-            }
-            
-            foreach (var lg in FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
-            {
-                lg.enabled = false;
-            }
-
-
-            Logger.LogInfo("Screenshot all");
-
-            int[] ys = new[] { 50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500 };
-
-            foreach (int y in ys) {
-                pm.SetPlayerPlacement(new Vector3(playerX, y, playerZ), q);
-                SetVisuals(4000 / 2, pm);
-                yield return 0;
-                ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
-                yield return 0;
-            }
-            
-            allowUnload = true;
-            Time.timeScale = 1f;
-            yield break;
-        }
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
-        static bool PlayerMovable_UpdatePlayerMovement()
-        {
-            return photoroutine == null;
-        }
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerFallDamage), "Update")]
-        static bool PlayerFallDamage_Update()
-        {
-            return photoroutine == null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Sector), nameof(Sector.UnloadSector))]
-        static bool Sector_UnloadSector()
-        {
-            return allowUnload;
-        }
-        */
-
-        static void OnSceneLoaded(AsyncOperation obj)
-        {
-            loaded = true;
         }
     }
 }
