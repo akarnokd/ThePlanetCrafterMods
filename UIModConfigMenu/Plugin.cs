@@ -61,6 +61,23 @@ namespace UIModConfigMenu
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WindowsHandler), "Start")]
+        static void WindowsHandler_Start(WindowsHandler __instance)
+        {
+            __instance.StartCoroutine(DeferredStart());
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowOptions), nameof(UiWindowOptions.OnClose))]
+        static void UiWindowOptions_OnClose()
+        {
+            foreach (var tooltip in FindObjectsByType<ModConfigEntryHover>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                tooltip.OnPointerExit(default);
+            }
+        }
+
         static List<BepInEx.PluginInfo> pluginList;
         static GameObject modScrollContent;
         static Transform otherOptions;
@@ -126,6 +143,10 @@ namespace UIModConfigMenu
                 btn.onClick = bc;
 
                 optionsPanel.tabsButtons.Add(buttonMods);
+
+                var buttonsRt = buttonGraphics.transform.parent.GetComponent<RectTransform>();
+                var buttonGraphicsRT = buttonGraphics.GetComponent<RectTransform>();
+                buttonsRt.localPosition -= new Vector3(buttonGraphicsRT.sizeDelta.x / 2, 0, 0);
 
                 otherOptions = scrollViewControls.transform.Find("Viewport/Content/Other Options");
                 otherOptionsX = otherOptions.GetComponent<RectTransform>().localPosition.x;
@@ -330,6 +351,15 @@ namespace UIModConfigMenu
 
                 cnt++;
 
+                // [Optionally] call a method on the mod if the config is changed live
+                MethodInfo mOnModConfigChanged = pi.Instance.GetType().GetMethod(
+                    "OnModConfigChanged", 
+                    AccessTools.all, 
+                    null, 
+                    [typeof(ConfigEntryBase)], 
+                    []
+                );
+
                 // Create the mods header row with version
                 // ---------------------------------------
 
@@ -470,9 +500,11 @@ namespace UIModConfigMenu
 
                                     btnComp.onClick.AddListener(new UnityAction(() =>
                                     {
-                                        ceb.SetSerializedValue(ce.Value.GetSerializedValue() == "true" ? "false" : "true");
+                                        ceb.SetSerializedValue(ceb.GetSerializedValue() == "true" ? "false" : "true");
                                         pcfg.Save();
-                                        img.color = ce.Value.GetSerializedValue() == "true" ? colorOn : colorOff;
+                                        img.color = ceb.GetSerializedValue() == "true" ? colorOn : colorOff;
+
+                                        mOnModConfigChanged?.Invoke(null, [ceb]);
                                     }));
                                 }
                                 else
@@ -518,6 +550,7 @@ namespace UIModConfigMenu
                                     {
                                         ceb.SetSerializedValue(e);
                                         pcfg.Save();
+                                        mOnModConfigChanged?.Invoke(null, [ceb]);
                                     }));
 
                                     editor.caretColor = Color.white;
@@ -619,6 +652,8 @@ namespace UIModConfigMenu
             {
                 Destroy(tooltipGo);
             }
+
+
         }
     }
 }

@@ -110,11 +110,7 @@ namespace UIBeaconText
             MachineBeaconUpdater __instance, 
             GameObject ___canvas)
         {
-            if (hideVanillaLabel.Value)
-            {
-                var vanillaLabel = ___canvas.GetComponentInChildren<TextMeshProUGUI>();
-                vanillaLabel?.gameObject.SetActive(false);
-            }
+            var vanillaLabel = ___canvas.GetComponentInChildren<TextMeshProUGUI>();
 
             var s = 0.005f;
             var offset = 0.15f;
@@ -168,14 +164,13 @@ namespace UIBeaconText
                 }
             }
 
-            
-
             log("Starting updater");
 
             var holder = ___canvas.AddComponent<BeaconTextHolder>();
             holder.titleText = titleText;
             holder.distanceText = distanceText;
             holder.beaconWorldObject = wo;
+            holder.vanillaLabel = vanillaLabel;
         }
 
         [HarmonyPostfix]
@@ -209,6 +204,7 @@ namespace UIBeaconText
                 titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
                 distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
             }
+            holder.vanillaLabel?.gameObject.SetActive(!hideVanillaLabel.Value);
         }
 
         internal class BeaconTextHolder : MonoBehaviour
@@ -216,6 +212,7 @@ namespace UIBeaconText
             internal Text titleText;
             internal Text distanceText;
             internal WorldObject beaconWorldObject;
+            internal TextMeshProUGUI vanillaLabel;
         }
     }
 }
