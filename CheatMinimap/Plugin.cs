@@ -334,13 +334,11 @@ namespace CheatMinimap
                     }
 
                     List<PlayerMainController> players = pm.playersControllers; // [player /*, player, player */];
-                    int i = 1;
                     foreach (var controller in players)
                     {
                         if (controller != player)
                         {
-                            var vec = controller.transform.position + new Vector3(100, 0, 100) * i;
-                            i++;
+                            var vec = controller.transform.position;
                             float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
                             float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
 
@@ -363,16 +361,6 @@ namespace CheatMinimap
                                 GUI.color = Color.blue;
 
                                 var chest = new Vector2(chestX, chestY);
-                                /*
-                                var pt = GUIUtility.GUIToScreenPoint(chest);
-                                GUI.matrix = unrotatedMatrix;
-                                var gp = GUIUtility.ScreenToGUIPoint(pt);
-                                GUI.Label(new Rect(gp.x, gp.y + 9, 1, 1), controller.playerName, labelStyle);
-                                */
-                                /*
-                                GUIUtility.RotateAroundPivot(-rotateAround, chest);
-                                GUI.Label(new Rect(chest.x, chest.y + 9, 1, 1), controller.playerName, labelStyle);
-                                */
                                 GUI.matrix = unrotatedMatrix;
                                 var chestToCenter = chest - mapCenter;
                                 var beta = Mathf.Deg2Rad * rotateAround;
