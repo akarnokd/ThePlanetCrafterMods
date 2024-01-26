@@ -69,7 +69,7 @@ namespace LibCommon
                         memgb = (gb / 1024.0 / 1024.0 / 1024.0).ToString("#,##0");
                     }
                     Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + memgb + " GB RAM");
-                    Debug.Log("  Plugins to load   : " + Chainloader.PluginInfos.Count);
+                    // Debug.Log("  Plugins to load   : " + Chainloader.PluginInfos.Count);
                 }
                 Debug.Log("");
             }

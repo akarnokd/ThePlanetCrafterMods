@@ -28,6 +28,8 @@ namespace CheatMoreTrade
 
         void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             Logger.LogInfo($"Plugin is enabled.");
             
             logger = Logger;

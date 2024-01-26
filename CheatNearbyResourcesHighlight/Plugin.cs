@@ -73,6 +73,8 @@ namespace CheatNearbyResourcesHighlight
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -108,11 +110,13 @@ namespace CheatNearbyResourcesHighlight
                     //
                     if (Keyboard.current[k].wasPressedThisFrame)
                     {
-                        List<string> scanSetList = new();
-                        scanSetList.AddRange(resourceSetStr.Value.Split(','));
-                        scanSetList.AddRange(larvaeSetStr.Value.Split(','));
-                        scanSetList.AddRange(fishSetStr.Value.Split(','));
-                        scanSetList.AddRange(frogSetStr.Value.Split(','));
+                        List<string> scanSetList =
+                        [
+                            .. resourceSetStr.Value.Split(','),
+                            .. larvaeSetStr.Value.Split(','),
+                            .. fishSetStr.Value.Split(','),
+                            .. frogSetStr.Value.Split(','),
+                        ];
 
                         if (Keyboard.current[Key.LeftShift].isPressed)
                         {
@@ -229,7 +233,7 @@ namespace CheatNearbyResourcesHighlight
 
 
             // Where are the minable objects?
-            List<Component> candidates = new();
+            List<Component> candidates = [];
             if (hasResources)
             {
                 candidates.AddRange(FindObjectsByType<ActionMinable>(FindObjectsSortMode.None));
@@ -276,7 +280,7 @@ namespace CheatNearbyResourcesHighlight
                         iconGo.transform.LookAt(player, player.up);
                         iconGo.SetActive(true);
 
-                        GameObjectTTL go = new GameObjectTTL();
+                        var go = new GameObjectTTL();
                         go.resource = resource.gameObject;
                         go.icon = iconGo;
                         go.time = Time.time + timeToLive.Value;
@@ -285,7 +289,7 @@ namespace CheatNearbyResourcesHighlight
                         if (barLen > 0)
                         {
                             float barWidth = 0.1f;
-                            GameObject bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
+                            var bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
                             var image1 = bar1.AddComponent<SpriteRenderer>();
                             image1.sprite = icon;
                             image1.color = new Color(1f, 1f, 1f, 1f);
@@ -294,7 +298,7 @@ namespace CheatNearbyResourcesHighlight
                             bar1.transform.localScale = new Vector3(barWidth, barLen, barWidth);
                             bar1.SetActive(true);
 
-                            GameObject bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
+                            var bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
                             var image2 = bar2.AddComponent<SpriteRenderer>();
                             image2.sprite = icon;
                             image2.color = new Color(1f, 1f, 1f, 1f);
