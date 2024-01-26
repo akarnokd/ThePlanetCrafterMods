@@ -27,7 +27,7 @@ namespace UIModConfigMenu
 
         static string filterValue = "";
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -171,7 +171,7 @@ namespace UIModConfigMenu
             }
         }
 
-        void Update()
+        public void Update()
         {
             if (modScroll != null && filterGo != null && !modScroll.activeSelf && filterGo.activeSelf)
             {
@@ -303,7 +303,7 @@ namespace UIModConfigMenu
                             bool foundKey = false;
                             foreach (var cef in pi.Instance.Config.Keys)
                             {
-                                if (cef.Key.Contains(ft.Substring(1), StringComparison.InvariantCultureIgnoreCase))
+                                if (cef.Key.Contains(ft[1..], StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     foundKey = true;
                                     break;

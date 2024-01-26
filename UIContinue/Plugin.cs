@@ -40,15 +40,12 @@ namespace UIContinue
 
         static IEnumerator DeferredBuildButtons()
         {
-            yield return new WaitForSeconds(0.1f);
-
             var playButton = GameObject.Find("ButtonPlay");
-
-            var optionsButton = GameObject.Find("ButtonOptions");
 
             continueButton = Instantiate(playButton);
             continueButton.name = "ButtonContinue";
             continueButton.transform.SetParent(playButton.transform.parent, false);
+            continueButton.transform.SetAsFirstSibling();
 
             var lt = continueButton.GetComponentInChildren<LocalizedText>();
 
@@ -58,15 +55,22 @@ namespace UIContinue
             var btn = continueButton.GetComponent<Button>();
             var bc = new Button.ButtonClickedEvent();
             btn.onClick = bc;
-            bc.AddListener(() => OnContinueClick());
+
+            var imgIn = continueButton.GetComponentInChildren<Image>();
+            var imgColorSaved = imgIn.color;
+            var faded = new Color(1, 1, 1, 0.2f);
+            imgIn.color = faded;
+            var txtIn = continueButton.GetComponentInChildren<TextMeshProUGUI>();
+            var txtColorSaved = txtIn.color;
+            txtIn.color = faded;
+
+            yield return new WaitForSeconds(0.1f);
 
             lastSave = null;
             lastSaveDateText = "";
             lastSaveInfoText = "";
 
             string[] files = Directory.GetFiles(Application.persistentDataPath, "*.json");
-
-            continueButton.SetActive(false);
 
             if (files.Length != 0)
             {
@@ -144,14 +148,14 @@ namespace UIContinue
 
                             lastSaveInfoText += "    " + tiAndUnit;
 
-                            continueButton.SetActive(true);
+                            imgIn.color = imgColorSaved;
+                            txtIn.color = txtColorSaved;
+                            bc.AddListener(OnContinueClick);
                         }
                         break;
                     }
                 }
             }
-
-            continueButton.transform.SetAsFirstSibling();
 
             if (lastSaveInfo == null)
             {

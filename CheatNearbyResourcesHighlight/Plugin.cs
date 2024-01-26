@@ -69,7 +69,7 @@ namespace CheatNearbyResourcesHighlight
             }
         }
 
-        static List<GameObjectTTL> scannerImageList = new List<GameObjectTTL>();
+        static readonly List<GameObjectTTL> scannerImageList = [];
 
         private void Awake()
         {
@@ -141,7 +141,7 @@ namespace CheatNearbyResourcesHighlight
                         {
                             if (currentResource == null)
                             {
-                                currentResource = scanSetList[scanSetList.Count - 1];
+                                currentResource = scanSetList[^1];
                             }
                             else
                             {
@@ -183,7 +183,7 @@ namespace CheatNearbyResourcesHighlight
             float maxRangeSqr = radius.Value * radius.Value;
             float sy = stretchY.Value;
             // prepare resource sets to highlight
-            HashSet<string> scanSet = new HashSet<string>();
+            var scanSet = new HashSet<string>();
             bool hasResources = false;
             bool hasLarvae = false;
             bool hasFish = false;
@@ -270,8 +270,8 @@ namespace CheatNearbyResourcesHighlight
                     if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f
                         && (resourcePosition - playerPosition).sqrMagnitude < maxRangeSqr)
                     {
-                        GameObject iconGo = new GameObject("ScannerImage-" + gid);
-                        SpriteRenderer spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
+                        var iconGo = new GameObject("ScannerImage-" + gid);
+                        var spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
                         spriteRenderer.sprite = icon;
                         spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
                         iconGo.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
@@ -280,10 +280,12 @@ namespace CheatNearbyResourcesHighlight
                         iconGo.transform.LookAt(player, player.up);
                         iconGo.SetActive(true);
 
-                        var go = new GameObjectTTL();
-                        go.resource = resource.gameObject;
-                        go.icon = iconGo;
-                        go.time = Time.time + timeToLive.Value;
+                        var go = new GameObjectTTL
+                        {
+                            resource = resource.gameObject,
+                            icon = iconGo,
+                            time = Time.time + timeToLive.Value
+                        };
 
                         float barLen = lineIndicatorLength.Value;
                         if (barLen > 0)

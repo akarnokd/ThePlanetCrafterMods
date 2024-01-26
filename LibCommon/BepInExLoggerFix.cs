@@ -1,11 +1,8 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
-using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
 using UnityEngine;
 
 namespace LibCommon
@@ -61,8 +58,8 @@ namespace LibCommon
                     Debug.Log("  Runtime version   : " + System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription);
                     Debug.Log("  CLR version       : " + Environment.Version);
                     Debug.Log("  System & Platform : " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + ", " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
-                    Debug.Log("  Processor         : " + wmic("cpu get name") ?? "Unknown");
-                    var mem = wmic("ComputerSystem get TotalPhysicalMemory");
+                    Debug.Log("  Processor         : " + RunWMIC("cpu get name") ?? "Unknown");
+                    var mem = RunWMIC("ComputerSystem get TotalPhysicalMemory");
                     var memgb = "Unknown";
                     if (mem != null && long.TryParse(mem, out var gb))
                     {
@@ -75,16 +72,20 @@ namespace LibCommon
             }
         }
 
-        private static string wmic(string query)
+        private static string RunWMIC(string query)
         {
             try
             {
-                System.Diagnostics.ProcessStartInfo startinfo = new();
-                startinfo.FileName = @"wmic";
-                startinfo.Arguments = query;
+                System.Diagnostics.ProcessStartInfo startinfo = new()
+                {
+                    FileName = @"wmic",
+                    Arguments = query
+                };
 
-                System.Diagnostics.Process process = new();
-                process.StartInfo = startinfo;
+                System.Diagnostics.Process process = new()
+                {
+                    StartInfo = startinfo
+                };
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardInput = true;
                 process.StartInfo.RedirectStandardOutput = true;

@@ -13,7 +13,7 @@ namespace CheatMoreTrade
     public class Plugin : BaseUnityPlugin
     {
         // just some defaults
-        static Dictionary<string, int> tradeValues = new() 
+        static readonly Dictionary<string, int> tradeValues = new() 
         {
             { "Vegetable0Seed", 500 },
             { "Vegetable1Seed", 1000 },
@@ -26,7 +26,7 @@ namespace CheatMoreTrade
 
         static ManualLogSource logger;
 
-        void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 

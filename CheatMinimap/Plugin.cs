@@ -81,18 +81,18 @@ namespace CheatMinimap
 
         static ButtonControl MouseButtonForIndex(int index)
         {
-            switch (index)
+            return index switch
             {
-                case 1: return Mouse.current.leftButton;
-                case 2: return Mouse.current.rightButton;
-                case 3: return Mouse.current.middleButton;
-                case 4: return Mouse.current.forwardButton;
-                case 5: return Mouse.current.backButton;
-                default: return null;
-            }
+                1 => Mouse.current.leftButton,
+                2 => Mouse.current.rightButton,
+                3 => Mouse.current.middleButton,
+                4 => Mouse.current.forwardButton,
+                5 => Mouse.current.backButton,
+                _ => null,
+            };
         }
 
-        static List<GameObject> chests = [];
+        static readonly List<GameObject> chests = [];
 
         IEnumerator AutoScan()
         {
@@ -228,8 +228,8 @@ namespace CheatMinimap
                     int panelWidth = mapSize.Value;
 
                     float angle = player.transform.eulerAngles.y;
-                    Rect minimapRect = new Rect(mapPanelLeft.Value, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
-                    Vector2 mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
+                    var minimapRect = new Rect(mapPanelLeft.Value, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
+                    var mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
                     float zoom = zoomLevel.Value;
 
                     Texture2D theMap = barren;
@@ -391,7 +391,7 @@ namespace CheatMinimap
 
         static Texture2D LoadPNG(string filename)
         {
-            Texture2D tex = new Texture2D(750, 1000);
+            var tex = new Texture2D(750, 1000);
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
@@ -423,7 +423,7 @@ namespace CheatMinimap
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit(UiWindowPause __instance)
+        static void UiWindowPause_OnQuit()
         {
             self.StopAllCoroutines();
             coroutineRunning = false;
