@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
@@ -46,6 +47,7 @@ namespace LibCommon
                 if (WriteStringToUnityLog == null)
                 {
                     Debug.LogWarning("   Unable to fix BepInEx Logging");
+                    Debug.Log("");
                 }
                 else
                 {
@@ -67,8 +69,13 @@ namespace LibCommon
                     }
                     Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + memgb + " GB RAM");
                     // Debug.Log("  Plugins to load   : " + Chainloader.PluginInfos.Count);
+
+                    Debug.Log("");
+                    foreach (var mod in Chainloader.PluginInfos.Values)
+                    {
+                        Debug.Log("[Info   :   BepInEx] Loading [" + mod.Metadata.Name + " " + mod.Metadata.Version + "]");
+                    }
                 }
-                Debug.Log("");
             }
         }
 
