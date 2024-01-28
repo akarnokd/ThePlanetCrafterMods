@@ -181,9 +181,10 @@ namespace UIBeaconText
         )
         {
             var holder = ___canvas.GetComponent<BeaconTextHolder>();
-            var player = Managers.GetManager<PlayersManager>().GetActivePlayerController(); ;
+            var player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
 
-            var dist = (int)Vector3.Distance(__instance.transform.position, player.transform.position); ;
+            var beaconPos = __instance.transform.position;
+            var dist = (int)Vector3.Distance(beaconPos, player?.transform.position ?? beaconPos);
 
             var titleText = holder.titleText;
             var distanceText = holder.distanceText;
