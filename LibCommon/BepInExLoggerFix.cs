@@ -119,16 +119,16 @@ namespace LibCommon
                 var fi = new FileInfo(target);
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
-                    Debug.Log("  Achievements      : Online");
+                    Debug.Log("  Achievements      : Enabled");
                 }
                 else
                 {
-                    Debug.Log("  Achievements      : Active");
+                    Debug.Log("  Acheivements      : Reactivated");
                 }
             }
             else
             {
-                Debug.Log("  Achievements      : Offline");
+                Debug.Log("  Achievements      : Disabled");
             }
         }
 

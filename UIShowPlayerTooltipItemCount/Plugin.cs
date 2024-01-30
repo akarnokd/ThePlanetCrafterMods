@@ -31,54 +31,60 @@ namespace UIShowPlayerTooltipItemCount
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(GroupInfosDisplayer), nameof(GroupInfosDisplayer.Show))]
-        static void GroupInfosDisplayer_Show(Group group, TextMeshProUGUI ___nameText)
+        static void GroupInfosDisplayer_Show(
+            Group group, 
+            TextMeshProUGUI ___nameText,
+            GroupInfosDisplayerBlocksSwitches blocksSwitches)
         {
-            string gname = Readable.GetGroupName(group);
-            Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
-            int cnt = 0;
-
-            inventoryCountsCache.Clear();
-            recipeCountsCache.Clear();
-
-            foreach (WorldObject wo in inventory.GetInsideWorldObjects())
+            if (blocksSwitches.showDescription)
             {
-                var gid = wo.GetGroup().GetId();
-                if (gid == group.GetId())
+                string gname = Readable.GetGroupName(group);
+                Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
+                int cnt = 0;
+
+                inventoryCountsCache.Clear();
+                recipeCountsCache.Clear();
+
+                foreach (WorldObject wo in inventory.GetInsideWorldObjects())
                 {
-                    cnt++;
+                    var gid = wo.GetGroup().GetId();
+                    if (gid == group.GetId())
+                    {
+                        cnt++;
+                    }
+
+                    inventoryCountsCache.TryGetValue(gid, out var itemCount);
+                    inventoryCountsCache[gid] = itemCount + 1;
+                }
+                if (cnt > 0)
+                {
+                    gname += "    x " + cnt;
                 }
 
-                inventoryCountsCache.TryGetValue(gid, out var itemCount);
-                inventoryCountsCache[gid] = itemCount + 1;
+                var ingredients = group.GetRecipe().GetIngredientsGroupInRecipe();
+                if (ingredients.Count != 0)
+                {
+
+                    foreach (var gr in ingredients)
+                    {
+                        recipeCountsCache.TryGetValue(gr.id, out var ingredientCount);
+                        recipeCountsCache[gr.id] = ingredientCount + 1;
+                    }
+
+                    int buildableCount = int.MaxValue;
+                    foreach (var entry in recipeCountsCache)
+                    {
+                        inventoryCountsCache.TryGetValue(entry.Key, out var haveCount);
+                        buildableCount = Math.Min(buildableCount, haveCount / entry.Value);
+                    }
+                    if (buildableCount != int.MaxValue)
+                    {
+                        gname += "    < " + buildableCount + " >";
+                    }
+                }
+
+                ___nameText.text = gname;
             }
-            if (cnt > 0)
-            {
-                gname += "    x " + cnt;
-            }
-
-            var ingredients = group.GetRecipe().GetIngredientsGroupInRecipe();
-            if (ingredients.Count != 0)
-            {
-
-                foreach (var gr in ingredients)
-                {
-                    recipeCountsCache.TryGetValue(gr.id, out var ingredientCount);
-                    recipeCountsCache[gr.id] = ingredientCount + 1;
-                }
-
-                int buildableCount = int.MaxValue;
-                foreach (var entry in recipeCountsCache)
-                {
-                    inventoryCountsCache.TryGetValue(entry.Key, out var haveCount);
-                    buildableCount = Math.Min(buildableCount, haveCount / entry.Value);
-                }
-                if (buildableCount != int.MaxValue)
-                {
-                    gname += "    < " + buildableCount + " >";
-                }
-            }
-
-            ___nameText.text = gname;
         }
 
         [HarmonyPostfix]
