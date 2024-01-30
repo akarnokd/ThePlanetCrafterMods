@@ -17,6 +17,8 @@ namespace UIShowETA
     {
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -27,7 +29,8 @@ namespace UIShowETA
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
         static void ScreenTerraStage_RefreshDisplay(
-            TextMeshProUGUI ___percentageProcess, TerraformStagesHandler ___terraformStagesHandler)
+            TextMeshProUGUI ___percentageProcess, 
+            TerraformStagesHandler ___terraformStagesHandler)
         {
             TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
             if (nextGlobalStage == null)
