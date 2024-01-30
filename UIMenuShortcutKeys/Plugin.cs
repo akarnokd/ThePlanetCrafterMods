@@ -7,12 +7,15 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Reflection;
+using BepInEx.Logging;
 
 namespace UIMenuShortcutKeys
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+
+        static ManualLogSource logger;
 
         ConfigEntry<int> fontSize;
         ConfigEntry<string> configBuildToggleFilter;
@@ -33,14 +36,19 @@ namespace UIMenuShortcutKeys
         InputAction sortOtherInventory;
 
 
-        static FieldInfo playerEquipmentHasCleanConstructionChip;
+        static AccessTools.FieldRef<PlayerEquipment, bool> fPlayerEquipmentHasCleanConstructionChip;
+        static AccessTools.FieldRef<UiWindowConstruction, List<GroupListGridDisplayer>> fUiWindowConstructionGroupListDisplayers;
+        static MethodInfo mUiWindowConstructionCreateGrid; 
 
-        readonly List<ShortcutDisplayEntry> entries = new();
+        readonly List<ShortcutDisplayEntry> entries = [];
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+            logger = Logger;
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
@@ -74,7 +82,9 @@ namespace UIMenuShortcutKeys
 
             debugMode = Config.Bind("General", "DebugMode", false, "Turn this true to see log messages.");
 
-            playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+            fPlayerEquipmentHasCleanConstructionChip = AccessTools.FieldRefAccess<PlayerEquipment, bool>("hasCleanConstructionChip");
+            mUiWindowConstructionCreateGrid = AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid");
+            fUiWindowConstructionGroupListDisplayers = AccessTools.FieldRefAccess<UiWindowConstruction, List<GroupListGridDisplayer>>("_groupListDisplayers");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -225,9 +235,13 @@ namespace UIMenuShortcutKeys
                     {
                         buildToggleFilterState = !buildToggleFilterState;
 
+                        foreach (var gld in fUiWindowConstructionGroupListDisplayers(uiWindowConstruction))
+                        {
+                            GameObjects.DestroyAllChildren(gld.gameObject);
+                        }
                         window.gameObject.SetActive(false);
                         window.gameObject.SetActive(true);
-                        AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid").Invoke(uiWindowConstruction, new object[0]);
+                        mUiWindowConstructionCreateGrid.Invoke(uiWindowConstruction, []);
                     }
                     else
                     if (debugMode.Value)
@@ -302,6 +316,11 @@ namespace UIMenuShortcutKeys
         {
             if (ui == DataConfig.UiType.Construction)
             {
+                entries.Add(CreateEntry("BuildBuild", "Left Click", "Build Structure", shortcutBar.transform));
+                if (Managers.GetManager<CanvasPinedRecipes>().GetIsPinPossible())
+                {
+                    entries.Add(CreateEntry("BuildPin", "Right Click", "Pin/Unpin Recipe", shortcutBar.transform));
+                }
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
                 if (pm.GetHasCleanConstructionChip())
                 {
@@ -347,7 +366,7 @@ namespace UIMenuShortcutKeys
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
             originalHasFilter = pm.GetHasCleanConstructionChip();
-            playerEquipmentHasCleanConstructionChip.SetValue(pm, buildToggleFilterState && originalHasFilter);
+            fPlayerEquipmentHasCleanConstructionChip(pm) = buildToggleFilterState && originalHasFilter;
         }
 
         [HarmonyPostfix]
@@ -355,12 +374,12 @@ namespace UIMenuShortcutKeys
         static void UiWindowConstruction_CreateGrid_Post()
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
-            playerEquipmentHasCleanConstructionChip.SetValue(pm, originalHasFilter);
+            fPlayerEquipmentHasCleanConstructionChip(pm) = originalHasFilter;
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad()
         {
             buildToggleFilterState = Managers.GetManager<PlayersManager>()
                 .GetActivePlayerController()
@@ -379,7 +398,7 @@ namespace UIMenuShortcutKeys
 
             internal void Destroy()
             {
-                UnityEngine.Object.Destroy(gameObject);
+                Object.Destroy(gameObject);
             }
         }
 
