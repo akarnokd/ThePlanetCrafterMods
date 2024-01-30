@@ -306,7 +306,7 @@ namespace CheatInventoryStacking
 
                 bool logisticFlag = ____logisticManager.GetGlobalLogisticsEnabled() && ____inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
 
-                __instance.groupSelector.gameObject.SetActive(Application.isEditor || Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft());
+                __instance.groupSelector.gameObject.SetActive(Application.isEditor && Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft());
 
                 // Since 0.9.020 (vanilla gamepad improvements)
                 var selectableEnablerComponent = __instance.GetComponentInParent<SelectableEnabler>();
