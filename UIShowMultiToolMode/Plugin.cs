@@ -24,13 +24,15 @@ namespace UIShowMultiToolMode
         static ConfigEntry<int> right;
 
         static GameObject parent;
-        GameObject textBackground;
-        GameObject iconBackground;
-        GameObject textObject;
-        GameObject iconObject;
+        static GameObject textBackground;
+        static GameObject iconBackground;
+        static GameObject textObject;
+        static GameObject iconObject;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -73,7 +75,7 @@ namespace UIShowMultiToolMode
                 RectTransform rectTransform;
                 Image image;
                 Text text;
-                Color bgColor = new Color(0, 0, 0, transparencyPercent.Value / 100f);
+                Color bgColor = new(0, 0, 0, transparencyPercent.Value / 100f);
 
                 int s = fontSize.Value;
                 int pad = 10;
@@ -173,13 +175,13 @@ namespace UIShowMultiToolMode
             }
         }
 
-        void Teardown()
+        static void Teardown()
         {
-            UnityEngine.Object.Destroy(textBackground);
-            UnityEngine.Object.Destroy(textObject);
-            UnityEngine.Object.Destroy(iconBackground);
-            UnityEngine.Object.Destroy(iconObject);
-            UnityEngine.Object.Destroy(parent);
+            Destroy(textBackground);
+            Destroy(textObject);
+            Destroy(iconBackground);
+            Destroy(iconObject);
+            Destroy(parent);
             parent = null;
             textBackground = null;
             textObject = null;
@@ -193,6 +195,11 @@ namespace UIShowMultiToolMode
         {
             bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
+        }
+
+        static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            Teardown();
         }
     }
 }
