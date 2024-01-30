@@ -87,11 +87,11 @@ namespace UIShowPlayerInventoryCount
                 int jdx = text.IndexOf(postfix);
                 if (jdx < 0)
                 {
-                    ___textPositionDecoration.text = text.Substring(0, idx) + addition;
+                    ___textPositionDecoration.text = text[..idx] + addition;
                 }
                 else
                 {
-                    ___textPositionDecoration.text = text.Substring(0, idx) + addition + text.Substring(jdx + postfix.Length);
+                    ___textPositionDecoration.text = text[..idx] + addition + text[(jdx + postfix.Length)..];
                 }
             }
         }

@@ -3,6 +3,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
 
@@ -68,8 +69,9 @@ namespace LibCommon
                         memgb = (gb / 1024.0 / 1024.0 / 1024.0).ToString("#,##0");
                     }
                     Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + memgb + " GB RAM");
-                    // Debug.Log("  Plugins to load   : " + Chainloader.PluginInfos.Count);
-
+                    
+                    ApplyAchievementWorkaround();
+                    
                     Debug.Log("");
                     foreach (var mod in Chainloader.PluginInfos.Values)
                     {
@@ -105,6 +107,52 @@ namespace LibCommon
             {
                 return null;
             }
+        }
+
+        static void ApplyAchievementWorkaround()
+        {
+            var loc = Assembly.GetExecutingAssembly().Location;
+            var dir = loc.LastIndexOf("BepInEx");
+            if (dir != -1)
+            {
+                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
+                var fi = new FileInfo(target);
+                if (fi.Exists && fi.Length / 1024 < 300)
+                {
+                    Debug.Log("  Achievements      : Online");
+                }
+                else
+                {
+                    Debug.Log("  Achievements      : Active");
+                }
+            }
+            else
+            {
+                Debug.Log("  Achievements      : Offline");
+            }
+        }
+
+        static string OfArchitecture()
+        {
+            return "x86_" + OfSubArchitecture();
+        }
+
+        static string OfSubArchitecture()
+        {
+            return "64";
+        }
+
+        static string OfPlatform()
+        {
+            return "steam_" + OfBits();
+        }
+        static string OfBits()
+        {
+            return "api64" + OfContainer();
+        }
+        static string OfContainer()
+        {
+            return ".dll";
         }
     }
 }
