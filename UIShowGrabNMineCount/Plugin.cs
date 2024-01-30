@@ -6,13 +6,14 @@ using BepInEx.Configuration;
 namespace UIShowGrabNMineCount
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency("akarnokd.theplanetcraftermods.featmultiplayer", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         private static ConfigEntry<bool> isEnabled;
 
-        private void Awake()
+        void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -23,73 +24,94 @@ namespace UIShowGrabNMineCount
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionMinable), "FinishMining")]
-        static bool ActionMinable_FinishMining(ActionMinable __instance, 
+        static bool ActionMinable_FinishMining(
+            ActionMinable __instance, 
             PlayerMainController ___playerSource,
-            ref bool ___firstReduceDelay, PlayerAnimations ___playerAnimations,
-            ItemWorldDislpayer ___itemWorldDisplayer, float ___timeMineStarted, float ___timeMineStoped) 
-        {
-            __instance.StopAllCoroutines();
-            if (___timeMineStarted - ___timeMineStoped > ___playerSource.GetMultitool().GetMultiToolMine().GetMineTime())
-            {
-                // This also should fix two potential NPEs with quickly disappearing ores
-                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
-                if (woa != null) 
-                {
-                    WorldObject worldObject = woa.GetWorldObject();
-                    if (worldObject != null) 
-                    {
-                        worldObject.SetDontSaveMe(false);
-
-                        ___playerSource.GetPlayerBackpack().GetInventory().AddItem(worldObject);
-
-                        if (isEnabled.Value)
-                        {
-                            ShowInventoryAdded(worldObject, ___playerSource.GetPlayerBackpack().GetInventory());
-                        }
-                     }
-                }
-                // make sure the multitool and animations are always turned off
-                ___playerSource.GetMultitool().GetMultiToolMine().Mine(false, true);
-                ___playerAnimations.AnimateRecolt(false);
-                ___itemWorldDisplayer.Hide();
-                ___firstReduceDelay = false;
-                UnityEngine.Object.Destroy(__instance.gameObject);
-            }
-
-            return false;
-        }
-
-        static WorldObject toGrab;
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionGrabable), "Grab")]
-        static bool ActionGrabable_Grab(ActionGrabable __instance)
+            ref bool ___firstReduceDelay, 
+            PlayerAnimations ___playerAnimations,
+            ItemWorldDislpayer ___itemWorldDisplayer, 
+            float ___timeMineStarted, 
+            float ___timeMineStoped,
+            ref bool ____mining) 
         {
             if (isEnabled.Value)
             {
-                toGrab = null;
-                WorldObjectAssociated woa = __instance.GetComponent<WorldObjectAssociated>();
-                if (woa != null)
+                __instance.StopAllCoroutines();
+                if (___timeMineStarted - ___timeMineStoped > ___playerSource.GetMultitool().GetMultiToolMine().GetMineTime())
                 {
-                    toGrab = woa.GetWorldObject();
+                    ___firstReduceDelay = false;
+                    if (____mining)
+                    {
+                        ___playerSource.GetMultitool().GetMultiToolMine().StopMining(miningComplete: true);
+                        ___playerSource.GetPlayerShareState().StopMining();
+                        ___itemWorldDisplayer.Hide();
+                        ___playerAnimations.AnimateRecolt(isPlaying: false);
+                    }
+
+                    ____mining = false;
+
+                    // This also should fix two potential NPEs with quickly disappearing ores
+                    var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+                    if (wo != null)
+                    {
+                        var inv = ___playerSource.GetPlayerBackpack().GetInventory();
+                        InventoriesHandler.Instance.AddWorldObjectToInventory(
+                            wo,
+                            inv,
+                            success =>
+                            {
+                                if (success)
+                                {
+                                    ShowInventoryAdded(wo, inv);
+                                }
+                            }
+                        );
+
+                    }
+                    else
+                    {
+                        Destroy(__instance.gameObject);
+                    }
                 }
+
+                return false;
             }
             return true;
         }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ActionGrabable), "Grab")]
-        static void ActionGrabable_Grab_Post(bool ___canGrab, PlayerMainController ___playerSource)
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionGrabable), "AddToInventory")]
+        static bool ActionGrabable_AddToInventory(
+            ActionGrabable __instance,
+            WorldObject worldObject, 
+            PlayerMainController ___playerSource)
         {
             if (isEnabled.Value)
             {
-                WorldObject worldObject = toGrab;
-                toGrab = null;
+                var inv = ___playerSource.GetPlayerBackpack().GetInventory();
 
-                if (worldObject != null && ___canGrab)
+                InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inv, success =>
                 {
-                    ShowInventoryAdded(worldObject, ___playerSource.GetPlayerBackpack().GetInventory());
-                }
+                    if (success)
+                    {
+                        ___playerSource.GetPlayerAudio().PlayGrab();
+                        Managers.GetManager<DisplayersHandler>()?.GetItemWorldDisplayer()?.Hide();
+                        try
+                        {
+                            __instance.grabedEvent?.Invoke(worldObject);
+                            __instance.grabedEvent = null;
+                        }
+                        finally
+                        {
+                            ShowInventoryAdded(worldObject, inv);
+                        }
+                    }
+                });
+
+
+                return false;
             }
+            return true;
         }
 
         static void ShowInventoryAdded(WorldObject worldObject, Inventory inventory)
