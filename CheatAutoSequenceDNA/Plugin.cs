@@ -11,15 +11,14 @@ using BepInEx.Logging;
 using System.Linq;
 using static SpaceCraft.DataConfig;
 using System.Reflection;
+using Unity.Netcode;
+using System.ComponentModel;
 
 namespace CheatAutoSequenceDNA
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         static ConfigEntry<bool> incubatorEnabled;
 
         static ConfigEntry<string> incubatorFertilizerId;
@@ -60,21 +59,24 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<bool> debugMode;
 
-        static Func<string> getMultiplayerMode;
-
         static ManualLogSource logger;
-
-        static FieldInfo uiWindowGeneticsWorldObject;
-
-        static FieldInfo uiWindowGeneticsUpdateUiCoroutine;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             sequencerEnabled = Config.Bind("Sequencer", "Enabled", true, "Should the Tree-sequencer auto sequence?");
             
+            sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
+            sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
+            sequencerFlowerSeedId = Config.Bind("Sequencer", "FlowerSeed", "*FlowerSeed", "The name of the container(s) where to look for Flower Seeds (all kinds).");
+            sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
+            sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
+            sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
+
             incubatorEnabled = Config.Bind("Incubator", "Enabled", true, "Should the Incubator auto sequence?");
             incubatorFertilizerId = Config.Bind("Incubator", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
             incubatorMutagenId = Config.Bind("Incubator", "Mutagen", "*Mutagen", "The name of the container(s) where to look for mutagen.");
@@ -87,28 +89,10 @@ namespace CheatAutoSequenceDNA
             incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
             incubatorBacteriaId = Config.Bind("Incubator", "Bacteria", "*Bacteria", "The name of the container(s) where to to look for bacteria samples.");
 
-            sequencerMutagenId = Config.Bind("Sequencer", "Mutagen", "*Mutagen", "The name of the container(s) where to look for fertilizer.");
-            sequencerTreeRootId = Config.Bind("Sequencer", "TreeRoot", "*TreeRoot", "The name of the container(s) where to look for Tree Root.");
-            sequencerFlowerSeedId = Config.Bind("Sequencer", "FlowerSeed", "*FlowerSeed", "The name of the container(s) where to look for Flower Seeds (all kinds).");
-            sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
-            sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
-            sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
-
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                Logger.LogInfo("Mod " + modFeatMultiplayerGuid + " found, managing multiplayer mode");
-
-                getMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-
-            }
-
             logger = Logger;
-
-            uiWindowGeneticsWorldObject = AccessTools.Field(typeof(UiWindowGenetics), "worldObject");
-            uiWindowGeneticsUpdateUiCoroutine = AccessTools.Field(typeof(UiWindowGenetics), "updateUiCoroutine");
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
@@ -127,29 +111,32 @@ namespace CheatAutoSequenceDNA
         {
             for (; ; )
             {
-                PlayersManager playersManager = Managers.GetManager<PlayersManager>();
-                if (playersManager != null)
+                if (NetworkManager.Singleton?.IsServer ?? false)
                 {
-                    PlayerMainController player = playersManager.GetActivePlayerController();
-                    if (player != null)
+                    PlayersManager playersManager = Managers.GetManager<PlayersManager>();
+                    if (playersManager != null)
                     {
-                        try
+                        PlayerMainController player = playersManager.GetActivePlayerController();
+                        if (player != null)
                         {
-                            if (getMultiplayerMode == null || getMultiplayerMode() != "CoopClient")
+                            try
                             {
-                                if (incubatorEnabled.Value)
+                                if (NetworkManager.Singleton?.IsServer ?? true)
                                 {
-                                    HandleIncubators();
-                                }
-                                if (sequencerEnabled.Value)
-                                {
-                                    HandleSequencers();
+                                    if (incubatorEnabled.Value)
+                                    {
+                                        HandleIncubators();
+                                    }
+                                    if (sequencerEnabled.Value)
+                                    {
+                                        HandleSequencers();
+                                    }
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex);
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex);
+                            }
                         }
                     }
                 }
@@ -158,7 +145,7 @@ namespace CheatAutoSequenceDNA
             }
         }
 
-        string DebugWorldObject(WorldObject wo)
+        static string DebugWorldObject(WorldObject wo)
         {
             var str = wo.GetId() + ", " + wo.GetGroup().GetId();
             var txt = wo.GetText();
@@ -170,13 +157,13 @@ namespace CheatAutoSequenceDNA
             return str;
         }
 
-        List<WorldObject> GetOrCreate(Dictionary<string, List<WorldObject>> list, string key)
+        static List<WorldObject> GetOrCreate(Dictionary<string, List<WorldObject>> list, string key)
         {
             if (list.TryGetValue(key, out var result))
             {
                 return result;
             }
-            result = new();
+            result = [];
             list[key] = result;
             return result;
         }
@@ -200,10 +187,10 @@ namespace CheatAutoSequenceDNA
             };
 
             // List of world objects per category (containers, machines)
-            Dictionary<string, List<WorldObject>> itemCategories = new();
+            Dictionary<string, List<WorldObject>> itemCategories = [];
 
             log("  Container discovery");
-            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var gid = wo.GetGroup().GetId();
                 var txt = wo.GetText() ?? "";
@@ -241,7 +228,7 @@ namespace CheatAutoSequenceDNA
                 {
                     log("  Incubator: " + DebugWorldObject(incubator));
                     // Try to deposit finished products first
-                    Inventory incubatorInv = InventoriesHandler.GetInventoryById(incubator.GetLinkedInventoryId());
+                    Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
 
                     // Fix incubators that don't have enough slots for all ingredients.
                     if (incubatorInv.GetSize() < minInventoryCapacity)
@@ -311,7 +298,12 @@ namespace CheatAutoSequenceDNA
                     }
                     else
                     {
-                        log("    Sequencing progress: " + (incubator.GetGrowth()) + " %");
+                        var growth = incubator.GetGrowth();
+                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", incubator.GetLinkedGroups() ?? []));
+                        if (growth < 100)
+                        {
+                            InventoriesHandler.Instance.LockInventoryContent(incubatorInv, true, 0f, null);
+                        }
                     }
                 }
             }
@@ -324,7 +316,7 @@ namespace CheatAutoSequenceDNA
 
         bool StartNewResearch(
             GroupItem spawnTarget,
-            List<WorldObject> currentItems, 
+            IEnumerable<WorldObject> currentItems, 
             Dictionary<string, List<WorldObject>> itemCategories, 
             Inventory machineInventory,
             WorldObject machine)
@@ -333,7 +325,7 @@ namespace CheatAutoSequenceDNA
 
             List<Group> ingredients = new(spawnTarget.GetRecipe().GetIngredientsGroupInRecipe());
             List<WorldObject> available = new(currentItems);
-            List<Group> missing = new();
+            List<Group> missing = [];
 
             int ingredientsFulfilled = 0;
 
@@ -366,7 +358,7 @@ namespace CheatAutoSequenceDNA
                 }
             }
 
-            List<IngredientSource> toTransfer = new();
+            List<IngredientSource> toTransfer = [];
 
             if (missing.Count != 0)
             {
@@ -380,7 +372,7 @@ namespace CheatAutoSequenceDNA
                     if (!sourcesPerCategory.TryGetValue(cat, out var ingredientSources))
                     {
                         log("          Searching");
-                        ingredientSources = new();
+                        ingredientSources = [];
                         sourcesPerCategory[cat] = ingredientSources;
                     }
                     FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition());
@@ -440,15 +432,11 @@ namespace CheatAutoSequenceDNA
                 {
                     log("      Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
 
-                    machine.SetGrowth(1f);
-                    machine.SetLinkedGroups(new List<Group> { spawnTarget });
+                    machine.GetGameObject().GetComponentInChildren<GrowthProxy>().SetGrowth(1f);
+                    machine.GetGameObject().GetComponentInChildren<LinkedGroupsProxy>().SetLinkedGroups([spawnTarget]);
 
                     var t = Time.time + 0.01f;
-                    foreach (WorldObject wo in machineInventory.GetInsideWorldObjects())
-                    {
-                        wo.SetLockInInventoryTime(t);
-                    }
-                    StartCoroutine(RefreshDisplayer(0.1f, machineInventory, machine));
+                    InventoriesHandler.Instance.LockInventoryContent(machineInventory, true, 0f, null);
 
                     return true;
                 }
@@ -519,7 +507,7 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories = new();
 
             log("  Container discovery");
-            foreach (WorldObject wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var gid = wo.GetGroup().GetId();
                 var txt = wo.GetText() ?? "";
@@ -547,7 +535,7 @@ namespace CheatAutoSequenceDNA
                 {
                     log("  Sequencer: " + DebugWorldObject(sequencer));
                     // Try to deposit finished products first
-                    Inventory sequencerInv = InventoriesHandler.GetInventoryById(sequencer.GetLinkedInventoryId());
+                    Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
 
                     var currentItems = sequencerInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
@@ -598,7 +586,13 @@ namespace CheatAutoSequenceDNA
                     }
                     else
                     {
-                        log("    Sequencing progress: " + (sequencer.GetGrowth()) + " %");
+                        var growth = sequencer.GetGrowth();
+                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", sequencer.GetLinkedGroups() ?? []));
+                        if (growth < 100)
+                        {
+                            InventoriesHandler.Instance.LockInventoryContent(sequencerInv, true, 0f, null);
+                        }
+
                     }
                 }
             }
@@ -611,7 +605,7 @@ namespace CheatAutoSequenceDNA
 
         List<GroupItem> GetCandidates(DataConfig.CraftableIn craftableIn)
         {
-            List<GroupItem> candidates = new();
+            List<GroupItem> candidates = [];
             foreach (var gi in GroupsHandler.GetGroupsItem())
             {
                 if (gi.CanBeCraftedIn(craftableIn) && gi.GetUnlockingInfos().GetIsUnlocked())
@@ -629,13 +623,13 @@ namespace CheatAutoSequenceDNA
 
         GroupItem Analyze(List<WorldObject> currentItems, DataConfig.CraftableIn craftableIn)
         {
-            List<Group> inputGroups = new();
+            List<Group> inputGroups = [];
             foreach (var wo in currentItems)
             {
                 inputGroups.Add(wo.GetGroup());
             }
 
-            List<GroupItem> candidates = new();
+            List<GroupItem> candidates = [];
 
             foreach (var gi in GroupsHandler.GetGroupsItem())
             {
@@ -692,48 +686,21 @@ namespace CheatAutoSequenceDNA
             return null;
         }
 
-        IEnumerator RefreshDisplayer(float t, Inventory inv, WorldObject machine)
-        {
-            yield return new WaitForSeconds(t);
-            inv.RefreshDisplayerContent();
-
-            var wh = Managers.GetManager<WindowsHandler>();
-            if (wh != null && wh.GetOpenedUi() == UiType.Genetics)
-            {
-                var ui = wh.GetWindowViaUiId(UiType.Genetics) as UiWindowGenetics;
-                if (ui != null)
-                {
-                    var m = uiWindowGeneticsWorldObject.GetValue(ui) as WorldObject;
-
-                    if (m != null && m.GetId() == machine.GetId())
-                    {
-                        ui.StartCoroutine(uiWindowGeneticsUpdateUiCoroutine.GetValue(ui) as IEnumerator);
-                    }
-                }
-            }
-        }
-
-        void TryDeposit(Inventory source, WorldObject item, 
-            Dictionary<string, List<WorldObject>> itemCategories, string itemKey)
+        void TryDeposit(
+            Inventory source, 
+            WorldObject item, 
+            Dictionary<string, List<WorldObject>> itemCategories, 
+            string itemKey)
         {
             log("      Deposit item: " + DebugWorldObject(item));
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
-                foreach (var container in containers)
+                if (containers.Count != 0)
                 {
-                    Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
-                    if (inv != null)
-                    {
-                        if (inv.AddItem(item))
-                        {
-                            log("        Into      : " + DebugWorldObject(container));
-                            source.RemoveItem(item, false);
-                            return;
-                        }
-                    }
+                    new DeferredDepositor(item, source, containers.GetEnumerator())
+                        .Drain();
+                    return;
                 }
-                log("        Into      : Failed - all target containers are full");
-                return;
             }
             log("        Into      : Failed - no target containers found");
         }
@@ -760,7 +727,7 @@ namespace CheatAutoSequenceDNA
                     {
                         continue;
                     }
-                    Inventory inv = InventoriesHandler.GetInventoryById(container.GetLinkedInventoryId());
+                    Inventory inv = InventoriesHandler.Instance.GetInventoryById(container.GetLinkedInventoryId());
 
                     if (inv != null)
                     {
@@ -788,9 +755,77 @@ namespace CheatAutoSequenceDNA
             {
                 var k = UnityEngine.Random.Range(0, n + 1);
 
-                var t = list[k];
-                list[k] = list[n];
-                list[n] = t;
+                (list[n], list[k]) = (list[k], list[n]);
+            }
+        }
+
+        class DeferredDepositor
+        {
+            internal WorldObject item;
+            internal Inventory source;
+            internal IEnumerator<WorldObject> candidatesEnumerator;
+            int wip;
+            WorldObject current;
+
+            internal DeferredDepositor(WorldObject item, Inventory source, IEnumerator<WorldObject> candidatesEnumerator)
+            {
+                this.item = item;
+                this.source = source;
+                this.candidatesEnumerator = candidatesEnumerator;
+            }
+
+            internal void Drain()
+            {
+                if (wip++ != 0)
+                {
+                    return;
+                }
+
+                for (; ; )
+                {
+                    if (current == null)
+                    {
+                        if (candidatesEnumerator.MoveNext())
+                        {
+                            current = candidatesEnumerator.Current;
+                        }
+                        else
+                        {
+                            log("        Into      : Failed - all target containers are full");
+                            break;
+                        }
+
+                        var inv = InventoriesHandler.Instance.GetInventoryById(current.GetLinkedInventoryId());
+                        if (inv != null)
+                        {
+                            InventoriesHandler.Instance.TransferItem(source, inv, item, OnResult);
+                        }
+                        else
+                        {
+                            current = null;
+                            continue;
+                        }
+                    }
+
+                    if (--wip == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            void OnResult(bool success)
+            {
+                if (success)
+                {
+                    log("        Into      : " + DebugWorldObject(current));
+                    current = null;
+                }
+                else
+                {
+                    current = null;
+                    Drain();
+                }
             }
         }
     }

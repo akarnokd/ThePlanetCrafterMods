@@ -181,6 +181,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatBirthday", "CheatBirth
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatAutoLaunchRocket", "CheatAutoLaunchRocket\CheatAutoLaunchRocket.csproj", "{CCB4802B-8B11-4AD8-91EC-C0244FCAC2C6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatAutoSequenceDNA", "CheatAutoSequenceDNA\CheatAutoSequenceDNA.csproj", "{8D1A54DA-73D7-4A48-B5D6-E6A1C74A3482}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -415,6 +417,10 @@ Global
 		{CCB4802B-8B11-4AD8-91EC-C0244FCAC2C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCB4802B-8B11-4AD8-91EC-C0244FCAC2C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCB4802B-8B11-4AD8-91EC-C0244FCAC2C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D1A54DA-73D7-4A48-B5D6-E6A1C74A3482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D1A54DA-73D7-4A48-B5D6-E6A1C74A3482}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D1A54DA-73D7-4A48-B5D6-E6A1C74A3482}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D1A54DA-73D7-4A48-B5D6-E6A1C74A3482}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
