@@ -13,9 +13,10 @@ namespace UILogisticSelectAll
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
-
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -33,14 +34,14 @@ namespace UILogisticSelectAll
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticEntity), "SanitizeGroups")]
-        static bool LogisticEntity_SanitizeGroups(List<Group> _groupsToPrioritize, List<Group> _groupsToRemoveFrom)
+        static bool LogisticEntity_SanitizeGroups(List<Group> groupsToPrioritize, List<Group> groupsToRemoveFrom)
         {
             if (!suppressSanitizeAndUiUpdates)
             {
-                if (_groupsToPrioritize != null && _groupsToRemoveFrom != null)
+                if (groupsToPrioritize != null && groupsToRemoveFrom != null)
                 {
-                    var set = new HashSet<Group>(_groupsToPrioritize);
-                    _groupsToRemoveFrom.RemoveAll(set.Contains);
+                    var set = new HashSet<Group>(groupsToPrioritize);
+                    groupsToRemoveFrom.RemoveAll(set.Contains);
                 }
             }
             return false;
@@ -69,13 +70,16 @@ namespace UILogisticSelectAll
                         Managers.GetManager<GlobalAudioHandler>().PlayUiSelectElement();
                         for (int i = 0; i < addedGroups.Count; i++)
                         {
-                            Group g = addedGroups[i];
+                            var g = addedGroups[i];
                             suppressSanitizeAndUiUpdates = i < addedGroups.Count - 1;
+                            if (!suppressSanitizeAndUiUpdates)
+                            {
+                                selector.groupDisplayer.SetGroupAndUpdateDisplay(g, greyed: false, showName: true);
+                            }
                             selector.groupSelectedEvent?.Invoke(g);
                         }
 
-                        selector.listContainer.SetActive(false);
-                        Managers.GetManager<DisplayersHandler>().GetGroupInfosDisplayer().Hide();
+                        selector.CloseList();
                     }
                     finally
                     {
