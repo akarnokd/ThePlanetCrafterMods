@@ -1,13 +1,11 @@
 ﻿using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using BepInEx.Logging;
 using System;
 using System.Diagnostics;
-using System.Text;
 using BepInEx.Configuration;
 
 namespace PerfStartup

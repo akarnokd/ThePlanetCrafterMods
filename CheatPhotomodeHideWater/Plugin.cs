@@ -13,6 +13,8 @@ namespace CheatPhotomodeHideWater
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
