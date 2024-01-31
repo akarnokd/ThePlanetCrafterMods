@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
+using Unity.Netcode;
 
 namespace UISaveOnQuit
 {
@@ -12,6 +13,8 @@ namespace UISaveOnQuit
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -24,7 +27,7 @@ namespace UISaveOnQuit
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit(UiWindowPause __instance)
         {
-            if (modEnabled.Value)
+            if (modEnabled.Value && (NetworkManager.Singleton?.IsServer ?? true))
             {
                 __instance.OnSave();
             }
