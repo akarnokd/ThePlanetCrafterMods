@@ -8,12 +8,15 @@ using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Logging;
+using BepInEx.Bootstrap;
 
 namespace UIMenuShortcutKeys
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
 
         static ManualLogSource logger;
 
@@ -41,6 +44,8 @@ namespace UIMenuShortcutKeys
         static MethodInfo mUiWindowConstructionCreateGrid; 
 
         readonly List<ShortcutDisplayEntry> entries = [];
+
+        static bool modPinUnpinRecipePresent;
 
         private void Awake()
         {
@@ -85,6 +90,8 @@ namespace UIMenuShortcutKeys
             fPlayerEquipmentHasCleanConstructionChip = AccessTools.FieldRefAccess<PlayerEquipment, bool>("hasCleanConstructionChip");
             mUiWindowConstructionCreateGrid = AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid");
             fUiWindowConstructionGroupListDisplayers = AccessTools.FieldRefAccess<UiWindowConstruction, List<GroupListGridDisplayer>>("_groupListDisplayers");
+
+            modPinUnpinRecipePresent = Chainloader.PluginInfos.ContainsKey(modUiPinRecipeGuid);
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -321,6 +328,10 @@ namespace UIMenuShortcutKeys
                 {
                     entries.Add(CreateEntry("BuildPin", "Right Click", "Pin/Unpin Recipe", shortcutBar.transform));
                 }
+                if (modPinUnpinRecipePresent)
+                {
+                    entries.Add(CreateEntry("BuildPin", "Middle Click", "Pin/Unpin Recipe (Mod)", shortcutBar.transform));
+                }
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
                 if (pm.GetHasCleanConstructionChip())
                 {
@@ -398,15 +409,17 @@ namespace UIMenuShortcutKeys
 
             internal void Destroy()
             {
-                Object.Destroy(gameObject);
+                UnityEngine.Object.Destroy(gameObject);
             }
         }
 
         ShortcutDisplayEntry CreateEntry(string tag, string key, string description, Transform parent)
         {
-            ShortcutDisplayEntry entry = new();
-            entry.tag = tag;
-            entry.gameObject = new GameObject("ShortcutDisplayEntry-" + key);
+            ShortcutDisplayEntry entry = new()
+            {
+                tag = tag,
+                gameObject = new GameObject("ShortcutDisplayEntry-" + key)
+            };
             entry.gameObject.transform.SetParent(parent);
 
             // The keyboard shortcut text

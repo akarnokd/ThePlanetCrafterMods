@@ -12,14 +12,17 @@ using BepInEx.Logging;
 using System.Linq;
 using System.Reflection;
 using Unity.Netcode;
+using BepInEx.Bootstrap;
 
 namespace UIHotbar
 {
     [BepInPlugin(modUiHotbarGuid, "(UI) Hotbar", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string modUiHotbarGuid = "akarnokd.theplanetcraftermods.uihotbar";
+        const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
 
         static ConfigEntry<int> slotSize;
         static ConfigEntry<int> slotBottom;
@@ -54,7 +57,16 @@ namespace UIHotbar
             
             pinUnpinRecipe = DefaultPinUnpinRecipe;
 
-            // TODO if the (UI) Pin Recipe is installed, override pinUnpinRecipe...
+            if (Chainloader.PluginInfos.TryGetValue(modUiPinRecipeGuid, out var pi))
+            {
+                Logger.LogInfo("Mod " + modUiPinRecipeGuid + " found, using it to pin recipes");
+                var m = AccessTools.Method(pi.Instance.GetType(), "PinUnpinGroup");
+                pinUnpinRecipe = AccessTools.MethodDelegate<Action<Group>>(m);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modUiPinRecipeGuid + " not found, using vanilla pins");
+            }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
