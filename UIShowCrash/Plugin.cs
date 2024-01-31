@@ -36,6 +36,8 @@ namespace UIShowCrash
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -43,7 +45,7 @@ namespace UIShowCrash
 
             modEnabled = Config.Bind("General", "Enabled", true, "Is this mod enabled?");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
-            testMode = Config.Bind("General", "TestMode", false, "Press F12 to generate a crash log entry.");
+            testMode = Config.Bind("General", "TestMode", false, "Press F11 to generate a crash log entry.");
 
             backgroundTask = Task.Factory.StartNew(o => ErrorChecker(), null, cancel.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
@@ -58,13 +60,13 @@ namespace UIShowCrash
         {
             oncePerFrame = !oncePerFrame;
 
-            if (oncePerFrame && modEnabled.Value && !testMode.Value && Keyboard.current[Key.F12].wasPressedThisFrame)
+            if (oncePerFrame && modEnabled.Value && !testMode.Value && Keyboard.current[Key.F11].wasPressedThisFrame)
             {
                 logger.LogInfo("Turning off error log display.");
                 modEnabled.Value = false;
                 return;
             }
-            if (oncePerFrame && !modEnabled.Value && !testMode.Value && Keyboard.current[Key.F12].wasPressedThisFrame)
+            if (oncePerFrame && !modEnabled.Value && !testMode.Value && Keyboard.current[Key.F11].wasPressedThisFrame)
             {
                 logger.LogInfo("Turning on error log display.");
                 modEnabled.Value = true;
@@ -76,12 +78,12 @@ namespace UIShowCrash
                 return;
             }
 
-            if (oncePerFrame && testMode.Value && !panelVisible && Keyboard.current[Key.F12].wasPressedThisFrame)
+            if (oncePerFrame && testMode.Value && !panelVisible && Keyboard.current[Key.F11].wasPressedThisFrame)
             {
                 logger.LogInfo("Testing error log detection");
                 try
                 {
-                    throw new InvalidOperationException("F12 pressed?! @ " + DateTime.Now.ToString());
+                    throw new InvalidOperationException("F11 pressed?! @ " + DateTime.Now.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -123,17 +125,21 @@ namespace UIShowCrash
 
             GUI.color = Color.white;
 
-            GUIStyle title = new GUIStyle("label");
-            title.fontSize = fontSize.Value * 2;
-            title.alignment = TextAnchor.MiddleLeft;
+            GUIStyle title = new("label")
+            {
+                fontSize = fontSize.Value * 2,
+                alignment = TextAnchor.MiddleLeft
+            };
 
             GUI.Label(new Rect(px + 50, py + fontSize.Value, pw - 100, 2 * fontSize.Value + 10), "Crash!!! [ESC] to close this panel", title);
 
             var dy = px + 3 * (fontSize.Value + 10);
 
-            GUIStyle labelStyle = new GUIStyle("label");
-            labelStyle.fontSize = fontSize.Value;
-            labelStyle.alignment = TextAnchor.UpperLeft;
+            GUIStyle labelStyle = new("label")
+            {
+                fontSize = fontSize.Value,
+                alignment = TextAnchor.UpperLeft
+            };
 
             GUI.Label(new Rect(px + 25, dy, pw - 50, ph - 4 * (fontSize.Value + 10)), string.Join("\n", lines), labelStyle);
 
@@ -167,7 +173,7 @@ namespace UIShowCrash
             //logger.LogInfo("Processing " + Path.GetFileName(file));
             try
             {
-                List<string> data = new();
+                List<string> data = [];
 
                 var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using (var sr = new StreamReader(fs))
@@ -196,10 +202,8 @@ namespace UIShowCrash
                     if (line.Contains("Exception"))
                     {
                         //logger.LogInfo("  Found on line " + i + "(" + Path.GetFileName(file) + ")");
-                        List<string> errorLines = new();
-                        errorLines.Add(Path.GetFileName(file) + " [" + (i + 1) + "]");
-                        errorLines.Add("");
-                        errorLines.Add(line);
+                        List<string> errorLines = [Path.GetFileName(file) + " [" + (i + 1) + "]", "", line];
+
                         for (int j = i + 1; j < data.Count; j++)
                         {
                             var er = data[j];
@@ -241,8 +245,10 @@ namespace UIShowCrash
 
             if (_staticRectStyle == null)
             {
-                _staticRectStyle = new GUIStyle();
-                _staticRectStyle.alignment = TextAnchor.UpperLeft;
+                _staticRectStyle = new GUIStyle
+                {
+                    alignment = TextAnchor.UpperLeft
+                };
             }
 
             _staticRectTexture.SetPixel(0, 0, color);
