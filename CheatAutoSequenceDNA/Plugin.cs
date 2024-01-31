@@ -299,7 +299,7 @@ namespace CheatAutoSequenceDNA
                     else
                     {
                         var growth = incubator.GetGrowth();
-                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", incubator.GetLinkedGroups() ?? []));
+                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (incubator.GetLinkedGroups() ?? []).Select(g => g.id)));
                         if (growth < 100)
                         {
                             InventoriesHandler.Instance.LockInventoryContent(incubatorInv, true, 0f, null);
@@ -587,7 +587,7 @@ namespace CheatAutoSequenceDNA
                     else
                     {
                         var growth = sequencer.GetGrowth();
-                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", sequencer.GetLinkedGroups() ?? []));
+                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (sequencer.GetLinkedGroups() ?? []).Select(g => g.id)));
                         if (growth < 100)
                         {
                             InventoriesHandler.Instance.LockInventoryContent(sequencerInv, true, 0f, null);
