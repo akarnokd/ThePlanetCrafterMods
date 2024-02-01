@@ -4,42 +4,49 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
-using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System.Collections;
 using System.Linq;
 using BepInEx.Configuration;
-using System;
-using BepInEx.Bootstrap;
-using FeatMultiplayer;
-using System.Collections.Concurrent;
+using LibCommon;
+using Unity.Netcode;
 
 namespace FeatSpaceCows
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.featspacecows", "(Feat) Space Cows", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(modGuid, "(Feat) Space Cows", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+        const string modGuid = "akarnokd.theplanetcraftermods.featspacecows";
+        
+        const string funcAddRemoveSpaceCow = "SpaceCowAddRemove";
 
-        static ManualLogSource logger;
+        static Plugin me;
+
+        internal static ManualLogSource logger;
 
         static ConfigEntry<bool> debugMode;
 
         static Texture2D cow1;
 
-        static readonly Dictionary<int, SpaceCow> cowAroundSpreader = new();
+        static readonly Dictionary<int, SpaceCow> cowAroundSpreader = [];
 
-        static float productionSpeed = 120;
+        static readonly float productionSpeed = 120;
 
-        static float animalUnitsPerTick = 60;
+        static readonly float animalUnitsPerTick = 60;
 
-        internal static FeatMultiplayerApi multiplayer;
+        static readonly int shadowContainerId = 5000;
+
+        static Coroutine cowChecker;
+
+        static AccessTools.FieldRef<WorldObjectsHandler, List<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
 
         private void Awake()
         {
+            me = this;
+
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -54,17 +61,13 @@ namespace FeatSpaceCows
 
                 cow1 = LoadPNG(Path.Combine(dir, "SpaceCow1.png"));
 
-                multiplayer = FeatMultiplayerApi.Create();
-                if (multiplayer.IsAvailable()) { 
-                    Logger.LogInfo("Mod " + modFeatMultiplayerGuid + " found, enabling multiplayer support");
+                fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, List<WorldObject>>("_itemsPickablesWorldObjects");
 
-                    multiplayer.AddMessageParser(TryAddRemoveSpaceCowMessageParser);
-                    multiplayer.AddMessageReceiver(TryAddRemoveSpaceCowMessageReceiver);
-                }
+                var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
-                Harmony.CreateAndPatchAll(typeof(Plugin));
-
-                StartCoroutine(SpreaderCheckerLoop(2f));
+                ModNetworking.Init(modGuid, logger);
+                ModNetworking.Patch(h);
+                ModNetworking.RegisterFunction(funcAddRemoveSpaceCow, OnAddRemoveSpaceCow);
             } 
             else
             {
@@ -74,7 +77,7 @@ namespace FeatSpaceCows
 
         static Texture2D LoadPNG(string filename)
         {
-            Texture2D tex = new Texture2D(300, 200);
+            Texture2D tex = new(300, 200);
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
@@ -121,12 +124,12 @@ namespace FeatSpaceCows
                 log("Player is not ready");
                 return;
             }
-            if (!multiplayer.IsAvailable() || multiplayer.GetState() != FeatMultiplayerApi.MultiplayerState.CoopClient)
+            if (NetworkManager.Singleton?.IsHost ?? true)
             {
                 log("Total SpaceCow Count = " + cowAroundSpreader.Count);
-                HashSet<int> found = new();
-                List<WorldObject> allSpreaders = new();
-                foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                HashSet<int> found = [];
+                List<WorldObject> allSpreaders = [];
+                foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     if (wo.GetGroup().GetId() == "GrassSpreader1")
                     {
@@ -142,7 +145,6 @@ namespace FeatSpaceCows
                     {
                         CreateCow(wo, allSpreaders);
                     }
-
                 }
 
                 SendAddSpaceCowAll();
@@ -204,9 +206,9 @@ namespace FeatSpaceCows
                 }
 
                 Vector3 positionCandidateAbove = positionCandidate + new Vector3(0, 6, 0);
-                Vector3 downward = new Vector3(0, -1, 0);
+                Vector3 downward = new(0, -1, 0);
                 float scanDown = 10f;
-                int ignoredLayers = ~LayerMask.GetMask(GameConfig.commonIgnoredLayers.Concat(new string[] { GameConfig.layerWaterName }).ToArray<string>()); ;
+                int ignoredLayers = ~LayerMask.GetMask([.. GameConfig.commonIgnoredLayers, GameConfig.layerWaterName ]);
 
                 if (Physics.Raycast(new Ray(positionCandidateAbove, downward), out var raycastHit, scanDown, ignoredLayers))
                 {
@@ -235,19 +237,13 @@ namespace FeatSpaceCows
         void RemoveCow(SpaceCow cow)
         {
             var invAssoc = cow.body.GetComponent<InventoryAssociated>();
-            if (invAssoc != null)
-            {
-                var wos = invAssoc.GetInventory().GetInsideWorldObjects();
-                for (int i = wos.Count - 1; i >= 0; i--)
-                {
-                    WorldObjectsHandler.DestroyWorldObject(wos[i]);
-                }
-                wos.Clear();
-            }
+            invAssoc?.GetInventory(InventoriesHandler.Instance.RemoveAndDestroyAllItemsFromInventory);
+
             SendRemoveSpaceCow(cow);
+            
             if (cow.inventory != null)
             {
-                InventoriesHandler.DestroyInventory(cow.inventory.GetId());
+                InventoriesHandler.Instance.DestroyInventory(cow.inventory.GetId());
             }
             cow.Destroy();
         }
@@ -255,18 +251,70 @@ namespace FeatSpaceCows
         void SetupInventory(SpaceCow cow)
         {
             var invAssoc = cow.body.AddComponent<InventoryAssociated>();
-            var inv = InventoriesHandler.CreateNewInventory(3);
-            invAssoc.SetInventory(inv);
-            cow.inventory = inv;
+            var mapping = LoadCowInventoryMapping();
+            if (mapping.TryGetValue(cow.parent.GetId(), out var invId))
+            {
+                Inventory inv = InventoriesHandler.Instance.GetInventoryById(invId);
+                if (inv != null)
+                {
+                    log("       Using exiting inventory: " + inv.GetId());
+                    LinkInventory(inv, false);
+                    return;
+                }
+            }
 
-            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("WaterBottle1"));
-            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("astrofood"));
-            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("MethanCapsule1"));
+            InventoriesHandler.Instance.CreateNewInventory(3, 0, null, inv => LinkInventory(inv, true));
 
-            var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
-            aop.inventory = inv;
+            void LinkInventory(Inventory inv, bool save)
+            {
+                log("       Creating inventory: " + inv.GetId());
 
-            invAssoc.StartCoroutine(SpaceCowGeneratorLoop(productionSpeed, cow, inv));
+                invAssoc.SetInventory(inv);
+                cow.inventory = inv;
+
+                inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("WaterBottle1"));
+                inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("astrofood"));
+                inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("MethanCapsule1"));
+
+                var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
+                aop.inventory = inv;
+
+                if (save)
+                {
+                    mapping[cow.parent.GetId()] = inv.GetId();
+                    SaveCowInventoryMapping(mapping);
+                }
+
+                invAssoc.StartCoroutine(SpaceCowGeneratorLoop(productionSpeed, cow, inv));
+            }
+        }
+
+        Dictionary<int, int> LoadCowInventoryMapping()
+        {
+            Dictionary<int, int> result = [];
+
+            var wo = EnsureHiddenContainer();
+
+            var txt = wo.GetText();
+            if (txt != null && txt.Length != 0)
+            {
+                foreach (var kwPair in txt.Split(';'))
+                {
+                    var kv = kwPair.Split(',');
+                    if (kv.Length >= 2 && int.TryParse(kv[0], out var id) && int.TryParse(kv[1], out var inv))
+                    {
+                        result[id] = inv;
+                    }
+                }
+            }
+            //logger.LogInfo("~ Cow Inventory Mapping: " + string.Join(";", result.Select(e => e.Key + "," + e.Value)));
+
+            return result;
+        }
+        void SaveCowInventoryMapping(Dictionary<int, int> mapping)
+        {
+            var wo = EnsureHiddenContainer();
+            wo.SetText(string.Join(";", mapping.Select(e => e.Key + "," + e.Value)));
         }
 
         IEnumerator SpaceCowGeneratorLoop(float delay, SpaceCow cow, Inventory inv)
@@ -290,6 +338,33 @@ namespace FeatSpaceCows
                 AddToInventory(inv, "MethanCapsule1");
             }
             AddToWorldUnit(DataConfig.WorldUnitType.Animals, DataConfig.WorldUnitType.Biomass, DataConfig.WorldUnitType.Terraformation);
+
+            // Drones can't access a cow because it is not a WorldObject
+            // Instead, once we detect the cow's inventory has supply settings
+            // We drop items onto the floor so drones would pick them up outside the cow.
+            foreach (var supplyGroup in inv.GetLogisticEntity().GetSupplyGroups())
+            {
+                foreach (var content in new List<WorldObject>(inv.GetInsideWorldObjects()))
+                {
+                    if (content.GetGroup() == supplyGroup)
+                    {
+                        InventoriesHandler.Instance.RemoveItemFromInventory(content, inv, false, success =>
+                        {
+                            if (success)
+                            {
+                                var inst = WorldObjectsHandler.Instance;
+
+                                inst.DropOnFloor(content,
+                                    cow.body.transform.position 
+                                    + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
+                                    + new Vector3(0, 0, 1));
+
+                                fWorldObjectsHandlerItemsPickablesWorldObjects(inst).Add(content);
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         void AddToWorldUnit(params DataConfig.WorldUnitType[] wut)
@@ -306,7 +381,7 @@ namespace FeatSpaceCows
 
                     log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
 
-                    AccessTools.Field(typeof(WorldUnit), "currentTotalValue").SetValue(wu, after);
+                    wu.SetCurrentTotalValue(after);
                 }
             }
         }
@@ -314,14 +389,15 @@ namespace FeatSpaceCows
         void AddToInventory(Inventory inv, string groupId)
         {
             var gr = GroupsHandler.GetGroupViaId(groupId);
-            var wo = WorldObjectsHandler.CreateNewWorldObject(gr);
-            if (multiplayer.IsAvailable() && multiplayer.GetState() == FeatMultiplayerApi.MultiplayerState.CoopHost)
+            if (NetworkManager.Singleton?.IsServer ?? false)
             {
-                multiplayer.SendWorldObject(wo);
-            }
-            if (!inv.AddItem(wo))
-            {
-                WorldObjectsHandler.DestroyWorldObject(wo);
+                InventoriesHandler.Instance.AddItemToInventory(gr, inv, (success, id) =>
+                {
+                    if (!success && id != 0)
+                    {
+                        WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                    }
+                });
             }
         }
 
@@ -337,20 +413,33 @@ namespace FeatSpaceCows
                 if (uiWindowContainer != null)
                 {
                     uiWindowContainer.SetInventories(backpack, inventory, false);
+                    uiWindowContainer.SetSettingsData(null, 0, DataConfig.UiSettingType.Null);
                 }
             }
 
             public override void OnHover()
             {
-                hudHandler.DisplayCursorText("UI_Open", 0f, "Space Cow");
+                _hudHandler.DisplayCursorText("UI_Open", 0f, "Space Cow");
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad()
+        {
+            if (cowChecker != null)
+            {
+                me.StopCoroutine(cowChecker);
+                cowChecker = null;
+            }
+            cowChecker = me.StartCoroutine(me.SpreaderCheckerLoop(2f));
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetWorldObjects")]
         static void SavedDataHandler_SetAndGetWorldObjects(List<JsonableWorldObject> __result)
         {
-            HashSet<int> woIdsToHide = new();
+            HashSet<int> woIdsToHide = [];
             foreach (var cow in cowAroundSpreader.Values)
             {
                 if (cow.inventory != null)
@@ -371,11 +460,12 @@ namespace FeatSpaceCows
             }
         }
 
+        /*
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetInventories")]
         static void SavedDataHandler_GetAndSetInventories(List<JsonableInventory> __result)
         {
-            HashSet<int> invsToHide = new();
+            HashSet<int> invsToHide = [];
             foreach (var cow in cowAroundSpreader.Values)
             {
                 if (cow.inventory != null)
@@ -392,149 +482,158 @@ namespace FeatSpaceCows
                 }
             }
         }
+        */
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
+            me.StopCoroutine(cowChecker);
+            cowChecker = null;
             log("Clearing Cows = " + cowAroundSpreader.Count);
             cowAroundSpreader.Clear();
             log("                Done");
+        }
+
+        static WorldObject EnsureHiddenContainer()
+        {
+            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(shadowContainerId);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerId);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
         }
 
         // -------------------------------------------------------------------------
 
         void SendAddSpaceCow(SpaceCow cow)
         {
-            if (multiplayer.IsAvailable() && multiplayer.GetState() == FeatMultiplayerApi.MultiplayerState.CoopHost) {
-                var msg = new MessageAddRemoveSpaceCow();
-                msg.parentId = cow.parent.GetId();
-                msg.inventoryId = cow.inventory.GetId();
-                msg.position = cow.rawPosition;
-                msg.rotation = cow.rawRotation;
-                msg.color = cow.color;
-                msg.added = true;
+            if (NetworkManager.Singleton?.IsServer ?? false) {
+                var msg = new MessageAddRemoveSpaceCow
+                {
+                    parentId = cow.parent.GetId(),
+                    inventoryId = cow.inventory.GetId(),
+                    position = cow.rawPosition,
+                    rotation = cow.rawRotation,
+                    color = cow.color,
+                    added = true
+                };
 
-                multiplayer.LogInfo("SpaceCow: Sending New " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
-                multiplayer.Send(msg);
-                multiplayer.Signal();
+                log("SpaceCow: Sending New " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
         }
 
         void SendAddSpaceCowAll()
         {
-            if (multiplayer.IsAvailable()
-                && multiplayer.GetState() == FeatMultiplayerApi.MultiplayerState.CoopHost
+            if (NetworkManager.Singleton?.IsServer ?? false
                 && cowAroundSpreader.Count != 0)
             {
                 foreach (var cow in cowAroundSpreader.Values)
                 {
-                    var msg = new MessageAddRemoveSpaceCow();
-                    msg.parentId = cow.parent.GetId();
-                    msg.inventoryId = cow.inventory.GetId();
-                    msg.position = cow.rawPosition;
-                    msg.rotation = cow.rawRotation;
-                    msg.color = cow.color;
-                    msg.added = true;
+                    var msg = new MessageAddRemoveSpaceCow
+                    {
+                        parentId = cow.parent.GetId(),
+                        inventoryId = cow.inventory.GetId(),
+                        position = cow.rawPosition,
+                        rotation = cow.rawRotation,
+                        color = cow.color,
+                        added = true
+                    };
 
-                    multiplayer.LogInfo("SpaceCow: Sending " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                    log("SpaceCow: Sending " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
 
-                    multiplayer.Send(msg);
+                    ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
                 }
-                multiplayer.Signal();
             }
         }
 
         void SendRemoveSpaceCow(SpaceCow cow)
         {
-            if (multiplayer.IsAvailable() && multiplayer.GetState() == FeatMultiplayerApi.MultiplayerState.CoopHost)
+            if (NetworkManager.Singleton?.IsServer ?? false)
             {
-                var msg = new MessageAddRemoveSpaceCow();
-                msg.parentId = cow.parent.GetId();
-                msg.inventoryId = cow.inventory.GetId();
+                var msg = new MessageAddRemoveSpaceCow
+                {
+                    parentId = cow.parent.GetId(),
+                    inventoryId = cow.inventory.GetId()
+                };
 
-                multiplayer.LogInfo("SpaceCow: Removing at " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                log("SpaceCow: Removing at " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
 
-                multiplayer.Send(msg);
-                multiplayer.Signal();
+                ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
         }
 
-        bool TryAddRemoveSpaceCowMessageParser(int sender, string message, ConcurrentQueue<object> queue)
+        void OnAddRemoveSpaceCow(ulong sender, string parameters)
         {
-            if (MessageAddRemoveSpaceCow.TryParse(message, out var msg))
+            if (MessageAddRemoveSpaceCow.TryParse(parameters, out var msg))
             {
-                queue.Enqueue(msg);
-                return true;
+                ReceiveMessageAddRemoveSpaceCow(msg);
             }
-            return false;
-        }
-
-        bool TryAddRemoveSpaceCowMessageReceiver(object msg)
-        {
-            if (msg is MessageAddRemoveSpaceCow m)
+            else
             {
-                ReceiveMessageAddRemoveSpaceCow(m);
-                return true;
+                log("Invalid or unknown message: " + parameters);
             }
-            return false;
         }
 
         void ReceiveMessageAddRemoveSpaceCow(MessageAddRemoveSpaceCow msg)
         {
-            if (multiplayer.GetState() == FeatMultiplayerApi.MultiplayerState.CoopClient)
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
             {
                 if (msg.added)
                 {
                     if (!cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
                     {
-                        multiplayer.LogInfo("SpaceCow: Creating for " + msg.parentId + " at " + msg.position);
+                        log("SpaceCow: Creating for " + msg.parentId + " at " + msg.position);
                         cow = SpaceCow.CreateCow(cow1, msg.color);
 
                         var invAssoc = cow.body.AddComponent<InventoryAssociated>();
-                        var inv = InventoriesHandler.GetInventoryById(msg.inventoryId);
-                        if (inv == null)
+
+                        void onInventory(Inventory inv)
                         {
-                            inv = InventoriesHandler.CreateNewInventory(3, msg.inventoryId);
+                            invAssoc.SetInventory(inv);
+                            cow.inventory = inv;
+
+                            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("WaterBottle1"));
+                            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("astrofood"));
+                            inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("MethanCapsule1"));
+
+                            var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
+                            aop.inventory = inv;
                         }
-                        invAssoc.SetInventory(inv);
-                        cow.inventory = inv;
 
-                        inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("WaterBottle1"));
-                        inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("astrofood"));
-                        inv.AddAuthorizedGroup(GroupsHandler.GetGroupViaId("MethanCapsule1"));
-
-                        var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
-                        aop.inventory = inv;
+                        var invExist = InventoriesHandler.Instance.GetInventoryById(msg.inventoryId);
+                        if (invExist == null)
+                        {
+                            InventoriesHandler.Instance.CreateNewInventory(3, msg.inventoryId, null, onInventory);
+                        }
+                        else
+                        {
+                            onInventory(invExist);
+                        }
 
                         cowAroundSpreader[msg.parentId] = cow;
                     }
 
-                    multiplayer.LogInfo("SpaceCow: Updating position of " + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " + msg.color);
+                    log("SpaceCow: Updating position of " + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " + msg.color);
                     cow.SetPosition(msg.position, msg.rotation);
                     cow.SetColor(msg.color);
 
                     var iws = cow.inventory.GetInsideWorldObjects();
-                    multiplayer.LogInfo("          Products: " + iws.Count);
+                    log("          Products: " + iws.Count);
                     foreach (WorldObject wo in iws)
                     {
-                        multiplayer.LogInfo("             " + DebugWorldObject(wo));
+                        log("             " + DebugWorldObject(wo));
                     }
                 }
                 else
                 {
                     if (cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
                     {
-                        multiplayer.LogInfo("SpaceCow: Removing of " + msg.parentId);
-                        var invAssoc = cow.body.GetComponent<InventoryAssociated>();
-                        if (invAssoc != null)
-                        {
-                            invAssoc.GetInventory().GetInsideWorldObjects().Clear();
-                        }
-                        if (cow.inventory != null)
-                        {
-                            InventoriesHandler.DestroyInventory(cow.inventory.GetId());
-                        }
+                        logger.LogInfo("SpaceCow: Removing of " + msg.parentId);
                         cow.Destroy();
                         cowAroundSpreader.Remove(msg.parentId);
                     }

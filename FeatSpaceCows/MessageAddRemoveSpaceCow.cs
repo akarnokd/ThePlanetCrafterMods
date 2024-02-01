@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using LibCommon;
+using UnityEngine;
 
 namespace FeatSpaceCows
 {
@@ -18,18 +19,20 @@ namespace FeatSpaceCows
                 var parts = str.Split('|');
                 if (parts.Length == 7)
                 {
-                    msg = new MessageAddRemoveSpaceCow();
-                    msg.parentId = int.Parse(parts[1]);
-                    msg.inventoryId = int.Parse(parts[2]);
-                    msg.position = MessageHelper.StringToVector3(parts[3]);
-                    msg.rotation = MessageHelper.StringToQuaternion(parts[4]);
-                    msg.color = MessageHelper.StringToColor(parts[5]);
-                    msg.added = "1" == parts[6];
+                    msg = new MessageAddRemoveSpaceCow
+                    {
+                        parentId = int.Parse(parts[1]),
+                        inventoryId = int.Parse(parts[2]),
+                        position = MessageHelper.StringToVector3(parts[3]),
+                        rotation = MessageHelper.StringToQuaternion(parts[4]),
+                        color = MessageHelper.StringToColor(parts[5]),
+                        added = "1" == parts[6]
+                    };
                     return true;
                 }
                 else
                 {
-                    Plugin.multiplayer.LogError("Invalid number of arguments to SpaceCowAddRemove: " + parts.Length + ", Expected = 7");
+                    Plugin.logger.LogError("Invalid number of arguments to SpaceCowAddRemove: " + parts.Length + ", Expected = 7");
                 }
             }
             msg = null;

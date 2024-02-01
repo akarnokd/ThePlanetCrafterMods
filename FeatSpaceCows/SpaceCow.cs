@@ -22,10 +22,13 @@ namespace FeatSpaceCows
 
         internal static SpaceCow CreateCow(Texture2D sideTexture, Color color)
         {
-            var result = new SpaceCow();
-            result.color = color;
+            var result = new SpaceCow
+            {
+                color = color,
 
-            result.body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                body = GameObject.CreatePrimitive(PrimitiveType.Cube)
+            };
+
             result.body.name = "SpaceCow";
             result.body.transform.localScale = new Vector3(2f, 1f, 0.5f);
 
