@@ -41,6 +41,13 @@ namespace FeatSpaceCows
 
         static AccessTools.FieldRef<WorldObjectsHandler, List<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
 
+        /// <summary>
+        /// By default, the standard drop action creates a sound because it is not meant to be invoked
+        /// outside when the player drops items from their own inventory. Cows drop when drones & logistics
+        /// are enabled on them so that generates annoying drop sounds *at* the player.
+        /// </summary>
+        static bool suppressDropSound;
+
         private void Awake()
         {
             me = this;
@@ -354,11 +361,18 @@ namespace FeatSpaceCows
                             {
                                 var inst = WorldObjectsHandler.Instance;
 
-                                inst.DropOnFloor(content,
-                                    cow.body.transform.position 
-                                    + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
-                                    + new Vector3(0, 0, 1));
-
+                                try
+                                {
+                                    suppressDropSound = true;
+                                    inst.DropOnFloor(content,
+                                        cow.body.transform.position
+                                        + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
+                                        + new Vector3(0, 0, 1));
+                                }
+                                finally
+                                {
+                                    suppressDropSound = false;
+                                }
                                 fWorldObjectsHandlerItemsPickablesWorldObjects(inst).Add(content);
                             }
                         });
@@ -460,29 +474,12 @@ namespace FeatSpaceCows
             }
         }
 
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetInventories")]
-        static void SavedDataHandler_GetAndSetInventories(List<JsonableInventory> __result)
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "DropOnFloorServerRpc")]
+        static void WorldObjectsHandler_DropOnFloorServerRpc(ref bool dropSound)
         {
-            HashSet<int> invsToHide = [];
-            foreach (var cow in cowAroundSpreader.Values)
-            {
-                if (cow.inventory != null)
-                {
-                    invsToHide.Add(cow.inventory.GetId());
-                }
-            }
-
-            for (int i = __result.Count - 1; i >= 0; i--)
-            {
-                if (invsToHide.Contains(__result[i].id))
-                {
-                    __result.RemoveAt(i);
-                }
-            }
+            dropSound = dropSound && !suppressDropSound;
         }
-        */
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]

@@ -7,34 +7,29 @@ using System.IO;
 using System;
 using System.Text;
 using UnityEngine;
-using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using System.Reflection;
 using UnityEngine.UI;
 using TMPro;
+using Unity.Netcode;
 
 namespace FeatTechniciansExile
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         static ManualLogSource logger;
 
         internal static Texture2D technicianFront;
         internal static Texture2D technicianBack;
 
-        static Func<string> multiplayerMode;
-
         // /tp 1990 76 1073
-        static Vector3 technicianDropLocation = new Vector3(1995, 75.7f, 1073);
+        static Vector3 technicianDropLocation = new(1995, 75.7f, 1073);
 
         static TechnicianAvatar avatar;
 
-        static readonly int technicianWorldObjectIdStart = 70000;
+        // Used to be 70000 but since 0.9.020, everything below 200M is a scene object and cant be instantiated
+        static readonly int technicianWorldObjectIdStart = 700 * 1000 * 1000;
 
         static WorldObject escapePod;
 
@@ -62,37 +57,36 @@ namespace FeatTechniciansExile
 
         static Asteroid asteroid;
 
-        static FieldInfo asteroidHasCrashed;
+        static readonly List<ConversationEntry> conversationHistory = [];
 
-        static readonly List<ConversationEntry> conversationHistory = new();
+        static readonly Dictionary<string, DialogChoice> dialogChoices = [];
 
-        static readonly Dictionary<string, DialogChoice> dialogChoices = new();
-
-        static readonly Dictionary<string, Dictionary<string, string>> labels = new();
+        static readonly Dictionary<string, Dictionary<string, string>> labels = [];
 
         static MessageData technicianMessage;
         static MessageData technicianMessage2;
 
         static TMP_FontAsset fontAsset;
 
+        static AccessTools.FieldRef<MeteoHandler, List<MeteoEventData>> fMeteoHandlerMeteoEvents;
+        static AccessTools.FieldRef<Asteroid, bool> fAsteroidHasCrashed;
+        static AccessTools.FieldRef<AsteroidsHandler, Unity.Mathematics.Random> fAsteroidsHandlerRandom;
+        static AccessTools.FieldRef<WindowsHandler, DataConfig.UiType> fWindowsHandlerOpenedUi;
+
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                multiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-            }
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
 
             technicianFront = LoadPNG(Path.Combine(dir, "Technician_Front.png"));
             technicianBack = LoadPNG(Path.Combine(dir, "Technician_Back.png"));
-
-            asteroidHasCrashed = AccessTools.Field(typeof(Asteroid), "hasCrashed");
 
             AddTranslation(dir, "english");
             AddTranslation(dir, "hungarian");
@@ -114,6 +108,11 @@ namespace FeatTechniciansExile
                 technicianMessage2.yearSent = "Today";
                 technicianMessage.messageType = DataConfig.MessageType.FromWorld;
             };
+
+            fMeteoHandlerMeteoEvents = AccessTools.FieldRefAccess<MeteoHandler, List<MeteoEventData>>("_meteoEvents");
+            fAsteroidHasCrashed = AccessTools.FieldRefAccess<Asteroid, bool>("hasCrashed");
+            fAsteroidsHandlerRandom = AccessTools.FieldRefAccess<AsteroidsHandler, Unity.Mathematics.Random>("_random");
+            fWindowsHandlerOpenedUi = AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>("_openedUi");
 
             try
             {
@@ -144,7 +143,7 @@ namespace FeatTechniciansExile
 
             if (!labels.TryGetValue(language, out var dict))
             {
-                dict = new();
+                dict = [];
                 labels[language] = dict;
             }
 
@@ -160,37 +159,17 @@ namespace FeatTechniciansExile
 
         static Texture2D LoadPNG(string filename)
         {
-            Texture2D tex = new Texture2D(100, 200);
+            var tex = new Texture2D(100, 200);
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
+        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
+        static void PlanetLoader_HandleDataAfterLoad()
         {
-
-            if (multiplayerMode != null && multiplayerMode() == "CoopClient")
-            {
-                logger.LogInfo("Running on the client.");
-                return;
-            }
-
             logger.LogInfo("Start");
-
-            logger.LogInfo("  Finding the Escape Pod");
-            escapePod = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart);
-            if (escapePod == null)
-            {
-                logger.LogInfo("    Creating the Escape Pod");
-                escapePod = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("EscapePod"), 
-                    technicianWorldObjectIdStart);
-                escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
-                escapePod.SetDontSaveMe(false);
-                escapePod.SetLinkedInventoryId(InventoriesHandler.CreateNewInventory(12).GetId());
-                var go = WorldObjectsHandler.InstantiateWorldObject(escapePod, false);
-            }
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
             technicianRotation1 = Quaternion.identity * Quaternion.Euler(0, -90, 0);
@@ -204,10 +183,50 @@ namespace FeatTechniciansExile
             at.OnConversationStart = DoConversationStart;
             at.OnConversationChoice = DoConversationChoice;
 
+            logger.LogInfo("  Finding the Escape Pod");
+            escapePod = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart);
+            if (escapePod == null)
+            {
+                logger.LogInfo("    Creating the Escape Pod");
+                var podGroup = GroupsHandler.GetGroupViaId("EscapePod");
+                if (podGroup == null)
+                {
+                    logger.LogError("Unable to find Group for EscapePod");
+                }
+                if (podGroup?.GetAssociatedGameObject() == null)
+                {
+                    logger.LogError("Unable to find template GameObject for EscapePod");
+                }
+                escapePod = WorldObjectsHandler.Instance.CreateNewWorldObject(podGroup,
+                    technicianWorldObjectIdStart);
+
+                escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
+                escapePod.SetDontSaveMe(false);
+                // make sure this pod's chest is not default-linked to the player's landing pod
+                // since the pod's chest is a scene object
+                InventoriesHandler.Instance.CreateNewInventory(12, 0, null, inv =>
+                {
+                    logger.LogInfo("      Inventory overridden: " + inv.GetId());
+                    escapePod.SetLinkedInventoryId(inv.GetId());
+
+                    var go = WorldObjectsHandler.Instance.InstantiateWorldObject(escapePod, false);
+
+                    if (go == null)
+                    {
+                        logger.LogError("EscapePod instantiation failure");
+                    }
+
+                    SetVisibilityViaCurrentPhase();
+                });
+            }
+
             ingame = true;
+
+            MigrateFromOld();
 
             LoadState();
             SetVisibilityViaCurrentPhase();
+
 
             logger.LogInfo("Done");
         }
@@ -219,16 +238,16 @@ namespace FeatTechniciansExile
             var livingPodBase = technicianDropLocation + new Vector3(0, 0, 15);
 
             logger.LogInfo("  Finding the Living Pod");
-            var livingPod = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 1);
+            var livingPod = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 1);
             if (livingPod == null)
             {
                 logger.LogInfo("    Creating the Living Pod");
-                livingPod = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("pod"),
+                livingPod = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("pod"),
                     technicianWorldObjectIdStart + 1);
                 livingPod.SetPositionAndRotation(livingPodBase, Quaternion.identity * Quaternion.Euler(0, 90, 0));
-                livingPod.SetPanelsId(new List<int> { 1, 4, 1, 1, 5, 7 });
+                livingPod.SetPanelsId([1, 4, 1, 1, 5, 7]);
                 livingPod.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(livingPod, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(livingPod, false);
             }
 
             var livingPodFloor = livingPodBase + new Vector3(0, 1, 0);
@@ -236,136 +255,144 @@ namespace FeatTechniciansExile
             var bedPosition = livingPodFloor + new Vector3(3, 0, -1);
 
             logger.LogInfo("  Finding the Bed");
-            var bed = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 2);
+            var bed = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 2);
             if (bed == null)
             {
                 logger.LogInfo("    Creating the Bed");
-                bed = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("BedSimple"),
+                bed = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("BedSimple"),
                     technicianWorldObjectIdStart + 2);
                 bed.SetPositionAndRotation(bedPosition, Quaternion.identity * Quaternion.Euler(0, 180, 0));
                 bed.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(bed, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(bed, false);
             }
 
             var deskPosition = livingPodFloor + new Vector3(-1, 0, -3);
             logger.LogInfo("  Finding the Desk");
-            var desk = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 3);
+            var desk = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 3);
             if (desk == null)
             {
                 logger.LogInfo("    Creating the Desk");
-                desk = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Desktop1"),
+                desk = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Desktop1"),
                     technicianWorldObjectIdStart + 3);
                 desk.SetPositionAndRotation(deskPosition, Quaternion.identity * Quaternion.Euler(0, -90, 0));
                 desk.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(desk, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(desk, false);
             }
 
             logger.LogInfo("  Finding the Rockets Screen");
-            var screen = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 4);
+            var screen = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 4);
             if (screen == null)
             {
                 logger.LogInfo("    Creating the Rockets Screen");
-                screen = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("ScreenRockets"),
+                screen = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("ScreenRockets"),
                     technicianWorldObjectIdStart + 4);
                 screen.SetPositionAndRotation(deskPosition + new Vector3(-0.5f, 1f, 0.25f), Quaternion.identity * Quaternion.Euler(0, 180, 0));
                 screen.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(screen, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(screen, false);
             }
 
             logger.LogInfo("  Finding the Grower");
-            var grower = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 5);
+            var grower = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 5);
             if (grower == null)
             {
                 logger.LogInfo("    Creating the Grower");
-                grower = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("VegetableGrower1"),
+                grower = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("VegetableGrower1"),
                     technicianWorldObjectIdStart + 5);
                 grower.SetPositionAndRotation(livingPodFloor + new Vector3(2, 0, 2), Quaternion.identity * Quaternion.Euler(0, -45, 0));
                 grower.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(grower, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(grower, false);
             }
 
             logger.LogInfo("  Finding the Collector");
-            var collector = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 6);
+            var collector = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 6);
             if (collector == null)
             {
                 logger.LogInfo("    Creating the Collector");
-                collector = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("WaterCollector1"),
+                collector = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("WaterCollector1"),
                     technicianWorldObjectIdStart + 6);
                 collector.SetPositionAndRotation(livingPodBase + new Vector3(0, -1, 15), Quaternion.identity);
                 collector.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(collector, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(collector, false);
             }
 
-            logger.LogInfo("  Finding Flower Pot");
-            var flower = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 7);
+            logger.LogInfo("  Finding the Flower Pot");
+            var flower = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 7);
             if (flower == null)
             {
                 logger.LogInfo("    Creating the Flower Pot");
-                flower = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("FlowerPot1"),
+                flower = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("FlowerPot1"),
                     technicianWorldObjectIdStart + 7);
                 flower.SetPositionAndRotation(livingPodFloor + new Vector3(-2, 0, 2.25f), Quaternion.identity);
                 flower.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(flower, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(flower, false);
 
-                Inventory inv = InventoriesHandler.GetInventoryById(flower.GetLinkedInventoryId());
-                WorldObject flowerSeed = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("SeedGold"));
-                if (!inv.AddItem(flowerSeed))
+                Inventory inv = InventoriesHandler.Instance.GetInventoryById(flower.GetLinkedInventoryId());
+                InventoriesHandler.Instance.AddItemToInventory(GroupsHandler.GetGroupViaId("SeedGold"), inv, (success, id) =>
                 {
-                    WorldObjectsHandler.DestroyWorldObject(flowerSeed);
-                }
+                    if (!success && id != 0)
+                    {
+                        WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                    }
+                });
             }
 
-            logger.LogInfo("  Finding Chair");
-            var chair = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 8);
+            logger.LogInfo("  Finding the Chair");
+            var chair = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 8);
             if (chair == null)
             {
                 logger.LogInfo("    Creating the Chair");
-                chair = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Chair1"),
+                chair = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Chair1"),
                     technicianWorldObjectIdStart + 8);
                 chair.SetPositionAndRotation(deskPosition + new Vector3(1f, 0, 2), Quaternion.identity * Quaternion.Euler(0, -45, 0));
                 chair.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(chair, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(chair, false);
             }
 
-            logger.LogInfo("  Finding Chest");
-            var chest = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 9);
+            logger.LogInfo("  Finding the Chest");
+            var chest = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 9);
             if (chest == null)
             {
                 logger.LogInfo("    Creating the Chest");
-                chest = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container1"),
+                chest = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container1"),
                     technicianWorldObjectIdStart + 9);
                 chest.SetPositionAndRotation(livingPodFloor + new Vector3(-0.25f, 0, 2.25f), Quaternion.identity * Quaternion.Euler(0, 90, 0));
                 chest.SetDontSaveMe(dontSaveMe);
                 chest.SetText("Technician #221021");
-                WorldObjectsHandler.InstantiateWorldObject(chest, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(chest, false);
             }
 
-            logger.LogInfo("  Finding Solar");
-            var solar = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 10);
+            logger.LogInfo("  Finding the Solar");
+            var solar = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 10);
             if (solar == null)
             {
                 logger.LogInfo("    Creating the Solar");
-                solar = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("EnergyGenerator2"),
+                solar = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("EnergyGenerator2"),
                     technicianWorldObjectIdStart + 10);
                 solar.SetPositionAndRotation(livingPodFloor + new Vector3(0, 5, 0), Quaternion.identity);
                 solar.SetDontSaveMe(dontSaveMe);
-                WorldObjectsHandler.InstantiateWorldObject(solar, false);
+                WorldObjectsHandler.Instance.InstantiateWorldObject(solar, false);
             }
 
-            logger.LogInfo("  Finding Seed");
-            var seed = WorldObjectsHandler.GetWorldObjectViaId(technicianWorldObjectIdStart + 11);
+            logger.LogInfo("  Finding the Seed");
+            var seed = WorldObjectsHandler.Instance.GetWorldObjectViaId(technicianWorldObjectIdStart + 11);
             if (seed == null)
             {
                 logger.LogInfo("    Creating the Seed");
-                seed = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Vegetable0Seed"),
+                seed = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Vegetable0Seed"),
                     technicianWorldObjectIdStart + 11);
                 seed.SetDontSaveMe(dontSaveMe);
             }
 
-            Inventory growerInv = InventoriesHandler.GetInventoryById(grower.GetLinkedInventoryId());
+            Inventory growerInv = InventoriesHandler.Instance.GetInventoryById(grower.GetLinkedInventoryId());
             if (growerInv.GetInsideWorldObjects().Count == 0)
             {
-                growerInv.AddItem(seed);
+                // we need to "place" the seed because AddWorldObjectToInventory only adds an existing world object
+                // if it had position in the world. Weird I know.
+                seed.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
+                InventoriesHandler.Instance.AddWorldObjectToInventory(seed, growerInv, success =>
+                {
+                    logger.LogInfo("    Seed -> Grower " + (success ? "success" : "failure"));
+                });
             }
 
             logger.LogInfo("  Limiting object interactions");
@@ -394,6 +421,19 @@ namespace FeatTechniciansExile
 
             technicianLocation3 = bedPosition + new Vector3(-0.85f, -0.45f, 0);
             technicianRotation3 = Quaternion.identity * Quaternion.Euler(-90, 0, 0);
+        }
+
+        static void MigrateFromOld()
+        {
+            for (int i = 70000; i < 70011; i++)
+            {
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(i);
+                wo?.SetDontSaveMe(true);
+                if (wo != null && wo.GetId() == 70000)
+                {
+                    escapePod.SetText(wo.GetText());
+                }
+            }
         }
 
         void Update()
@@ -539,26 +579,25 @@ namespace FeatTechniciansExile
                 AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_1_Supplies_Given", talk);
                 AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_Job", talk);
 
-                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory().GetInsideWorldObjects();
+                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory();
+                var invContent = new List<WorldObject>(inv.GetInsideWorldObjects());
 
                 int foodCounter = 0;
                 int waterCounter = 0;
-                for (int i = inv.Count - 1; i >= 0; i--)
+                for (int i = invContent.Count - 1; i >= 0; i--)
                 {
-                    var wo = inv[i];
+                    var wo = invContent[i];
                     if (wo.GetGroup().GetId() == "astrofood" && foodCounter < 5)
                     {
                         foodCounter++;
-                        inv.RemoveAt(i);
+                        InventoriesHandler.Instance.RemoveItemFromInventory(wo, inv, true);
                         NotifyRemoved(wo.GetGroup());
-                        WorldObjectsHandler.DestroyWorldObject(wo);
                     }
                     else if (wo.GetGroup().GetId() == "WaterBottle1" && waterCounter < 5)
                     {
                         waterCounter++;
-                        inv.RemoveAt(i);
                         NotifyRemoved(wo.GetGroup());
-                        WorldObjectsHandler.DestroyWorldObject(wo);
+                        InventoriesHandler.Instance.RemoveItemFromInventory(wo, inv, true);
                     }
                 }
 
@@ -591,18 +630,18 @@ namespace FeatTechniciansExile
                 AddResponseLabel("TechniciansExile_Convict", "TechniciansExile_Dialog_2_Supplies_Given", talk);
                 AddResponseLabel("TechniciansExile_Technician", "TechniciansExile_Dialog_2_How_Long", talk);
 
-                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory().GetInsideWorldObjects();
+                var inv = GetPlayerMainController().GetPlayerBackpack().GetInventory();
+                var invContent = new List<WorldObject>(inv.GetInsideWorldObjects());
 
                 int alloyCounter = 0;
-                for (int i = inv.Count - 1; i >= 0; i--)
+                for (int i = invContent.Count - 1; i >= 0; i--)
                 {
-                    var wo = inv[i];
+                    var wo = invContent[i];
                     if (wo.GetGroup().GetId() == "Alloy" && alloyCounter < 10)
                     {
                         alloyCounter++;
-                        inv.RemoveAt(i);
+                        InventoriesHandler.Instance.RemoveItemFromInventory(wo, inv, true);
                         NotifyRemoved(wo.GetGroup());
-                        WorldObjectsHandler.DestroyWorldObject(wo);
                     }
                 }
 
@@ -661,11 +700,11 @@ namespace FeatTechniciansExile
 
         static bool CheckRockets()
         {
-            foreach (var wo in WorldObjectsHandler.GetAllWorldObjects())
+            foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
             {
                 if (wo.GetGroup().GetId().StartsWith("SpaceMultiplier"))
                 {
-                    var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                    var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
                     if (inv.GetInsideWorldObjects().Count != 0)
                     {
                         return true;
@@ -736,11 +775,11 @@ namespace FeatTechniciansExile
                     water++;
                 }
             }
-            ch.parameters = new object[]
-            {
+            ch.parameters =
+            [
                 Math.Min(5, food),
                 Math.Min(5, water)
-            };
+            ];
             //logger.LogInfo("Food: " + food + ", Water: " + water);
             ch.enabled = food >= 5 && water >= 5;
         }
@@ -760,10 +799,10 @@ namespace FeatTechniciansExile
                     alloy++;
                 }
             }
-            ch.parameters = new object[]
-            {
+            ch.parameters =
+            [
                 Math.Min(10, alloy),
-            };
+            ];
             //logger.LogInfo("Alloy: " + alloy);
             ch.enabled = alloy >= 10;
         }
@@ -807,13 +846,12 @@ namespace FeatTechniciansExile
             {
                 if (asteroid == null)
                 {
-                    FieldInfo fi = AccessTools.Field(typeof(MeteoHandler), "meteoEvents");
                     /*
                     foreach (var me in mh.meteoEvents)
                     {
                         logger.LogInfo("Dump meteo events: " + me.environmentVolume.name);
                     }*/
-                    var mes = (fi.GetValue(mh) as List<MeteoEventData>);
+                    var mes = fMeteoHandlerMeteoEvents(mh);
                     if (mes != null)
                     {
                         var meteoEvent = mes[9];
@@ -822,11 +860,11 @@ namespace FeatTechniciansExile
                         mh.meteoSound.StartMeteoAudio(meteoEvent);
                         if (meteoEvent.asteroidEventData != null)
                         {
-                            var selectedAsteroidEventData = UnityEngine.Object.Instantiate(meteoEvent.asteroidEventData);
+                            var selectedAsteroidEventData = Instantiate(meteoEvent.asteroidEventData);
 
                             var ah = Managers.GetManager<AsteroidsHandler>();
 
-                            GameObject obj = Instantiate(
+                            var obj = Instantiate(
                                 selectedAsteroidEventData.asteroidGameObject,
                                 technicianDropLocation + new Vector3(0, 1000, 0),
                                 Quaternion.identity,
@@ -835,8 +873,11 @@ namespace FeatTechniciansExile
                             obj.transform.LookAt(technicianDropLocation);
 
                             asteroid = obj.GetComponent<Asteroid>();
+                            var isr = 4 * Mathf.Max(asteroid.initialSpeedRange.x, asteroid.initialSpeedRange.y);
+                            asteroid.initialSpeedRange = new Vector2(isr, isr);
+                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah));
                             asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
-                            asteroid.debrisDestroyTime = 5;
+                            asteroid.debrisDestroyTime = 15;
                             asteroid.placeAsteroidBody = false;
                             selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
                             selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
@@ -845,7 +886,7 @@ namespace FeatTechniciansExile
                 }
                 else
                 {
-                    if ((bool)asteroidHasCrashed.GetValue(asteroid))
+                    if (fAsteroidHasCrashed(asteroid))
                     {
                         asteroid = null;
                         questPhase = QuestPhase.Initial_Help;
@@ -874,11 +915,20 @@ namespace FeatTechniciansExile
             {
 
                 questPhase = QuestPhase.Operating;
+                ForceResetWorldUnits();
                 ShowChoice(dialogChoices["NicePod"]);
                 SaveState();
                 SetVisibilityViaCurrentPhase();
                 var mh = Managers.GetManager<MessagesHandler>();
                 mh.AddNewReceivedMessage(technicianMessage2, true);
+            }
+        }
+
+        static void ForceResetWorldUnits()
+        {
+            foreach (var wo in Managers.GetManager<WorldUnitsHandler>().GetAllWorldUnits())
+            {
+                wo.ForceResetValues();
             }
         }
 
@@ -909,33 +959,34 @@ namespace FeatTechniciansExile
 
         static void SetVisibilityViaCurrentPhase()
         {
+            logger.LogInfo("Escape Pod GameObject " + (escapePod.GetGameObject() != null));
             switch (questPhase)
             {
                 case QuestPhase.Not_Started:
                 case QuestPhase.Arrival:
                     {
                         avatar.SetVisible(false);
-                        escapePod.GetGameObject().SetActive(false);
+                        escapePod.GetGameObject()?.SetActive(false);
                         break;
                     }
                 case QuestPhase.Initial_Help:
                     {
                         avatar.SetVisible(true);
                         avatar.SetPosition(technicianLocation1, technicianRotation1);
-                        escapePod.GetGameObject().SetActive(true);
+                        escapePod.GetGameObject()?.SetActive(true);
                         break;
                     }
                 case QuestPhase.Base_Setup:
                     {
                         avatar.SetVisible(true);
-                        escapePod.GetGameObject().SetActive(true);
+                        escapePod.GetGameObject()?.SetActive(true);
                         break;
                     }
                 case QuestPhase.Operating:
                     {
                         avatar.SetVisible(true);
                         avatar.SetPosition(technicianLocation2, technicianRotation2);
-                        escapePod.GetGameObject().SetActive(true);
+                        escapePod.GetGameObject()?.SetActive(true);
                         CreatePod();
                         break;
                     }
@@ -973,6 +1024,7 @@ namespace FeatTechniciansExile
                         if (kv[0] == "QuestPhase")
                         {
                             questPhase = (QuestPhase)int.Parse(kv[1]);
+                            ForceResetWorldUnits();
                         }
                         else if (kv[0] == "HistoryEntry")
                         {
@@ -1054,7 +1106,10 @@ namespace FeatTechniciansExile
                 }
             }
 
-            escapePod.SetText(sb.ToString());
+            string text = sb.ToString();
+
+            escapePod.SetText(text);
+            // FIXME notify clients about the state change
         }
 
         static void AddChoice(string id, string labelId)
@@ -1093,35 +1148,32 @@ namespace FeatTechniciansExile
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MessagesHandler), "Init")]
-        static void MessagesHandler_Init(List<MessageData> ___allAvailableMessages)
+        static void MessagesHandler_Init(Dictionary<int, MessageData> ____allAvailableMessages)
         {
-            if (!___allAvailableMessages.Contains(technicianMessage))
-            {
-                ___allAvailableMessages.Add(technicianMessage);
-            }
-            if (!___allAvailableMessages.Contains(technicianMessage2))
-            {
-                ___allAvailableMessages.Add(technicianMessage2);
-            }
+            ____allAvailableMessages.TryAdd(technicianMessage.GetMessageHashCode(), technicianMessage);
+            ____allAvailableMessages.TryAdd(technicianMessage2.GetMessageHashCode(), technicianMessage2);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldUnit), "SetIncreaseAndDecreaseForWorldObjects")]
-        static void WorldUnit_SetIncreaseAndDecreaseForWorldObjects(bool __result, 
-            DataConfig.WorldUnitType ___unitType,
-            ref float ___increaseValuePerSec)
+        static void WorldUnit_SetIncreaseAndDecreaseForWorldObjects(
+            WorldUnit __instance,
+            bool __result, 
+            DataConfig.WorldUnitType ____unitType,
+            ref float ____increaseValuePerSec)
         {
             if (__result && questPhase == QuestPhase.Operating)
             {
-                if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(___unitType, out var gid))
+                if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(____unitType, out var gid))
                 {
-                    foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+                    foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                     {
                         if (wo.GetGroup().GetId() == gid)
                         {
-                            ___increaseValuePerSec *= 1.1f;
+                            ____increaseValuePerSec *= 1.1f;
                         }
                     }
+                    __instance.SetDirty(true);
                 }
             }
         }
@@ -1147,9 +1199,16 @@ namespace FeatTechniciansExile
                 {
                     logger.LogInfo("  group " + gd.id);
                     var groupViaId = GroupsHandler.GetGroupViaId(gd.id);
-                    var allWorldObjectsOfGroup = WorldObjectsHandler.GetAllWorldObjectsOfGroup(groupViaId);
-                    logger.LogInfo("  wo count " + allWorldObjectsOfGroup.Count);
-                    if (allWorldObjectsOfGroup.Count != 0)
+                    var allWorldObjectsOfGroup = 0;
+                    foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
+                    {
+                        if (wo.GetGroup() == groupViaId)
+                        {
+                            allWorldObjectsOfGroup++;
+                        }
+                    }
+                    logger.LogInfo("  wo count " + allWorldObjectsOfGroup);
+                    if (allWorldObjectsOfGroup != 0)
                     {
                         foreach (WorldUnit worldUnit in allWorldUnits)
                         {
@@ -1165,7 +1224,7 @@ namespace FeatTechniciansExile
                                     if (ln.labelText.text.StartsWith(unitLabel))
                                     {
                                         ln.labelText.text = unitLabel
-                                            + " +" + (1100 * allWorldObjectsOfGroup.Count).ToString() + "%";
+                                            + " +" + (1100 * allWorldObjectsOfGroup).ToString() + "%";
                                     }
                                 }
                                 break;
@@ -1230,9 +1289,9 @@ namespace FeatTechniciansExile
         {
             internal GameObject conversationDialogCanvas;
 
-            readonly List<GameObject> conversationHistoryLines = new();
+            readonly List<GameObject> conversationHistoryLines = [];
 
-            readonly List<GameObject> dialogChoiceLines = new();
+            readonly List<GameObject> dialogChoiceLines = [];
 
             GameObject conversationPicture;
 
@@ -1242,9 +1301,9 @@ namespace FeatTechniciansExile
 
             internal string currentName;
 
-            internal readonly List<DialogChoice> currentChoices = new();
+            internal readonly List<DialogChoice> currentChoices = [];
 
-            internal readonly List<ConversationEntry> currentHistory = new();
+            internal readonly List<ConversationEntry> currentHistory = [];
 
             internal Action<ActionTalk> OnConversationStart;
 
@@ -1353,6 +1412,12 @@ namespace FeatTechniciansExile
 
             public override void OnAction()
             {
+                if (!(NetworkManager.Singleton?.IsServer ?? false))
+                {
+                    _hudHandler.DisplayCursorText("TechniciansExile_Talk_HostOnly", 5f);
+                    return;
+                }
+
                 logger.LogInfo("Creating Canvas");
                 conversationDialogCanvas = new GameObject("TechniciansExileConversationDialogCanvas");
                 var c = conversationDialogCanvas.AddComponent<Canvas>();
@@ -1396,7 +1461,7 @@ namespace FeatTechniciansExile
                 text.font = fontAsset;
                 text.fontSize = fontSize;
                 text.horizontalAlignment = HorizontalAlignmentOptions.Center;
-                text.enableWordWrapping = false;
+                text.textWrappingMode = TextWrappingModes.NoWrap;
                 text.overflowMode = TextOverflowModes.Overflow;
                 text.richText = true;
                 rect = text.GetComponent<RectTransform>();
@@ -1421,7 +1486,7 @@ namespace FeatTechniciansExile
                     tmp.fontSize = fontSize;
                     tmp.font = fontAsset;
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
-                    tmp.enableWordWrapping = false;
+                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
                     tmp.overflowMode = TextOverflowModes.Overflow;
                     tmp.richText = true;
 
@@ -1461,7 +1526,7 @@ namespace FeatTechniciansExile
                     tmp.font = fontAsset;
                     tmp.fontSize = fontSize;
                     tmp.horizontalAlignment = HorizontalAlignmentOptions.Left;
-                    tmp.enableWordWrapping = false;
+                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
                     tmp.overflowMode = TextOverflowModes.Overflow;
                     tmp.richText = true;
 
@@ -1487,9 +1552,9 @@ namespace FeatTechniciansExile
                 logger.LogInfo("Pin dialog to WindowsHandler");
                 Cursor.visible = true;
                 var wh = Managers.GetManager<WindowsHandler>();
-                AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "openedUi") = DataConfig.UiType.TextInput;
+                fWindowsHandlerOpenedUi(wh) = DataConfig.UiType.TextInput;
 
-                hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
+                _hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
                 logger.LogInfo("Done OnAction");
             }
 
@@ -1580,13 +1645,13 @@ namespace FeatTechniciansExile
 
             public override void OnHover()
             {
-                hudHandler.DisplayCursorText("TechniciansExile_Talk", 0f);
+                _hudHandler.DisplayCursorText("TechniciansExile_Talk", 0f);
                 base.OnHover();
             }
 
             public override void OnHoverOut()
             {
-                hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
+                _hudHandler.CleanCursorTextIfCode("TechniciansExile_Talk");
 
                 base.OnHoverOut();
             }
