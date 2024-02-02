@@ -1249,7 +1249,21 @@ namespace FeatTechniciansExile
         static bool WindowsHandler_CloseAllWindows()
         {
             // by default, Enter toggles any UI. prevent this while our console is open
-            return avatar?.avatar?.GetComponent<ActionTalk>()?.conversationDialogCanvas == null;
+            if (avatar == null)
+            {
+                return true;
+            }
+            var a = avatar.avatar;
+            if (a == null)
+            {
+                return true;
+            }
+            var c = a.GetComponent<ActionTalk>();
+            if (c == null)
+            {
+                return true;
+            }
+            return c.conversationDialogCanvas == null;
         }
 
         [HarmonyPostfix]
