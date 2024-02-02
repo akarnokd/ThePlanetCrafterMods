@@ -166,5 +166,12 @@ namespace FixUnofficialPatches
         {
             return Managers.GetManager<MeshOccluderHandler>() != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineOutsideGrower), "OnGrabedAGrowing")]
+        static bool MachineOutsideGrower_OnGrabedAGrowing(MachineOutsideGrower __instance)
+        {
+            return __instance != null;
+        }
     }
 }
