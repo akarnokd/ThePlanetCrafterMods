@@ -65,4 +65,10 @@
 		</Reference>
 	</ItemGroup>
 
+	<!--
+	<ItemGroup Condition="'$(ProjectName)' != 'LibCommon'">
+		<Compile Include="..\LibCommon\UnityExt.cs" Link="UnityExt.cs" />
+	</ItemGroup>
+	-->
+
 </Project>

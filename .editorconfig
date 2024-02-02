@@ -1,0 +1,5 @@
+﻿[*.cs]
+
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = suggestion
+file_header_template = Copyright (c) 2022-2024, David Karnok & Contributors\nLicensed under the Apache License, Version 2.0

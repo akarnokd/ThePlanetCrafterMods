@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -6,7 +9,6 @@ using UnityEngine.UI;
 using BepInEx.Configuration;
 using UnityEngine.InputSystem;
 using BepInEx.Logging;
-using System.Collections;
 using TMPro;
 
 namespace UIBeaconText
@@ -61,7 +63,7 @@ namespace UIBeaconText
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        static void log(object message)
+        static void Log(object message)
         {
             if (debugMode.Value)
             {
@@ -149,7 +151,7 @@ namespace UIBeaconText
             distanceText.horizontalOverflow = HorizontalWrapMode.Overflow;
             distanceText.alignment = TextAnchor.MiddleCenter;
 
-            log("Finding the World Object of the beacon");
+            Log("Finding the World Object of the beacon");
             WorldObject wo = null;
             var woa = __instance.GetComponent<WorldObjectAssociated>();
             if (woa != null)
@@ -164,7 +166,7 @@ namespace UIBeaconText
                 }
             }
 
-            log("Starting updater");
+            Log("Starting updater");
 
             var holder = ___canvas.AddComponent<BeaconTextHolder>();
             holder.titleText = titleText;

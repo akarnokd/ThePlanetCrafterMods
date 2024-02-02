@@ -1,15 +1,15 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using TMPro;
-using System.IO;
 using System;
 using System.Linq;
-using UnityEngine.SceneManagement;
 using System.Collections;
 using BepInEx.Bootstrap;
 using System.Reflection;

@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -54,8 +57,8 @@ namespace UIShowConsumableCount
             }
         }
 
-        static Color defaultColor = new Color(1f, 1f, 1f, 1f);
-        static Color defaultEmptyColor = new Color(1f, 0.5f, 0.5f, 1f);
+        static Color defaultColor = new(1f, 1f, 1f, 1f);
+        static Color defaultEmptyColor = new(1f, 0.5f, 0.5f, 1f);
 
         void Setup()
         {
@@ -79,7 +82,7 @@ namespace UIShowConsumableCount
             Transform tr = gauge.gaugeSlider.transform;
             RectTransform grt = gauge.gaugeSlider.GetComponent<RectTransform>();
 
-            GameObject result = new GameObject(name);
+            var result = new GameObject(name);
             result.transform.parent = tr;
 
             Text text = result.AddComponent<Text>();

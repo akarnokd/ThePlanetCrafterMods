@@ -13,7 +13,8 @@
 	<Import Project="$(SolutionDir)\solution_private.targets" />
     <ItemGroup>
         <Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
-    </ItemGroup>
+		<Compile Include="..\LibCommon\UnityExt.cs" Link="UnityExt.cs" />
+	</ItemGroup>
 
     <ItemGroup>
 	  <Reference Include="Unity.Rendering">

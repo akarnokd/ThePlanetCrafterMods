@@ -1,4 +1,6 @@
-﻿using LibCommon;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using UnityEngine;
 
 namespace FeatSpaceCows

@@ -1,7 +1,9 @@
-﻿using SpaceCraft;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using SpaceCraft;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CheatInventoryStacking
 {

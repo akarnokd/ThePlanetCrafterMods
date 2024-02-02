@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -9,11 +12,8 @@ using UnityEngine.InputSystem;
 using System.Reflection;
 using System.IO;
 using System;
-using System.Linq;
 using TMPro;
 using System.Globalization;
-using System.Collections;
-using BepInEx.Configuration;
 
 namespace FixUnofficialPatches
 {

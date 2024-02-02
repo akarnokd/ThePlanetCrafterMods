@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -6,11 +9,9 @@ using System.Collections;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using System;
-using System.Reflection;
 using BepInEx.Logging;
-using BepInEx.Bootstrap;
-using System.Diagnostics;
 using Unity.Netcode;
+using LibCommon;
 
 namespace CheatAutoHarvest
 {
@@ -138,8 +139,7 @@ namespace CheatAutoHarvest
                     if ((gid.StartsWith("Algae") && harvestAlgae.Value)
                         || (!gid.StartsWith("Algae") && harvestFood.Value))
                     {
-                        var go = wo.GetGameObject();
-                        var ag = go != null ? go.GetComponentInChildren<ActionGrabable>() : null;
+                        var ag = wo.GetGameObject().AsNullable()?.GetComponentInChildren<ActionGrabable>();
 
                         if (ag != null && ag.GetCanGrab())
                         {

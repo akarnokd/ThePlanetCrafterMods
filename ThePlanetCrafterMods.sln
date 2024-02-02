@@ -5,6 +5,7 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B3D8E3D8-659C-43AC-A3E2-B5EF6B1E65B6}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		README.md = README.md
 		solution_private.targets = solution_private.targets
 		version_info_repository.xml = version_info_repository.xml

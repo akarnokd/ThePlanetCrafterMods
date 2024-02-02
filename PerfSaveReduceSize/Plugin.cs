@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
@@ -9,7 +12,7 @@ namespace PerfSaveReduceSize
     public class Plugin : BaseUnityPlugin
     {
 
-        void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 

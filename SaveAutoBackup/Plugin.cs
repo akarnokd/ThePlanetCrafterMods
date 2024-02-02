@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
@@ -14,7 +17,6 @@ namespace SaveAutoBackup
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.saveautobackup", "(Save) Auto Backup", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.perfsavereducesize", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("akarnokd.theplanetcraftermods.libmodloadsavesupport", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 
@@ -26,7 +28,7 @@ namespace SaveAutoBackup
         static ConfigEntry<int> keepAge;
         static ConfigEntry<bool> doAsync;
 
-        void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -59,11 +61,11 @@ namespace SaveAutoBackup
             string outputPathStr = outputPath.Value.Trim();
             while (outputPathStr.EndsWith("\\"))
             {
-                outputPathStr = outputPathStr.Substring(0, outputPathStr.Length - 1);
+                outputPathStr = outputPathStr[..^1];
             }
             while (outputPathStr.EndsWith("/"))
             {
-                outputPathStr = outputPathStr.Substring(0, outputPathStr.Length - 1);
+                outputPathStr = outputPathStr[..^1];
             }
 
             if (doAsync.Value)
@@ -126,7 +128,7 @@ namespace SaveAutoBackup
                     if (keepCnt > 0 || keepDays > 0)
                     {
                         string backupNaming = _saveFileName + "_backup_";
-                        List<string> existingBackups = new List<string>();
+                        List<string> existingBackups = [];
                         foreach (string file in Directory.EnumerateFiles(outputPathStr))
                         {
                             string nameOnly = Path.GetFileName(file);
@@ -183,7 +185,7 @@ namespace SaveAutoBackup
                     GZipStream gz = null;
 
                     
-                    FileStream fs = new FileStream(outputFileName, FileMode.Create);
+                    var fs = new FileStream(outputFileName, FileMode.Create);
 
                     try
                     {
@@ -196,7 +198,7 @@ namespace SaveAutoBackup
                         {
                             stream = fs;
                         }
-                        StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
+                        var writer = new StreamWriter(stream, Encoding.UTF8);
 
                         string delimPlusNewLine = ___listDelimiter.ToString() + "\n";
                         string delim = ___listDelimiter.ToString();

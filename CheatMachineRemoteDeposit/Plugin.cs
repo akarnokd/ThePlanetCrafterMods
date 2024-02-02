@@ -1,9 +1,11 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Reflection;
 using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
@@ -108,14 +110,14 @@ namespace CheatMachineRemoteDeposit
                     else
                     {
                         depositAliases[idalias[0]] = idalias[1].ToLower();
-                        log("Alias " + idalias[0] + " -> " + idalias[1]);
+                        Log("Alias " + idalias[0] + " -> " + idalias[1]);
                     }
                     i++;
                 }
             }
         }
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -143,7 +145,7 @@ namespace CheatMachineRemoteDeposit
                 return true;
             }
 
-            log("GenerateAnObject start");
+            Log("GenerateAnObject start");
 
             if (___worldUnitsHandler == null)
             {
@@ -154,7 +156,7 @@ namespace CheatMachineRemoteDeposit
                 return false;
             }
 
-            log("    begin ore search");
+            Log("    begin ore search");
 
             Group group = null;
             if (___groupDatas.Count != 0)
@@ -184,7 +186,7 @@ namespace CheatMachineRemoteDeposit
             {
                 string oreId = group.id;
 
-                log("    ore: " + oreId);
+                Log("    ore: " + oreId);
 
                 var inventory = FindInventoryForOre(oreId);                
 
@@ -194,7 +196,7 @@ namespace CheatMachineRemoteDeposit
                     {
                         if (!success)
                         {
-                            log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                            Log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
                             if (id != 0)
                             {
                                 WorldObjectsHandler.Instance.DestroyWorldObject(id);
@@ -204,15 +206,15 @@ namespace CheatMachineRemoteDeposit
                 }
                 else
                 {
-                    log("    No suitable inventory found, ore ignored");
+                    Log("    No suitable inventory found, ore ignored");
                 }
             }
             else
             {
-                log("    ore: none");
+                Log("    ore: none");
             }
 
-            log("GenerateAnObject end");
+            Log("GenerateAnObject end");
             return false;
         }
 
@@ -258,7 +260,7 @@ namespace CheatMachineRemoteDeposit
                 // Server side is responsible for the transfer.
                 if (InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
-                    log("ClearMachineGeneratorInventory begin");
+                    Log("ClearMachineGeneratorInventory begin");
                     var items = _inventory.GetInsideWorldObjects();
 
                     for (int i = items.Count - 1; i >= 0; i--)
@@ -268,11 +270,11 @@ namespace CheatMachineRemoteDeposit
                         var candidateInv = FindInventoryForOre(oreId);
                         if (candidateInv != null)
                         {
-                            log("    Transfer of " + item.GetId() + "(" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
+                            Log("    Transfer of " + item.GetId() + "(" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
                             InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
                         }
                     }
-                    log("ClearMachineGeneratorInventory end");
+                    Log("ClearMachineGeneratorInventory end");
                 }
                 yield return wait;
             }
@@ -298,12 +300,12 @@ namespace CheatMachineRemoteDeposit
                         Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
                         if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))
                         {
-                            log("    Found Inventory: " + candidateInventory.GetId());
+                            Log("    Found Inventory: " + candidateInventory.GetId());
                             break;
                         }
                         else
                         {
-                            log("    This inventory is full: " + txt);
+                            Log("    This inventory is full: " + txt);
                         }
                     }
                 }

@@ -1,8 +1,9 @@
-﻿using HarmonyLib;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using HarmonyLib;
 using SpaceCraft;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CheatInventoryStacking
 {
@@ -24,7 +25,7 @@ namespace CheatInventoryStacking
             {
                 // TODO these below are mostly duplicated within (Cheat) Machine Deposit Into Remote Containers
                 //      eventually it would be great to get it factored out in some fashion...
-                log("GenerateAnObject start");
+                Log("GenerateAnObject start");
 
                 if (___worldUnitsHandler == null)
                 {
@@ -35,7 +36,7 @@ namespace CheatInventoryStacking
                     return false;
                 }
 
-                log("    begin ore search");
+                Log("    begin ore search");
 
                 Group group = null;
                 if (___groupDatas.Count != 0)
@@ -65,7 +66,7 @@ namespace CheatInventoryStacking
                 {
                     string oreId = group.id;
 
-                    log("    ore: " + oreId);
+                    Log("    ore: " + oreId);
 
                     var inventory = ___inventory;
                     if ((IsFindInventoryForGroupIDEnabled?.Invoke() ?? false) && FindInventoryForGroupID != null)
@@ -79,7 +80,7 @@ namespace CheatInventoryStacking
                         {
                             if (!success)
                             {
-                                log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                                Log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
                                 if (id != 0)
                                 {
                                     WorldObjectsHandler.Instance.DestroyWorldObject(id);
@@ -89,15 +90,15 @@ namespace CheatInventoryStacking
                     }
                     else
                     {
-                        log("    No suitable inventory found, ore ignored");
+                        Log("    No suitable inventory found, ore ignored");
                     }
                 }
                 else
                 {
-                    log("    ore: none");
+                    Log("    ore: none");
                 }
 
-                log("GenerateAnObject end");
+                Log("GenerateAnObject end");
                 return false;
             }
             return true;

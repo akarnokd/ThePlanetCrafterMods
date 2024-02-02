@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -9,13 +12,13 @@ namespace CheatAutoConsume
     public class Plugin : BaseUnityPlugin
     {
 
-        private static ConfigEntry<int> threshold;
+        static ConfigEntry<int> threshold;
 
         static bool oxygenWarning;
         static bool waterWarning;
         static bool foodWarning;
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 

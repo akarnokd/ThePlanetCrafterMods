@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace FeatSpaceCows

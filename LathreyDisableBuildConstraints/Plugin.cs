@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -14,19 +17,20 @@ namespace LathreyDisableBuildConstraints
     [BepInPlugin("akarnokd.theplanetcraftermods.lathreydisablebuildconstraints", "(Lathrey) Disable Build Constraints", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        private ConfigEntry<Key> configToggleBuildConstraintsModifierKey;
-        private ConfigEntry<Key> configToggleBuildConstraintsKey;
-        private ConfigEntry<Key> configToggleBuildSnappingKey;
+        ConfigEntry<Key> configToggleBuildConstraintsModifierKey;
+        ConfigEntry<Key> configToggleBuildConstraintsKey;
+        ConfigEntry<Key> configToggleBuildSnappingKey;
 
-        private static bool constraintsDisabled = false;
-        private static bool snappingDisabled = false;
+        static bool constraintsDisabled = false;
+        static bool snappingDisabled = false;
 
-        private static List<string> modes = new List<string>
-            {
+        static readonly List<string> modes =
+            [
                 "No Build Constraints",
                 "No Snapping"
-            };
-        private void Awake()
+            ];
+
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 

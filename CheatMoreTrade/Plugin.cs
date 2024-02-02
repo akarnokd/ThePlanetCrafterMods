@@ -1,11 +1,13 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
 using System.Linq;
-using UnityEngine.UIElements;
 
 namespace CheatMoreTrade
 {

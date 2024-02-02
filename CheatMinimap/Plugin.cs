@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -8,10 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Collections;
-using UnityEngine.UI;
 using UnityEngine.InputSystem.Controls;
-using System;
-using UnityEngine.SceneManagement;
 
 namespace CheatMinimap
 {

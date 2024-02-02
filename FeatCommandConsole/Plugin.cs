@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -52,7 +55,7 @@ namespace FeatCommandConsole
         static GameObject inputField;
         static TMP_InputField inputFieldText;
         static readonly List<GameObject> outputFieldLines = [];
-        static List<string> consoleText = [];
+        static readonly List<string> consoleText = [];
         static TMP_FontAsset fontAsset;
         static int fontMargin = 5;
 
@@ -62,7 +65,7 @@ namespace FeatCommandConsole
 
         static InputAction toggleAction;
 
-        static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = new();
+        static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = [];
 
         static Dictionary<string, Vector3> savedTeleportLocations;
 
@@ -140,7 +143,7 @@ namespace FeatCommandConsole
             toggleAction = new InputAction(name: "Open console", binding: toggleKey.Value);
             toggleAction.Enable();
 
-            log("   Get resource");
+            Log("   Get resource");
             Font osFont = null;
 
             var fn = fontName.Value.ToLower(CultureInfo.InvariantCulture);
@@ -150,37 +153,37 @@ namespace FeatCommandConsole
                 if (fp.ToLower(CultureInfo.InvariantCulture).Contains(fn))
                 {
                     osFont = new Font(fp);
-                    log("      Found font at " + fp);
+                    Log("      Found font at " + fp);
                     break;
                 }
             }
 
-            log("   Set asset");
+            Log("   Set asset");
             try
             {
                 fontAsset = TMP_FontAsset.CreateFontAsset(osFont);
             } 
             catch (Exception)
             {
-                log("Setting custom font failed, using default game font");
+                Log("Setting custom font failed, using default game font");
             }
 
             CreateWelcomeText();
 
-            log("Setting up command registry");
+            Log("Setting up command registry");
             foreach (MethodInfo mi in typeof(Plugin).GetMethods())
             {
                 var ca = mi.GetCustomAttribute<Command>();
                 if (ca != null)
                 {
-                    commandRegistry[ca.name] = new CommandRegistryEntry
+                    commandRegistry[ca.Name] = new CommandRegistryEntry
                     {
-                        description = ca.description,
+                        description = ca.Description,
                         method = (list => mi.Invoke(this, [list])),
                         standard = true
                     };
 
-                    log("  " + ca.name + " - " + ca.description);
+                    Log("  " + ca.Name + " - " + ca.Description);
                 }
             }
 
@@ -206,7 +209,7 @@ namespace FeatCommandConsole
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        static void log(object o)
+        static void Log(object o)
         {
             if (debugMode.Value)
             {
@@ -227,7 +230,7 @@ namespace FeatCommandConsole
 
         void DestroyConsoleGUI()
         {
-            log("DestroyConsoleGUI");
+            Log("DestroyConsoleGUI");
 
             Destroy(background);
             Destroy(separator);
@@ -255,7 +258,7 @@ namespace FeatCommandConsole
             }
             if (!wh.GetHasUiOpen() && background != null)
             {
-                log("No UI should be open, closing GUI");
+                Log("No UI should be open, closing GUI");
                 DestroyConsoleGUI();
                 return;
             }
@@ -268,7 +271,7 @@ namespace FeatCommandConsole
             {
                 if (Keyboard.current[Key.Escape].wasPressedThisFrame)
                 {
-                    log("Escape pressed. Closing GUI");
+                    Log("Escape pressed. Closing GUI");
                     DestroyConsoleGUI();
                     wh.CloseAllWindows();
                 }
@@ -291,7 +294,7 @@ namespace FeatCommandConsole
                 var ms = Mouse.current.scroll.ReadValue();
                 if (ms.y != 0)
                 {
-                    log(" Scrolling " + ms.y);
+                    Log(" Scrolling " + ms.y);
                     int delta = 1;
                     if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
                     {
@@ -305,15 +308,15 @@ namespace FeatCommandConsole
                     {
                         scrollOffset = Math.Max(0, scrollOffset - delta);
                     }
-                    createOutputLines();
+                    CreateOutputLines();
                 }
                 if (Keyboard.current[Key.UpArrow].wasPressedThisFrame)
                 {
-                    log("UpArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
+                    Log("UpArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     if (commandHistoryIndex < commandHistory.Count)
                     {
                         commandHistoryIndex++;
-                        inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
+                        inputFieldText.text = commandHistory[^commandHistoryIndex];
                         inputFieldText.ActivateInputField();
                         inputFieldText.caretPosition = inputFieldText.text.Length;
                         inputFieldText.stringPosition = inputFieldText.text.Length;
@@ -321,11 +324,11 @@ namespace FeatCommandConsole
                 }
                 if (Keyboard.current[Key.DownArrow].wasPressedThisFrame)
                 {
-                    log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
+                    Log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     commandHistoryIndex = Math.Max(0, commandHistoryIndex - 1);
                     if (commandHistoryIndex > 0)
                     {
-                        inputFieldText.text = commandHistory[commandHistory.Count - commandHistoryIndex];
+                        inputFieldText.text = commandHistory[^commandHistoryIndex];
                     }
                     else
                     {
@@ -337,7 +340,7 @@ namespace FeatCommandConsole
                 }
                 if (Keyboard.current[Key.Tab].wasPressedThisFrame)
                 {
-                    List<string> list = new();
+                    List<string> list = [];
                     foreach (var k in commandRegistry.Keys)
                     {
                         if (k.StartsWith(inputFieldText.text))
@@ -349,12 +352,12 @@ namespace FeatCommandConsole
                     {
                         list.Sort();
                         Colorize(list, "#FFFF00");
-                        foreach (var k in joinPerLine(list, 10))
+                        foreach (var k in JoinPerLine(list, 10))
                         {
-                            addLine("<margin=2em>" + k);
+                            AddLine("<margin=2em>" + k);
                         }
 
-                        createOutputLines();
+                        CreateOutputLines();
                     }
                     inputFieldText.ActivateInputField();
                     inputFieldText.caretPosition = inputFieldText.text.Length;
@@ -381,10 +384,10 @@ namespace FeatCommandConsole
             c.renderMode = RenderMode.ScreenSpaceOverlay;
             c.sortingOrder = 500;
 
-            log("Creating the background");
+            Log("Creating the background");
 
             RecreateBackground(wh);
-            log("Done");
+            Log("Done");
         }
 
         void RecreateBackground(WindowsHandler wh)
@@ -417,37 +420,37 @@ namespace FeatCommandConsole
 
             // ---------------------------------------------
 
-            log("Creating the text field");
+            Log("Creating the text field");
             inputField = new GameObject("CommandConsoleInput");
             inputField.transform.parent = background.transform;
 
-            log("   Create TMP_InputField");
+            Log("   Create TMP_InputField");
             inputFieldText = inputField.AddComponent<TMP_InputField>();
-            log("   Create TextMeshProUGUI");
+            Log("   Create TextMeshProUGUI");
             var txt = inputField.AddComponent<TextMeshProUGUI>();
             inputFieldText.textComponent = txt;
 
-            log("   Set asset");
+            Log("   Set asset");
             inputFieldText.fontAsset = fontAsset;
-            log("   Set set pointSize");
+            Log("   Set set pointSize");
             inputFieldText.pointSize = fontSize.Value;
-            log("   Set text");
+            Log("   Set text");
             //inputFieldText.text = "example...";
             inputFieldText.caretColor = Color.white;
             inputFieldText.selectionColor = Color.gray;
             inputFieldText.onFocusSelectAll = false;
 
-            log("   Set position");
+            Log("   Set position");
             rect = inputField.GetComponent<RectTransform>();
             rect.localPosition = new Vector3(0, -panelHeight / 2 + (fontMargin + fontSize.Value) / 2, 0);
             rect.sizeDelta = new Vector2(panelWidth - 10, fontMargin + fontSize.Value);
 
-            createOutputLines();
+            CreateOutputLines();
 
-            log("Patch in the custom text window");
+            Log("Patch in the custom text window");
             AccessTools.FieldRefAccess<WindowsHandler, DataConfig.UiType>(wh, "_openedUi") = DataConfig.UiType.TextInput;
 
-            log("Activating the field");
+            Log("Activating the field");
             inputFieldText.enabled = false;
             inputFieldText.enabled = true;
 
@@ -455,7 +458,7 @@ namespace FeatCommandConsole
             inputFieldText.ActivateInputField();
         }
 
-        void createOutputLines()
+        void CreateOutputLines()
         {
             if (background == null)
             {
@@ -471,7 +474,7 @@ namespace FeatCommandConsole
             }
             outputFieldLines.Clear();
 
-            log("Set output lines");
+            Log("Set output lines");
             int outputY = -panelHeight / 2 + (fontMargin + fontSize.Value) * 3 / 2;
 
             int j = 0;
@@ -506,7 +509,7 @@ namespace FeatCommandConsole
 
         void ExecuteConsoleCommand(string text)
         {
-            log("Debug executing command: " + text);
+            Log("Debug executing command: " + text);
             text = text.Trim();
             if (text.Length == 0)
             {
@@ -530,13 +533,13 @@ namespace FeatCommandConsole
                         logger.LogError(ex);
                         foreach (var el in ex.ToString().Split('\n'))
                         {
-                            addLine("<margin=1em><color=#FF8080>" + el);
+                            AddLine("<margin=1em><color=#FF8080>" + el);
                         }
                     }
                 }
                 else
                 {
-                    addLine("<color=#FF0000>Unknown command</color>");
+                    AddLine("<color=#FF0000>Unknown command</color>");
                 }
 
             }
@@ -546,7 +549,7 @@ namespace FeatCommandConsole
             }
 
             scrollOffset = 0;
-            createOutputLines();
+            CreateOutputLines();
 
             if (background == null)
             {
@@ -585,7 +588,7 @@ namespace FeatCommandConsole
             suppressCommandConsoleKey = false;
         }
 
-        static void addLine(string line)
+        static void AddLine(string line)
         {
             consoleText.Add(line);
         }
@@ -605,7 +608,7 @@ namespace FeatCommandConsole
             {
                 if (args[1] == "*")
                 {
-                    addLine("<margin=1em>Available commands:");
+                    AddLine("<margin=1em>Available commands:");
                     var list = new List<string>();
                     foreach (var kv in commandRegistry)
                     {
@@ -616,7 +619,7 @@ namespace FeatCommandConsole
                     foreach (var cmd in list)
                     {
                         var reg = commandRegistry[cmd];
-                        addLine("<margin=2em><color=#FFFF00>" + cmd + "</color> - " + reg.description);
+                        AddLine("<margin=2em><color=#FFFF00>" + cmd + "</color> - " + reg.description);
                     }
                 }
                 else
@@ -628,12 +631,12 @@ namespace FeatCommandConsole
                     }
                     if (cmd != null)
                     {
-                        log("Help for " + args[1] + " - " + cmd.description);
-                        addLine("<margin=1em>" + cmd.description);
+                        Log("Help for " + args[1] + " - " + cmd.description);
+                        AddLine("<margin=1em>" + cmd.description);
                     }
                     else
                     {
-                        addLine("<margin=1em><color=#FFFF00>Unknown command");
+                        AddLine("<margin=1em><color=#FFFF00>Unknown command");
                     }
                 }
             }
@@ -641,9 +644,9 @@ namespace FeatCommandConsole
 
         void HelpListCommands()
         {
-            addLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
-            addLine("<margin=1em>Type <b><color=#FFFF00>/help *</color></b> to list all commands with their description.");
-            addLine("<margin=1em>Available commands:");
+            AddLine("<margin=1em>Type <b><color=#FFFF00>/help [command]</color></b> to get specific command info.");
+            AddLine("<margin=1em>Type <b><color=#FFFF00>/help *</color></b> to list all commands with their description.");
+            AddLine("<margin=1em>Available commands:");
             var list = new List<string>();
             foreach (var kv in commandRegistry)
             {
@@ -652,14 +655,14 @@ namespace FeatCommandConsole
             list.Sort();
             Colorize(list, "#FFFF00");
             Bolden(list);
-            foreach (var line in joinPerLine(list, 10))
+            foreach (var line in JoinPerLine(list, 10))
             {
-                addLine("<margin=2em>" + line);
+                AddLine("<margin=2em>" + line);
             }
         }
 
         [Command("/clear", "Clears the console history.")]
-        public void Clear(List<string> args)
+        public void Clear(List<string> _)
         {
             consoleText.Clear();
         }
@@ -669,12 +672,12 @@ namespace FeatCommandConsole
         {
             if (args.Count == 1)
             {
-                addLine("<margin=1em>Spawn item(s) or list items that can be possibly spawn");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/spawn list [name-prefix]</color> - list the item ids that can be spawn");
-                addLine("<margin=2em><color=#FFFF00>/spawn basic [amount]</color> - Spawn some food, water, oxygen and beginner materials");
-                addLine("<margin=2em><color=#FFFF00>/spawn advanced [amount]</color> - Spawn the best equipment");
-                addLine("<margin=2em><color=#FFFF00>/spawn itemid [amount]</color> - spawn the given item by the given amount");
+                AddLine("<margin=1em>Spawn item(s) or list items that can be possibly spawn");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/spawn list [name-prefix]</color> - list the item ids that can be spawn");
+                AddLine("<margin=2em><color=#FFFF00>/spawn basic [amount]</color> - Spawn some food, water, oxygen and beginner materials");
+                AddLine("<margin=2em><color=#FFFF00>/spawn advanced [amount]</color> - Spawn the best equipment");
+                AddLine("<margin=2em><color=#FFFF00>/spawn itemid [amount]</color> - spawn the given item by the given amount");
             } else
             {
                 if (args[1] == "list")
@@ -684,7 +687,7 @@ namespace FeatCommandConsole
                     {
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
-                    List<string> possibleSpawns = new();
+                    List<string> possibleSpawns = [];
                     foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupItem gi && gi.GetId().ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -694,17 +697,17 @@ namespace FeatCommandConsole
                     }
                     possibleSpawns.Sort();
                     Colorize(possibleSpawns, "#00FF00");
-                    foreach (var line in joinPerLine(possibleSpawns, 5))
+                    foreach (var line in JoinPerLine(possibleSpawns, 5))
                     {
-                        addLine("<margin=1em>" + line);
+                        AddLine("<margin=1em>" + line);
                     }
                 }
                 else if (args[1] == "basic")
                 {
                     string[] resources =
-                    {
+                    [
                         "astrofood", "WaterBottle1", "OxygenCapsule1", "Iron", "Cobalt", "Titanium", "Magnesium", "Silicon", "Aluminium"
-                    };
+                    ];
                     int amount = 10;
                     if (args.Count > 2)
                     {
@@ -716,11 +719,11 @@ namespace FeatCommandConsole
                 else if (args[1] == "advanced")
                 {
                     string[] resources =
-                    {
+                    [
                         "MultiToolLight2", "MultiToolDeconstruct2", "Backpack5", 
                         "Jetpack3", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
                         "EquipmentIncrease3", "OxygenTank4", "HudCompass"
-                    };
+                    ];
                     int amount = 1;
                     if (args.Count > 2)
                     {
@@ -751,9 +754,9 @@ namespace FeatCommandConsole
                     {
                         DidYouMean(gid, false, true);
                     }
-                    else if (!(g is GroupItem))
+                    else if (g is not GroupItem)
                     {
-                        addLine("<margin=1em><color=#FF0000>This item can't be spawned.");
+                        AddLine("<margin=1em><color=#FF0000>This item can't be spawned.");
                     }
                     else
                     {
@@ -770,15 +773,15 @@ namespace FeatCommandConsole
 
                         if (added == count)
                         {
-                            addLine("<margin=1em>Items added");
+                            AddLine("<margin=1em>Items added");
                         }
                         else if (added > 0)
                         {
-                            addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
+                            AddLine("<margin=1em>Some items added (" + added + "). Inventory full.");
                         }
                         else
                         {
-                            addLine("<margin=1em>Inventory full.");
+                            AddLine("<margin=1em>Inventory full.");
                         }
                     }
                 }
@@ -821,7 +824,7 @@ namespace FeatCommandConsole
                     }
                     else
                     {
-                        addLine("<margin=1em><color=red>Unknown item " + gid);
+                        AddLine("<margin=1em><color=red>Unknown item " + gid);
                     }
                 }
             }
@@ -829,15 +832,15 @@ namespace FeatCommandConsole
             int count = amount * resources.Length;
             if (added == count)
             {
-                addLine("<margin=1em>Items added");
+                AddLine("<margin=1em>Items added");
             }
             else if (added > 0)
             {
-                addLine("<margin=1em>Some items added (" + added + "). Inventory full.");
+                AddLine("<margin=1em>Some items added (" + added + "). Inventory full.");
             }
             else
             {
-                addLine("<margin=1em>Inventory full.");
+                AddLine("<margin=1em>Inventory full.");
             }
         }
 
@@ -846,12 +849,12 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2 && args.Count != 4)
             {
-                addLine("<margin=1em>Teleport to a user-named location or an x, y, z position");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
-                addLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
-                addLine("<margin=2em><color=#FFFF00>/tp x:y:z</color> - teleport to a specific coordinate described by the colon format");
-                addLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>.");
+                AddLine("<margin=1em>Teleport to a user-named location or an x, y, z position");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
+                AddLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
+                AddLine("<margin=2em><color=#FFFF00>/tp x:y:z</color> - teleport to a specific coordinate described by the colon format");
+                AddLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>.");
             }
             else
             if (args.Count == 2)
@@ -866,7 +869,7 @@ namespace FeatCommandConsole
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
 
-                    addLine("<margin=1em>Teleported to: ( "
+                    AddLine("<margin=1em>Teleported to: ( "
                         + m.Groups[1].Value
                         + ", " + m.Groups[2].Value
                         + ", " + m.Groups[3].Value
@@ -879,7 +882,7 @@ namespace FeatCommandConsole
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     pm.SetPlayerPlacement(pos, pm.transform.rotation);
 
-                    addLine("<margin=1em>Teleported to: <color=#00FF00>" + args[1] + "</color> at ( "
+                    AddLine("<margin=1em>Teleported to: <color=#00FF00>" + args[1] + "</color> at ( "
                         + pos.x.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
@@ -888,8 +891,8 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown location.");
-                    addLine("<margin=1em>Use <b><color=#FFFF00>/tp-list</color></b> to get all known named locations.");
+                    AddLine("<margin=1em><color=#FF0000>Unknown location.");
+                    AddLine("<margin=1em>Use <b><color=#FFFF00>/tp-list</color></b> to get all known named locations.");
                 }
             }
             else
@@ -901,7 +904,7 @@ namespace FeatCommandConsole
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
 
-                addLine("<margin=1em>Teleported to: ( "
+                AddLine("<margin=1em>Teleported to: ( "
                     + args[1]
                     + ", " + args[2]
                     + ", " + args[3]
@@ -915,10 +918,10 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2 && args.Count != 4)
             {
-                addLine("<margin=1em>Teleport relative to the current location");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tpr x y z</color> - teleport with the specified deltas");
-                addLine("<margin=2em><color=#FFFF00>/tpr x:y:z</color> - teleport with the specified deltas described by the colon format");
+                AddLine("<margin=1em>Teleport relative to the current location");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpr x y z</color> - teleport with the specified deltas");
+                AddLine("<margin=2em><color=#FFFF00>/tpr x:y:z</color> - teleport with the specified deltas described by the colon format");
             }
             else
             if (args.Count == 2)
@@ -935,7 +938,7 @@ namespace FeatCommandConsole
 
                     pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
 
-                    addLine("<margin=1em>Teleported to: ( "
+                    AddLine("<margin=1em>Teleported to: ( "
                         + x.ToString(CultureInfo.InvariantCulture)
                         + ", " + y.ToString(CultureInfo.InvariantCulture)
                         + ", " + z.ToString(CultureInfo.InvariantCulture)
@@ -944,7 +947,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>Invalid relative offset(s).");
+                    AddLine("<margin=1em><color=#FF0000>Invalid relative offset(s).");
                 }
             }
             else
@@ -957,7 +960,7 @@ namespace FeatCommandConsole
 
                 pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
 
-                addLine("<margin=1em>Teleported to: ( "
+                AddLine("<margin=1em>Teleported to: ( "
                     + x.ToString(CultureInfo.InvariantCulture)
                     + ", " + y.ToString(CultureInfo.InvariantCulture)
                     + ", " + z.ToString(CultureInfo.InvariantCulture)
@@ -972,7 +975,7 @@ namespace FeatCommandConsole
             EnsureTeleportLocations();
             if (savedTeleportLocations.Count != 0)
             {
-                List<string> tpNames = new List<string>();
+                List<string> tpNames = [];
                 string prefix = "";
                 if (args.Count >= 2)
                 {
@@ -989,7 +992,7 @@ namespace FeatCommandConsole
                 foreach (var tpName in tpNames)
                 {
                     var pos = savedTeleportLocations[tpName];
-                    addLine("<margin=1em><color=#00FF00>" + tpName + "</color> at ( "
+                    AddLine("<margin=1em><color=#00FF00>" + tpName + "</color> at ( "
                         + pos.x.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
@@ -999,8 +1002,8 @@ namespace FeatCommandConsole
             }
             else
             {
-                addLine("<margin=1em>No user-named teleport locations known");
-                addLine("<margin=1em>Use <b><color=#FFFF00>/tp-create</color></b> to create one for the current location.");
+                AddLine("<margin=1em>No user-named teleport locations known");
+                AddLine("<margin=1em>Use <b><color=#FFFF00>/tp-create</color></b> to create one for the current location.");
             }
         }
 
@@ -1009,9 +1012,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Save the current player location as a named location");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tp-create location-name</color> - save the current location with the given name");
+                AddLine("<margin=1em>Save the current player location as a named location");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tp-create location-name</color> - save the current location with the given name");
             } else
             {
                 EnsureTeleportLocations();
@@ -1021,7 +1024,7 @@ namespace FeatCommandConsole
                 savedTeleportLocations[args[1]] = pos;
                 PersistTeleportLocations();
 
-                addLine("<margin=1em>Teleport location created: <color=#00FF00>" + args[1] + "</color> at ( "
+                AddLine("<margin=1em>Teleport location created: <color=#00FF00>" + args[1] + "</color> at ( "
                     + pos.x.ToString(CultureInfo.InvariantCulture)
                     + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
                     + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
@@ -1035,10 +1038,10 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Remove the specified user-named teleport location");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tp-remove location-name</color> - save the current location with the given name");
-                addLine("<margin=1em>See also <color=#FFFF00>/tp-list</color>.");
+                AddLine("<margin=1em>Remove the specified user-named teleport location");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tp-remove location-name</color> - save the current location with the given name");
+                AddLine("<margin=1em>See also <color=#FFFF00>/tp-list</color>.");
             }
             else
             {
@@ -1049,7 +1052,7 @@ namespace FeatCommandConsole
                 {
                     savedTeleportLocations.Remove(tpName);
                     PersistTeleportLocations();
-                    addLine("<margin=1em>Teleport location removed: <color=#00FF00>" + tpName + "</color> at ( "
+                    AddLine("<margin=1em>Teleport location removed: <color=#00FF00>" + tpName + "</color> at ( "
                         + pos.x.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
                         + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
@@ -1058,7 +1061,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown location");
+                    AddLine("<margin=1em><color=#FF0000>Unknown location");
                 }
             }
         }
@@ -1073,7 +1076,7 @@ namespace FeatCommandConsole
         {
             if (savedTeleportLocations == null)
             {
-                savedTeleportLocations = new();
+                savedTeleportLocations = [];
 
                 string filename = string.Format("{0}/{1}.json", Application.persistentDataPath, "CommandConsole_Locations.txt");
 
@@ -1098,7 +1101,7 @@ namespace FeatCommandConsole
                         }
                         catch (Exception ex)
                         {
-                            log(ex);
+                            Log(ex);
                         }
                     }
                 }
@@ -1111,7 +1114,7 @@ namespace FeatCommandConsole
             {
                 string filename = string.Format("{0}/{1}", Application.persistentDataPath, "CommandConsole_Locations.txt");
 
-                List<string> lines = new();
+                List<string> lines = [];
 
                 foreach (var kv in savedTeleportLocations)
                 {
@@ -1128,12 +1131,12 @@ namespace FeatCommandConsole
         }
 
         [Command("/list-stages", "List the terraformation stages along with their Ti amounts.")]
-        public void ListStages(List<string> args)
+        public void ListStages(List<string> _)
         {
             var tfm = Managers.GetManager<TerraformStagesHandler>();
             foreach (var stage in tfm.GetAllTerraGlobalStages())
             {
-                addLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
+                AddLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
                     + "</color> <color=#00FF00>\"" + Readable.GetTerraformStageName(stage)
                     + "\"</color> @ <b>"
                     + string.Format("{0:#,##0}", stage.GetStageStartValue()) + "</b> " + stage.GetWorldUnitType());
@@ -1145,16 +1148,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Ti value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-ti amount</color> - Ti += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Ti value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-ti amount</color> - Ti += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Terraformation, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Terraformation updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Terraformation updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1163,16 +1166,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Heat value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-heat amount</color> - Heat += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Heat value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-heat amount</color> - Heat += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Heat, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Heat updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Heat updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1181,16 +1184,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Oxygen value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-oxygen amount</color> - Oxygen += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Oxygen value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-oxygen amount</color> - Oxygen += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Oxygen, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Oxygen updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
         
@@ -1199,16 +1202,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Pressure value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-pressure amount</color> - Pressure += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Pressure value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-pressure amount</color> - Pressure += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Pressure, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Pressure updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Pressure updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1217,16 +1220,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Biomass value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-biomass amount</color> - Biomass += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Biomass value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-biomass amount</color> - Biomass += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-plants</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Biomass, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Biomass updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Biomass updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1235,16 +1238,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Plants value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-plants amount</color> - Plants += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Plants value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-plants amount</color> - Plants += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-insects</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Plants, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Plants updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Plants updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1253,16 +1256,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Insects value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-insects amount</color> - Insects += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-animals</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Insects value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-insects amount</color> - Insects += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-animals</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Insects, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Insects updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Insects updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1271,16 +1274,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Animals value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-animals amount</color> - Animals += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
-                addLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-insects</color>.");
+                AddLine("<margin=1em>Adds the specified amount to the Animals value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-animals amount</color> - Animals += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-ti</color>, <color=#FFFF00>/add-heat</color>, <color=#FFFF00>/add-oxygen</color>, <color=#FFFF00>/add-pressure</color>,");
+                AddLine("<margin=1em><color=#FFFF00>/add-biomass</color>, <color=#FFFF00>/add-plants</color> or <color=#FFFF00>/add-insects</color>.");
             }
             else
             {
                 var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Animals, float.Parse(args[1], CultureInfo.InvariantCulture));
-                addLine("<margin=1em>Animals updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+                AddLine("<margin=1em>Animals updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
             }
         }
 
@@ -1337,12 +1340,12 @@ namespace FeatCommandConsole
         }
 
         [Command("/list-microchip-tiers", "Lists all unlock tiers and unlock items of the microchips.")]
-        public void ListMicrochipTiers(List<string> args)
+        public void ListMicrochipTiers(List<string> _)
         {
             UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-            List<List<GroupData>> tiers = new List<List<GroupData>>
-            {
+            List<List<GroupData>> tiers =
+            [
                 unlock.tier1GroupToUnlock,
                 unlock.tier2GroupToUnlock,
                 unlock.tier3GroupToUnlock,
@@ -1353,12 +1356,12 @@ namespace FeatCommandConsole
                 unlock.tier8GroupToUnlock,
                 unlock.tier9GroupToUnlock,
                 unlock.tier10GroupToUnlock,
-            };
+            ];
 
             for (int i = 0; i < tiers.Count; i++)
             {
                 List<GroupData> gd = tiers[i];
-                addLine("<margin=1em><b>Tier #" + (i + 1));
+                AddLine("<margin=1em><b>Tier #" + (i + 1));
 
                 if (gd.Count != 0)
                 {
@@ -1370,12 +1373,12 @@ namespace FeatCommandConsole
                             .Append(Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)))
                             .Append("\"")
                             ;
-                        addLine("<margin=2em>" + sb.ToString());
+                        AddLine("<margin=2em>" + sb.ToString());
                     }
                 }
                 else
                 {
-                    addLine("<margin=2em>None");
+                    AddLine("<margin=2em>None");
                 }
             }
 
@@ -1386,8 +1389,8 @@ namespace FeatCommandConsole
         {
             UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-            List<List<GroupData>> tiers = new List<List<GroupData>>
-            {
+            List<List<GroupData>> tiers =
+            [
                 unlock.tier1GroupToUnlock,
                 unlock.tier2GroupToUnlock,
                 unlock.tier3GroupToUnlock,
@@ -1398,7 +1401,7 @@ namespace FeatCommandConsole
                 unlock.tier8GroupToUnlock,
                 unlock.tier9GroupToUnlock,
                 unlock.tier10GroupToUnlock,
-            };
+            ];
 
             string prefix = "";
             if (args.Count >= 2)
@@ -1406,7 +1409,7 @@ namespace FeatCommandConsole
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
 
-            List<string> list = new();
+            List<string> list = [];
 
             for (int i = 0; i < tiers.Count; i++)
             {
@@ -1426,15 +1429,15 @@ namespace FeatCommandConsole
 
             if (list.Count == 0)
             {
-                addLine("<margin=1em>No microchip unlocks found.");
+                AddLine("<margin=1em>No microchip unlocks found.");
             }
             else
             {
                 list.Sort();
                 Colorize(list, "#00FF00");
-                foreach (var line in joinPerLine(list, 5))
+                foreach (var line in JoinPerLine(list, 5))
                 {
-                    addLine("<margin=2em>" + line);
+                    AddLine("<margin=2em>" + line);
                 }
             }
         }
@@ -1444,10 +1447,10 @@ namespace FeatCommandConsole
         {
             if (args.Count < 2)
             {
-                addLine("<margin=1em>Unlocks a specific microchip techology");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/unlock-microchip list [prefix]</color> - lists technologies not unlocked yet");
-                addLine("<margin=2em><color=#FFFF00>/unlock-microchip identifier</color> - Unlocks the given technology");
+                AddLine("<margin=1em>Unlocks a specific microchip techology");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/unlock-microchip list [prefix]</color> - lists technologies not unlocked yet");
+                AddLine("<margin=2em><color=#FFFF00>/unlock-microchip identifier</color> - Unlocks the given technology");
             }
             else
             {
@@ -1455,24 +1458,26 @@ namespace FeatCommandConsole
                 {
                     UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-                    List<GroupData> tiers = new List<GroupData>();
-                    tiers.AddRange(unlock.tier1GroupToUnlock);
-                    tiers.AddRange(unlock.tier2GroupToUnlock);
-                    tiers.AddRange(unlock.tier3GroupToUnlock);
-                    tiers.AddRange(unlock.tier4GroupToUnlock);
-                    tiers.AddRange(unlock.tier5GroupToUnlock);
-                    tiers.AddRange(unlock.tier6GroupToUnlock);
-                    tiers.AddRange(unlock.tier7GroupToUnlock);
-                    tiers.AddRange(unlock.tier8GroupToUnlock);
-                    tiers.AddRange(unlock.tier9GroupToUnlock);
-                    tiers.AddRange(unlock.tier10GroupToUnlock);
+                    List<GroupData> tiers =
+                    [
+                        .. unlock.tier1GroupToUnlock,
+                        .. unlock.tier2GroupToUnlock,
+                        .. unlock.tier3GroupToUnlock,
+                        .. unlock.tier4GroupToUnlock,
+                        .. unlock.tier5GroupToUnlock,
+                        .. unlock.tier6GroupToUnlock,
+                        .. unlock.tier7GroupToUnlock,
+                        .. unlock.tier8GroupToUnlock,
+                        .. unlock.tier9GroupToUnlock,
+                        .. unlock.tier10GroupToUnlock,
+                    ];
 
                     var prefix = "";
                     if (args.Count > 2)
                     {
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
-                    List<string> list = new();
+                    List<string> list = [];
                     foreach (var gd in tiers)
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
@@ -1485,9 +1490,9 @@ namespace FeatCommandConsole
                     {
                         list.Sort();
                         Colorize(list, "#00FF00");
-                        foreach (var line in joinPerLine(list, 5))
+                        foreach (var line in JoinPerLine(list, 5))
                         {
-                            addLine("<margin=2em>" + line);
+                            AddLine("<margin=2em>" + line);
                         }
                     }
                 }
@@ -1496,7 +1501,7 @@ namespace FeatCommandConsole
                     var gr = FindGroup(args[1]);
                     if (gr != null)
                     {
-                        addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
+                        AddLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
                         UnlockedGroupsHandler.Instance.UnlockGroupGlobally(gr);
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
                     }
@@ -1513,10 +1518,10 @@ namespace FeatCommandConsole
         {
             if (args.Count < 2)
             {
-                addLine("<margin=1em>Unlocks a specific techology");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/unlock list [prefix]</color> - lists technologies not unlocked yet");
-                addLine("<margin=2em><color=#FFFF00>/unlock identifier</color> - Unlocks the given technology");
+                AddLine("<margin=1em>Unlocks a specific techology");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/unlock list [prefix]</color> - lists technologies not unlocked yet");
+                AddLine("<margin=2em><color=#FFFF00>/unlock identifier</color> - Unlocks the given technology");
             }
             else
             {
@@ -1527,7 +1532,7 @@ namespace FeatCommandConsole
                     {
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
-                    List<string> list = new();
+                    List<string> list = [];
                     foreach (var gd in GroupsHandler.GetAllGroups())
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
@@ -1540,9 +1545,9 @@ namespace FeatCommandConsole
                     {
                         list.Sort();
                         Colorize(list, "#00FF00");
-                        foreach (var line in joinPerLine(list, 5))
+                        foreach (var line in JoinPerLine(list, 5))
                         {
-                            addLine("<margin=2em>" + line);
+                            AddLine("<margin=2em>" + line);
                         }
                     }
                 }
@@ -1551,7 +1556,7 @@ namespace FeatCommandConsole
                     var gr = FindGroup(args[1]);
                     if (gr != null)
                     {
-                        addLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
+                        AddLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
                         UnlockedGroupsHandler.Instance.UnlockGroupGlobally(gr);
                         Managers.GetManager<UnlockingHandler>().PlayAudioOnDecode();
                     }
@@ -1571,7 +1576,7 @@ namespace FeatCommandConsole
             {
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
-            List<string> list = new();
+            List<string> list = [];
             foreach (var gd in GroupsHandler.GetAllGroups())
             {
                 var g = GroupsHandler.GetGroupViaId(gd.id);
@@ -1584,9 +1589,9 @@ namespace FeatCommandConsole
             {
                 list.Sort();
                 Colorize(list, "#00FF00");
-                foreach (var line in joinPerLine(list, 5))
+                foreach (var line in JoinPerLine(list, 5))
                 {
-                    addLine("<margin=2em>" + line);
+                    AddLine("<margin=2em>" + line);
                 }
             }
         }
@@ -1623,26 +1628,26 @@ namespace FeatCommandConsole
 
                 if (isStructure)
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
+                    AddLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
+                    AddLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
                 }
-                foreach (var line in joinPerLine(similar, 5))
+                foreach (var line in JoinPerLine(similar, 5))
                 {
-                    addLine("<margin=2em>" + line);
+                    AddLine("<margin=2em>" + line);
                 }
             }
             else
             {
                 if (isStructure)
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
+                    AddLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>Unknown item.</color>");
+                    AddLine("<margin=1em><color=#FF0000>Unknown item.</color>");
                 }
             }
 
@@ -1653,10 +1658,10 @@ namespace FeatCommandConsole
         {
             if (args.Count < 2)
             {
-                addLine("<margin=1em>Shows detailed information about a technology");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/tech-info identifier</color> - show detailed info");
-                addLine("<margin=1em>See also <color=#FFFF00>/list-tech</color> for all identifiers");
+                AddLine("<margin=1em>Shows detailed information about a technology");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tech-info identifier</color> - show detailed info");
+                AddLine("<margin=1em>See also <color=#FFFF00>/list-tech</color> for all identifiers");
             }
             else
             {
@@ -1667,35 +1672,35 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
-                    addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
-                    addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
+                    AddLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
+                    AddLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
+                    AddLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
                     var unlockInfo = gr.GetUnlockingInfos();
-                    addLine("<margin=1em><b>Is Unlocked:</b>");
-                    addLine("<margin=2em><b>Globally:</b> <color=#00FF00>" + gr.GetIsGloballyUnlocked());
-                    addLine("<margin=2em><b>Blueprint:</b> <color=#00FF00>" + unlockInfo.GetIsUnlockedViaBlueprint());
-                    addLine("<margin=2em><b>Progress:</b> <color=#00FF00>" + unlockInfo.GetIsUnlocked());
-                    addLine("<margin=2em><b>At:</b> <color=#00FF00>" + string.Format("{0:#,##0}", unlockInfo.GetUnlockingValue()) + " " + unlockInfo.GetWorldUnit());
+                    AddLine("<margin=1em><b>Is Unlocked:</b>");
+                    AddLine("<margin=2em><b>Globally:</b> <color=#00FF00>" + gr.GetIsGloballyUnlocked());
+                    AddLine("<margin=2em><b>Blueprint:</b> <color=#00FF00>" + unlockInfo.GetIsUnlockedViaBlueprint());
+                    AddLine("<margin=2em><b>Progress:</b> <color=#00FF00>" + unlockInfo.GetIsUnlocked());
+                    AddLine("<margin=2em><b>At:</b> <color=#00FF00>" + string.Format("{0:#,##0}", unlockInfo.GetUnlockingValue()) + " " + unlockInfo.GetWorldUnit());
                     if (gr is GroupItem gi)
                     {
-                        addLine("<margin=1em><b>Class:</b> Item");
+                        AddLine("<margin=1em><b>Class:</b> Item");
                         if (gi.GetUsableType() != DataConfig.UsableType.Null)
                         {
-                            addLine("<margin=2em><b>Usable:</b> " + gi.GetUsableType());
+                            AddLine("<margin=2em><b>Usable:</b> " + gi.GetUsableType());
                         }
                         if (gi.GetEquipableType() != DataConfig.EquipableType.Null)
                         {
-                            addLine("<margin=2em><b>Equipable:</b> " + gi.GetEquipableType());
+                            AddLine("<margin=2em><b>Equipable:</b> " + gi.GetEquipableType());
                         }
                         if (gi.GetItemCategory() != DataConfig.ItemCategory.Null)
                         {
-                            addLine("<margin=2em><b>Category:</b> <color=#00FF00>" + gi.GetItemCategory());
+                            AddLine("<margin=2em><b>Category:</b> <color=#00FF00>" + gi.GetItemCategory());
                         }
                         if (gi.GetItemSubCategory() != DataConfig.ItemSubCategory.Null)
                         {
-                            addLine("<margin=2em><b>Subcategory:</b> <color=#00FF00>" + gi.GetItemSubCategory());
+                            AddLine("<margin=2em><b>Subcategory:</b> <color=#00FF00>" + gi.GetItemSubCategory());
                         }
-                        addLine("<margin=2em><b>Value:</b> <color=#00FF00>" + gi.GetGroupValue());
+                        AddLine("<margin=2em><b>Value:</b> <color=#00FF00>" + gi.GetGroupValue());
                         List<string> list = [];
                         foreach (var e in Enum.GetValues(typeof(DataConfig.CraftableIn)))
                         {
@@ -1707,10 +1712,10 @@ namespace FeatCommandConsole
                         if (list.Count != 0)
                         {
                             Colorize(list, "#00FF00");
-                            addLine("<margin=2em><b>Craftable in:</b> " + String.Join(", ", list));
+                            AddLine("<margin=2em><b>Craftable in:</b> " + String.Join(", ", list));
                         }
 
-                        list = new();
+                        list = [];
                         foreach (var e in Enum.GetValues(typeof(DataConfig.WorldUnitType)))
                         {
                             var v = gi.GetGroupUnitMultiplier((DataConfig.WorldUnitType)e);
@@ -1722,43 +1727,43 @@ namespace FeatCommandConsole
                         if (list.Count != 0)
                         {
                             Colorize(list, "#00FF00");
-                            addLine("<margin=2em><b>Unit:</b> " + string.Join(", ", list));
+                            AddLine("<margin=2em><b>Unit:</b> " + string.Join(", ", list));
                         }
 
                         var ggi = gi.GetGrowableGroup();
                         if (ggi != null)
                         {
-                            addLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi) + "\"");
+                            AddLine("<margin=2em><b>Grows:</b> <color=#00FF00>" + ggi.GetId() + " \"" + Readable.GetGroupName(ggi) + "\"");
                         }
                         var ulg = gi.GetUnlocksGroup();
                         if (ulg != null)
                         {
-                            addLine("<margin=2em><b>Unlocks group:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
+                            AddLine("<margin=2em><b>Unlocks group:</b> <color=#00FF00>" + ulg.GetId() + " \"" + Readable.GetGroupName(ulg) + "\"");
                         }
 
                         EffectOnPlayer eff = gi.GetEffectOnPlayer();
                         if (eff != null)
                         {
-                            addLine("<margin=2em><b>Effect on player:</b> <color=#00FF00>" + eff.effectOnPlayer + " (" + eff.durationInSeconds + " seconds");
+                            AddLine("<margin=2em><b>Effect on player:</b> <color=#00FF00>" + eff.effectOnPlayer + " (" + eff.durationInSeconds + " seconds");
                         }
-                        addLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
-                        addLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
-                        addLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
-                        addLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
-                        addLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
-                        addLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
-                        addLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
-                        addLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
+                        AddLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
+                        AddLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
+                        AddLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
+                        AddLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
+                        AddLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
+                        AddLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
+                        AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
+                        AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
                     }
                     else if (gr is GroupConstructible gc)
                     {
-                        addLine("<margin=1em><b>Class:</b> Building");
-                        addLine("<margin=1em><b>Category:</b> <color=#00FF00>" + gc.GetGroupCategory());
+                        AddLine("<margin=1em><b>Class:</b> Building");
+                        AddLine("<margin=1em><b>Category:</b> <color=#00FF00>" + gc.GetGroupCategory());
                         if (gc.GetWorldUnitMultiplied() != DataConfig.WorldUnitType.Null)
                         {
-                            addLine("<margin=1em><b>Unit multiplied:</b> <color=#00FF00>" + gc.GetWorldUnitMultiplied());
+                            AddLine("<margin=1em><b>Unit multiplied:</b> <color=#00FF00>" + gc.GetWorldUnitMultiplied());
                         }
-                        List<string> list = new();
+                        List<string> list = [];
                         foreach (var e in Enum.GetValues(typeof(DataConfig.WorldUnitType)))
                         {
                             var v = gc.GetGroupUnitGeneration((DataConfig.WorldUnitType)e);
@@ -1770,16 +1775,16 @@ namespace FeatCommandConsole
                         if (list.Count != 0)
                         {
                             Colorize(list, "#00FF00");
-                            addLine("<margin=1em><b>Unit generation:</b> " + string.Join(", ", list));
+                            AddLine("<margin=1em><b>Unit generation:</b> " + string.Join(", ", list));
                         }
                         var ng = gc.GetNextTierGroup();
                         if (ng != null)
                         {
-                            addLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
+                            AddLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
                         }
                     } else
                     {
-                        addLine("<margin=1em><b>Class:</b> Unknown");
+                        AddLine("<margin=1em><b>Class:</b> Unknown");
                     }
                     var recipe = gr.GetRecipe();
                     if (recipe != null)
@@ -1787,15 +1792,15 @@ namespace FeatCommandConsole
                         var ingr = recipe.GetIngredientsGroupInRecipe();
                         if (ingr.Count != 0)
                         {
-                            addLine("<margin=1em><b>Recipe:</b>");
+                            AddLine("<margin=1em><b>Recipe:</b>");
                             foreach (var rg in ingr)
                             {
-                                addLine("<margin=2em><color=#00FF00>" + rg.id + " \"" + Readable.GetGroupName(rg) + "\"");
+                                AddLine("<margin=2em><color=#00FF00>" + rg.id + " \"" + Readable.GetGroupName(rg) + "\"");
                             }
                         }
                         else
                         {
-                            addLine("<margin=1em><b>Recipe:</b> None");
+                            AddLine("<margin=1em><b>Recipe:</b> None");
                         }
                     }
                 }
@@ -1803,13 +1808,13 @@ namespace FeatCommandConsole
         }
 
         [Command("/copy-to-clipboard", "Copies the console history to the system clipboard.")]
-        public void CopyToClipboard(List<string> args)
+        public void CopyToClipboard(List<string> _)
         {
             GUIUtility.systemCopyBuffer = string.Join("\n", consoleText);
         }
 
         [Command("/ctc", "Copies the console history to the system clipboard without formatting.")]
-        public void CopyToClipboard2(List<string> args)
+        public void CopyToClipboard2(List<string> _)
         {
             var str = string.Join("\n", consoleText);
             str = str.Replace("<margin=1em>", "    ");
@@ -1821,28 +1826,28 @@ namespace FeatCommandConsole
         }
 
         [Command("/refill", "Refills the Health, Water and Oxygen meters.")]
-        public void Refill(List<string> args)
+        public void Refill(List<string> _)
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var gh = pm.GetGaugesHandler();
             gh.AddHealth(100);
             gh.AddWater(100);
             gh.AddOxygen(1000);
-            addLine("<margin=1em>Health, Water and Oxygen refilled");
+            AddLine("<margin=1em>Health, Water and Oxygen refilled");
         }
 
         [Command("/auto-refill", "Automatically refills the Health, Water and Oxygen. Re-issue command to stop.")]
-        public void AutoRefill(List<string> args)
+        public void AutoRefill(List<string> _)
         {
             if (autorefillCoroutine != null)
             {
-                addLine("<margin=1em>Auto Refill stopped");
+                AddLine("<margin=1em>Auto Refill stopped");
                 StopCoroutine(autorefillCoroutine);
                 autorefillCoroutine = null;
             }
             else
             {
-                addLine("<margin=1em>Auto Refill started");
+                AddLine("<margin=1em>Auto Refill started");
                 autorefillCoroutine = AutoRefillCoroutine();
                 StartCoroutine(autorefillCoroutine);
             }
@@ -1880,10 +1885,10 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds a specific Health amount to the player");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-health amount</color> - Health += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
+                AddLine("<margin=1em>Adds a specific Health amount to the player");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-health amount</color> - Health += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
             }
             else
             {
@@ -1898,10 +1903,10 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds a specific Water amount to the player");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-water amount</color> - Water += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-air</color>");
+                AddLine("<margin=1em>Adds a specific Water amount to the player");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-water amount</color> - Water += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-air</color>");
             }
             else
             {
@@ -1916,10 +1921,10 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds a specific Air amount to the player");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-air amount</color> - Water += amount");
-                addLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-water</color>");
+                AddLine("<margin=1em>Adds a specific Air amount to the player");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-air amount</color> - Water += amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-water</color>");
             }
             else
             {
@@ -1930,13 +1935,13 @@ namespace FeatCommandConsole
         }
 
         [Command("/die", "Kills the player.")]
-        public void Die(List<string> args)
+        public void Die(List<string> _)
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var sm = pm.GetPlayerStatus();
             DyingConsequencesHandler.HandleDyingConsequences(pm, GroupsHandler.GetGroupViaId(sm.canisterGroup.id));
             sm.DieAndRespawn();
-            addLine("<margin=1em>Player died and respawned.");
+            AddLine("<margin=1em>Player died and respawned.");
             //Managers.GetManager<WindowsHandler>().CloseAllWindows();
         }
 
@@ -1949,7 +1954,7 @@ namespace FeatCommandConsole
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
 
-            Dictionary<string, List<string>> larvaeToSequenceInto = new();
+            Dictionary<string, List<string>> larvaeToSequenceInto = [];
             foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
@@ -1962,7 +1967,7 @@ namespace FeatCommandConsole
                         {
                             if (!larvaeToSequenceInto.TryGetValue(rgid, out var list))
                             {
-                                list = new List<string>();
+                                list = [];
                                 larvaeToSequenceInto[rgid] = list;
                             }
                             list.Add(gi.GetId());
@@ -1976,30 +1981,30 @@ namespace FeatCommandConsole
                 var larve = GroupsHandler.GetGroupViaId(larvaeAndOutcome.Key);
                 var outcomes = larvaeAndOutcome.Value;
 
-                addLine("<margin=1em><b><color=#00FFFF>" + larve.id + " \"" + Readable.GetGroupName(larve) + "\"");
+                AddLine("<margin=1em><b><color=#00FFFF>" + larve.id + " \"" + Readable.GetGroupName(larve) + "\"");
                 var ull = larve.GetUnlockingInfos();
                 if (ull.GetIsUnlocked())
                 {
-                    addLine("<margin=2em><b>Unlocked:</b> true");
+                    AddLine("<margin=2em><b>Unlocked:</b> true");
                 }
                 else
                 {
                     if (ull.GetWorldUnit() != DataConfig.WorldUnitType.Null)
                     {
-                        addLine("<margin=2em><b>Unlocked:</b> false");
-                        addLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ull.GetUnlockingValue()) + " " + ull.GetWorldUnit());
+                        AddLine("<margin=2em><b>Unlocked:</b> false");
+                        AddLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ull.GetUnlockingValue()) + " " + ull.GetWorldUnit());
                     }
                     else
                     {
-                        addLine("<margin=2em><b>Unlocked globally:</b> " + larve.GetIsGloballyUnlocked());
+                        AddLine("<margin=2em><b>Unlocked globally:</b> " + larve.GetIsGloballyUnlocked());
                     }
                 }
-                addLine("<margin=2em><b>Outcomes</b>");
+                AddLine("<margin=2em><b>Outcomes</b>");
 
                 foreach (var outcome in outcomes)
                 {
-                    var og = GroupsHandler.GetGroupViaId(outcome) as GroupItem;
-                    if (og != null) {
+                    if (GroupsHandler.GetGroupViaId(outcome) is GroupItem og)
+                    {
                         var chance = og.GetChanceToSpawn();
                         if (chance == 0)
                         {
@@ -2008,19 +2013,19 @@ namespace FeatCommandConsole
                         var ul = og.GetUnlockingInfos();
                         if (ul.GetIsUnlocked())
                         {
-                            addLine("<margin=3em><color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
+                            AddLine("<margin=3em><color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
                         }
                         else
                         {
-                            addLine("<margin=3em><color=#FF0000>[Not unlocked]</color> <color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
+                            AddLine("<margin=3em><color=#FF0000>[Not unlocked]</color> <color=#00FF00>" + og.id + " \"" + Readable.GetGroupName(og) + "\"</color> = <b>" + chance + " %</b>");
                         }
                         if (ul.GetWorldUnit() != DataConfig.WorldUnitType.Null)
                         {
-                            addLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ul.GetUnlockingValue()) + " " + ul.GetWorldUnit());
+                            AddLine("<margin=4em><b>Unlocked at:</b> " + string.Format("{0:#,##0}", ul.GetUnlockingValue()) + " " + ul.GetWorldUnit());
                         }
                         else
                         {
-                            addLine("<margin=4em><b>Unlocked globally:</b> " + og.GetIsGloballyUnlocked());
+                            AddLine("<margin=4em><b>Unlocked globally:</b> " + og.GetIsGloballyUnlocked());
                         }
                     }
                 }
@@ -2028,7 +2033,7 @@ namespace FeatCommandConsole
         }
 
         [Command("/list-loot", "List chest loot information.")]
-        public void ListLoot(List<string> args)
+        public void ListLoot(List<string> _)
         {
             var stagesLH = Managers.GetManager<InventoryLootHandler>();
             var stages = stagesLH.lootTerraStages;
@@ -2042,38 +2047,38 @@ namespace FeatCommandConsole
             });
             foreach (InventoryLootStage ils in stages)
             {
-                addLine("<margin=1em><b><color=#00FFFF>" + ils.terraStage.GetTerraId() + " \"" + Readable.GetTerraformStageName(ils.terraStage) + "\"</color></b> at "
+                AddLine("<margin=1em><b><color=#00FFFF>" + ils.terraStage.GetTerraId() + " \"" + Readable.GetTerraformStageName(ils.terraStage) + "\"</color></b> at "
                     + string.Format("{0:#,##0}", ils.terraStage.GetStageStartValue()) + " Ti");
 
-                string[] titles = { "Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare" };
-                List<List<GroupData>> gs = new List<List<GroupData>>()
-                {
+                string[] titles = ["Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare"];
+                List<List<GroupData>> gs =
+                [
                     ils.commonItems, ils.unCommonItems, ils.rareItems, ils.veryRareItems, ils.ultraRareItems
-                };
+                ];
                 float boostAmount = (float)AccessTools.Field(typeof(InventoryLootStage), "boostedMultiplier").GetValue(ils);
 
-                List<float> chances = new List<float>
-                {
+                List<float> chances =
+                [
                     100,
                     (float)AccessTools.Field(typeof(InventoryLootStage), "chanceUnCommon").GetValue(ils),
                     (float)AccessTools.Field(typeof(InventoryLootStage), "chanceRare").GetValue(ils),
                     (float)AccessTools.Field(typeof(InventoryLootStage), "chanceVeryRare").GetValue(ils),
                     (float)AccessTools.Field(typeof(InventoryLootStage), "chanceUltraRare").GetValue(ils),
-                };
+                ];
 
                 for (int i = 0; i < titles.Length; i++)
                 {
-                    addLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + boostAmount + ")");
+                    AddLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + boostAmount + ")");
                     foreach (GroupData g in gs[i])
                     {
-                        addLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)) + "\"");
+                        AddLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)) + "\"");
                     }
                 }
             }
         }
 
         [Command("/list-larvae-zones", "Lists the larvae zones and the larvae that can spawn there.")]
-        public void ListLarvaeZones(List<string> args)
+        public void ListLarvaeZones(List<string> _)
         {
             var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
             Logger.LogInfo("Sector count: " + sectors.Length);
@@ -2114,26 +2119,26 @@ namespace FeatCommandConsole
                     captureLarvaeZoneCurrentSector = "<color=#FF0000>Unable to determine";
                 }
 
-                addLine("<margin=1em>Sector <color=#00FFFF>" + captureLarvaeZoneCurrentSector);
+                AddLine("<margin=1em>Sector <color=#00FFFF>" + captureLarvaeZoneCurrentSector);
 
-                addLine("<margin=2em>Position = " + string.Join(", ", (int)center.x, (int)center.y, (int)center.z)
+                AddLine("<margin=2em>Position = " + string.Join(", ", (int)center.x, (int)center.y, (int)center.z)
                     + ", Extents = " + string.Join(", ", (int)extents.x, (int)extents.y, (int)extents.z));
 
                 if (pool != null && pool.Count != 0)
                 {
                     foreach (var lp in pool)
                     {
-                        addLine("<margin=3em><color=#00FF00>" + lp.id
+                        AddLine("<margin=3em><color=#00FF00>" + lp.id
                             + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(lp.id)) + "\"</color>, Chance = " + lp.chanceToSpawn + "%");
                     }
                 }
                 else
                 {
-                    addLine("<margin=3em>No larvae spawn info.");
+                    AddLine("<margin=3em>No larvae spawn info.");
                 }
             }
 
-            addLine("<color=#FF8080>Warning! You may want to reload this save to avoid game issues.");
+            AddLine("<color=#FF8080>Warning! You may want to reload this save to avoid game issues.");
         }
 
         [Command("/build", "Build a structure. The ingredients are automatically added to the inventory first.")]
@@ -2141,10 +2146,10 @@ namespace FeatCommandConsole
         {
             if (args.Count == 1)
             {
-                addLine("<margin=1em>Build a structure. The ingredients are automatically added to the inventory first.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/build list [name-prefix]</color> - list the item ids that can be built");
-                addLine("<margin=2em><color=#FFFF00>/build itemid [count]</color> - get the ingredients and start building it by showing the ghost");
+                AddLine("<margin=1em>Build a structure. The ingredients are automatically added to the inventory first.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/build list [name-prefix]</color> - list the item ids that can be built");
+                AddLine("<margin=2em><color=#FFFF00>/build itemid [count]</color> - get the ingredients and start building it by showing the ghost");
             }
             else
             {
@@ -2155,7 +2160,7 @@ namespace FeatCommandConsole
                     {
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
-                    List<string> possibleStructures = new();
+                    List<string> possibleStructures = [];
                     foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupConstructible gc)
@@ -2169,9 +2174,9 @@ namespace FeatCommandConsole
                     }
                     possibleStructures.Sort();
                     Colorize(possibleStructures, "#00FF00");
-                    foreach (var line in joinPerLine(possibleStructures, 5))
+                    foreach (var line in JoinPerLine(possibleStructures, 5))
                     {
-                        addLine("<margin=1em>" + line);
+                        AddLine("<margin=1em>" + line);
                     }
                 }
                 else
@@ -2182,9 +2187,9 @@ namespace FeatCommandConsole
                     {
                         DidYouMean(gid, true, false);
                     }
-                    else if (!(g is GroupConstructible))
+                    else if (g is not GroupConstructible)
                     {
-                        addLine("<color=#FF0000>This item can't be built.");
+                        AddLine("<color=#FF0000>This item can't be built.");
                     }
                     else
                     {
@@ -2218,7 +2223,7 @@ namespace FeatCommandConsole
 
                         if (full)
                         {
-                            addLine("<color=#FF0000>Inventory full.");
+                            AddLine("<color=#FF0000>Inventory full.");
                         } 
                         else 
                         {
@@ -2249,9 +2254,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 3)
             {
-                addLine("<margin=1em>Raises player-placed objects in a radius (cylindrically).");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/raise radius amount</color> - raise all items within the given radius by the given amount");
+                AddLine("<margin=1em>Raises player-placed objects in a radius (cylindrically).");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/raise radius amount</color> - raise all items within the given radius by the given amount");
             }
             else
             {
@@ -2282,7 +2287,7 @@ namespace FeatCommandConsole
                         }
                     }
                 }
-                addLine("<margin=1em>" + i + " objects affected.");
+                AddLine("<margin=1em>" + i + " objects affected.");
             }
         }
 
@@ -2291,15 +2296,15 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Sets the Command Console's left position on the screen.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/console-set-left value</color> - Set the window's left position");
+                AddLine("<margin=1em>Sets the Command Console's left position on the screen.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/console-set-left value</color> - Set the window's left position");
             }
             else
             {
                 consoleLeft.Value = int.Parse(args[1]);
             }
-            addLine("<margin=1em>Current Left: " + consoleLeft.Value);
+            AddLine("<margin=1em>Current Left: " + consoleLeft.Value);
             RecreateBackground(Managers.GetManager<WindowsHandler>());
         }
 
@@ -2308,15 +2313,15 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Sets the Command Console's right position on the screen.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/console-set-right value</color> - Set the window's right position");
+                AddLine("<margin=1em>Sets the Command Console's right position on the screen.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/console-set-right value</color> - Set the window's right position");
             }
             else
             {
                 consoleRight.Value = int.Parse(args[1]);
             }
-            addLine("<margin=1em>Current Right: " + consoleRight.Value);
+            AddLine("<margin=1em>Current Right: " + consoleRight.Value);
             RecreateBackground(Managers.GetManager<WindowsHandler>());
         }
 
@@ -2325,12 +2330,12 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Triggers or lists the available meteor events.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/meteor list</color> - Lists the queued and all meteor events");
-                addLine("<margin=2em><color=#FFFF00>/meteor clear</color> - Clears all queued meteor events");
-                addLine("<margin=2em><color=#FFFF00>/meteor eventId</color> - Triggers the meteor events by its case-insensitive name");
-                addLine("<margin=2em><color=#FFFF00>/meteor eventNumber</color> - Triggers the meteor events by its number");
+                AddLine("<margin=1em>Triggers or lists the available meteor events.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/meteor list</color> - Lists the queued and all meteor events");
+                AddLine("<margin=2em><color=#FFFF00>/meteor clear</color> - Clears all queued meteor events");
+                AddLine("<margin=2em><color=#FFFF00>/meteor eventId</color> - Triggers the meteor events by its case-insensitive name");
+                AddLine("<margin=2em><color=#FFFF00>/meteor eventNumber</color> - Triggers the meteor events by its number");
             }
             else 
             {
@@ -2340,20 +2345,20 @@ namespace FeatCommandConsole
                 var currIndex = (NetworkVariable<int>)AccessTools.Field(typeof(MeteoHandler), "_selectedDataMeteoEventIndex").GetValue(mh);
                 if (args[1] == "list")
                 {
-                    addLine("<margin=1em>Current meteor event:");
+                    AddLine("<margin=1em>Current meteor event:");
                     if (currIndex.Value != -1)
                     {
                         CreateMeteorEventLines(0, list[currIndex.Value]);
                     }
                     else
                     {
-                        addLine("<margin=2em>None.");
+                        AddLine("<margin=2em>None.");
                     }
 
-                    addLine("<margin=1em>Queued meteor events:");
+                    AddLine("<margin=1em>Queued meteor events:");
                     if (queue.Count == 0)
                     {
-                        addLine("<margin=2em>None.");
+                        AddLine("<margin=2em>None.");
                     }
                     else
                     {
@@ -2362,10 +2367,10 @@ namespace FeatCommandConsole
                             CreateMeteorEventLines(i, queue[i]);
                         }
                     }
-                    addLine("<margin=1em>All meteor events:");
+                    AddLine("<margin=1em>All meteor events:");
                     if (list.Count == 0)
                     {
-                        addLine("<margin=2em>None.");
+                        AddLine("<margin=2em>None.");
                     }
                     else
                     {
@@ -2378,7 +2383,7 @@ namespace FeatCommandConsole
                 else
                 if (args[1] == "clear")
                 {
-                    addLine("<margin=1em>Queued meteor events cleared [" + queue.Count + "].");
+                    AddLine("<margin=1em>Queued meteor events cleared [" + queue.Count + "].");
                     queue.Clear();
                 }
                 else
@@ -2388,15 +2393,15 @@ namespace FeatCommandConsole
                         int n = int.Parse(args[1]);
                         if (n < 0 && n >= list.Count)
                         {
-                            addLine("<margin=1em><color=#FF0000>Meteor event index out of range.");
+                            AddLine("<margin=1em><color=#FF0000>Meteor event index out of range.");
                         }
                         else
                         {
                             mh.QueueMeteoEvent(list[n]);
-                            addLine("<margin=1em>Meteor event <color=#00FF00>" + list[n].name + "</color> queued.");
+                            AddLine("<margin=1em>Meteor event <color=#00FF00>" + list[n].name + "</color> queued.");
                             if (list[n].asteroidEventData != null)
                             {
-                                addLine("<margin=3em>Resources: " + GetAsteroidSpawn(list[n].asteroidEventData));
+                                AddLine("<margin=3em>Resources: " + GetAsteroidSpawn(list[n].asteroidEventData));
                             }
                         }
                     }
@@ -2409,10 +2414,10 @@ namespace FeatCommandConsole
                             if (me.name.ToLowerInvariant() == name)
                             {
                                 mh.QueueMeteoEvent(me);
-                                addLine("<margin=1em>Meteor event <color=#00FF00>" + me.name + "</color> queued.");
+                                AddLine("<margin=1em>Meteor event <color=#00FF00>" + me.name + "</color> queued.");
                                 if (me.asteroidEventData != null)
                                 {
-                                    addLine("<margin=3em>Resources: " + GetAsteroidSpawn(me.asteroidEventData));
+                                    AddLine("<margin=3em>Resources: " + GetAsteroidSpawn(me.asteroidEventData));
                                 }
                                 found = true;
                             }
@@ -2420,7 +2425,7 @@ namespace FeatCommandConsole
 
                         if (!found)
                         {
-                            addLine("<margin=1em><color=#FF0000>Meteor event not found.");
+                            AddLine("<margin=1em><color=#FF0000>Meteor event not found.");
 
                             var candidates = new List<string>();
 
@@ -2433,10 +2438,10 @@ namespace FeatCommandConsole
                             }
                             if (candidates.Count > 0)
                             {
-                                addLine("<margin=1em><color=#FF0000>Unknown meteor event.</color> Did you mean?");
-                                foreach (var line in joinPerLine(candidates, 5))
+                                AddLine("<margin=1em><color=#FF0000>Unknown meteor event.</color> Did you mean?");
+                                foreach (var line in JoinPerLine(candidates, 5))
                                 {
-                                    addLine("<margin=2em>" + line);
+                                    AddLine("<margin=2em>" + line);
                                 }
 
                             }
@@ -2451,9 +2456,9 @@ namespace FeatCommandConsole
         {
             if (args.Count == 1)
             {
-                addLine("<margin=1em>Lists the world object ids and their types within a radius.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter]</color> - List the items with group type name containing the optional typefilter");
+                AddLine("<margin=1em>Lists the world object ids and their types within a radius.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter]</color> - List the items with group type name containing the optional typefilter");
             }
             else
             {
@@ -2467,7 +2472,7 @@ namespace FeatCommandConsole
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var pp = pm.transform.position;
 
-                List<WorldObject> found = new();
+                List<WorldObject> found = [];
                 foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
                 {
                     if (wo.GetIsPlaced() && Vector3.Distance(pp, wo.GetPosition()) < radius)
@@ -2478,9 +2483,9 @@ namespace FeatCommandConsole
                         }
                     }
                 }
-                addLine("<margin=1em>Found " + found.Count + " world objects");
+                AddLine("<margin=1em>Found " + found.Count + " world objects");
                 foreach (var wo in found) {
-                    addLine("<margin=2em>" 
+                    AddLine("<margin=2em>" 
                         + wo.GetId() + " - " 
                         + wo.GetGroup().GetId() 
                         + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) 
@@ -2494,9 +2499,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Deletes a world object specified by its unique id.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/delete-item id</color> - Deletes a world object (and its game object) by the given id");
+                AddLine("<margin=1em>Deletes a world object specified by its unique id.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/delete-item id</color> - Deletes a world object (and its game object) by the given id");
             }
             else
             {
@@ -2510,11 +2515,11 @@ namespace FeatCommandConsole
 
                 if (found)
                 {
-                    addLine("<margin=1em>World object deleted.");
+                    AddLine("<margin=1em>World object deleted.");
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                    AddLine("<margin=1em><color=#FF0000>World object not found.");
                 }
             }
         }
@@ -2524,9 +2529,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 5)
             {
-                addLine("<margin=1em>Moves an item to the specified absolute position.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/move-item id x y z</color> - Moves a world object identified by its id to the position x, y, z");
+                AddLine("<margin=1em>Moves an item to the specified absolute position.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/move-item id x y z</color> - Moves a world object identified by its id to the position x, y, z");
             }
             else
             {
@@ -2552,11 +2557,11 @@ namespace FeatCommandConsole
                 }
                 if (found)
                 {
-                    addLine("<margin=1em>World object moved.");
+                    AddLine("<margin=1em>World object moved.");
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                    AddLine("<margin=1em><color=#FF0000>World object not found.");
                 }
             }
         }
@@ -2589,9 +2594,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 5)
             {
-                addLine("<margin=1em>Moves an item by the specified relative amount.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/move-item-relative id x y z</color> - Moves a world object identified by its id relative by x, y, z");
+                AddLine("<margin=1em>Moves an item by the specified relative amount.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/move-item-relative id x y z</color> - Moves a world object identified by its id relative by x, y, z");
             }
             else
             {
@@ -2617,11 +2622,11 @@ namespace FeatCommandConsole
                 }
                 if (found)
                 {
-                    addLine("<margin=1em>World object moved.");
+                    AddLine("<margin=1em>World object moved.");
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>World object not found.");
+                    AddLine("<margin=1em><color=#FF0000>World object not found.");
                 }
             }
         }
@@ -2648,10 +2653,10 @@ namespace FeatCommandConsole
 
         void CreateMeteorEventLines(int idx, MeteoEventData med)
         {
-            addLine("<margin=2em>" + MeteoEventDataToString(idx, med));
+            AddLine("<margin=2em>" + MeteoEventDataToString(idx, med));
             if (med.asteroidEventData != null)
             {
-                addLine("<margin=3em>Resources: " + GetAsteroidSpawn(med.asteroidEventData));
+                AddLine("<margin=3em>Resources: " + GetAsteroidSpawn(med.asteroidEventData));
             }
         }
 
@@ -2660,16 +2665,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Adds the specified amount to the Trade Token value");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/add-token amount</color> - Trade Token += amount");
+                AddLine("<margin=1em>Adds the specified amount to the Trade Token value");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-token amount</color> - Trade Token += amount");
             }
             else
             {
                 var n = float.Parse(args[1], CultureInfo.InvariantCulture);
                 TokensHandler.Instance.GainTokens((int)n);
                 n = TokensHandler.Instance.GetTokensNumber();
-                addLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
+                AddLine("<margin=1em>Trade Tokens updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", n));
             }
         }
 
@@ -2678,16 +2683,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Sets the trading rocket's progress delay in seconds. Total rocket time is 100 x this amount.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/set-trade-rocket-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
-                addLine("<margin=1em>Current trading rocket progress delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+                AddLine("<margin=1em>Sets the trading rocket's progress delay in seconds. Total rocket time is 100 x this amount.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/set-trade-rocket-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
+                AddLine("<margin=1em>Current trading rocket progress delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
             }
             else
             {
                 tradePlatformDelay = float.Parse(args[1], CultureInfo.InvariantCulture);
                 
-                addLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
+                AddLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
 
                 FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
 
@@ -2733,13 +2738,13 @@ namespace FeatCommandConsole
                 {
                     if (i == 0)
                     {
-                        addLine("<margin=1em>Golden Containers found:");
+                        AddLine("<margin=1em>Golden Containers found:");
                     }
                     var p = wos.transform.position;
                     var d = Vector3.Distance(player, p);
                     if (range == 0 || d <= range)
                     {
-                        addLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
                     }
                     i++;
                 }
@@ -2747,12 +2752,12 @@ namespace FeatCommandConsole
 
             if (i == 0)
             {
-                addLine("<margin=1em>No containers found.");
+                AddLine("<margin=1em>No containers found.");
             }
         }
 
         [Command("/save-stats", "Display save statistics.")]
-        public void SaveStats(List<string> args)
+        public void SaveStats(List<string> _)
         {
             int totalWorldObjects = 0;
             int sceneWorldObjects = 0;
@@ -2951,98 +2956,98 @@ namespace FeatCommandConsole
                 }
             }
 
-            addLine(string.Format("<margin=1em>Total Objects: <color=#00FF00>{0:#,##0}</color>", totalWorldObjects));
-            addLine(string.Format("<margin=1em>   Scene Objects: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjects));
-            addLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", placedSceneItems));
-            addLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjectsInventory));
-            addLine(string.Format("<margin=1em>   Player Objects: <color=#00FF00>{0:#,##0}</color>", playerWorldObjects));
-            addLine(string.Format("<margin=1em>      Structures: <color=#00FF00>{0:#,##0}</color>", playerStructures));
-            addLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", playerPlacedItems));
-            addLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", playerWorldObjectsInventory));
-            addLine(string.Format("<margin=1em>Total Inventories: <color=#00FF00>{0:#,##0}</color>", totalInventories));
-            addLine(string.Format("<margin=1em>   Scene Inventories: <color=#00FF00>{0:#,##0}</color>", sceneInventories));
-            addLine(string.Format("<margin=1em>   Player Inventories: <color=#00FF00>{0:#,##0}</color>", playerInventories));
-            addLine(string.Format("<margin=1em>      Items inside: <color=#00FF00>{0:#,##0}</color>", totalItemsInInventory));
-            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", totalInventoryCapacity));
+            AddLine(string.Format("<margin=1em>Total Objects: <color=#00FF00>{0:#,##0}</color>", totalWorldObjects));
+            AddLine(string.Format("<margin=1em>   Scene Objects: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjects));
+            AddLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", placedSceneItems));
+            AddLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", sceneWorldObjectsInventory));
+            AddLine(string.Format("<margin=1em>   Player Objects: <color=#00FF00>{0:#,##0}</color>", playerWorldObjects));
+            AddLine(string.Format("<margin=1em>      Structures: <color=#00FF00>{0:#,##0}</color>", playerStructures));
+            AddLine(string.Format("<margin=1em>      Placed Items: <color=#00FF00>{0:#,##0}</color>", playerPlacedItems));
+            AddLine(string.Format("<margin=1em>      Have inventory: <color=#00FF00>{0:#,##0}</color>", playerWorldObjectsInventory));
+            AddLine(string.Format("<margin=1em>Total Inventories: <color=#00FF00>{0:#,##0}</color>", totalInventories));
+            AddLine(string.Format("<margin=1em>   Scene Inventories: <color=#00FF00>{0:#,##0}</color>", sceneInventories));
+            AddLine(string.Format("<margin=1em>   Player Inventories: <color=#00FF00>{0:#,##0}</color>", playerInventories));
+            AddLine(string.Format("<margin=1em>      Items inside: <color=#00FF00>{0:#,##0}</color>", totalItemsInInventory));
+            AddLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", totalInventoryCapacity));
             if (totalInventoryCapacity > 0)
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", totalItemsInInventory * 100d / totalInventoryCapacity));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", totalItemsInInventory * 100d / totalInventoryCapacity));
             }
             else
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>Logistics: <color=#00FF00>{0:#,##0}</color> inventories", logisticsInventoryCount));
-            addLine(string.Format("<margin=1em>   Supply: <color=#00FF00>{0:#,##0}</color>", supplyInventoryCount));
-            addLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", supplyItemCount));
-            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", supplyCapacity));
-            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", supplyCapacity - supplyItemCount));
+            AddLine(string.Format("<margin=1em>Logistics: <color=#00FF00>{0:#,##0}</color> inventories", logisticsInventoryCount));
+            AddLine(string.Format("<margin=1em>   Supply: <color=#00FF00>{0:#,##0}</color>", supplyInventoryCount));
+            AddLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", supplyItemCount));
+            AddLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", supplyCapacity));
+            AddLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", supplyCapacity - supplyItemCount));
             if (supplyCapacity > 0)
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", supplyItemCount * 100d / supplyCapacity));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", supplyItemCount * 100d / supplyCapacity));
             }
             else
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>   Demand: <color=#00FF00>{0:#,##0}</color>", demandInventoryCount));
-            addLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", demandItemCount));
-            addLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", demandCapacity));
-            addLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", demandCapacity - demandItemCount));
+            AddLine(string.Format("<margin=1em>   Demand: <color=#00FF00>{0:#,##0}</color>", demandInventoryCount));
+            AddLine(string.Format("<margin=1em>      Items: <color=#00FF00>{0:#,##0}</color>", demandItemCount));
+            AddLine(string.Format("<margin=1em>      Capacity: <color=#00FF00>{0:#,##0}</color>", demandCapacity));
+            AddLine(string.Format("<margin=1em>      Free: <color=#00FF00>{0:#,##0}</color>", demandCapacity - demandItemCount));
             if (demandCapacity > 0)
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", demandItemCount * 100d / demandCapacity));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>{0:#,##0.##} %</color>", demandItemCount * 100d / demandCapacity));
             }
             else
             {
-                addLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>   Drones: <color=#00FF00>{0:#,##0}</color>", drones));
-            addLine(string.Format("<margin=1em>      Active: <color=#00FF00>{0:#,##0}</color>", dronesActive));
+            AddLine(string.Format("<margin=1em>   Drones: <color=#00FF00>{0:#,##0}</color>", drones));
+            AddLine(string.Format("<margin=1em>      Active: <color=#00FF00>{0:#,##0}</color>", dronesActive));
             if (drones > 0)
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesActive * 100d / drones));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesActive * 100d / drones));
             }
             else
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>      Items Carried: <color=#00FF00>{0:#,##0}</color>", dronesCarrying));
+            AddLine(string.Format("<margin=1em>      Items Carried: <color=#00FF00>{0:#,##0}</color>", dronesCarrying));
             if (dronesActive > 0)
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesCarrying * 100d / dronesActive));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0.##} %</color>", dronesCarrying * 100d / dronesActive));
             }
             else
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>   Tasks: <color=#00FF00>{0:#,##0}</color>", logisticsTaskCount));
-            addLine(string.Format("<margin=1em>      Not attributed: <color=#00FF00>{0:#,##0}</color>", logisticsTaskUnattributed));
+            AddLine(string.Format("<margin=1em>   Tasks: <color=#00FF00>{0:#,##0}</color>", logisticsTaskCount));
+            AddLine(string.Format("<margin=1em>      Not attributed: <color=#00FF00>{0:#,##0}</color>", logisticsTaskUnattributed));
             if (logisticsTaskCount > 0)
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskUnattributed * 100d / logisticsTaskCount));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskUnattributed * 100d / logisticsTaskCount));
             }
             else
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>      To Supply: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToSupply));
+            AddLine(string.Format("<margin=1em>      To Supply: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToSupply));
             if (logisticsTaskCount > 0)
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToSupply * 100d / logisticsTaskCount));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToSupply * 100d / logisticsTaskCount));
             }
             else
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
-            addLine(string.Format("<margin=1em>      To Demand: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToDemand));
+            AddLine(string.Format("<margin=1em>      To Demand: <color=#00FF00>{0:#,##0}</color>", logisticsTaskToDemand));
             if (logisticsTaskCount > 0)
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToDemand * 100d / logisticsTaskCount));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>{0:#,##0} %</color>", logisticsTaskToDemand * 100d / logisticsTaskCount));
             }
             else
             {
-                addLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
+                AddLine(string.Format("<margin=1em>         Utilization: <color=#00FF00>N/A</color>"));
             }
         }
 
@@ -3051,16 +3056,16 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Sets the outside growers' progress delay in seconds.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/set-outside-grower-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
-                addLine("<margin=1em>Current outside growers' delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
+                AddLine("<margin=1em>Sets the outside growers' progress delay in seconds.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/set-outside-grower-delay seconds</color> - Set the progress delay in seconds (fractions allowed)");
+                AddLine("<margin=1em>Current outside growers' delay: <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
             }
             else
             {
                 outsideGrowerDelay = float.Parse(args[1], CultureInfo.InvariantCulture);
 
-                addLine("<margin=1em>Outside growers' delay progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
+                AddLine("<margin=1em>Outside growers' delay progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
 
                 FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineOutsideGrower), "updateInterval");
 
@@ -3084,9 +3089,9 @@ namespace FeatCommandConsole
         {
             if (args.Count != 2)
             {
-                addLine("<margin=1em>Display statistics about a particular item type in the logistics system.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/logistics-item-stats item-id</color> - Display the statistics for the item");
+                AddLine("<margin=1em>Display statistics about a particular item type in the logistics system.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/logistics-item-stats item-id</color> - Display the statistics for the item");
             }
             else
             {
@@ -3198,46 +3203,46 @@ namespace FeatCommandConsole
                     }
                     var grtask = unassigned + tosupply + todemand;
 
-                    addLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
-                    addLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
-                    addLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
-                    addLine("<margin=1em><b>Logistics Info:</b>");
-                    addLine(string.Format("<margin=1em>   Supply: {0:#,##0} inventories", supplyInventoryCount));
-                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", supplyItemCount));
-                    addLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", supplyCapacity));
-                    addLine(string.Format("<margin=1em>      Free: {0:#,##0}", supplyFree));
+                    AddLine("<margin=1em><b>ID:</b> <color=#00FF00>" + gr.id);
+                    AddLine("<margin=1em><b>Name:</b> <color=#00FF00>" + Readable.GetGroupName(gr));
+                    AddLine("<margin=1em><b>Description:</b> <color=#00FF00>" + Readable.GetGroupDescription(gr));
+                    AddLine("<margin=1em><b>Logistics Info:</b>");
+                    AddLine(string.Format("<margin=1em>   Supply: {0:#,##0} inventories", supplyInventoryCount));
+                    AddLine(string.Format("<margin=1em>      Items: {0:#,##0}", supplyItemCount));
+                    AddLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", supplyCapacity));
+                    AddLine(string.Format("<margin=1em>      Free: {0:#,##0}", supplyFree));
                     if (supplyCapacity > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", supplyItemCount * 100d / supplyCapacity));
+                        AddLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", supplyItemCount * 100d / supplyCapacity));
                     }
-                    addLine(string.Format("<margin=1em>   Demand: {0:#,##0} inventories", demandInventoryCount));
-                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", demandItemCount));
-                    addLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", demandCapacity));
-                    addLine(string.Format("<margin=1em>      Free: {0:#,##0}", demandFree));
+                    AddLine(string.Format("<margin=1em>   Demand: {0:#,##0} inventories", demandInventoryCount));
+                    AddLine(string.Format("<margin=1em>      Items: {0:#,##0}", demandItemCount));
+                    AddLine(string.Format("<margin=1em>      Capacity: {0:#,##0}", demandCapacity));
+                    AddLine(string.Format("<margin=1em>      Free: {0:#,##0}", demandFree));
                     if (demandCapacity > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", demandItemCount * 100d / demandCapacity));
+                        AddLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", demandItemCount * 100d / demandCapacity));
                     }
-                    addLine(string.Format("<margin=1em>   Tasks: {0:#,##0} total", tasks));
-                    addLine(string.Format("<margin=1em>      Items: {0:#,##0}", grtask));
+                    AddLine(string.Format("<margin=1em>   Tasks: {0:#,##0} total", tasks));
+                    AddLine(string.Format("<margin=1em>      Items: {0:#,##0}", grtask));
                     if (tasks > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", grtask * 100d / tasks));
+                        AddLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", grtask * 100d / tasks));
                     }
-                    addLine(string.Format("<margin=1em>      Unassigned: {0:#,##0}", unassigned));
+                    AddLine(string.Format("<margin=1em>      Unassigned: {0:#,##0}", unassigned));
                     if (grtask > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", unassigned * 100d / grtask));
+                        AddLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", unassigned * 100d / grtask));
                     }
-                    addLine(string.Format("<margin=1em>      To Supply: {0:#,##0}", tosupply));
+                    AddLine(string.Format("<margin=1em>      To Supply: {0:#,##0}", tosupply));
                     if (grtask > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", tosupply * 100d / grtask));
+                        AddLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", tosupply * 100d / grtask));
                     }
-                    addLine(string.Format("<margin=1em>      To Demand: {0:#,##0}", todemand));
+                    AddLine(string.Format("<margin=1em>      To Demand: {0:#,##0}", todemand));
                     if (grtask > 0)
                     {
-                        addLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", todemand * 100d / grtask));
+                        AddLine(string.Format("<margin=1em>         Usage: {0:#,##0.##} %", todemand * 100d / grtask));
                     }
 
                 }
@@ -3245,29 +3250,29 @@ namespace FeatCommandConsole
         }
 
         [Command("/list", "Lists all currently connected players (vanilla command).")]
-        public void List(List<string> args)
+        public void List(List<string> _)
         {
             for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
             {
                 var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
-                addLine("<margin=1em>" + pd.id + " - " + pd.name);
+                AddLine("<margin=1em>" + pd.id + " - " + pd.name);
             }
         }
 
         [Command("/listAll", "Lists all players ever joined the current world (vanilla command).")]
-        public void ListAll(List<string> args)
+        public void ListAll(List<string> _)
         {
             if (PlayersDataManager.Instance.IsServer) {
                 var pm = Managers.GetManager<PlayersManager>();
 
                 foreach (var pd in pm.GetAllTimeListOfPlayers())
                 {
-                    addLine("<margin=1em>" + pd.Key + " - " + pd.Value);
+                    AddLine("<margin=1em>" + pd.Key + " - " + pd.Value);
                 }
 
             }
             else {
-                addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+                AddLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
             }
         }
 
@@ -3276,11 +3281,11 @@ namespace FeatCommandConsole
         {
             if (args.Count == 1)
             {
-                addLine("<margin=1em>Kick a specific player identified by its number or name (vanilla command).");
-                addLine("<margin=1em>Host only command.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/kick id|name</color> - Kick a player identified by its id or name");
-                addLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
+                AddLine("<margin=1em>Kick a specific player identified by its number or name (vanilla command).");
+                AddLine("<margin=1em>Host only command.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/kick id|name</color> - Kick a player identified by its id or name");
+                AddLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
             }
             else
             {
@@ -3297,7 +3302,7 @@ namespace FeatCommandConsole
                                 || pd.name.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
                             )
                             {
-                                addLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
+                                AddLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
                                 NetworkManager.Singleton.DisconnectClient(pd.id);
                             }
                         }
@@ -3305,7 +3310,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+                    AddLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
                 }
             }
         }
@@ -3315,11 +3320,11 @@ namespace FeatCommandConsole
         {
             if (args.Count == 1)
             {
-                addLine("<margin=1em>Kick a specific player - identified by its number or name - and remove all their data from the world (vanilla command)");
-                addLine("<margin=1em>Host only command.");
-                addLine("<margin=1em>Usage:");
-                addLine("<margin=2em><color=#FFFF00>/remove id|name</color> - Kick a player and remove all their data");
-                addLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
+                AddLine("<margin=1em>Kick a specific player - identified by its number or name - and remove all their data from the world (vanilla command)");
+                AddLine("<margin=1em>Host only command.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/remove id|name</color> - Kick a player and remove all their data");
+                AddLine("<margin=1em>See also: <color=#FFFF00>/list</color>");
             }
             else
             {
@@ -3337,7 +3342,7 @@ namespace FeatCommandConsole
                                 || pd.name.ToString().Equals(args[1], StringComparison.InvariantCultureIgnoreCase)
                             )
                             {
-                                addLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
+                                AddLine("<margin=1em>Kicked " + pd.id + " - " + pd.name);
                                 NetworkManager.Singleton.DisconnectClient(pd.id);
 
                                 for (int j = save.Count - 1; j >= 0; j--)
@@ -3346,7 +3351,7 @@ namespace FeatCommandConsole
                                     if (se.name.Equals(pd.name.ToString(), StringComparison.InvariantCultureIgnoreCase))
                                     {
                                         save.RemoveAt(j);
-                                        addLine("<margin=2em>Save data also removed.");
+                                        AddLine("<margin=2em>Save data also removed.");
                                     }
                                 }
                             }
@@ -3355,7 +3360,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    addLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
+                    AddLine("<margin=1em><color=#FF0000>" + Localization.GetLocalizedString("ChatConsole_PermissionError") + "</color>");
                 }
             }
         }
@@ -3374,8 +3379,8 @@ namespace FeatCommandConsole
 
             foreach (var mod in mods)
             {
-                addLine("<margin=1em><color=#FFFFFF>" + mod.Metadata.GUID + "</color> - <color=#FFFF00>" + mod.Metadata.Version + "</color>");
-                addLine("<margin=2em><color=#FFFFFF>" + mod.Metadata.Name + "</color>");
+                AddLine("<margin=1em><color=#FFFFFF>" + mod.Metadata.GUID + "</color> - <color=#FFFF00>" + mod.Metadata.Version + "</color>");
+                AddLine("<margin=2em><color=#FFFFFF>" + mod.Metadata.Name + "</color>");
             }
         }
 
@@ -3416,7 +3421,7 @@ namespace FeatCommandConsole
         {
             if (modEnabled.Value)
             {
-                log("Vanilla Chat Window Suppressed");
+                Log("Vanilla Chat Window Suppressed");
             }
             return !modEnabled.Value;
         }
@@ -3427,7 +3432,7 @@ namespace FeatCommandConsole
         {
             if (modEnabled.Value)
             {
-                addLine(player != null
+                AddLine(player != null
                     ? string.Format("<b><i>{0}</b></i>: {1}", player.Value.name, message)
                     : ("<i>" + message + "</i>")
                     );
@@ -3457,7 +3462,7 @@ namespace FeatCommandConsole
             }
         }
 
-        List<string> joinPerLine(List<string> items, int perLine)
+        List<string> JoinPerLine(List<string> items, int perLine)
         {
             var result = new List<string>();
 
@@ -3484,7 +3489,7 @@ namespace FeatCommandConsole
 
         static List<string> FindSimilar(string userText, IEnumerable<string> texts)
         {
-            List<string> result = new();
+            List<string> result = [];
             foreach (var text in texts)
             {
                 if (text.ToLower(CultureInfo.InvariantCulture).Contains(userText))
@@ -3524,16 +3529,10 @@ namespace FeatCommandConsole
     /// The custom attribute to mark command methods.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class Command : Attribute
+    public class Command(string name, string description) : Attribute
     {
-        public string name { get; set; }
-        public string description { get; set; }
-
-        public Command(string name, string description)
-        {
-            this.name = name;
-            this.description = description;
-        }
+        public string Name { get; set; } = name;
+        public string Description { get; set; } = description;
     }
-    
+
 }

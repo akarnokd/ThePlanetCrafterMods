@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -25,17 +28,17 @@ namespace UIOverviewPanel
 
         static ManualLogSource logger;
 
-        static Color defaultBackgroundColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);
-        static Color defaultTextColor = new Color(1f, 1f, 1f, 1f);
+        static Color defaultBackgroundColor = new(0.25f, 0.25f, 0.25f, 0.9f);
+        static Color defaultTextColor = new(1f, 1f, 1f, 1f);
 
         static GameObject parent;
         static RectTransform backgroundRectTransform;
-        static readonly List<OverviewEntry> entries = new();
+        static readonly List<OverviewEntry> entries = [];
         static float lastUpdate;
-        static readonly Dictionary<string, int> sceneCounts = new();
-        static readonly HashSet<string> uniqueButterflies = new();
-        static readonly HashSet<string> uniqueFish = new();
-        static readonly HashSet<string> uniqueFrog = new();
+        static readonly Dictionary<string, int> sceneCounts = [];
+        static readonly HashSet<string> uniqueButterflies = [];
+        static readonly HashSet<string> uniqueFish = [];
+        static readonly HashSet<string> uniqueFrog = [];
 
         static Coroutine statisticsUpdater;
 
@@ -83,7 +86,7 @@ namespace UIOverviewPanel
                 Canvas canvas = parent.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-                GameObject background = new GameObject("OverviewPanelCanvas-Background");
+                var background = new GameObject("OverviewPanelCanvas-Background");
                 background.transform.parent = parent.transform;
                 Image image = background.AddComponent<Image>();
                 image.color = defaultBackgroundColor;
@@ -262,8 +265,8 @@ namespace UIOverviewPanel
             {
                 UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-                List<List<GroupData>> tiers = new List<List<GroupData>>
-                {
+                List<List<GroupData>> tiers =
+                [
                     unlock.tier1GroupToUnlock,
                     unlock.tier2GroupToUnlock,
                     unlock.tier3GroupToUnlock,
@@ -274,9 +277,9 @@ namespace UIOverviewPanel
                     unlock.tier8GroupToUnlock,
                     unlock.tier9GroupToUnlock,
                     unlock.tier10GroupToUnlock,
-                };
+                ];
 
-                HashSet<string> unlockedIds = new();
+                HashSet<string> unlockedIds = [];
 
                 foreach (var g in UnlockedGroupsHandler.Instance.GetUnlockedGroups())
                 {
@@ -324,7 +327,7 @@ namespace UIOverviewPanel
                     var prevValue = 0f;
                     if (prevUnlocks.Count != 0)
                     {
-                        prevValue = prevUnlocks[prevUnlocks.Count - 1].GetUnlockingInfos().GetUnlockingValue();
+                        prevValue = prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
                     }
 
                     var nextUnlock = nextUnlocks[0];
@@ -567,15 +570,17 @@ namespace UIOverviewPanel
         {
             int fs = fontSize.Value;
 
-            OverviewEntry result = new();
-            result.getValue = getValue;
+            OverviewEntry result = new()
+            {
+                getValue = getValue
+            };
 
-            GameObject hg = new GameObject("OverviewPanelCanvas-Heading-" + heading);
+            var hg = new GameObject("OverviewPanelCanvas-Heading-" + heading);
             hg.transform.SetParent(parent.transform);
 
             CreateText(heading, hg, fs, out result.headingText, out result.headingTransform);
 
-            GameObject vg = new GameObject("OverviewPanelCanvas-Value-" + heading);
+            var vg = new GameObject("OverviewPanelCanvas-Value-" + heading);
             vg.transform.SetParent(parent.transform);
 
             CreateText("", vg, fs, out result.valueText, out result.valueTransform);

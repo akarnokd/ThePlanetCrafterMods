@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -90,7 +93,7 @@ namespace FeatSpaceCows
             return tex;
         }
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -128,12 +131,12 @@ namespace FeatSpaceCows
             PlayersManager p = Managers.GetManager<PlayersManager>();
             if (p == null || p.GetActivePlayerController() == null)
             {
-                log("Player is not ready");
+                Log("Player is not ready");
                 return;
             }
             if (NetworkManager.Singleton?.IsHost ?? true)
             {
-                log("Total SpaceCow Count = " + cowAroundSpreader.Count);
+                Log("Total SpaceCow Count = " + cowAroundSpreader.Count);
                 HashSet<int> found = [];
                 List<WorldObject> allSpreaders = [];
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
@@ -160,7 +163,7 @@ namespace FeatSpaceCows
                 {
                     if (!found.Contains(id.Key))
                     {
-                        log("GrassSpreader1 no longer exist, removing SpaceCow @ " + id.Key);
+                        Log("GrassSpreader1 no longer exist, removing SpaceCow @ " + id.Key);
                         RemoveCow(id.Value);
                         cowAroundSpreader.Remove(id.Key);
                     }
@@ -168,7 +171,7 @@ namespace FeatSpaceCows
             }
             else
             {
-                log("Multiplayer: we run on the client.");
+                Log("Multiplayer: we run on the client.");
             }
         }
 
@@ -223,11 +226,11 @@ namespace FeatSpaceCows
                     var lookTowards = (wo.GetPosition() - raycastHit.point).normalized;
                     var rot = Quaternion.LookRotation(lookTowards) * Quaternion.Euler(0, 90, 0);
 
-                    log("Adding SpaceCow around " + DebugWorldObject(wo));
+                    Log("Adding SpaceCow around " + DebugWorldObject(wo));
                     SpaceCow cow = SpaceCow.CreateCow(cow1, Color.white);
                     cow.parent = wo;
                     cow.SetPosition(raycastHit.point, rot);
-                    log("       SpaceCow at " + raycastHit.point + " radius " + positionRng.magnitude);
+                    Log("       SpaceCow at " + raycastHit.point + " radius " + positionRng.magnitude);
 
                     SetupInventory(cow);
 
@@ -238,7 +241,7 @@ namespace FeatSpaceCows
                     return;
                 }
             }
-            log("Adding SpaceCow around failed, no valid spawn position found" + DebugWorldObject(wo));
+            Log("Adding SpaceCow around failed, no valid spawn position found" + DebugWorldObject(wo));
         }
 
         void RemoveCow(SpaceCow cow)
@@ -264,7 +267,7 @@ namespace FeatSpaceCows
                 Inventory inv = InventoriesHandler.Instance.GetInventoryById(invId);
                 if (inv != null)
                 {
-                    log("       Using exiting inventory: " + inv.GetId());
+                    Log("       Using exiting inventory: " + inv.GetId());
                     LinkInventory(inv, false);
                     return;
                 }
@@ -274,7 +277,7 @@ namespace FeatSpaceCows
 
             void LinkInventory(Inventory inv, bool save)
             {
-                log("       Creating inventory: " + inv.GetId());
+                Log("       Creating inventory: " + inv.GetId());
 
                 invAssoc.SetInventory(inv);
                 cow.inventory = inv;
@@ -335,11 +338,11 @@ namespace FeatSpaceCows
 
         void SpaceCowGenerate(SpaceCow cow, Inventory inv)
         {
-            log("SpaceCow Generator for " + DebugWorldObject(cow.parent));
+            Log("SpaceCow Generator for " + DebugWorldObject(cow.parent));
 
             if (inv.GetInsideWorldObjects().Count == 0)
             {
-                log("         Depositing products");
+                Log("         Depositing products");
                 AddToInventory(inv, "WaterBottle1");
                 AddToInventory(inv, "astrofood");
                 AddToInventory(inv, "MethanCapsule1");
@@ -393,7 +396,7 @@ namespace FeatSpaceCows
                     var before = wu.GetValue();
                     var after = before + animalUnitsPerTick;
 
-                    log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
+                    Log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
 
                     wu.SetCurrentTotalValue(after);
                 }
@@ -487,9 +490,9 @@ namespace FeatSpaceCows
         {
             me.StopCoroutine(cowChecker);
             cowChecker = null;
-            log("Clearing Cows = " + cowAroundSpreader.Count);
+            Log("Clearing Cows = " + cowAroundSpreader.Count);
             cowAroundSpreader.Clear();
-            log("                Done");
+            Log("                Done");
         }
 
         static WorldObject EnsureHiddenContainer()
@@ -519,7 +522,7 @@ namespace FeatSpaceCows
                     added = true
                 };
 
-                log("SpaceCow: Sending New " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                Log("SpaceCow: Sending New " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
                 ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
         }
@@ -541,7 +544,7 @@ namespace FeatSpaceCows
                         added = true
                     };
 
-                    log("SpaceCow: Sending " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                    Log("SpaceCow: Sending " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
 
                     ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
                 }
@@ -558,7 +561,7 @@ namespace FeatSpaceCows
                     inventoryId = cow.inventory.GetId()
                 };
 
-                log("SpaceCow: Removing at " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                Log("SpaceCow: Removing at " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
 
                 ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
@@ -572,7 +575,7 @@ namespace FeatSpaceCows
             }
             else
             {
-                log("Invalid or unknown message: " + parameters);
+                Log("Invalid or unknown message: " + parameters);
             }
         }
 
@@ -584,7 +587,7 @@ namespace FeatSpaceCows
                 {
                     if (!cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
                     {
-                        log("SpaceCow: Creating for " + msg.parentId + " at " + msg.position);
+                        Log("SpaceCow: Creating for " + msg.parentId + " at " + msg.position);
                         cow = SpaceCow.CreateCow(cow1, msg.color);
 
                         var invAssoc = cow.body.AddComponent<InventoryAssociated>();
@@ -615,15 +618,15 @@ namespace FeatSpaceCows
                         cowAroundSpreader[msg.parentId] = cow;
                     }
 
-                    log("SpaceCow: Updating position of " + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " + msg.color);
+                    Log("SpaceCow: Updating position of " + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " + msg.color);
                     cow.SetPosition(msg.position, msg.rotation);
                     cow.SetColor(msg.color);
 
                     var iws = cow.inventory.GetInsideWorldObjects();
-                    log("          Products: " + iws.Count);
+                    Log("          Products: " + iws.Count);
                     foreach (WorldObject wo in iws)
                     {
-                        log("             " + DebugWorldObject(wo));
+                        Log("             " + DebugWorldObject(wo));
                     }
                 }
                 else

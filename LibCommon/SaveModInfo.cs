@@ -1,11 +1,10 @@
-﻿using BepInEx.Bootstrap;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using SpaceCraft;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Unity.Netcode;
 
 namespace LibCommon

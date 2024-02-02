@@ -1,18 +1,18 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using System.Collections;
 using System;
-using BepInEx.Bootstrap;
 using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using System.Linq;
 using static SpaceCraft.DataConfig;
-using System.Reflection;
 using Unity.Netcode;
-using System.ComponentModel;
 
 namespace CheatAutoSequenceDNA
 {
@@ -100,7 +100,7 @@ namespace CheatAutoSequenceDNA
             StartCoroutine(SequencerCheckLoop(2.5f));
         }
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -170,7 +170,7 @@ namespace CheatAutoSequenceDNA
 
         void HandleIncubators()
         {
-            log("Begin<Incubators>");
+            Log("Begin<Incubators>");
             // Category keys for various source and target container names
             Dictionary<string, string> keywordMapping = new()
             {
@@ -189,7 +189,7 @@ namespace CheatAutoSequenceDNA
             // List of world objects per category (containers, machines)
             Dictionary<string, List<WorldObject>> itemCategories = [];
 
-            log("  Container discovery");
+            Log("  Container discovery");
             foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var gid = wo.GetGroup().GetId();
@@ -201,18 +201,18 @@ namespace CheatAutoSequenceDNA
                         if (txt.Contains(kv.Value))
                         {
                             GetOrCreate(itemCategories, kv.Key).Add(wo);
-                            log("    " + kv.Key + " <- " + DebugWorldObject(wo));
+                            Log("    " + kv.Key + " <- " + DebugWorldObject(wo));
                         }
                     }
                 }
                 if (gid == "Incubator1")
                 {
                     GetOrCreate(itemCategories, "Incubator").Add(wo);
-                    log("    Incubator <- " + DebugWorldObject(wo));
+                    Log("    Incubator <- " + DebugWorldObject(wo));
                 }
             }
 
-            log("Find the maximum recipe size");
+            Log("Find the maximum recipe size");
             var minInventoryCapacity = 0;
             foreach (var gi in GroupsHandler.GetGroupsItem())
             {
@@ -226,21 +226,21 @@ namespace CheatAutoSequenceDNA
             {
                 foreach (var incubator in incubatorList)
                 {
-                    log("  Incubator: " + DebugWorldObject(incubator));
+                    Log("  Incubator: " + DebugWorldObject(incubator));
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
 
                     // Fix incubators that don't have enough slots for all ingredients.
                     if (incubatorInv.GetSize() < minInventoryCapacity)
                     {
-                        log("    Updated inventory capacity from " + incubatorInv.GetSize() + " to " + minInventoryCapacity);
+                        Log("    Updated inventory capacity from " + incubatorInv.GetSize() + " to " + minInventoryCapacity);
                         incubatorInv.SetSize(minInventoryCapacity);
                     }
 
                     var currentItems = incubatorInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
                     {
-                        log("    Depositing products");
+                        Log("    Depositing products");
                         List<WorldObject> items = new(currentItems);
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
@@ -271,7 +271,7 @@ namespace CheatAutoSequenceDNA
 
                     if (incubator.GetGrowth() == 0)
                     {
-                        log("    Picking Recipe");
+                        Log("    Picking Recipe");
 
                         var candidates = GetCandidates(DataConfig.CraftableIn.CraftIncubatorT1);
                         Shuffle(candidates);
@@ -288,18 +288,18 @@ namespace CheatAutoSequenceDNA
 
                         if (candidates.Count == 0)
                         {
-                            log("    Sequencing: No applicable DNA sequence found");
+                            Log("    Sequencing: No applicable DNA sequence found");
                         }
                         if (!found)
                         {
-                            log("    Sequencing: No complete set of ingredients for any DNA sequence found");
+                            Log("    Sequencing: No complete set of ingredients for any DNA sequence found");
                         }
 
                     }
                     else
                     {
                         var growth = incubator.GetGrowth();
-                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (incubator.GetLinkedGroups() ?? []).Select(g => g.id)));
+                        Log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (incubator.GetLinkedGroups() ?? []).Select(g => g.id)));
                         if (growth < 100)
                         {
                             InventoriesHandler.Instance.LockInventoryContent(incubatorInv, true, 0f, null);
@@ -309,9 +309,9 @@ namespace CheatAutoSequenceDNA
             }
             else
             {
-                log("  No incubators found.");
+                Log("  No incubators found.");
             }
-            log("Done<Incubators>");
+            Log("Done<Incubators>");
         }
 
         bool StartNewResearch(
@@ -321,7 +321,7 @@ namespace CheatAutoSequenceDNA
             Inventory machineInventory,
             WorldObject machine)
         {
-            log("    Picked: " + spawnTarget.id + " (\"" + Readable.GetGroupName(spawnTarget) + "\") @ Chance = " + spawnTarget.GetChanceToSpawn() + " %");
+            Log("    Picked: " + spawnTarget.id + " (\"" + Readable.GetGroupName(spawnTarget) + "\") @ Chance = " + spawnTarget.GetChanceToSpawn() + " %");
 
             List<Group> ingredients = new(spawnTarget.GetRecipe().GetIngredientsGroupInRecipe());
             List<WorldObject> available = new(currentItems);
@@ -329,7 +329,7 @@ namespace CheatAutoSequenceDNA
 
             int ingredientsFulfilled = 0;
 
-            log("      Checking inventory for ingredients");
+            Log("      Checking inventory for ingredients");
             // check each ingredient
             foreach (var ingredient in ingredients)
             {
@@ -348,13 +348,13 @@ namespace CheatAutoSequenceDNA
                 }
                 if (!found)
                 {
-                    log("        Not in inventory: " + ingredient.id);
+                    Log("        Not in inventory: " + ingredient.id);
                     missing.Add(ingredient);
                 }
                 else
                 {
                     ingredientsFulfilled++;
-                    log("        Found in inventory: " + ingredient.id);
+                    Log("        Found in inventory: " + ingredient.id);
                 }
             }
 
@@ -362,16 +362,16 @@ namespace CheatAutoSequenceDNA
 
             if (missing.Count != 0)
             {
-                log("      Checking containers for missing ingredients");
-                Dictionary<string, List<IngredientSource>> sourcesPerCategory = new();
+                Log("      Checking containers for missing ingredients");
+                Dictionary<string, List<IngredientSource>> sourcesPerCategory = [];
 
                 foreach (var m in missing)
                 {
                     var cat = GetCategoryFor(m.id);
-                    log("        Checking sources for ingredient category: " + cat + " for " + m.id);
+                    Log("        Checking sources for ingredient category: " + cat + " for " + m.id);
                     if (!sourcesPerCategory.TryGetValue(cat, out var ingredientSources))
                     {
-                        log("          Searching");
+                        Log("          Searching");
                         ingredientSources = [];
                         sourcesPerCategory[cat] = ingredientSources;
                     }
@@ -382,7 +382,7 @@ namespace CheatAutoSequenceDNA
                 {
                     var cat = GetCategoryFor(m.id);
                     var sources = sourcesPerCategory[cat];
-                    log("        Looking for ingredient in sources: " + m.id + " (" + cat + ")");
+                    Log("        Looking for ingredient in sources: " + m.id + " (" + cat + ")");
                     //log("        " + string.Join(",", sources.Where(g => g != null).Select(g => g.ingredient)));
                     bool found = false;
                     for (int i = 0; i < sources.Count; i++)
@@ -394,34 +394,34 @@ namespace CheatAutoSequenceDNA
                             toTransfer.Add(source);
                             ingredientsFulfilled++;
                             found = true;
-                            log("        Ingredient Found " + m.id);
+                            Log("        Ingredient Found " + m.id);
                             break;
                         }
                     }
                     if (!found)
                     {
-                        log("        No source for ingredient " + m.id);
+                        Log("        No source for ingredient " + m.id);
                     }
                 }
             }
 
-            log("      Recipe check: Found = " + ingredientsFulfilled + ", Required = " + ingredients.Count);
+            Log("      Recipe check: Found = " + ingredientsFulfilled + ", Required = " + ingredients.Count);
             if (ingredientsFulfilled == ingredients.Count)
             {
                 bool transferSuccess = true;
                 if (toTransfer.Count != 0)
                 {
-                    log("        Transferring ingredients");
+                    Log("        Transferring ingredients");
                     foreach (var tt in toTransfer)
                     {
                         if (machineInventory.AddItem(tt.wo))
                         {
-                            log("          From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " SUCCESS");
+                            Log("          From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " SUCCESS");
                             tt.source.RemoveItem(tt.wo);
                         }
                         else
                         {
-                            log("          From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " FAILED: inventory full");
+                            Log("          From " + tt.source.GetId() + ": " + DebugWorldObject(tt.wo) + " FAILED: inventory full");
                             transferSuccess = false;
                             break;
                         }
@@ -430,7 +430,7 @@ namespace CheatAutoSequenceDNA
 
                 if (transferSuccess)
                 {
-                    log("      Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
+                    Log("      Sequencing: " + spawnTarget.GetId() + " (" + spawnTarget.GetChanceToSpawn() + " %)");
 
                     machine.GetGameObject().GetComponentInChildren<GrowthProxy>().SetGrowth(1f);
                     machine.GetGameObject().GetComponentInChildren<LinkedGroupsProxy>().SetLinkedGroups([spawnTarget]);
@@ -442,12 +442,12 @@ namespace CheatAutoSequenceDNA
                 }
                 else
                 {
-                    log("      Sequencing not possible: could not transfer all ingredients into the inventory");
+                    Log("      Sequencing not possible: could not transfer all ingredients into the inventory");
                 }
             }
             else
             {
-                log("      Sequencing: Ingredients still missing");
+                Log("      Sequencing: Ingredients still missing");
             }
             return false;
         }
@@ -491,7 +491,7 @@ namespace CheatAutoSequenceDNA
 
         void HandleSequencers()
         {
-            log("Begin<Sequencers>");
+            Log("Begin<Sequencers>");
             // Category keys for various source and target container names
             Dictionary<string, string> keywordMapping = new()
             {
@@ -504,9 +504,9 @@ namespace CheatAutoSequenceDNA
             };
 
             // List of world objects per category (containers, machines)
-            Dictionary<string, List<WorldObject>> itemCategories = new();
+            Dictionary<string, List<WorldObject>> itemCategories = [];
 
-            log("  Container discovery");
+            Log("  Container discovery");
             foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var gid = wo.GetGroup().GetId();
@@ -518,14 +518,14 @@ namespace CheatAutoSequenceDNA
                         if (txt.Contains(kv.Value))
                         {
                             GetOrCreate(itemCategories, kv.Key).Add(wo);
-                            log("    " + kv.Key + " <- " + DebugWorldObject(wo));
+                            Log("    " + kv.Key + " <- " + DebugWorldObject(wo));
                         }
                     }
                 }
                 if (gid == "GeneticManipulator1")
                 {
                     GetOrCreate(itemCategories, "Sequencer").Add(wo);
-                    log("    Sequencer <- " + DebugWorldObject(wo));
+                    Log("    Sequencer <- " + DebugWorldObject(wo));
                 }
             }
 
@@ -533,14 +533,14 @@ namespace CheatAutoSequenceDNA
             {
                 foreach (var sequencer in sequencerList)
                 {
-                    log("  Sequencer: " + DebugWorldObject(sequencer));
+                    Log("  Sequencer: " + DebugWorldObject(sequencer));
                     // Try to deposit finished products first
                     Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
 
                     var currentItems = sequencerInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
                     {
-                        log("    Depositing products");
+                        Log("    Depositing products");
                         List<WorldObject> items = new(currentItems);
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
@@ -576,18 +576,18 @@ namespace CheatAutoSequenceDNA
                             }
                             if (!found)
                             {
-                                log("    Sequencing: No complete set of ingredients for any DNA sequence found");
+                                Log("    Sequencing: No complete set of ingredients for any DNA sequence found");
                             }
                         }
                         else
                         {
-                            log("    Sequencing: No applicable DNA sequence found");
+                            Log("    Sequencing: No applicable DNA sequence found");
                         }
                     }
                     else
                     {
                         var growth = sequencer.GetGrowth();
-                        log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (sequencer.GetLinkedGroups() ?? []).Select(g => g.id)));
+                        Log("    Sequencing progress: " + growth + " % for " + string.Join(", ", (sequencer.GetLinkedGroups() ?? []).Select(g => g.id)));
                         if (growth < 100)
                         {
                             InventoriesHandler.Instance.LockInventoryContent(sequencerInv, true, 0f, null);
@@ -598,9 +598,9 @@ namespace CheatAutoSequenceDNA
             }
             else
             {
-                log("  No sequencers found.");
+                Log("  No sequencers found.");
             }
-            log("Done<Sequencers>");
+            Log("Done<Sequencers>");
         }
 
         List<GroupItem> GetCandidates(DataConfig.CraftableIn craftableIn)
@@ -649,10 +649,10 @@ namespace CheatAutoSequenceDNA
 
         GroupItem PickRandomCandidate(List<GroupItem> candidates)
         {
-            log("    Candidate pool:");
+            Log("    Candidate pool:");
             foreach (var gi in candidates)
             {
-                log("      " + gi.id + " (\"" + Readable.GetGroupName(gi) + "\") @ Chance = " + gi.GetChanceToSpawn() + " %");
+                Log("      " + gi.id + " (\"" + Readable.GetGroupName(gi) + "\") @ Chance = " + gi.GetChanceToSpawn() + " %");
             }
 
 
@@ -692,7 +692,7 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories, 
             string itemKey)
         {
-            log("      Deposit item: " + DebugWorldObject(item));
+            Log("      Deposit item: " + DebugWorldObject(item));
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
                 if (containers.Count != 0)
@@ -702,7 +702,7 @@ namespace CheatAutoSequenceDNA
                     return;
                 }
             }
-            log("        Into      : Failed - no target containers found");
+            Log("        Into      : Failed - no target containers found");
         }
 
         class IngredientSource
@@ -791,7 +791,7 @@ namespace CheatAutoSequenceDNA
                         }
                         else
                         {
-                            log("        Into      : Failed - all target containers are full");
+                            Log("        Into      : Failed - all target containers are full");
                             break;
                         }
 
@@ -818,7 +818,7 @@ namespace CheatAutoSequenceDNA
             {
                 if (success)
                 {
-                    log("        Into      : " + DebugWorldObject(current));
+                    Log("        Into      : " + DebugWorldObject(current));
                     current = null;
                 }
                 else

@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
@@ -166,7 +169,7 @@ namespace UIShowCrash
             logger.LogInfo("Quit log watching");
         }
 
-        readonly Dictionary<string, int> logClearedUpTo = new();
+        readonly Dictionary<string, int> logClearedUpTo = [];
 
         void ProcessLog(string file)
         {
@@ -243,13 +246,10 @@ namespace UIShowCrash
                 _staticRectTexture = new Texture2D(1, 1);
             }
 
-            if (_staticRectStyle == null)
-            {
-                _staticRectStyle = new GUIStyle
+            _staticRectStyle ??= new GUIStyle
                 {
                     alignment = TextAnchor.UpperLeft
                 };
-            }
 
             _staticRectTexture.SetPixel(0, 0, color);
             _staticRectTexture.Apply();

@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -10,9 +13,8 @@ using UnityEngine.UI;
 using System;
 using System.Reflection;
 using UnityEngine.InputSystem;
-using System.Globalization;
-using UnityEngine.EventSystems;
 using System.Text;
+using LibCommon;
 
 namespace UISortSaves
 {
@@ -336,10 +338,7 @@ namespace UISortSaves
         static void Intro_ShowSaveFilesList()
         {
             CreateOrUpdateButtons();
-            if (parent != null)
-            {
-                parent.SetActive(true);
-            }
+            parent.AsNullable()?.SetActive(true);
         }
 
     }
@@ -399,7 +398,7 @@ namespace UISortSaves
 
         public List<object> FindSections(string s)
         {
-            List<object> sections = new();
+            List<object> sections = [];
             if (s.Length > 0)
             {
                 StringBuilder sb = new();

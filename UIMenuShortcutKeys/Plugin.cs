@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -120,12 +123,7 @@ namespace UIMenuShortcutKeys
                 return;
             }
 
-            var canvas = w.GetComponent<Canvas>();
-            if (canvas == null)
-            {
-                canvas = w.GetComponentInParent<Canvas>();
-            }
-
+            var canvas = w.GetComponent<Canvas>() ?? w.GetComponentInParent<Canvas>();
             if (canvas == null)
             {
                 if (debugMode.Value)

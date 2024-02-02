@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -11,7 +14,7 @@ namespace UILogisticSelectAll
     public class Plugin : BaseUnityPlugin
     {
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -59,7 +62,7 @@ namespace UILogisticSelectAll
             internal GroupSelector selector;
             internal List<Group> addedGroups;
 
-            void Update()
+            public void Update()
             {
                 if (selector.listContainer.activeSelf 
                     && Keyboard.current[Key.A].wasPressedThisFrame 

@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
@@ -6,11 +9,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Reflection;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using System;
-using BepInEx.Bootstrap;
 
 namespace UIShowRocketCount
 {

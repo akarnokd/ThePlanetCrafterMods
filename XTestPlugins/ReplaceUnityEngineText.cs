@@ -1,10 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using System.Text;
-using System.Threading.Tasks;
 
 namespace XTestPlugins
 {
@@ -17,7 +14,7 @@ namespace XTestPlugins
             ScanDir("c:\\Users\\akarnokd\\git\\ThePlanetCrafterSources\\0.8.010c\\");
         }
 
-        void ScanDir(string dir)
+        static void ScanDir(string dir)
         {
             foreach (var file in Directory.GetFileSystemEntries(dir))
             {

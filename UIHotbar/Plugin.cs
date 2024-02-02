@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -97,7 +100,7 @@ namespace UIHotbar
 
         static GameObject parent;
         static readonly List<HotbarSlot> slots = [];
-        static int slotCount = 9;
+        static readonly int slotCount = 9;
         static int activeSlot = -1;
 
         class HotbarSlot
@@ -122,14 +125,14 @@ namespace UIHotbar
             }
         }
 
-        static Color defaultBackgroundColor = new Color(0.25f, 0.25f, 0.25f, 0.8f);
-        static Color defaultSlotNumberColor = new Color(1f, 1f, 1f, 1f);
-        static Color defaultInvisibleColor = new Color(0f, 0f, 0f, 0f);
-        static Color defaultHighlightColor = new Color(1f, 0.75f, 0f, 0.6f);
-        static Color defaultImageColor = new Color(1f, 1f, 1f, 1f);
-        static Color defaultImageColorDimmed = new Color(1f, 1f, 1f, 0.5f);
-        static Color defaultCanCraftColor = new Color(0.5f, 1f, 0.5f, 1f);
-        static Color defaultCannotCraftColor = new Color(1f, 0.5f, 0.5f, 1f);
+        static Color defaultBackgroundColor = new(0.25f, 0.25f, 0.25f, 0.8f);
+        static Color defaultSlotNumberColor = new(1f, 1f, 1f, 1f);
+        static Color defaultInvisibleColor = new(0f, 0f, 0f, 0f);
+        static Color defaultHighlightColor = new(1f, 0.75f, 0f, 0.6f);
+        static Color defaultImageColor = new(1f, 1f, 1f, 1f);
+        static Color defaultImageColorDimmed = new(1f, 1f, 1f, 0.5f);
+        static Color defaultCanCraftColor = new(0.5f, 1f, 0.5f, 1f);
+        static Color defaultCannotCraftColor = new(1f, 0.5f, 0.5f, 1f);
 
         void Setup()
         {
@@ -147,7 +150,7 @@ namespace UIHotbar
                 slots.Clear();
                 for (int i = 0; i < slotCount; i++)
                 {
-                    HotbarSlot slot = new HotbarSlot();
+                    var slot = new HotbarSlot();
                     slots.Add(slot);
 
                     RectTransform rectTransform;
@@ -247,7 +250,7 @@ namespace UIHotbar
 
             int oldActiveSlot = activeSlot;
 
-            Dictionary<string, int> inventoryCounts = new Dictionary<string, int>();
+            Dictionary<string, int> inventoryCounts = [];
             CountInventory(player, inventoryCounts);
 
             if (wh != null && !wh.GetHasUiOpen())
@@ -372,7 +375,7 @@ namespace UIHotbar
         {
             List<Group> recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
             // agregate recipe
-            Dictionary<string, int> recipeCounts = new Dictionary<string, int>();
+            Dictionary<string, int> recipeCounts = [];
             foreach (Group group in recipe)
             {
                 string gid = group.GetId();
@@ -459,10 +462,10 @@ namespace UIHotbar
             return true;
         }
 
-        static Key[] numberKeys =
-        {
+        static readonly Key[] numberKeys =
+        [
             Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9
-        };
+        ];
 
         static int WhichNumberKeyHeld()
         {

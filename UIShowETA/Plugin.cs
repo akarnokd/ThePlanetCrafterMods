@@ -1,13 +1,11 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using UnityEngine;
 using System;
-using System.Collections.Generic;
-using BepInEx.Bootstrap;
-using System.Reflection;
-using BepInEx.Configuration;
 
 namespace UIShowETA
 {
@@ -15,7 +13,7 @@ namespace UIShowETA
     [BepInDependency("akarnokd.theplanetcraftermods.fixunofficialpatches", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 

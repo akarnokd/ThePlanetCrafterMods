@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -96,11 +99,8 @@ namespace PerfStartup
                 {
                     throw new IOException("File is empty: " + fileName);
                 }
-                var tiLine = sr.ReadLine();
-                if (tiLine == null)
-                {
-                    throw new IOException("File does not have the Ti information: " + fileName);
-                }
+                var tiLine = sr.ReadLine() ?? throw new IOException("File does not have the Ti information: " + fileName);
+
                 var ws = new JsonableWorldState();
                 tiLine = tiLine.Replace("unitBiomassLevel", "unitPlantsLevel");
 
@@ -116,11 +116,7 @@ namespace PerfStartup
                 int sections = 7;
                 for (; ; )
                 {
-                    var line = sr.ReadLine();
-                    if (line == null)
-                    {
-                        throw new IOException("File ends before the mode section: " + fileName);
-                    }
+                    var line = sr.ReadLine() ?? throw new IOException("File ends before the mode section: " + fileName);
                     if (line.StartsWith("@"))
                     {
                         if (--sections == 0)

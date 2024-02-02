@@ -1,10 +1,11 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using System.Collections;
-using System;
-using BepInEx.Bootstrap;
 using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
@@ -106,7 +107,7 @@ namespace CheatAutoLaunchRocket
 
         }
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -120,12 +121,12 @@ namespace CheatAutoLaunchRocket
             {
                 if (NetworkManager.Singleton?.IsServer ?? true)
                 {
-                    log("Launch check for " + rockets.Count + " known rockets");
+                    Log("Launch check for " + rockets.Count + " known rockets");
                     var pos = parent.transform.position;
                     List<int> toRemove = [];
                     foreach (var wo in rockets.Values)
                     {
-                        log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
+                        Log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                         if (wo.GetIsPlaced())
                         {
                             var go = wo.GetGameObject();
@@ -134,18 +135,18 @@ namespace CheatAutoLaunchRocket
                                 if (go.activeSelf && go.GetComponent<GhostFx>() == null)
                                 {
                                     var dist = Vector3.Distance(pos, go.transform.position);
-                                    log("           Distance to button: " + dist);
+                                    Log("           Distance to button: " + dist);
                                     if (dist < 30f)
                                     {
                                         if (go.GetComponent<AutoLaunchDelay>() == null)
                                         {
                                             Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
-                                            log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
+                                            Log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
                                             parent.OnAction();
                                         }
                                         else
                                         {
-                                            log("           Already launched");
+                                            Log("           Already launched");
                                         }
                                     }
                                 }
@@ -164,7 +165,7 @@ namespace CheatAutoLaunchRocket
                     {
                         if (rockets.TryGetValue(id, out var wo))
                         {
-                            log("Removing " + id + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
+                            Log("Removing " + id + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                             rockets.Remove(id);
                         }
                     }

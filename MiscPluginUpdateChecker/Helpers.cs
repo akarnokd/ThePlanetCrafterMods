@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -51,11 +54,11 @@ namespace MiscPluginUpdateChecker
         {
             logInfo("Download Repositories <- Begin");
 
-            HashSet<string> repoUrlsSeen = new();
+            HashSet<string> repoUrlsSeen = [];
             Queue<string> repoUrls = new();
             repoUrls.Enqueue(startUrl);
 
-            Dictionary<string, PluginEntry> plugins = new();
+            Dictionary<string, PluginEntry> plugins = [];
 
             while (repoUrls.Count != 0)
             {
@@ -67,36 +70,30 @@ namespace MiscPluginUpdateChecker
                     {
                         var request = WebRequest.Create(MaybeRandom(repoUrl, randomArgument)).NoCache();
 
-                        using (var response = request.GetResponse())
+                        using var response = request.GetResponse();
+                        using var stream = response.GetResponseStream();
+                        var vir = VersionInfoRepository.Load(stream);
+
+                        foreach (PluginEntry pe in vir.plugins)
                         {
-                            using (var stream = response.GetResponseStream())
+                            if (plugins.ContainsKey(pe.guid))
                             {
-                                var vir = VersionInfoRepository.Load(stream);
-
-                                foreach (PluginEntry pe in vir.plugins)
-                                {
-                                    if (plugins.ContainsKey(pe.guid))
-                                    {
-                                        logWarning("    Duplicate plugin info");
-                                        logWarning("      repository = " + repoUrl);
-                                        logWarning("      guid = " + pe.guid);
-                                    }
-                                    else
-                                    {
-                                        plugins[pe.guid] = pe;
-                                    }
-                                }
-
-                                logInfo("    Plugins found: " + vir.plugins.Count);
-
-                                foreach (var inc in vir.includes)
-                                {
-                                    repoUrls.Enqueue(inc.url);
-                                }
+                                logWarning("    Duplicate plugin info");
+                                logWarning("      repository = " + repoUrl);
+                                logWarning("      guid = " + pe.guid);
+                            }
+                            else
+                            {
+                                plugins[pe.guid] = pe;
                             }
                         }
 
+                        logInfo("    Plugins found: " + vir.plugins.Count);
 
+                        foreach (var inc in vir.includes)
+                        {
+                            repoUrls.Enqueue(inc.url);
+                        }
                     }
                     catch (Exception ex)
                     {

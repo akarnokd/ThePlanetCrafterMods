@@ -13,6 +13,7 @@
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
+		<Compile Include="..\LibCommon\UnityExt.cs" Link="UnityExt.cs" />
 	</ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">

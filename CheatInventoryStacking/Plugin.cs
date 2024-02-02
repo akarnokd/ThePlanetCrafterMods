@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -124,7 +127,7 @@ namespace CheatInventoryStacking
         // Helper Methods
         // --------------------------------------------------------------------------------------------------------
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {

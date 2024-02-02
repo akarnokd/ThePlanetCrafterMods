@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -14,8 +17,10 @@ namespace MiscModEnabler
     public class Plugin : BaseUnityPlugin
     {
 
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo("Checking for BepInEx.cfg HideManagerGameObject");
 
@@ -27,7 +32,7 @@ namespace MiscModEnabler
 
             if (i >= 0)
             {
-                var newdir = dir.Substring(0, i) + "bepinex\\config\\BepInEx.cfg";
+                var newdir = dir[..i] + "bepinex\\config\\BepInEx.cfg";
 
                 if (File.Exists(newdir))
                 {
@@ -87,7 +92,7 @@ namespace MiscModEnabler
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start(Intro __instance)
+        static void Intro_Start()
         {
             ShowDialog("Mods should now work properly.\n\nPlease restart the game.");
         }

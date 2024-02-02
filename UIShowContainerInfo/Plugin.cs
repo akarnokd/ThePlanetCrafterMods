@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -78,11 +81,8 @@ namespace UIShowContainerInfo
 
                     var containerGroup = default(Group);
 
-                    var woa = __instance.GetComponentInParent<WorldObjectAssociated>();
-                    if (woa == null)
-                    {
-                        woa = __instance.GetComponentInChildren<WorldObjectAssociated>();
-                    }
+                    var woa = __instance.GetComponentInParent<WorldObjectAssociated>()
+                                ?? __instance.GetComponentInChildren<WorldObjectAssociated>();
                     if (woa != null && woa.GetWorldObject() != null)
                     {
                         containerGroup = woa.GetWorldObject().GetGroup();

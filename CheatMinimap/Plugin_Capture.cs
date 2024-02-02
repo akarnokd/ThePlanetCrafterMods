@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using HarmonyLib;
 using SpaceCraft;
 using System.Collections;
 using System.IO;
@@ -6,6 +9,7 @@ using System.Reflection;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine;
+using LibCommon;
 
 namespace CheatMinimap
 {
@@ -177,10 +181,7 @@ namespace CheatMinimap
                     Logger.LogInfo("        " + name + " hiding decoys");
                     foreach (GameObject gameObject in sector.decoyGameObjects)
                     {
-                        if (gameObject != null)
-                        {
-                            gameObject.SetActive(true);
-                        }
+                        gameObject.AsNullable()?.SetActive(true);
                     }
                     Logger.LogInfo("        " + name + " loaded successfully");
                 }
@@ -194,7 +195,7 @@ namespace CheatMinimap
 
             Logger.LogInfo("Screenshot all");
 
-            int[] ys = new[] { 50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500 };
+            int[] ys = [50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500];
 
             foreach (int y in ys)
             {

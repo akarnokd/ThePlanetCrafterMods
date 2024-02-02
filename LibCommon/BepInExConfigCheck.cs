@@ -1,13 +1,11 @@
-﻿using BepInEx.Bootstrap;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using BepInEx.Logging;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibCommon
 {
@@ -26,7 +24,7 @@ namespace LibCommon
 
             if (i >= 0)
             {
-                var newdir = dir.Substring(0, i) + "bepinex\\config\\BepInEx.cfg";
+                var newdir = dir[..i] + "bepinex\\config\\BepInEx.cfg";
                 
                 if (File.Exists(newdir)) 
                 {

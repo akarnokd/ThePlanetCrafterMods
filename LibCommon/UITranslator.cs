@@ -1,9 +1,11 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -63,17 +65,17 @@ namespace LibCommon
 
             labels.Clear();
 
-            string[] text = File.ReadAllLines(Path.Combine(dir, languageFile), Encoding.UTF8);
+            var text = File.ReadAllLines(Path.Combine(dir, languageFile), Encoding.UTF8);
 
-            foreach (string row in text)
+            foreach (var row in text)
             {
-                string line = row.Trim();
+                var line = row.Trim();
                 if (line.Length != 0 && !line.StartsWith("#"))
                 {
                     int idx = line.IndexOf('=');
                     if (idx >= 0)
                     {
-                        labels[line.Substring(0, idx)] = line.Substring(idx + 1);
+                        labels[line[..idx]] = line[(idx + 1)..];
                     }
                 }
             }
@@ -200,7 +202,7 @@ namespace LibCommon
                         if (dic2 != null)
                         {
                             logger.LogInfo("Found " + kvp.Key + " labels");
-                            StringBuilder sb = new StringBuilder();
+                            var sb = new StringBuilder();
                             foreach (KeyValuePair<string, string> kv in dic2)
                             {
 
@@ -208,8 +210,8 @@ namespace LibCommon
                                 sb.AppendLine();
                             }
 
-                            Assembly me = Assembly.GetExecutingAssembly();
-                            string dir = Path.GetDirectoryName(me.Location);
+                            var me = Assembly.GetExecutingAssembly();
+                            var dir = Path.GetDirectoryName(me.Location);
                             File.WriteAllText(dir + "\\labels." + kvp.Key + ".txt", sb.ToString());
                         }
                     }

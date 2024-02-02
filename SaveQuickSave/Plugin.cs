@@ -1,17 +1,10 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
-using HarmonyLib;
-using System.Collections.Generic;
-using System.Globalization;
 using BepInEx.Logging;
 using BepInEx.Configuration;
-using System.IO;
-using System;
-using System.IO.Compression;
-using System.Text;
-using System.Collections;
-using UnityEngine;
-using BepInEx.Bootstrap;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 
@@ -28,7 +21,7 @@ namespace SaveQuickSave
 
         static InputAction quickSaveAction;
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -49,7 +42,7 @@ namespace SaveQuickSave
 
         }
 
-        void Update()
+        public void Update()
         {
             if (modEnabled.Value && quickSaveAction.WasPressedThisFrame())
             {

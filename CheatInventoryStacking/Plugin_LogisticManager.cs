@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using HarmonyLib;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -354,7 +357,6 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "SetClosestAvailableDroneStation")]
         static bool Patch_Drone_SetClosestAvailableDroneStation(
-            Drone __instance,
             ref MachineDroneStation ____associatedDroneStation,
             GameObject ____droneRoot,
             WorldObject ____droneWorldObject,
