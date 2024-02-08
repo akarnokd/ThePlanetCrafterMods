@@ -95,17 +95,6 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(EnvironmentVolume), "OnTriggerExit")]
-        static bool EnvironmentVolue_OnTriggerExit(EnvironmentVolume __instance)
-        {
-            if (__instance.liveEnvironmentVolumeVariables == null)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(Localization), nameof(Localization.GetLocalizedString))]
         static bool Localization_GetLocalizedString(string stringCode, ref string __result)
         {
@@ -158,20 +147,6 @@ namespace FixUnofficialPatches
                 return false;
             }
             return true;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MeshOccluder), "OnDestroy")]
-        static bool MeshOccluder_OnDestroy()
-        {
-            return Managers.GetManager<MeshOccluderHandler>() != null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), "OnGrabedAGrowing")]
-        static bool MachineOutsideGrower_OnGrabedAGrowing(MachineOutsideGrower __instance)
-        {
-            return __instance != null;
         }
     }
 }

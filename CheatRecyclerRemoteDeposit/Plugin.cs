@@ -342,7 +342,7 @@ namespace CheatRecyclerRemoteDeposit
                                 {
                                     var wo = (WorldObject)item;
                                     Log("    Can't be deposited: " + toRecycleWo.GetId() + " - " + wo.GetId());
-                                    WorldObjectsHandler.Instance.DropOnFloor(wo, position, 0.6f);
+                                    WorldObjectsHandler.Instance.DropOnFloor(wo, position, 0.6f, dropSound: false);
                                 }
 
                             }

@@ -40,7 +40,7 @@ namespace UIContinue
 
         static IEnumerator DeferredBuildButtons()
         {
-            var playButton = GameObject.Find("ButtonPlay");
+            var playButton = GameObject.Find("ButtonIntroPlay");
 
             continueButton = Instantiate(playButton);
             continueButton.name = "ButtonContinue";
@@ -162,7 +162,7 @@ namespace UIContinue
                 lastSaveInfo = Instantiate(continueButton);
                 lastSaveInfo.name = "ContinueLastSaveInfo";
                 lastSaveInfo.transform.SetParent(continueButton.transform.parent.parent, false);
-                DestroyImmediate(lastSaveInfo.GetComponentInChildren<Image>());
+                lastSaveInfo.GetComponentsInChildren<Image>().Do(DestroyImmediate);
                 Destroy(lastSaveInfo.GetComponentInChildren<Button>());
                 Destroy(lastSaveInfo.GetComponentInChildren<LocalizedText>());
 
@@ -183,7 +183,7 @@ namespace UIContinue
                 lastSaveDate = Instantiate(continueButton);
                 lastSaveDate.name = "ContinueLastSaveDate";
                 lastSaveDate.transform.SetParent(continueButton.transform.parent.parent, false);
-                Destroy(lastSaveDate.GetComponentInChildren<Image>());
+                lastSaveDate.GetComponentsInChildren<Image>().Do(DestroyImmediate);
                 Destroy(lastSaveDate.GetComponentInChildren<Button>());
                 Destroy(lastSaveDate.GetComponentInChildren<LocalizedText>());
 

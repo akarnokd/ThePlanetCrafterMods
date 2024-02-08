@@ -44,13 +44,6 @@ namespace FeatSpaceCows
 
         static AccessTools.FieldRef<WorldObjectsHandler, List<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
 
-        /// <summary>
-        /// By default, the standard drop action creates a sound because it is not meant to be invoked
-        /// outside when the player drops items from their own inventory. Cows drop when drones & logistics
-        /// are enabled on them so that generates annoying drop sounds *at* the player.
-        /// </summary>
-        static bool suppressDropSound;
-
         private void Awake()
         {
             me = this;
@@ -364,18 +357,11 @@ namespace FeatSpaceCows
                             {
                                 var inst = WorldObjectsHandler.Instance;
 
-                                try
-                                {
-                                    suppressDropSound = true;
-                                    inst.DropOnFloor(content,
-                                        cow.body.transform.position
-                                        + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
-                                        + new Vector3(0, 0, 1));
-                                }
-                                finally
-                                {
-                                    suppressDropSound = false;
-                                }
+                                inst.DropOnFloor(content,
+                                    cow.body.transform.position
+                                    + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
+                                    + new Vector3(0, 0, 1), dropSound: false);
+
                                 fWorldObjectsHandlerItemsPickablesWorldObjects(inst).Add(content);
                             }
                         });
@@ -475,13 +461,6 @@ namespace FeatSpaceCows
                     __result.RemoveAt(i);
                 }
             }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(WorldObjectsHandler), "DropOnFloorServerRpc")]
-        static void WorldObjectsHandler_DropOnFloorServerRpc(ref bool dropSound)
-        {
-            dropSound = dropSound && !suppressDropSound;
         }
 
         [HarmonyPostfix]

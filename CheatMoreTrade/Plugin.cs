@@ -59,7 +59,7 @@ namespace CheatMoreTrade
         {
             foreach (var gr in ___groupsData)
             {
-                if (gr.associatedGameObject != null)
+                if (gr != null && gr.associatedGameObject != null)
                 {
                     if (tradeValues.TryGetValue(gr.id, out var value))
                     {
