@@ -286,13 +286,14 @@ namespace UIModConfigMenu
             if (coroutineRenderPluginListDelayed != null)
             {
                 img.StopCoroutine(coroutineRenderPluginListDelayed);
+                coroutineRenderPluginListDelayed = null;
             }
             coroutineRenderPluginListDelayed = img.StartCoroutine(RenderPluginListDelayed());
         }
         
         static IEnumerator RenderPluginListDelayed()
         {
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
             RenderPluginList();
         }
 

@@ -17,9 +17,11 @@ using System.Collections;
 
 namespace UIOverviewPanel
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uioverviewpanel", "(UI) Overview Panel", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modUiOverviewPanelGuid, "(UI) Overview Panel", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiOverviewPanelGuid = "akarnokd.theplanetcraftermods.uioverviewpanel";
+
         static Plugin me;
 
         static ConfigEntry<int> fontSize;
@@ -56,7 +58,8 @@ namespace UIOverviewPanel
             key = Config.Bind("General", "Key", "F1", "The keyboard key to toggle the panel (no modifiers)");
             updateFrequency = Config.Bind("General", "UpdateFrequency", 7, "How often to update the item statistics, in seconds");
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiOverviewPanelGuid, _ => PlanetLoader_HandleDataAfterLoad());
 
             Logger.LogInfo($"Plugin patches applied!");
         }
@@ -510,8 +513,6 @@ namespace UIOverviewPanel
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             if (statisticsUpdater != null)

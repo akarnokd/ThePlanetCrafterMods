@@ -17,10 +17,10 @@ using Unity.Netcode;
 
 namespace FeatSpaceCows
 {
-    [BepInPlugin(modGuid, "(Feat) Space Cows", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modFeatSpaceCowsGuid, "(Feat) Space Cows", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modGuid = "akarnokd.theplanetcraftermods.featspacecows";
+        const string modFeatSpaceCowsGuid = "akarnokd.theplanetcraftermods.featspacecows";
         
         const string funcAddRemoveSpaceCow = "SpaceCowAddRemove";
 
@@ -68,9 +68,11 @@ namespace FeatSpaceCows
 
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
-                ModNetworking.Init(modGuid, logger);
+                ModNetworking.Init(modFeatSpaceCowsGuid, logger);
                 ModNetworking.Patch(h);
                 ModNetworking.RegisterFunction(funcAddRemoveSpaceCow, OnAddRemoveSpaceCow);
+
+                ModPlanetLoaded.Patch(h, modFeatSpaceCowsGuid, _ => PlanetLoader_HandleDataAfterLoad());
             } 
             else
             {
@@ -426,8 +428,6 @@ namespace FeatSpaceCows
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             if (cowChecker != null)

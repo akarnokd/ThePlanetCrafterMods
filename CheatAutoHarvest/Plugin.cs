@@ -66,6 +66,7 @@ namespace CheatAutoHarvest
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoHarvest, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         static void LogAlgae(string s)
@@ -83,8 +84,6 @@ namespace CheatAutoHarvest
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             if (machineGrowerRoutine != null)

@@ -50,7 +50,8 @@ namespace UIPinRecipe
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiPinRecipeGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         void Start()
@@ -358,8 +359,6 @@ namespace UIPinRecipe
             ClearPinnedRecipes();
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             PlayersManager playersManager = Managers.GetManager<PlayersManager>();

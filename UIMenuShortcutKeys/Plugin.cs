@@ -15,10 +15,12 @@ using BepInEx.Bootstrap;
 
 namespace UIMenuShortcutKeys
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modUiMenuShortcutKeysGuid, "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiMenuShortcutKeysGuid = "akarnokd.theplanetcraftermods.uimenushortcutkeys";
+
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
 
         static ManualLogSource logger;
@@ -96,7 +98,8 @@ namespace UIMenuShortcutKeys
 
             modPinUnpinRecipePresent = Chainloader.PluginInfos.ContainsKey(modUiPinRecipeGuid);
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiMenuShortcutKeysGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         void Update()
@@ -386,8 +389,6 @@ namespace UIMenuShortcutKeys
             fPlayerEquipmentHasCleanConstructionChip(pm) = originalHasFilter;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             buildToggleFilterState = Managers.GetManager<PlayersManager>()

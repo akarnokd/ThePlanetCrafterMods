@@ -14,9 +14,11 @@ using BepInEx.Logging;
 
 namespace UIShowRocketCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modUiShowRocketCountGuid, "(UI) Show Rocket Counts", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiShowRocketCountGuid = "akarnokd.theplanetcraftermods.uishowrocketcount";
+
         static AccessTools.FieldRef<EventHoverShowGroup, Group> fEventHoverShowGroupAssociatedGroup;
         static ConfigEntry<int> fontSize;
         static ManualLogSource logger;
@@ -42,7 +44,8 @@ namespace UIShowRocketCount
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiShowRocketCountGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         static bool TryGetCountByGroupId(string groupId, out int c)
@@ -144,8 +147,6 @@ namespace UIShowRocketCount
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             rocketCountsByGroupId.Clear();

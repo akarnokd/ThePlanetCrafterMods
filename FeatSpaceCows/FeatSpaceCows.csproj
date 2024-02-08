@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatSpaceCows</AssemblyName>
     <Description>(Feat) Space Cows</Description>
-    <Version>1.0.0.10</Version>
+    <Version>1.0.0.11</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,6 +14,7 @@
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
 		<Compile Include="..\LibCommon\ModNetworking.cs" Link="ModNetworking.cs" />
+		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
 	</ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

@@ -148,5 +148,12 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Actionnable), "HandleHoverMaterial")]
+        static bool Actionnable_HandleHoverMaterial()
+        {
+            return Managers.GetManager<VisualsResourcesHandler>() != null;
+        }
     }
 }

@@ -11,9 +11,11 @@ using BepInEx.Logging;
 
 namespace CheatBirthday
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatbirthday", "(Cheat) Birthday", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modCheatBirthdayGuid, "(Cheat) Birthday", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatBirthdayGuid = "akarnokd.theplanetcraftermods.cheatbirthday";
+
         static ConfigEntry<bool> isEnabled;
 
         static ManualLogSource logger;
@@ -32,11 +34,10 @@ namespace CheatBirthday
             logger = Logger;
             me = this;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modCheatBirthdayGuid, PlanetLoader_HandleDataAfterLoad);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad(PlanetLoader __instance)
         {
             if (isEnabled.Value)

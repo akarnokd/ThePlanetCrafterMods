@@ -18,9 +18,11 @@ using Unity.Netcode;
 
 namespace FeatTechniciansExile
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.feattechniciansexile", "(Feat) Technicians Exile", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modFeatTechniciansExileGuid, "(Feat) Technicians Exile", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatTechniciansExileGuid = "akarnokd.theplanetcraftermods.feattechniciansexile";
+
         static ManualLogSource logger;
 
         internal static Texture2D technicianFront;
@@ -137,7 +139,8 @@ namespace FeatTechniciansExile
                 logger.LogWarning("Failed to create custom font, using the game's default font.");
             }
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var  h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modFeatTechniciansExileGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         static void AddTranslation(string dir, string language)
@@ -168,8 +171,6 @@ namespace FeatTechniciansExile
             return tex;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad()
         {
             logger.LogInfo("Start");
