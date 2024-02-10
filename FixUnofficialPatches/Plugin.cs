@@ -155,5 +155,15 @@ namespace FixUnofficialPatches
         {
             return Managers.GetManager<VisualsResourcesHandler>() != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.CreateNewSaveFile))]
+        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ___proceduralInstances)
+        {
+            if (___proceduralInstances == null)
+            {
+                ___proceduralInstances = [];
+            }
+        }
     }
 }

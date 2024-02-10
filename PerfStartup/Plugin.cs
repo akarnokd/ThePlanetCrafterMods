@@ -10,6 +10,7 @@ using BepInEx.Logging;
 using System;
 using System.Diagnostics;
 using BepInEx.Configuration;
+using System.Collections.Generic;
 
 namespace PerfStartup
 {
@@ -145,5 +146,16 @@ namespace PerfStartup
                 corrupt = true;
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.CreateNewSaveFile))]
+        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ___proceduralInstances)
+        {
+            if (___proceduralInstances == null)
+            {
+                ___proceduralInstances = [];
+            }
+        }
+
     }
 }

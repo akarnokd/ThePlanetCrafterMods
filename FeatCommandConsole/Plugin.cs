@@ -3384,6 +3384,69 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/get-portal-time", "Get the time remaining for the currently opened portal.")]
+        public void GetInstanceTime(List<string> _)
+        {
+            var wih = Managers.GetManager<WorldInstanceHandler>();
+            if (wih != null)
+            {
+                var inst = wih.GetOpenedWorldInstanceData();
+                if (inst != null)
+                {
+                    var curr = inst.GetTimeLeft();
+                    AddLine("<margin=1em>Portal remaining time <color=#00FF00>"
+                        + curr + "s (" + string.Format("{0}:{1:00}", curr / 60, curr % 60) + ")</color>"
+                    );
+                }
+                else
+                {
+                    AddLine("<margin=1em>No portal is open at the moment.");
+                }
+            }
+            else
+            {
+                AddLine("<margin=1em><color=#FF0000>Unable to query the current portal.</color>");
+            }
+        }
+
+        [Command("/set-portal-time", "Set the time remaining for the currently opened portal.")]
+        public void SetPortalTime(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                AddLine("<margin=1em>Set the time remaining for the currently opened portal.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/set-portal-time seconds</color> - set the time remaining to this new value");
+                AddLine("<margin=1em>See also: <color=#FFFF00>/get-portal-time</color>");
+            }
+            else
+            {
+                var wih = Managers.GetManager<WorldInstanceHandler>();
+                if (wih != null)
+                {
+                    var inst = wih.GetOpenedWorldInstanceData();
+                    if (inst != null)
+                    {
+                        var curr = inst.GetTimeLeft();
+                        var next = int.Parse(args[1]);
+                        inst.SetTimeLeft(next);
+                        AddLine("<margin=1em>Portal remaining time <color=#00FF00>" 
+                            + curr + "s (" + string.Format("{0}:{1:00}", curr / 60, curr % 60) + ")</color> -> <color=#00FF00>"
+                            + next + "s (" + string.Format("{0}:{1:00}", next / 60, curr % 60) + ")</color>"
+                        );
+                    }
+                    else
+                    {
+                        AddLine("<margin=1em>No portal is open at the moment.");
+                    }
+                }
+                else
+                {
+                    AddLine("<margin=1em><color=#FF0000>Unable to query the current portal.</color>");
+                }
+            }
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
