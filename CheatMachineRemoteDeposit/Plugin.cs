@@ -260,7 +260,7 @@ namespace CheatMachineRemoteDeposit
                 // Server side is responsible for the transfer.
                 if (InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
-                    Log("ClearMachineGeneratorInventory begin");
+                    Log("ClearMachineGeneratorInventory begin: " + _inventory.GetId());
                     var items = _inventory.GetInsideWorldObjects();
 
                     for (int i = items.Count - 1; i >= 0; i--)
@@ -270,11 +270,11 @@ namespace CheatMachineRemoteDeposit
                         var candidateInv = FindInventoryForOre(oreId);
                         if (candidateInv != null)
                         {
-                            Log("    Transfer of " + item.GetId() + "(" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
+                            Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
                             InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
                         }
                     }
-                    Log("ClearMachineGeneratorInventory end");
+                    Log("ClearMachineGeneratorInventory end: " + _inventory.GetId());
                 }
                 yield return wait;
             }
@@ -300,12 +300,12 @@ namespace CheatMachineRemoteDeposit
                         Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
                         if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))
                         {
-                            Log("    Found Inventory: " + candidateInventory.GetId());
-                            break;
+                            Log("    Found Inventory: " + candidateInventory.GetId() + " \"" + txt + "\"");
+                            return candidateInventory;
                         }
                         else
                         {
-                            Log("    This inventory is full: " + txt);
+                            Log("    This inventory is full: " + (candidateInventory?.GetId() ?? -1) + " \"" + txt + "\"");
                         }
                     }
                 }
