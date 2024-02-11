@@ -135,8 +135,8 @@ namespace CheatAutoHarvest
 
                     Action<string> log = gid.StartsWith("Algae") ? LogAlgae : LogFood;
 
-                    if ((gid.StartsWith("Algae") && harvestAlgae.Value)
-                        || (!gid.StartsWith("Algae") && harvestFood.Value))
+                    if ((gid.StartsWith("Algae") && gid.EndsWith("Seed") && harvestAlgae.Value)
+                        || (gid.StartsWith("Vegetable") && gid.EndsWith("Growable") && harvestFood.Value))
                     {
                         var ag = wo.GetGameObject().AsNullable()?.GetComponentInChildren<ActionGrabable>();
 
