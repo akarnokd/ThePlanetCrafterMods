@@ -72,5 +72,12 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(inventory.GetId());
             }
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoryShowContent), "RegisterToInventory")]
+        static void Patch_InventoryShowContent_RegisterToInventory(Inventory inventory)
+        {
+            noStackingInventories.Add(inventory.GetId());
+        }
     }
 }
