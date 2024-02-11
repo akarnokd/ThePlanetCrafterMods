@@ -65,7 +65,7 @@ namespace CheatInventoryStacking
                 {
                     if (____groupsWithNumber.TryGetValue(group, out var count))
                     {
-                        newCount = Math.Max(0, count - changeOfValue);
+                        newCount = Math.Max(0, count + changeOfValue);
                         ____groupsWithNumber[group] = newCount;
                     }
                     else
@@ -96,32 +96,32 @@ namespace CheatInventoryStacking
                                 stacks++;
                             }
                         }
-
-                        // the other items already make the inventory full, do nothing
-                        if (stacks >= inventory.GetSize())
-                        {
-                            return;
-                        }
-
-                        groupCurrent += changeOfValue;
-
-                        // how many stacks would the current group with the new amount use
-                        int groupCurrentStackUse = groupCurrent / n;
-                        if (groupCurrent % n != 0)
-                        {
-                            groupCurrentStackUse++;
-                        }
-
-                        // if it would create more stacks than the inventory capacity
-                        // change the count to be the available free stacks times the stack size
-                        if (stacks + groupCurrentStackUse > inventory.GetSize())
-                        {
-                            int freeStacks = inventory.GetSize() - stacks;
-                            groupCurrent = freeStacks * n;
-                        }
-                        newCount = groupCurrent;
-                        ____groupsWithNumber[group] = groupCurrent;
                     }
+
+                    // the other items already make the inventory full, do nothing
+                    if (stacks >= inventory.GetSize())
+                    {
+                        return;
+                    }
+
+                    groupCurrent += changeOfValue;
+
+                    // how many stacks would the current group with the new amount use
+                    int groupCurrentStackUse = groupCurrent / n;
+                    if (groupCurrent % n != 0)
+                    {
+                        groupCurrentStackUse++;
+                    }
+
+                    // if it would create more stacks than the inventory capacity
+                    // change the count to be the available free stacks times the stack size
+                    if (stacks + groupCurrentStackUse > inventory.GetSize())
+                    {
+                        int freeStacks = inventory.GetSize() - stacks;
+                        groupCurrent = freeStacks * n;
+                    }
+                    newCount = groupCurrent;
+                    ____groupsWithNumber[group] = groupCurrent;
                 }
 
                 List<Group> toLink = [];

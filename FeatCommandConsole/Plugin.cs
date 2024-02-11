@@ -747,7 +747,7 @@ namespace FeatCommandConsole
                         }
                     }
 
-                    var gid = args[1].ToLower(CultureInfo.InvariantCulture);
+                    var gid = args[1].ToLowerInvariant();
                     SpaceCraft.Group g = FindGroup(gid);
 
                     if (g == null)
@@ -1498,7 +1498,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gr = FindGroup(args[1]);
+                    var gr = FindGroup(args[1].ToLowerInvariant());
                     if (gr != null)
                     {
                         AddLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
@@ -1507,7 +1507,7 @@ namespace FeatCommandConsole
                     }
                     else
                     {
-                        DidYouMean(args[1], true, true);
+                        DidYouMean(args[1].ToLowerInvariant(), true, true);
                     }
                 }
             }
@@ -1553,7 +1553,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gr = FindGroup(args[1]);
+                    var gr = FindGroup(args[1].ToLowerInvariant());
                     if (gr != null)
                     {
                         AddLine("<margin=1em>Unlocked: <color=#FFFFFF>" + gr.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(gr) + "\"");
@@ -1562,7 +1562,7 @@ namespace FeatCommandConsole
                     }
                     else
                     {
-                        DidYouMean(args[1], true, true);
+                        DidYouMean(args[1].ToLowerInvariant(), true, true);
                     }
                 }
             }
@@ -1626,13 +1626,17 @@ namespace FeatCommandConsole
                 similar.Sort();
                 Colorize(similar, "#00FF00");
 
-                if (isStructure)
+                if (isStructure && !isItem)
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
                 }
-                else
+                if (isItem && !isStructure)
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
+                }
+                else
+                {
+                    AddLine("<margin=1em><color=#FF0000>Unknown item or structure.</color> Did you mean?");
                 }
                 foreach (var line in JoinPerLine(similar, 5))
                 {
@@ -1641,13 +1645,17 @@ namespace FeatCommandConsole
             }
             else
             {
-                if (isStructure)
+                if (isStructure && !isItem)
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown structure.</color>");
                 }
-                else
+                else if (isItem && !isStructure)
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown item.</color>");
+                }
+                else
+                {
+                    AddLine("<margin=1em><color=#FF0000>Unknown item or structure.</color>");
                 }
             }
 
@@ -1665,10 +1673,10 @@ namespace FeatCommandConsole
             }
             else
             {
-                var gr = FindGroup(args[1]);
+                var gr = FindGroup(args[1].ToLowerInvariant());
                 if (gr == null)
                 {
-                    DidYouMean(args[1], true, true);
+                    DidYouMean(args[1].ToLowerInvariant(), true, true);
                 }
                 else
                 {
@@ -1683,7 +1691,7 @@ namespace FeatCommandConsole
                     AddLine("<margin=2em><b>At:</b> <color=#00FF00>" + string.Format("{0:#,##0}", unlockInfo.GetUnlockingValue()) + " " + unlockInfo.GetWorldUnit());
                     if (gr is GroupItem gi)
                     {
-                        AddLine("<margin=1em><b>Class:</b> Item");
+                        AddLine("<margin=1em><b>Class:</b> <color=#00FF00>Item");
                         if (gi.GetUsableType() != DataConfig.UsableType.Null)
                         {
                             AddLine("<margin=2em><b>Usable:</b> " + gi.GetUsableType());
@@ -1757,7 +1765,7 @@ namespace FeatCommandConsole
                     }
                     else if (gr is GroupConstructible gc)
                     {
-                        AddLine("<margin=1em><b>Class:</b> Building");
+                        AddLine("<margin=1em><b>Class:</b> <color=#00FF00>Building");
                         AddLine("<margin=1em><b>Category:</b> <color=#00FF00>" + gc.GetGroupCategory());
                         if (gc.GetWorldUnitMultiplied() != DataConfig.WorldUnitType.Null)
                         {
@@ -2181,7 +2189,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var gid = args[1].ToLower(CultureInfo.InvariantCulture);
+                    var gid = args[1].ToLowerInvariant();
                     SpaceCraft.Group g = FindGroup(gid);
                     if (g == null)
                     {
@@ -3095,10 +3103,10 @@ namespace FeatCommandConsole
             }
             else
             {
-                var gr = FindGroup(args[1]);
+                var gr = FindGroup(args[1].ToLowerInvariant());
                 if (gr == null)
                 {
-                    DidYouMean(args[1], false, true);
+                    DidYouMean(args[1].ToLowerInvariant(), false, true);
                 }
                 else
                 {
@@ -3555,7 +3563,7 @@ namespace FeatCommandConsole
             List<string> result = [];
             foreach (var text in texts)
             {
-                if (text.ToLower(CultureInfo.InvariantCulture).Contains(userText))
+                if (text.ToLowerInvariant().Contains(userText))
                 {
                     result.Add(text);
                 }
