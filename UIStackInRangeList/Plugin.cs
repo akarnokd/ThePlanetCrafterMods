@@ -19,6 +19,7 @@ namespace UIStackInRangeList
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> stackPins;
+        static ConfigEntry<bool> stackPortals;
 
         static ManualLogSource logger;
 
@@ -42,6 +43,7 @@ namespace UIStackInRangeList
             fontSize = Config.Bind("General", "FontSize", 15, "Font size");
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             stackPins = Config.Bind("General", "StackPins", false, "Stack the ingredients of the pinned recipes?");
+            stackPortals = Config.Bind("General", "StackPortals", false, "Stack the requirements for opening a portal?");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -65,6 +67,11 @@ namespace UIStackInRangeList
             {
                 if (__instance.GetComponentInParent<CanvasPinedRecipes>() != null
                     && !stackPins.Value) 
+                {
+                    return true;
+                }
+                if (__instance.GetComponentInParent<UiWorldInstanceSelector>() != null 
+                    && !stackPortals.Value)
                 {
                     return true;
                 }
