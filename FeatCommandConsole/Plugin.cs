@@ -1630,6 +1630,7 @@ namespace FeatCommandConsole
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown structure.</color> Did you mean?");
                 }
+                else
                 if (isItem && !isStructure)
                 {
                     AddLine("<margin=1em><color=#FF0000>Unknown item.</color> Did you mean?");
@@ -3455,6 +3456,73 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/ingredients-for", "Spawn in the ingredients to craft/build an item.")]
+        public void IngredientsFor(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                AddLine("<margin=1em>Spawn in the ingredients to craft/build an item.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/ingredients-for itemid [count]</color> - get the ingredients x count for the given item id");
+            }
+            else
+            {
+                {
+                    var gid = args[1].ToLowerInvariant();
+                    SpaceCraft.Group g = FindGroup(gid);
+                    if (g == null)
+                    {
+                        DidYouMean(gid, true, true);
+                    }
+                    else
+                    {
+                        var player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                        var inv = player.GetPlayerBackpack().GetInventory();
+
+                        var recipe = g.GetRecipe().GetIngredientsGroupInRecipe();
+
+                        int n = 1;
+                        if (args.Count > 2)
+                        {
+                            n = int.Parse(args[2]);
+                        }
+                        var full = false;
+                        for (int k = 0; k < n; k++)
+                        {
+                            foreach (var ri in recipe)
+                            {
+                                if (!TryAddToInventory(inv, ri))
+                                {
+                                    full = true;
+                                    break;
+                                }
+                                AddLine("<margin=2em>" + n + " x <color=#FFFFFF>" + ri.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(ri) + "\"");
+                            }
+                            if (full)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (full)
+                        {
+                            AddLine("<color=#FF0000>Inventory full.");
+                        }
+                        else
+                        {
+                            if (recipe.Count != 0)
+                            {
+                                AddLine("<margin=1em>Items added");
+                            }
+                            else
+                            {
+                                AddLine("<margin=1em>This item does not have a recipe.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
