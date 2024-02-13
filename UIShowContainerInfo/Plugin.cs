@@ -24,7 +24,7 @@ namespace UIShowContainerInfo
         static Func<IEnumerable<WorldObject>, int> getStackCount;
 
         static ConfigEntry<int> stackSizeConfig;
-        static HashSet<int> noStackingInventories;
+        static Func<int, bool> apiCanStack;
 
         static MethodInfo mActionableHandleHoverMaterial;
         static AccessTools.FieldRef<Actionnable, bool> fActionableHovering;
@@ -44,7 +44,7 @@ namespace UIShowContainerInfo
 
                 getStackCount = (Func<IEnumerable<WorldObject>, int>)AccessTools.Field(modType, "apiGetStackCount").GetValue(null);
                 stackSizeConfig = (ConfigEntry<int>)AccessTools.Field(modType, "stackSize").GetValue(null);
-                noStackingInventories = (HashSet<int>)AccessTools.Field(modType, "noStackingInventories").GetValue(null);
+                apiCanStack = (Func<int, bool>)AccessTools.Field(modType, "apiCanStack").GetValue(null);
             }
             else
             {
@@ -98,7 +98,7 @@ namespace UIShowContainerInfo
                     int count = inv.Count;
                     int size = inventory.GetSize();
 
-                    if (getStackCount != null && !noStackingInventories.Contains(inventory.GetId()))
+                    if (getStackCount != null && apiCanStack(inventory.GetId()))
                     {
                         int stacks = getStackCount(inv);
                         int slotSize = stackSizeConfig.Value;
