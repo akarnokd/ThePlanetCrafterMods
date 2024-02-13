@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UIOverviewPanel</AssemblyName>
     <Description>(UI) Overview Panel</Description>
-    <Version>1.0.0.20</Version>
+    <Version>1.0.0.21</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

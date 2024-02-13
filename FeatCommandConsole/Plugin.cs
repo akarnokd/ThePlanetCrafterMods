@@ -206,7 +206,8 @@ namespace FeatCommandConsole
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         static void Log(object o)
@@ -1346,16 +1347,16 @@ namespace FeatCommandConsole
 
             List<List<GroupData>> tiers =
             [
-                unlock.tier1GroupToUnlock,
-                unlock.tier2GroupToUnlock,
-                unlock.tier3GroupToUnlock,
-                unlock.tier4GroupToUnlock,
-                unlock.tier5GroupToUnlock,
-                unlock.tier6GroupToUnlock,
-                unlock.tier7GroupToUnlock,
-                unlock.tier8GroupToUnlock,
-                unlock.tier9GroupToUnlock,
-                unlock.tier10GroupToUnlock,
+                unlock.unlockingData.tier1GroupToUnlock,
+                unlock.unlockingData.tier2GroupToUnlock,
+                unlock.unlockingData.tier3GroupToUnlock,
+                unlock.unlockingData.tier4GroupToUnlock,
+                unlock.unlockingData.tier5GroupToUnlock,
+                unlock.unlockingData.tier6GroupToUnlock,
+                unlock.unlockingData.tier7GroupToUnlock,
+                unlock.unlockingData.tier8GroupToUnlock,
+                unlock.unlockingData.tier9GroupToUnlock,
+                unlock.unlockingData.tier10GroupToUnlock,
             ];
 
             for (int i = 0; i < tiers.Count; i++)
@@ -1391,16 +1392,16 @@ namespace FeatCommandConsole
 
             List<List<GroupData>> tiers =
             [
-                unlock.tier1GroupToUnlock,
-                unlock.tier2GroupToUnlock,
-                unlock.tier3GroupToUnlock,
-                unlock.tier4GroupToUnlock,
-                unlock.tier5GroupToUnlock,
-                unlock.tier6GroupToUnlock,
-                unlock.tier7GroupToUnlock,
-                unlock.tier8GroupToUnlock,
-                unlock.tier9GroupToUnlock,
-                unlock.tier10GroupToUnlock,
+                unlock.unlockingData.tier1GroupToUnlock,
+                unlock.unlockingData.tier2GroupToUnlock,
+                unlock.unlockingData.tier3GroupToUnlock,
+                unlock.unlockingData.tier4GroupToUnlock,
+                unlock.unlockingData.tier5GroupToUnlock,
+                unlock.unlockingData.tier6GroupToUnlock,
+                unlock.unlockingData.tier7GroupToUnlock,
+                unlock.unlockingData.tier8GroupToUnlock,
+                unlock.unlockingData.tier9GroupToUnlock,
+                unlock.unlockingData.tier10GroupToUnlock,
             ];
 
             string prefix = "";
@@ -1460,16 +1461,16 @@ namespace FeatCommandConsole
 
                     List<GroupData> tiers =
                     [
-                        .. unlock.tier1GroupToUnlock,
-                        .. unlock.tier2GroupToUnlock,
-                        .. unlock.tier3GroupToUnlock,
-                        .. unlock.tier4GroupToUnlock,
-                        .. unlock.tier5GroupToUnlock,
-                        .. unlock.tier6GroupToUnlock,
-                        .. unlock.tier7GroupToUnlock,
-                        .. unlock.tier8GroupToUnlock,
-                        .. unlock.tier9GroupToUnlock,
-                        .. unlock.tier10GroupToUnlock,
+                        .. unlock.unlockingData.tier1GroupToUnlock,
+                        .. unlock.unlockingData.tier2GroupToUnlock,
+                        .. unlock.unlockingData.tier3GroupToUnlock,
+                        .. unlock.unlockingData.tier4GroupToUnlock,
+                        .. unlock.unlockingData.tier5GroupToUnlock,
+                        .. unlock.unlockingData.tier6GroupToUnlock,
+                        .. unlock.unlockingData.tier7GroupToUnlock,
+                        .. unlock.unlockingData.tier8GroupToUnlock,
+                        .. unlock.unlockingData.tier9GroupToUnlock,
+                        .. unlock.unlockingData.tier10GroupToUnlock,
                     ];
 
                     var prefix = "";

@@ -51,7 +51,7 @@ namespace UIShowContainerInfo
                 Logger.LogInfo("Mod " + modInventoryStackingGuid + " not found");
             }
 
-            mActionableHandleHoverMaterial = AccessTools.Method(typeof(Actionnable), "HandleHoverMaterial", [typeof(bool), typeof(GameObject)]);
+            mActionableHandleHoverMaterial = AccessTools.Method(typeof(Actionnable), "HandleHoverMaterial", [typeof(bool)]);
             fActionableHovering = AccessTools.FieldRefAccess<Actionnable, bool>("_hovering");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -137,7 +137,7 @@ namespace UIShowContainerInfo
                     }
                     // this.HandleHoverMaterial(true, null);
                     
-                    mActionableHandleHoverMaterial.Invoke(__instance, [true, null]);
+                    mActionableHandleHoverMaterial.Invoke(__instance, [true]);
 
                     // this._hovering = true;
                     fActionableHovering.Invoke(__instance) = true;

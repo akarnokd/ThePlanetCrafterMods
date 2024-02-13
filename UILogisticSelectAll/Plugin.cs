@@ -26,11 +26,11 @@ namespace UILogisticSelectAll
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(GroupSelector), "Start")]
-        static void GroupSelector_Start(GroupSelector __instance, List<Group> ___addedGroups)
+        static void GroupSelector_Start(GroupSelector __instance, List<Group> ____addedGroups)
         {
             var kw = __instance.gameObject.AddComponent<KeyboardWatcher>();
             kw.selector = __instance;
-            kw.addedGroups = ___addedGroups;
+            kw.addedGroups = ____addedGroups;
         }
 
         static bool suppressSanitizeAndUiUpdates;
