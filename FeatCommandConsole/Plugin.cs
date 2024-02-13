@@ -2063,9 +2063,9 @@ namespace FeatCommandConsole
                 string[] titles = ["Common", "Uncommon", "Rare", "Very Rare", "Ultra Rare"];
                 List<List<GroupData>> gs =
                 [
-                    ils.commonItems, ils.unCommonItems, ils.rareItems, ils.veryRareItems, ils.ultraRareItems
+                    ils.commonItems ?? [], ils.unCommonItems ?? [], ils.rareItems ?? [], ils.veryRareItems ?? [], ils.ultraRareItems ?? []
                 ];
-                float boostAmount = (float)AccessTools.Field(typeof(InventoryLootStage), "boostedMultiplier").GetValue(ils);
+                var boostAmount = (int)AccessTools.Field(typeof(InventoryLootStage), "defaultBoostedMultiplier").GetValue(ils);
 
                 List<float> chances =
                 [
@@ -2078,7 +2078,7 @@ namespace FeatCommandConsole
 
                 for (int i = 0; i < titles.Length; i++)
                 {
-                    AddLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + boostAmount + ")");
+                    AddLine("<margin=2em><b>" + titles[i] + "</b> (Chance: " + chances[i] + " %, Boost multiplier: " + ((boostAmount + 2) / 3) + ")");
                     foreach (GroupData g in gs[i])
                     {
                         AddLine("<margin=3em><color=#00FF00>" + g.id + " \"" + Readable.GetGroupName(GroupsHandler.GetGroupViaId(g.id)) + "\"");
