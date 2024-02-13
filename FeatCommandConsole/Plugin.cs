@@ -3525,6 +3525,192 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/get-color", "Returns the color of a given world object.")]
+        public void GetColor(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                AddLine("<margin=1em>Returns the color of a given world object.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/get-color id</color> - get the color of a given world object");
+                AddLine("<margin=1em>See also: <color=#FFFF00>/set-color</color>");
+            }
+            else
+            {
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(int.Parse(args[1]));
+                if (wo != null)
+                {
+                    var color = wo.GetColor();
+                    AddLine("<margin=1em>" + args[1] + ": <color=#00FF00>" + wo.GetGroup().id + " \"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
+                    AddLine("<margin=2em>Color: " + FormatColor(color));
+
+                }
+                else
+                {
+                    AddLine("<color=#FF0000>Unknown world object.");
+                }
+            }
+        }
+
+        [Command("/set-color", "Sets the color of a given world object.")]
+        public void SetColor(List<string> args)
+        {
+            if (args.Count <= 2)
+            {
+                AddLine("<margin=1em>Returns the color of a given world object.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/set-color id #00000000</color> - set the color to an ARGB hex value");
+                AddLine("<margin=2em><color=#FFFF00>/set-color id 0 0 0 0</color> - set the color to an ARGB with values between 0-255");
+                AddLine("<margin=2em><color=#FFFF00>/set-color id 0.0 0.0 0.0 0.0</color> - set the color to an ARGB with values between 0.0-1.0");
+                AddLine("<margin=1em>See also: <color=#FFFF00>/get-color</color>");
+            }
+            else
+            {
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(int.Parse(args[1]));
+                if (wo != null)
+                {
+                    var color = wo.GetColor();
+                    AddLine("<margin=1em>" + args[1] + ": <color=#00FF00>" + wo.GetGroup().id + " \"" + Readable.GetGroupName(wo.GetGroup()) + "\"");
+                    AddLine("<margin=2em>Previous color: " + FormatColor(color));
+
+                    if (args.Count == 3 && args[2].Length >= 8)
+                    {
+                        var colorStr = args[2];
+                        if (colorStr.StartsWith('#'))
+                        {
+                            colorStr = colorStr[..^1];
+                        }
+                        var a = int.Parse(colorStr[..2], NumberStyles.HexNumber) / 255f;
+                        var r = int.Parse(colorStr.Substring(2, 2), NumberStyles.HexNumber) / 255f;
+                        var g = int.Parse(colorStr.Substring(4, 2), NumberStyles.HexNumber) / 255f;
+                        var b = int.Parse(colorStr.Substring(6, 2), NumberStyles.HexNumber) / 255f;
+
+                        color = new Color(r, g, b, a);
+                        UpdateWoColor();
+                    }
+                    else if (args.Count == 6)
+                    {
+                        if (args[2].Contains('.'))
+                        {
+                            var a = float.Parse(args[2], CultureInfo.InvariantCulture);
+                            var r = float.Parse(args[3], CultureInfo.InvariantCulture);
+                            var g = float.Parse(args[4], CultureInfo.InvariantCulture);
+                            var b = float.Parse(args[5], CultureInfo.InvariantCulture);
+
+                            color = new Color(r, g, b, a);
+                            UpdateWoColor();
+                        }
+                        else
+                        {
+                            var a = int.Parse(args[2]) / 255f;
+                            var r = int.Parse(args[3]) / 255f;
+                            var g = int.Parse(args[4]) / 255f;
+                            var b = int.Parse(args[5]) / 255f;
+
+                            color = new Color(r, g, b, a);
+                            UpdateWoColor();
+                        }
+                    }
+                    else
+                    {
+                        AddLine("<color=#FF0000>Wrong color parameter(s).");
+                    }
+
+                    void UpdateWoColor()
+                    {
+                        wo.SetColor(color);
+                        var go = wo.GetGameObject();
+                        if (go != null)
+                        {
+                            var cp = go.GetComponent<ColorProxy>();
+                            if (cp != null)
+                            {
+                                cp.SetColor(color);
+                            }
+                        }
+                        AddLine("<margin=2em>New color: " + FormatColor(color));
+                    }
+                }
+                else
+                {
+                    AddLine("<color=#FF0000>Unknown world object.");
+                }
+            }
+        }
+
+        string FormatColor(Color color)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "#{0:X2}{1:X2}{2:X2}{3:X2} ---- {0}, {1}, {2}, {3} ---- {4:0.0###}, {5:0.0###}, {6:0.0###}, {7:0.0###}",
+                                (int)(color.a * 255), (int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255),
+                                color.a, color.r, color.g, color.b
+                                );
+        }
+
+        [Command("/pick", "Returns the first world object id in the line of sight of the player.")]
+        public void Pick(List<string> args)
+        {
+            DoPick(args, false);
+        }
+
+        [Command("/pick-all", "Returns all the world object ids in the line of sight of the player.")]
+        public void PickAll(List<string> args)
+        {
+            DoPick(args, true);
+        }
+
+        void DoPick(List<string> args, bool all)
+        {
+            var range = 30f;
+            if (args.Count >= 2)
+            {
+                range = float.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+
+            HashSet<int> seen = [];
+
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            if (pm != null)
+            {
+                var ac = pm.GetAimController();
+                if (ac != null)
+                {
+                    var pt = ac.GetAimRay();
+
+                    var hits = Physics.RaycastAll(pt, range, ~LayerMask.GetMask(GameConfig.commonIgnoredAndWater));
+
+                    foreach (var hit in hits)
+                    {
+                        var go = hit.transform.gameObject;
+
+                        var woa = go.GetComponentInParent<WorldObjectAssociated>()
+                            ?? GetComponentInChildren<WorldObjectAssociated>();
+                        if (woa != null)
+                        {
+                            var wo = woa.GetWorldObject();
+                            if (wo != null)
+                            {
+                                if (seen.Add(wo.GetId()))
+                                {
+                                    AddLine("<margin=1em>" + wo.GetId() + ": <color=#00FF00>"
+                                        + wo.GetGroup().id + " \"" + Readable.GetGroupName(wo.GetGroup())
+                                        + "\" @ " + string.Format("{0:#.##} m", hit.distance));
+                                    if (!all)
+                                    {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (seen.Count == 0)
+            {
+                AddLine("<color=#FF0000>No world object found.");
+            }
+        }
+
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
         static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
