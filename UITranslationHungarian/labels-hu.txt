@@ -1151,3 +1151,6 @@ GROUP_NAME_Frog13Eggs=Jumi békapete
 GROUP_DESC_Frog13Eggs=
 GROUP_NAME_Frog12Eggs=Leglus békapete
 GROUP_DESC_Frog12Eggs=
+GROUP_NAME_GoldenEffigie8=Aranyfigura
+GROUP_NAME_HologramGenerator=Hologram kivetítő
+GROUP_DESC_HologramGenerator=Helyezz bele egy tárgyat a hologramjának kivetítéséhez 
