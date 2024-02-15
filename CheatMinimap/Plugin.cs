@@ -300,7 +300,7 @@ namespace CheatMinimap
             {
                 foreach (var id in FindObjectsByType<ActionDeconstructible>(FindObjectsSortMode.None))
                 {
-                    if (id.transform.parent.name.Contains("WreckServer"))
+                    if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
                     {
                         chests.Add(id.transform.parent.gameObject);
                     }
