@@ -75,6 +75,8 @@ namespace LibCommon
             "Frog10Eggs",
             "FrogGoldEggs",
             "Frog11Eggs",
+            "Frog12Eggs",
+            "Frog13Eggs"
         ]);
     }
 }

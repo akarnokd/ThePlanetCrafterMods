@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatMinimap</AssemblyName>
     <Description>(Cheat) Minimap</Description>
-    <Version>1.0.0.33</Version>
+    <Version>1.0.0.34</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -32,22 +32,37 @@
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 
 	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"

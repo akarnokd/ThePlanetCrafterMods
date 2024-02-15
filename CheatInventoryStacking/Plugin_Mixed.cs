@@ -79,5 +79,12 @@ namespace CheatInventoryStacking
         {
             noStackingInventories.Add(inventory.GetId());
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoryLockContent), "FirstInventoryCheck")]
+        static void Patch_InventoryLockContent_FirstInventoryCheck(Inventory ____inventory)
+        {
+            noStackingInventories.Add(____inventory.GetId());
+        }
     }
 }

@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using System.Collections;
 using UnityEngine.InputSystem.Controls;
+using Unity.Netcode;
 
 namespace CheatMinimap
 {
@@ -24,18 +25,33 @@ namespace CheatMinimap
         Texture2D marker2;
         Texture2D chest;
         Texture2D golden;
+        Texture2D ladder;
+        Texture2D server;
+        Texture2D below;
+        Texture2D above;
+        Texture2D safe;
+        Texture2D outOfBoundsTexture;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
         ConfigEntry<int> mapPanelLeft;
         ConfigEntry<int> zoomLevel;
+        ConfigEntry<int> maxZoomLevel;
         ConfigEntry<string> toggleKey;
         ConfigEntry<int> zoomInMouseButton;
         ConfigEntry<int> zoomOutMouseButton;
         ConfigEntry<int> autoScanForChests;
         ConfigEntry<int> fixedRotation;
+        
+        static ConfigEntry<bool> showLadders;
+        static ConfigEntry<bool> showServers;
+        static ConfigEntry<bool> showSafes;
+
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
+
+        static ConfigEntry<string> outOfBoundsColor;
+        static string lastOutOfBoundsColor;
 
         static bool mapVisible = true;
         static int autoScanEnabled = 0;
@@ -60,11 +76,18 @@ namespace CheatMinimap
             marker2 = LoadPNG(Path.Combine(dir, "player_marker_2.png"));
             chest = LoadPNG(Path.Combine(dir, "chest.png"));
             golden = LoadPNG(Path.Combine(dir, "chest_golden.png"));
+            ladder = LoadPNG(Path.Combine(dir, "ladder.png"));
+            server = LoadPNG(Path.Combine(dir, "server.png"));
+            above = LoadPNG(Path.Combine(dir, "above.png"));
+            below = LoadPNG(Path.Combine(dir, "below.png"));
+            safe = LoadPNG(Path.Combine(dir, "safe.png"));
+            outOfBoundsTexture = new Texture2D(1, 1);
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
             mapPanelLeft = Config.Bind("General", "MapLeft", 0, "Panel position from the left of the screen");
             zoomLevel = Config.Bind("General", "ZoomLevel", 4, "The zoom level");
+            maxZoomLevel = Config.Bind("General", "MaxZoomLevel", 13, "The maximum zoom level");
             toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
             zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
@@ -73,6 +96,10 @@ namespace CheatMinimap
             photographMap = Config.Bind("General", "PhotographMap", false, "Not meant for end-users. (Photographs the map when pressing U for development purposes.)");
             mapManualVisible = Config.Bind("General", "MapVisible", true, "Should the map be visible?");
             fontSize = Config.Bind("General", "FontSize", 16, "The size of the names of other players, use 0 to disable showing their name.");
+            showLadders = Config.Bind("General", "ShowWreckLadders", true, "Show the ladders in the procedural wrecks?");
+            showServers = Config.Bind("General", "ShowServers", true, "Show the server racks?");
+            showSafes = Config.Bind("General", "ShowSafes", true, "Show the wreck safes?");
+            outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
 
             self = this;
 
@@ -132,23 +159,23 @@ namespace CheatMinimap
 
                 if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
-                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, maxZoomLevel.Value);
                 }
                 if (MouseButtonForIndex(zoomOutMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
-                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, maxZoomLevel.Value);
                 }
 
                 if (Keyboard.current[k].wasPressedThisFrame)
                 {
                     if (Keyboard.current[Key.LeftShift].isPressed)
                     {
-                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, maxZoomLevel.Value);
                     }
                     else
                     if (Keyboard.current[Key.LeftCtrl].isPressed)
                     {
-                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, maxZoomLevel.Value);
                     }
                     else
                     if (Keyboard.current[Key.LeftAlt].isPressed)
@@ -200,9 +227,43 @@ namespace CheatMinimap
                 try
                 {
                     var go = ia.gameObject;
-                    if (go.name.Contains("WorldContainer") || go.name.Contains("GoldenContainer") || go.name.Contains("WorldCanister"))
+                    if (go.name.Contains("WorldContainer") 
+                        || go.name.Contains("GoldenContainer") 
+                        || go.name.Contains("WorldCanister")
+                        || go.name.Contains("WreckContainer")
+                        || go.name.Contains("WreckCanister")
+                    )
                     {
                         chests.Add(go);
+                    }
+                    else if (go.name.Contains("WreckSafe") && showSafes.Value)
+                    {
+                        var invAssoc = go.GetComponentInParent<InventoryAssociated>();
+                        var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
+
+                        if (invAssoc != null && (invAssocProxy == null || (NetworkManager.Singleton?.IsServer ?? false)))
+                        {
+                            var id = invAssoc.GetInventoryId();
+                            if (id > 0)
+                            {
+                                var inv = InventoriesHandler.Instance.GetInventoryById(id);
+                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                {
+                                    chests.Add(go);
+                                }
+                            }
+                        }
+                        else if (invAssocProxy != null)
+                        {
+                            var go1 = go;
+                            invAssocProxy.GetInventory((inv, wo) =>
+                            {
+                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                {
+                                    chests.Add(go1);
+                                }
+                            });
+                        }
                     }
                 }
                 catch
@@ -210,6 +271,42 @@ namespace CheatMinimap
                     // some kind of despawn?
                 }
             }
+            if (showLadders.Value)
+            {
+                var ladderSet = new HashSet<GameObject>();
+                foreach (var am in FindObjectsByType<ActionMovePlayer>(FindObjectsSortMode.None))
+                {
+                    if (am != null && am.transform.parent != null 
+                        && am.transform.parent.parent != null
+                        && am.transform.parent.parent.gameObject.name.Contains("LadderWreck"))
+                    {
+                        var go = am.transform.parent.parent.gameObject;
+                        if (ladderSet.Add(go))
+                        {
+                            chests.Add(go);
+                        }
+                    }
+                    if (am != null && am.gameObject.name.Contains("ladder_"))
+                    {
+                        var go = am.transform.parent.gameObject;
+                        if (ladderSet.Add(go))
+                        {
+                            chests.Add(go);
+                        }
+                    }
+                }
+            }
+            if (showServers.Value)
+            {
+                foreach (var id in FindObjectsByType<ActionDeconstructible>(FindObjectsSortMode.None))
+                {
+                    if (id.transform.parent.name.Contains("WreckServer"))
+                    {
+                        chests.Add(id.transform.parent.gameObject);
+                    }
+                }
+            }
+
             if (autoScanEnabled == 0)
             {
                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
@@ -225,12 +322,16 @@ namespace CheatMinimap
                 WindowsHandler wh = Managers.GetManager<WindowsHandler>();
                 if (player != null && wh != null && !wh.GetHasUiOpen())
                 {
+                    UpdateOutOfBoundsTexture();
+
                     int panelWidth = mapSize.Value;
 
                     float angle = player.transform.eulerAngles.y;
                     var minimapRect = new Rect(mapPanelLeft.Value, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
                     var mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
                     float zoom = zoomLevel.Value;
+
+                    var playerY = player.transform.position.y;
 
                     Texture2D theMap = barren;
 
@@ -294,6 +395,8 @@ namespace CheatMinimap
                     float rotateAround = fixRot >= 0 ? fixedAngle : -angle;
                     GUIUtility.RotateAroundPivot(rotateAround, mapCenter);
 
+                    GUI.DrawTexture(new Rect(0, 0, minimapRect.width, minimapRect.height), outOfBoundsTexture, ScaleMode.ScaleAndCrop, true);
+
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
@@ -308,18 +411,51 @@ namespace CheatMinimap
 
                                 float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
                                 float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
+                                int chestW = 12;
+                                int chestH = 10;
 
                                 Texture2D img;
-                                if (go.name.Contains("GoldenContainer"))
+                                var nm = go.name;
+                                if (nm.Contains("Ladder", System.StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    img = ladder;
+                                    chestW = 10;
+                                    chestH = 20;
+                                }
+                                else if (nm.Contains("WreckServer"))
+                                {
+                                    img = server;
+                                    chestW = 10;
+                                    chestH = 15;
+                                }
+                                else if (nm.Contains("GoldenContainer"))
                                 {
                                     img = golden;
+                                }
+                                else if (nm.Contains("WreckSafe"))
+                                {
+                                    img = safe;
+                                    chestW = 16;
+                                    chestH = 16;
                                 }
                                 else
                                 {
                                     img = chest;
                                 }
 
-                                GUI.DrawTexture(new Rect(chestX - 6, chestY - 5, 12, 10), img, ScaleMode.ScaleAndCrop, true);
+                                GUI.DrawTexture(new Rect(chestX - chestW / 2, chestY - chestH / 2, chestW, chestH), img, ScaleMode.ScaleAndCrop, true);
+
+                                if (playerY + 1.5 < vec.y)
+                                {
+                                    GUI.DrawTexture(new Rect(chestX - 5, chestY - chestH / 2 - 8, 10, 6), above, ScaleMode.ScaleAndCrop, true);
+                                }
+
+                                if (playerY - 0.5 > vec.y)
+                                {
+                                    GUI.DrawTexture(new Rect(chestX - 5, chestY + chestH / 2 + 2, 10, 6), below, ScaleMode.ScaleAndCrop, true);
+                                }
+
+                                //Logger.LogInfo("Chest " + vec + " rendered at " + chestX + ", " + chestY);
                             }
                             else
                             {
@@ -385,6 +521,32 @@ namespace CheatMinimap
                     GUIUtility.RotateAroundPivot(angle, mapCenter);
                     GUI.DrawTexture(new Rect(panelWidth / 2 - 8, panelWidth / 2 - 8, 16, 16), marker, ScaleMode.ScaleAndCrop, true);
                     GUI.EndGroup();
+                }
+            }
+        }
+
+        void UpdateOutOfBoundsTexture()
+        {
+            if (lastOutOfBoundsColor != outOfBoundsColor.Value)
+            {
+                lastOutOfBoundsColor = outOfBoundsColor.Value;
+
+                try
+                {
+                    var parts = lastOutOfBoundsColor.Split(',');
+                    var a = int.Parse(parts[0]);
+                    var r = int.Parse(parts[1]);
+                    var g = int.Parse(parts[2]);
+                    var b = int.Parse(parts[3]);
+
+                    var color = new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+
+                    outOfBoundsTexture.SetPixel(0, 0, color);
+                    outOfBoundsTexture.Apply();
+                }
+                catch
+                {
+                    // we ignore the parsing errors for now
                 }
             }
         }
