@@ -116,7 +116,11 @@ namespace CheatWreckMap
                                                 cellGrid[cy] = cgr;
                                             }
 
-                                            cgr.Add((cx, cz));
+                                            foreach (var offset in tess.sylvesOffsets)
+                                            {
+
+                                                cgr.Add((cx + offset.x, cz + offset.z));
+                                            }
 
                                             if (mapVisible.Value)
                                             {
