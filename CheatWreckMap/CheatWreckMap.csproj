@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
-	
+
 		<Reference Include="Tessera">
 			<SpecificVersion>False</SpecificVersion>
 			<HintPath>$(GameManaged)tessera.dll</HintPath>
@@ -25,13 +25,11 @@
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
-	  <!--
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
-			-->
   </Target>
 </Project>
