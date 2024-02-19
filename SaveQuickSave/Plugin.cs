@@ -62,8 +62,11 @@ namespace SaveQuickSave
                     }
                     else
                     {
-                        sdh.SaveWorldData(null);
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Quick Save Success");
+                        if (!sdh.IsSaving())
+                        {
+                            sdh.SaveWorldData(null);
+                            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Quick Save Success");
+                        }
                     }
                 }
             }
