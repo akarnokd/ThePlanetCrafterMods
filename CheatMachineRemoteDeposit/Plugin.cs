@@ -1,41 +1,54 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Reflection;
 using System;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
+using System.Collections;
+using UnityEngine;
 
 namespace CheatMachineRemoteDeposit
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatmachineremotedeposit", "(Cheat) Machines Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(cheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency(oreExtractorTweaksGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string cheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
-        static Func<List<WorldObject>, int, string, bool> isFullStacked;
-
-        const string oreExtractorTweaksGuid = "Lathrey-OreExtractorTweaks";
-        static ConfigEntry<bool> configOnlyExtractDetectedOre;
-        static ConfigEntry<bool> configDetectedOreEveryTick;
+        const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
 
         static ManualLogSource logger;
 
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> debugMode;
 
-        static readonly Dictionary<string, string> depositAliases = new();
+        static readonly Dictionary<string, string> depositAliases = [];
 
         /// <summary>
-        /// Set this function to override the last phase of generating and depositing the actual ore.
+        /// If the stacking mod is present, this will delegate to its apiIsFullStackedInventory call
+        /// that considers the stackability of the target inventory with respect to the groupId to be added to i.
         /// </summary>
-        public static Func<Inventory, string, bool> overrideDeposit;
+        static Func<Inventory, string, bool> InventoryCanAdd;
 
-        private void Awake()
+        /// <summary>
+        /// If set, the <see cref="MachineGenerator_GenerateAnObject(List{GroupData}, bool, WorldObject, List{GroupData}, ref WorldUnitsHandler, TerraformStage)"/>
+        /// won't be executed because the business logic has been taken care of by the stacking mod.
+        /// </summary>
+        static bool stackingOverridden;
+
+        /// <summary>
+        /// We need to know if the stackSize > 1 because otherwise stacking does nothing and we have to do it in
+        /// GenerateAnObject.
+        /// </summary>
+        static ConfigEntry<int> stackSize;
+
+        void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -46,28 +59,39 @@ namespace CheatMachineRemoteDeposit
 
             ProcessAliases(Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C"));
 
-            if (Chainloader.PluginInfos.TryGetValue(cheatInventoryStackingGuid, out BepInEx.PluginInfo pi))
+            InventoryCanAdd = (inv, gid) => !inv.IsFull();
+
+            // If present, we interoperate with the stacking mod.
+            // It has places to override the inventory into which items should be added in some machines.
+            // However, when this mod looks for suitable inventories, we need to use stacking to correctly
+            // determine if a stackable inventory can take an item.
+            if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var info))
             {
-                Logger.LogInfo(cheatInventoryStackingGuid + " detected, getting IsFullStacked");
-                MethodInfo mi = AccessTools.Method(pi.Instance.GetType(), "IsFullStacked", new Type[] { typeof(List<WorldObject>), typeof(int), typeof(string) });
-                isFullStacked = AccessTools.MethodDelegate<Func<List<WorldObject>, int, string, bool>>(mi, pi.Instance);
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " found, overriding FindInventoryForGroupID.");
+
+                var modType = info.Instance.GetType();
+
+                // make sure stacking knowns when this mod is enabled before calling that callback
+                AccessTools.Field(modType, "IsFindInventoryForGroupIDEnabled")
+                    .SetValue(null, new Func<bool>(() => modEnabled.Value));
+                // tell stacking to use this callback to find an inventory for a group id
+                AccessTools.Field(modType, "FindInventoryForGroupID")
+                    .SetValue(null, new Func<string, Inventory>(FindInventoryForOre));
+
+                // get the function that can tell if an inventory can't take one item of a provided group id
+                var apiIsFullStackedInventory = (Func<Inventory, string, bool>)AccessTools.Field(modType, "apiIsFullStackedInventory").GetValue(null);
+                // we need to logically invert it as we need it as "can-do"
+                InventoryCanAdd = (inv, gid) => !apiIsFullStackedInventory(inv, gid);
+
+                stackSize = (ConfigEntry<int>)AccessTools.Field(modType, "stackSize").GetValue(null);
+                stackingOverridden = true;
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
-            if (Chainloader.PluginInfos.TryGetValue(oreExtractorTweaksGuid, out BepInEx.PluginInfo ei))
-            {
-                Logger.LogInfo(oreExtractorTweaksGuid + " detected, overriding configOnlyExtractDetectedOre");
-                FieldInfo fieldInfo = AccessTools.Field(ei.Instance.GetType(), "configOnlyExtractDetectedOre");
-                configOnlyExtractDetectedOre = (ConfigEntry<bool>)fieldInfo.GetValue(null);
-
-                ConfigEntry<bool> overrideConfigOnlyExtractDetectedOre = Config.Bind("General", "overrideConfigOnlyExtractDetectedOre", false, "Override overrideConfigOnlyExtractDetectedOre, always false.");
-                overrideConfigOnlyExtractDetectedOre.Value = false;
-                fieldInfo.SetValue(null, overrideConfigOnlyExtractDetectedOre);
-
-                configDetectedOreEveryTick = (ConfigEntry<bool>)AccessTools.Field(ei.Instance.GetType(), "configDetectedOreEveryTick").GetValue(null);
-            }
-
-            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            LibCommon.SaveModInfo.Patch(harmony);
+            Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         void ProcessAliases(ConfigEntry<string> cfe)
@@ -86,24 +110,14 @@ namespace CheatMachineRemoteDeposit
                     else
                     {
                         depositAliases[idalias[0]] = idalias[1].ToLower();
-                        log("Alias " + idalias[0] + " -> " + idalias[1]);
+                        Log("Alias " + idalias[0] + " -> " + idalias[1]);
                     }
                     i++;
                 }
             }
         }
 
-        static bool IsFull(Inventory inv, string gid)
-        {
-            if (isFullStacked != null)
-            {
-                // fine, machines always stack for now
-                return isFullStacked.Invoke(inv.GetInsideWorldObjects(), inv.GetSize(), gid);
-            }
-            return inv.IsFull();
-        }
-
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -111,47 +125,14 @@ namespace CheatMachineRemoteDeposit
             }
         }
 
-        static string GenerateOre(
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
+        static bool MachineGenerator_GenerateAnObject(
             List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
             WorldObject ___worldObject,
             List<GroupData> ___groupDatasTerraStage,
-            WorldUnitsHandler ___worldUnitsHandler,
-            TerraformStage ___terraStage)
-        {
-            // Since 0.6.001
-            if (___setGroupsDataViaLinkedGroup)
-            {
-                var linkedGroups = ___worldObject.GetLinkedGroups();
-                if (linkedGroups != null && linkedGroups.Count != 0)
-                {
-                    return linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)].id;
-                }
-                return null;
-            }
-            if (___groupDatas.Count != 0)
-            {
-                // Since 0.7.001
-                var groupDatasCopy = new List<GroupData>(___groupDatas);
-                if (___groupDatasTerraStage.Count != 0
-                    && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
-                {
-                    groupDatasCopy.AddRange(___groupDatasTerraStage);
-                }
-
-                return groupDatasCopy[UnityEngine.Random.Range(0, groupDatasCopy.Count)].id;
-            }
-            return null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(
-            Inventory ___inventory, List<GroupData> ___groupDatas,
-            bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject,
-            List<GroupData> ___groupDatasTerraStage,
-            WorldUnitsHandler ___worldUnitsHandler,
+            ref WorldUnitsHandler ___worldUnitsHandler,
             TerraformStage ___terraStage
         )
         {
@@ -159,89 +140,177 @@ namespace CheatMachineRemoteDeposit
             {
                 return true;
             }
-
-            log("GenerateAnObject start");
-            string oreId = GenerateOre(___groupDatas, ___setGroupsDataViaLinkedGroup, ___worldObject,
-                    ___groupDatasTerraStage, ___worldUnitsHandler, ___terraStage);
-
-            log("  Ore detected: " + oreId);
-            // If Lathrey's OreExtractorTweaks are installed, intertwine its logic
-
-            bool dropIfNoTarget = false;
-            if (configOnlyExtractDetectedOre != null && configOnlyExtractDetectedOre.Value) 
+            if (stackingOverridden && stackSize.Value > 1)
             {
-                string detectedOreId = ___groupDatas[___groupDatas.Count - 1].id;
-                if (configDetectedOreEveryTick.Value || oreId == detectedOreId)
-                {
-                    oreId = detectedOreId;
-                    log("    Ore overridden: " + oreId);
-                }
-                else
-                {
-                    dropIfNoTarget = true;
-                }
+                return true;
             }
 
-            if (oreId == null)
+            Log("GenerateAnObject start");
+
+            if (___worldUnitsHandler == null)
+            {
+                ___worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
+            }
+            if (___worldUnitsHandler == null)
             {
                 return false;
             }
 
-            // retarget inventory
-            Inventory inventory = ___inventory;
-            bool inventoryFound = false;
-            string gid = "*" + oreId.ToLower();
+            Log("    begin ore search");
+
+            Group group = null;
+            if (___groupDatas.Count != 0)
+            {
+                List<GroupData> list = new(___groupDatas);
+                if (___groupDatasTerraStage.Count != 0 && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                {
+                    list.AddRange(___groupDatasTerraStage);
+                }
+                group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
+            }
+            if (___setGroupsDataViaLinkedGroup)
+            {
+                if (___worldObject.GetLinkedGroups() != null && ___worldObject.GetLinkedGroups().Count > 0)
+                {
+                    group = ___worldObject.GetLinkedGroups()[UnityEngine.Random.Range(0, ___worldObject.GetLinkedGroups().Count)];
+                }
+                else
+                {
+                    group = null;
+                }
+            }
+
+            // deposit the ore
+
+            if (group != null)
+            {
+                string oreId = group.id;
+
+                Log("    ore: " + oreId);
+
+                var inventory = FindInventoryForOre(oreId);                
+
+                if (inventory != null)
+                {
+                    InventoriesHandler.Instance.AddItemToInventory(group, inventory, (success, id) =>
+                    {
+                        if (!success)
+                        {
+                            Log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                            if (id != 0)
+                            {
+                                WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    Log("    No suitable inventory found, ore ignored");
+                }
+            }
+            else
+            {
+                Log("    ore: none");
+            }
+
+            Log("GenerateAnObject end");
+            return false;
+        }
+
+        /// <summary>
+        /// When the vanilla sets up a Machine Generator, we have to launch
+        /// the inventory cleaning routine to unclog it.
+        /// Otherwise a full inventory will stop the ore generation in the
+        /// MachineGenerator.TryToGenerate method.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="_inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
+        static void MachineGenerator_SetGeneratorInventory(
+            MachineGenerator __instance, 
+            Inventory _inventory)
+        {
+            __instance.StartCoroutine(ClearMachineGeneratorInventory(_inventory, __instance.spawnEveryXSec));
+        }
+
+        /// <summary>
+        /// When the speed multiplier is changed, the vanilla code
+        /// cancels all coroutines and starts a new generation coroutine.
+        /// We have to also restart our inventory cleaning routine.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="___inventory"></param>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.AddToGenerationSpeedMultiplier))]
+        static void MachineGenerator_AddToGenerationSpeedMultiplier(
+            MachineGenerator __instance,
+            Inventory ___inventory
+        )
+        {
+            __instance.StartCoroutine(ClearMachineGeneratorInventory(___inventory, __instance.spawnEveryXSec));
+        }
+
+        static IEnumerator ClearMachineGeneratorInventory(Inventory _inventory, int delay)
+        {
+            var wait = new WaitForSeconds(delay);
+            while (true)
+            {
+                // Server side is responsible for the transfer.
+                if (InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
+                {
+                    Log("ClearMachineGeneratorInventory begin: " + _inventory.GetId());
+                    var items = _inventory.GetInsideWorldObjects();
+
+                    for (int i = items.Count - 1; i >= 0; i--)
+                    {
+                        var item = items[i];
+                        var oreId = item.GetGroup().GetId();
+                        var candidateInv = FindInventoryForOre(oreId);
+                        if (candidateInv != null)
+                        {
+                            Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
+                            InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
+                        }
+                    }
+                    Log("ClearMachineGeneratorInventory end: " + _inventory.GetId());
+                }
+                yield return wait;
+            }
+        }
+
+
+
+        static Inventory FindInventoryForOre(string oreId)
+        {
+            var containerNameFilter = "*" + oreId.ToLower();
             if (depositAliases.TryGetValue(oreId, out var alias))
             {
-                gid = alias;
-                log("  Deposit alias found: " + alias);
+                containerNameFilter = alias;
             }
-            foreach (WorldObject wo2 in WorldObjectsHandler.GetAllWorldObjects())
+
+            foreach (var constructs in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
-                if (wo2 != null && wo2.HasLinkedInventory())
+                if (constructs != null && constructs.HasLinkedInventory())
                 {
-                    string txt = wo2.GetText();
-                    if (txt != null && txt.ToLower().Contains(gid))
+                    string txt = constructs.GetText();
+                    if (txt != null && txt.ToLower().Contains(containerNameFilter))
                     {
-                        Inventory inv2 = InventoriesHandler.GetInventoryById(wo2.GetLinkedInventoryId());
-                        if (inv2 != null && !IsFull(inv2, oreId))
+                        Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
+                        if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))
                         {
-                            inventory = inv2;
-                            inventoryFound = true;
-                            break;
+                            Log("    Found Inventory: " + candidateInventory.GetId() + " \"" + txt + "\"");
+                            return candidateInventory;
                         }
                         else
                         {
-                            log("This inventory is full: " + txt);
+                            Log("    This inventory is full: " + (candidateInventory?.GetId() ?? -1) + " \"" + txt + "\"");
                         }
                     }
                 }
             }
-
-            log("  Inventory found? " + inventoryFound);
-            log("  Drop If No Target? " + dropIfNoTarget);
-
-            // inventoryFound -> add
-            // !inventoryFound && !dropIfNoTarget -> add
-            // !inventoryFound && dropIfNoTarget -> skip
-
-            if (inventoryFound || !dropIfNoTarget)
-            {
-                if (overrideDeposit == null || !overrideDeposit.Invoke(inventory, oreId))
-                {
-                    // instantiate and add the ore to the target inventory
-                    WorldObject worldObject = WorldObjectsHandler.CreateNewWorldObject(GroupsHandler.GetGroupViaId(oreId), 0);
-                    if (!inventory.AddItem(worldObject))
-                    {
-                        WorldObjectsHandler.DestroyWorldObject(worldObject);
-                    }
-                    else
-                    {
-                        log("  Added to inventory");
-                    }
-                }
-            }
-            return false;
+            return null;
         }
     }
 }

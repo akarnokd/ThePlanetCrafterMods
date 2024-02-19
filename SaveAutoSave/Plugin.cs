@@ -1,46 +1,34 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
-using HarmonyLib;
-using System.Collections.Generic;
-using System.Globalization;
 using BepInEx.Logging;
 using BepInEx.Configuration;
-using System.IO;
-using System;
-using System.IO.Compression;
-using System.Text;
 using System.Collections;
 using UnityEngine;
-using BepInEx.Bootstrap;
+using Unity.Netcode;
 
 namespace SaveAutoSave
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.saveautosave", "(Save) Auto Save", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
 
         static ManualLogSource logger;
 
         static ConfigEntry<float> saveDelay;
 
-        static Func<string> multiplayerMode;
-
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
 
             saveDelay = Config.Bind("General", "SaveDelay", 5f, "Save delay in minutes. Set to 0 to disable.");
-
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                multiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-            }
 
             if (saveDelay.Value > 0)
             {
@@ -59,8 +47,7 @@ namespace SaveAutoSave
             {
                 yield return new WaitForSeconds(saveDelay.Value * 60);
 
-                // Do not auto-save in client mode
-                if (multiplayerMode != null && multiplayerMode.Invoke() == "CoopClient")
+                if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
                 {
                     continue;
                 }

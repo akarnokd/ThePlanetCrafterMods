@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -18,8 +21,10 @@ namespace LathreyAutoMove
 
         private static bool autoMoveEnabled = false;
 
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             Logger.LogInfo($"Plugin is loaded!");
 
             configToggleAutoMoveModifierKey = Config.Bind("General", "Toggle_Auto_Move_Modifier_Key", Key.None,
@@ -61,7 +66,7 @@ namespace LathreyAutoMove
             return false;
         }
 
-        private void Update()
+        public void Update()
         {
             bool modifierPressed = configToggleAutoMoveModifierKey.Value == Key.None || Keyboard.current[configToggleAutoMoveModifierKey.Value].isPressed;
             bool toggleKeyPressed = Keyboard.current[configToggleAutoMoveKey.Value].wasPressedThisFrame;

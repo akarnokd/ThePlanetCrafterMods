@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -7,12 +10,20 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Reflection;
+using BepInEx.Logging;
+using BepInEx.Bootstrap;
 
 namespace UIMenuShortcutKeys
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uimenushortcutkeys", "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modUiMenuShortcutKeysGuid, "(UI) Menu Shortcut Keys", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modUiMenuShortcutKeysGuid = "akarnokd.theplanetcraftermods.uimenushortcutkeys";
+
+        const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
+
+        static ManualLogSource logger;
 
         ConfigEntry<int> fontSize;
         ConfigEntry<string> configBuildToggleFilter;
@@ -33,14 +44,21 @@ namespace UIMenuShortcutKeys
         InputAction sortOtherInventory;
 
 
-        static FieldInfo playerEquipmentHasCleanConstructionChip;
+        static AccessTools.FieldRef<PlayerEquipment, bool> fPlayerEquipmentHasCleanConstructionChip;
+        static AccessTools.FieldRef<UiWindowConstruction, List<GroupListGridDisplayer>> fUiWindowConstructionGroupListDisplayers;
+        static MethodInfo mUiWindowConstructionCreateGrid; 
 
-        readonly List<ShortcutDisplayEntry> entries = new();
+        readonly List<ShortcutDisplayEntry> entries = [];
+
+        static bool modPinUnpinRecipePresent;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+            logger = Logger;
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
@@ -74,9 +92,14 @@ namespace UIMenuShortcutKeys
 
             debugMode = Config.Bind("General", "DebugMode", false, "Turn this true to see log messages.");
 
-            playerEquipmentHasCleanConstructionChip = AccessTools.Field(typeof(PlayerEquipment), "hasCleanConstructionChip");
+            fPlayerEquipmentHasCleanConstructionChip = AccessTools.FieldRefAccess<PlayerEquipment, bool>("hasCleanConstructionChip");
+            mUiWindowConstructionCreateGrid = AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid");
+            fUiWindowConstructionGroupListDisplayers = AccessTools.FieldRefAccess<UiWindowConstruction, List<GroupListGridDisplayer>>("_groupListDisplayers");
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            modPinUnpinRecipePresent = Chainloader.PluginInfos.ContainsKey(modUiPinRecipeGuid);
+
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiMenuShortcutKeysGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         void Update()
@@ -103,12 +126,7 @@ namespace UIMenuShortcutKeys
                 return;
             }
 
-            var canvas = w.GetComponent<Canvas>();
-            if (canvas == null)
-            {
-                canvas = w.GetComponentInParent<Canvas>();
-            }
-
+            var canvas = w.GetComponent<Canvas>() ?? w.GetComponentInParent<Canvas>();
             if (canvas == null)
             {
                 if (debugMode.Value)
@@ -225,9 +243,13 @@ namespace UIMenuShortcutKeys
                     {
                         buildToggleFilterState = !buildToggleFilterState;
 
+                        foreach (var gld in fUiWindowConstructionGroupListDisplayers(uiWindowConstruction))
+                        {
+                            GameObjects.DestroyAllChildren(gld.gameObject);
+                        }
                         window.gameObject.SetActive(false);
                         window.gameObject.SetActive(true);
-                        AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid").Invoke(uiWindowConstruction, new object[0]);
+                        mUiWindowConstructionCreateGrid.Invoke(uiWindowConstruction, []);
                     }
                     else
                     if (debugMode.Value)
@@ -302,6 +324,15 @@ namespace UIMenuShortcutKeys
         {
             if (ui == DataConfig.UiType.Construction)
             {
+                entries.Add(CreateEntry("BuildBuild", "Left Click", "Build Structure", shortcutBar.transform));
+                if (Managers.GetManager<CanvasPinedRecipes>().GetIsPinPossible())
+                {
+                    entries.Add(CreateEntry("BuildPin", "Right Click", "Pin/Unpin Recipe", shortcutBar.transform));
+                }
+                if (modPinUnpinRecipePresent)
+                {
+                    entries.Add(CreateEntry("BuildPin", "Middle Click", "Pin/Unpin Recipe (Mod)", shortcutBar.transform));
+                }
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
                 if (pm.GetHasCleanConstructionChip())
                 {
@@ -347,7 +378,7 @@ namespace UIMenuShortcutKeys
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
             originalHasFilter = pm.GetHasCleanConstructionChip();
-            playerEquipmentHasCleanConstructionChip.SetValue(pm, buildToggleFilterState && originalHasFilter);
+            fPlayerEquipmentHasCleanConstructionChip(pm) = buildToggleFilterState && originalHasFilter;
         }
 
         [HarmonyPostfix]
@@ -355,12 +386,10 @@ namespace UIMenuShortcutKeys
         static void UiWindowConstruction_CreateGrid_Post()
         {
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
-            playerEquipmentHasCleanConstructionChip.SetValue(pm, originalHasFilter);
+            fPlayerEquipmentHasCleanConstructionChip(pm) = originalHasFilter;
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
+        static void PlanetLoader_HandleDataAfterLoad()
         {
             buildToggleFilterState = Managers.GetManager<PlayersManager>()
                 .GetActivePlayerController()
@@ -385,9 +414,11 @@ namespace UIMenuShortcutKeys
 
         ShortcutDisplayEntry CreateEntry(string tag, string key, string description, Transform parent)
         {
-            ShortcutDisplayEntry entry = new();
-            entry.tag = tag;
-            entry.gameObject = new GameObject("ShortcutDisplayEntry-" + key);
+            ShortcutDisplayEntry entry = new()
+            {
+                tag = tag,
+                gameObject = new GameObject("ShortcutDisplayEntry-" + key)
+            };
             entry.gameObject.transform.SetParent(parent);
 
             // The keyboard shortcut text

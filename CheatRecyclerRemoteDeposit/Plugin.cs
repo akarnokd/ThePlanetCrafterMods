@@ -1,23 +1,24 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Reflection;
-using System;
-using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using UnityEngine;
 using System.Collections;
-using System.Linq;
+using Unity.Netcode;
+using LibCommon;
 
 namespace CheatRecyclerRemoteDeposit
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit", "(Cheat) Recyclers Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(modGuid, "(Cheat) Recyclers Deposit Into Remote Containers", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
+        const string modGuid = "akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit";
+        const string FunctionRequestRecycle = "RequestRecycle";
 
         static ManualLogSource logger;
 
@@ -33,16 +34,14 @@ namespace CheatRecyclerRemoteDeposit
 
         static ConfigEntry<int> maxRange;
 
-        static readonly Dictionary<string, string> aliasMap = new();
+        static readonly Dictionary<string, string> aliasMap = [];
 
-        static Func<string> mpGetMode;
-
-        static Action<int, WorldObject> mpSendWorldObject;
-
-        static bool isAutomaticCall;
+        static bool isRunning;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loading!");
 
@@ -57,19 +56,11 @@ namespace CheatRecyclerRemoteDeposit
 
             ParseAliasConfig();
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", the mod will be inactive on the client side");
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
-                mpGetMode = GetApi<Func<string>>(pi, "apiGetMultiplayerMode");
-                mpSendWorldObject = GetApi<Action<int, WorldObject>>(pi, "apiSendWorldObject");
-            }
-            else
-            {
-                Logger.LogInfo("Not Found " + modFeatMultiplayerGuid);
-            }
-
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            ModNetworking.Init(modGuid, Logger);
+            ModNetworking.Patch(h);
+            ModNetworking.RegisterFunction(FunctionRequestRecycle, OnClientAction);
 
             Logger.LogInfo($"Plugin is loaded!");
         }
@@ -100,7 +91,7 @@ namespace CheatRecyclerRemoteDeposit
 
             var range = maxRange.Value;
 
-            foreach (var wo in WorldObjectsHandler.GetConstructedWorldObjects())
+            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var wot = wo.GetText();
                 if (wot != null && wot.ToLowerInvariant().Contains(name))
@@ -108,7 +99,7 @@ namespace CheatRecyclerRemoteDeposit
                     var xyz = wo.GetPosition();
                     if (Vector3.Distance(xyz, center) < range || range == 0)
                     {
-                        var inv = InventoriesHandler.GetInventoryById(wo.GetLinkedInventoryId());
+                        var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
                         if (inv != null)
                         {
                             yield return inv;
@@ -120,93 +111,23 @@ namespace CheatRecyclerRemoteDeposit
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionRecycle), nameof(ActionRecycle.OnAction))]
-        static bool ActionRecycle_OnAction(ActionRecycle __instance, Collider ___craftSpawn)
+        static bool ActionRecycle_OnAction(
+            ActionRecycle __instance, 
+            Collider ___craftSpawn,
+            GameObject ___tempCage)
         {
             if (modEnabled.Value)
             {
-                if (mpGetMode != null && mpGetMode() == "CoopClient")
+                if (!isRunning)
                 {
-                    return false;
+                    isRunning = true;
+                    ___tempCage.SetActive(true);
+
+                    var depositor = new Depositor(__instance, ___craftSpawn);
+
+                    __instance.GetComponentInParent<InventoryAssociatedProxy>()
+                        .GetInventory(depositor.OnMachineReceived);
                 }
-                var woMachine = __instance.GetComponentInParent<WorldObjectAssociated>().GetWorldObject();
-                var pos = woMachine.GetPosition();
-                Log("Handling Recycler " + woMachine.GetId() + " at " + pos);
-
-
-                Inventory inventory = __instance.GetComponentInParent<InventoryAssociated>().GetInventory();
-                if (inventory == null || inventory.GetInsideWorldObjects().Count == 0)
-                {
-                    Log("  Inventory empty");
-                    return false;
-                }
-                WorldObject worldObject = inventory.GetInsideWorldObjects()[0];
-                List<Group> ingredientsGroupInRecipe = worldObject.GetGroup().GetRecipe().GetIngredientsGroupInRecipe();
-
-                Log("Recycling: " + worldObject.GetId() + " - " + worldObject.GetGroup().GetId());
-
-                if (ingredientsGroupInRecipe.Count == 0)
-                {
-                    Log("  Failure - item has no recipe");
-                    return false;
-                }
-                if (((GroupItem)worldObject.GetGroup()).GetCantBeRecycled())
-                {
-                    Log("  Failure - item marked as not recyclable");
-                    return false;
-                }
-
-                Log("  Recipe: " + string.Join(", ", ingredientsGroupInRecipe.Select(g => g.GetId())));
-
-                foreach (Group group in ingredientsGroupInRecipe)
-                {
-                    var wo = WorldObjectsHandler.CreateNewWorldObject(group);
-                    if (mpGetMode != null && mpGetMode() == "CoopHost" && mpSendWorldObject != null)
-                    {
-                        mpSendWorldObject(0, wo);
-                    }
-
-                    Log("    Ingredient: " + wo.GetId() + " - " + group.GetId());
-
-                    bool deposited = false;
-                    bool foundInventory = false;
-
-                    foreach (var inv in FindInventoryFor(group.GetId(), pos))
-                    {
-                        foundInventory = true;
-                        if (inv.AddItem(wo))
-                        {
-                            Log("      Deposited into " + inv.GetId());
-                            deposited = true;
-                            break;
-                        }
-                    }
-
-                    if (!deposited)
-                    {
-                        if (foundInventory) 
-                        {
-                            Log("      Failure - all target inventories full");
-                            if (!isAutomaticCall)
-                            {
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Recycler: All target inventories are full!");
-                            }
-                        }
-                        else
-                        {
-                            Log("      Failure - no designated container found");
-                            if (!isAutomaticCall)
-                            {
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Recycler: No designated container found!");
-                            }
-                        }
-                        WorldObjectsHandler.DropOnFloor(wo, ___craftSpawn.transform.position);
-                    }
-                }
-
-                inventory.RemoveItem(worldObject, true);
-
-                __instance.GetComponent<ActionnableInteractive>()?.OnActionInteractive();
-
                 return false;
             }
             return true;
@@ -231,29 +152,45 @@ namespace CheatRecyclerRemoteDeposit
             for (; ; )
             {
                 yield return new WaitForSeconds(t);
-                if (mpGetMode == null || mpGetMode() != "CoopClient")
+                if (NetworkManager.Singleton?.IsServer ?? true)
                 {
-                    isAutomaticCall = true;
-                    try
-                    {
-                        __instance.OnAction();
-                    }
-                    finally
-                    {
-                        isAutomaticCall = false;
-                    }
+                    __instance.OnAction();
                 }
             }
         }
 
-        private static T GetApi<T>(BepInEx.PluginInfo pi, string name)
+        static void OnClientAction(ulong senderId, string arguments)
         {
-            var fi = AccessTools.Field(pi.Instance.GetType(), name);
-            if (fi == null)
+            if (NetworkManager.Singleton.IsServer)
             {
-                throw new NullReferenceException("Missing field " + pi.Instance.GetType() + "." + name);
+                int id = int.Parse(arguments);
+
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo != null)
+                {
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        var action = go.GetComponentInChildren<ActionRecycle>();
+                        if (action != null)
+                        {
+                            action.OnAction();
+                        }
+                        else
+                        {
+                            Log("ActionRecycle not found on " + arguments);
+                        }
+                    }
+                    else
+                    {
+                        Log("GameObject not found on " + arguments);
+                    }
+                }
+                else
+                {
+                    Log("WorldObject not found on " + arguments);
+                }
             }
-            return (T)fi.GetValue(null);
         }
 
         static void Log(object message)
@@ -261,6 +198,204 @@ namespace CheatRecyclerRemoteDeposit
             if (debugMode.Value)
             {
                 logger.LogInfo(message);
+            }
+        }
+
+
+        internal class Depositor
+        {
+            readonly ActionRecycle instance;
+            readonly Collider craftSpawn;
+
+            Inventory machineInventory;
+            WorldObject machineWorldObject;
+            WorldObject toRecycleWo;
+
+            Vector3 machinePosition;
+
+            IEnumerator<Inventory> currentInventoryCandidates;
+            Inventory currentCandidate;
+
+            int queueWip;
+
+            readonly Queue<object> queue = [];
+
+            internal Depositor(ActionRecycle instance, Collider craftSpawn)
+            {
+                this.instance = instance;
+                this.craftSpawn = craftSpawn;
+            }
+
+            internal void OnMachineReceived(
+                Inventory machineInventory,
+                WorldObject machineWorldObject
+            )
+            {
+                this.machineInventory = machineInventory;
+                this.machineWorldObject = machineWorldObject;
+
+                bool isServer = NetworkManager.Singleton?.IsServer ?? true;
+                if (!isServer)
+                {
+                    isRunning = false;
+                    Log("Request Recycle " + machineWorldObject.GetId());
+                    ModNetworking.SendHost(FunctionRequestRecycle, machineWorldObject.GetId().ToString());
+                    return;
+                }
+
+
+                Log("Begin " + machineWorldObject.GetId());
+
+                this.machinePosition = machineWorldObject.GetPosition();
+
+                if (machineInventory.GetInsideWorldObjects().Count == 0)
+                {
+                    isRunning = false;
+                    Log("    Nothing to recycle");
+                    return;
+                }
+
+                toRecycleWo = machineInventory.GetInsideWorldObjects()[0];
+                var gi = toRecycleWo.GetGroup() as GroupItem;
+                var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
+
+                if (recipe.Count == 0)
+                {
+                    Log("    Missing recipe: " + toRecycleWo.GetId() + " - " + gi.id);
+                    queue.Enqueue(toRecycleWo);
+                }
+                else if (gi.GetCantBeRecycled())
+                {
+                    Log("    Can't be recycled: " + toRecycleWo.GetId() + " - " + gi.id);
+                    queue.Enqueue(toRecycleWo);
+                }
+                else
+                {
+                    foreach (var ingredient in recipe)
+                    {
+                        queue.Enqueue(ingredient);
+                    }
+                }
+
+                Drain();
+            }
+
+            internal void Drain()
+            {
+                if (queueWip++ != 0)
+                {
+                    return;
+                }
+
+                for (; ; )
+                {
+                    if (!queue.TryPeek(out var item))
+                    {
+                        OnComplete();
+                    }
+                    else
+                    {
+                        if (currentCandidate == null)
+                        {
+                            string gid = "";
+                            if (item is WorldObject itemWo)
+                            {
+                                gid = itemWo.GetGroup().GetId();
+                            }
+                            else
+                            {
+                                gid = ((Group)item).id;
+                            }
+
+                            currentInventoryCandidates ??= FindInventoryFor(gid, machinePosition).GetEnumerator();
+
+                            if (currentInventoryCandidates.MoveNext())
+                            {
+                                currentCandidate = currentInventoryCandidates.Current;
+                                if (item is Group groupItem)
+                                {
+                                    InventoriesHandler.Instance.AddItemToInventory(groupItem, currentCandidate, OnAdded);
+                                }
+                                else
+                                {
+                                    InventoriesHandler.Instance.TransferItem(machineInventory, currentCandidate, (WorldObject)item, OnTransferred);
+                                }
+                            }
+                            else
+                            {
+                                currentCandidate = null;
+                                currentInventoryCandidates = null;
+                                queue.Dequeue();
+
+                                var position = new Vector3(
+                                    UnityEngine.Random.Range(craftSpawn.bounds.min.x, craftSpawn.bounds.max.x),
+                                    UnityEngine.Random.Range(craftSpawn.bounds.min.y, craftSpawn.bounds.max.y),
+                                    UnityEngine.Random.Range(craftSpawn.bounds.min.z, craftSpawn.bounds.max.z)
+                                );
+
+                                if (item is GroupItem groupItem)
+                                {
+                                    Log("    Can't be deposited: " + toRecycleWo.GetId() + " - " + groupItem.id);
+                                    WorldObjectsHandler.Instance.CreateAndDropOnFloor(groupItem, position, 0.6f);
+                                }
+                                else
+                                {
+                                    var wo = (WorldObject)item;
+                                    Log("    Can't be deposited: " + toRecycleWo.GetId() + " - " + wo.GetId());
+                                    WorldObjectsHandler.Instance.DropOnFloor(wo, position, 0.6f, dropSound: false);
+                                }
+
+                            }
+                        }
+                    }
+                    if (--queueWip == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            internal void OnAdded(bool success, int id)
+            {
+
+                if (success)
+                {
+                    currentInventoryCandidates = null;
+                    var g = (Group)queue.Dequeue();
+                    Log("    " + toRecycleWo.GetId() + " - " + g.id + " deposited into " + currentCandidate.GetId());
+                }
+                else
+                {
+                    if (id != 0)
+                    {
+                        WorldObjectsHandler.Instance.DestroyWorldObject(id, false);
+                    }
+                }
+
+                currentCandidate = null;
+                Drain();
+            }
+
+            internal void OnTransferred(bool success)
+            {
+                if (success)
+                {
+                    currentInventoryCandidates = null;
+                    var wo = (WorldObject)queue.Dequeue();
+                    Log("    " + toRecycleWo.GetId() + " - " + wo.GetId() + " deposited into " + currentCandidate.GetId());
+                }
+
+                currentCandidate = null;
+                Drain();
+            }
+
+            internal void OnComplete()
+            {
+                isRunning = false;
+                InventoriesHandler.Instance.RemoveItemFromInventory(toRecycleWo, machineInventory, destroy: true);
+                instance.Invoke("DisableCage", 1.5f);
+                instance.GetComponent<ActionnableInteractive>()?.OnActionInteractive();
+                Log("Done " + machineWorldObject.GetId());
             }
         }
     }

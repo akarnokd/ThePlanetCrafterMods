@@ -4,36 +4,18 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatSpaceCows</AssemblyName>
     <Description>(Feat) Space Cows</Description>
-    <Version>1.0.0.8</Version>
+    <Version>1.0.0.11</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
-
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-	  <Reference Include="UnityEngine.UI">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unityengine.ui.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-	  <Reference Include="Unity.InputSystem">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unity.inputsystem.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-	  <Reference Include="Unity.TextMeshPro">
-		  <SpecificVersion>False</SpecificVersion>
-		  <HintPath>$(GameManaged)unity.textmeshpro.dll</HintPath>
-		  <Private>False</Private>
-	  </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
+		<Compile Include="..\LibCommon\ModNetworking.cs" Link="ModNetworking.cs" />
+		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
+	</ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

@@ -1,15 +1,14 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
-using System.Reflection;
 using BepInEx.Configuration;
-using System;
-using System.ComponentModel;
 
 namespace UIStackInRangeList
 {
@@ -20,14 +19,22 @@ namespace UIStackInRangeList
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> stackPins;
+        static ConfigEntry<bool> stackPortals;
 
         static ManualLogSource logger;
 
-        static Color defaultBackgroundColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);
-        static Color defaultTextColor = new Color(1f, 1f, 1f, 1f);
+        static Color defaultBackgroundColor = new(0.25f, 0.25f, 0.25f, 0.9f);
+        static Color defaultTextColor = new(1f, 1f, 1f, 1f);
+
+        static readonly Dictionary<string, int> groupCountsCache = [];
+        static readonly List<Group> groupSetCache = [];
+
+        static Font font;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -36,6 +43,9 @@ namespace UIStackInRangeList
             fontSize = Config.Bind("General", "FontSize", 15, "Font size");
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             stackPins = Config.Bind("General", "StackPins", false, "Stack the ingredients of the pinned recipes?");
+            stackPortals = Config.Bind("General", "StackPortals", false, "Stack the requirements for opening a portal?");
+
+            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
@@ -46,10 +56,10 @@ namespace UIStackInRangeList
         [HarmonyPatch(typeof(GroupList), nameof(GroupList.AddGroups))]
         static bool GroupList_AddGroups(GroupList __instance, 
             List<Group> _groups,
+            bool _showBacklines,
             GameObject ___imageMore,
             int ___showMoreAt,
             GameObject ___grid,
-            bool _showBacklines,
             List<GroupDisplayer> ___groupsDisplayer
         )
         {
@@ -60,21 +70,27 @@ namespace UIStackInRangeList
                 {
                     return true;
                 }
-                Dictionary<string, int> groupCounts = new();
-                List<Group> groupSet = new();
+                if (__instance.GetComponentInParent<UiWorldInstanceSelector>() != null 
+                    && !stackPortals.Value)
+                {
+                    return true;
+                }
+
+                groupCountsCache.Clear();
+                groupSetCache.Clear();
 
                 foreach (var gr in _groups)
                 {
-                    if (!groupCounts.TryGetValue(gr.id, out var cnt))
+                    if (!groupCountsCache.TryGetValue(gr.id, out var cnt))
                     {
-                        groupSet.Add(gr);
+                        groupSetCache.Add(gr);
                     }
-                    groupCounts[gr.id] = cnt + 1;
+                    groupCountsCache[gr.id] = cnt + 1;
                 }
 
-                for (int i = 0; i < groupSet.Count; i++)
+                for (int i = 0; i < groupSetCache.Count; i++)
                 {
-                    Group group = groupSet[i];
+                    Group group = groupSetCache[i];
                     if (___showMoreAt > 0 && i == ___showMoreAt)
                     {
                         ___imageMore.SetActive(true);
@@ -82,7 +98,7 @@ namespace UIStackInRangeList
                     }
                     else
                     {
-                        AddGroup_Override(group, __instance, groupCounts[group.id], _showBacklines, ___groupsDisplayer);
+                        AddGroup_Override(group, __instance, groupCountsCache[group.id], _showBacklines, ___groupsDisplayer);
                     }
                 }
                 return false;
@@ -105,7 +121,7 @@ namespace UIStackInRangeList
             if (count > 1)
             {
                 int fs = fontSize.Value;
-                GameObject countBackground = new GameObject("GroupListStackBackground");
+                var countBackground = new GameObject("GroupListStackBackground");
                 countBackground.transform.SetParent(gameObject.transform);
 
                 Image image = countBackground.AddComponent<Image>();
@@ -115,11 +131,11 @@ namespace UIStackInRangeList
                 rectTransform.localPosition = new Vector3(0, 0, 0);
                 rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
 
-                GameObject cnt = new GameObject("GroupListStackCount");
+                var cnt = new GameObject("GroupListStackCount");
                 cnt.transform.SetParent(gameObject.transform);
                 Text text = cnt.AddComponent<Text>();
                 text.text = count.ToString();
-                text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                text.font = font;
                 text.color = new Color(1f, 1f, 1f, 1f);
                 text.fontSize = fs;
                 text.resizeTextForBestFit = false;

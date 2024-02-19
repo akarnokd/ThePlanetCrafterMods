@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using UnityEngine.InputSystem;
 using HarmonyLib;
@@ -22,6 +25,8 @@ namespace UIInventoryMoveMultiple
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -33,9 +38,9 @@ namespace UIInventoryMoveMultiple
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
-        static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData _eventTriggerCallbackData, Inventory ___inventory)
+        static bool InventoryDisplayer_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData, Inventory ____inventory)
         {
-            if (_eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
+            if (eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Middle)
             {
                 int max = int.MaxValue;
                 if (Keyboard.current[Key.LeftShift].isPressed)
@@ -52,31 +57,43 @@ namespace UIInventoryMoveMultiple
                 DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
                 if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.GroupSelector)
                 {
-                    Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(___inventory);
-                    if (___inventory != null && otherInventory != null)
+                    Inventory otherInventory = ((UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi)).GetOtherInventory(____inventory);
+                    if (____inventory != null && otherInventory != null)
                     {
-                        string id = _eventTriggerCallbackData.worldObject.GetGroup().GetId();
-                        List<WorldObject> list = new List<WorldObject>();
-                        foreach (WorldObject worldObject in ___inventory.GetInsideWorldObjects())
+                        var gr = eventTriggerCallbackData.worldObject.GetGroup();
+                        var id = gr.GetId();
+
+                        List<WorldObject> toTransfer = [];
+                        foreach (WorldObject worldObject in ____inventory.GetInsideWorldObjects())
                         {
                             if (worldObject.GetGroup().GetId() == id)
                             {
-                                list.Add(worldObject);
-                            }
-                        }
-                        int c = 0;
-                        foreach (WorldObject worldObject2 in list)
-                        {
-                            if (otherInventory.AddItem(worldObject2))
-                            {
-                                ___inventory.RemoveItem(worldObject2, false);
-                                if (++c >= max)
+                                toTransfer.Add(worldObject);
+                                if (toTransfer.Count >= max)
                                 {
                                     break;
                                 }
                             }
                         }
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Transfer " + id + " x " + c);
+                        var index = 0;
+                        var counter = new int[1] { 0 };
+
+                        foreach (WorldObject worldObject2 in toTransfer)
+                        {
+                            var i = index;
+                            InventoriesHandler.Instance.TransferItem(____inventory, otherInventory, worldObject2, success =>
+                            {
+                                if (success)
+                                {
+                                    counter[0]++;
+                                }
+                                if (i == toTransfer.Count - 1)
+                                {
+                                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Transfer " + Readable.GetGroupName(gr) + " x " + counter[0]);
+                                }
+                            });
+                            index++;
+                        }
                     }
                 }
             }

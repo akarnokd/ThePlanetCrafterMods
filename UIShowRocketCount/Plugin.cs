@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
@@ -6,105 +9,83 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Reflection;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using System;
-using BepInEx.Bootstrap;
 
 namespace UIShowRocketCount
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.uishowrocketcount", "(UI) Show Rocket Counts", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(modUiShowRocketCountGuid, "(UI) Show Rocket Counts", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid
-         = "akarnokd.theplanetcraftermods.featmultiplayer";
+        const string modUiShowRocketCountGuid = "akarnokd.theplanetcraftermods.uishowrocketcount";
 
-        static FieldInfo associatedGroup;
+        static AccessTools.FieldRef<EventHoverShowGroup, Group> fEventHoverShowGroupAssociatedGroup;
         static ConfigEntry<int> fontSize;
         static ManualLogSource logger;
 
-        static Func<string, int> multiplayerGetCount;
+        static readonly Dictionary<string, int> rocketCountsByGroupId = [];
+        static readonly Dictionary<DataConfig.WorldUnitType, int> rocketCountsByUnitType = [];
 
-        static readonly Dictionary<string, int> rocketCountsByGroupId = new();
-        static readonly Dictionary<DataConfig.WorldUnitType, int> rocketCountsByUnitType = new();
+        static Font font;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            associatedGroup = AccessTools.Field(typeof(EventHoverShowGroup), "associatedGroup");
-            fontSize = Config.Bind("General", "FontSize", 20, "The font size of the counter text on the craft screen");
-
             logger = Logger;
 
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out BepInEx.PluginInfo pi))
-            {
-                 multiplayerGetCount = GetApi<Func<string, int>>(pi, "apiCountByGroupId");
-                Logger.LogInfo("Found " + modFeatMultiplayerGuid + ", using its group counter");
-            }
-            else
-            {
-                Logger.LogInfo("Not found " + modFeatMultiplayerGuid + ", counting rockets ourselves");
-            }
+            fEventHoverShowGroupAssociatedGroup = AccessTools.FieldRefAccess<EventHoverShowGroup, Group>("_associatedGroup");
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
-        }
+            fontSize = Config.Bind("General", "FontSize", 20, "The font size of the counter text on the craft screen");
 
-        static T GetApi<T>(BepInEx.PluginInfo pi, string name)
-        {
-            return (T)AccessTools.Field(pi.Instance.GetType(), name)?.GetValue(null);
+            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modUiShowRocketCountGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         static bool TryGetCountByGroupId(string groupId, out int c)
         {
-            if (multiplayerGetCount != null)
-            {
-                c = multiplayerGetCount(groupId);
-                return true;
-            }
             return rocketCountsByGroupId.TryGetValue(groupId, out c);
         }
 
         static bool TryGetCountByUnitType(DataConfig.WorldUnitType unitType, out int c)
         {
-            if (multiplayerGetCount != null)
-            {
-                foreach (Group g in GroupsHandler.GetAllGroups())
-                {
-                    if (g is GroupItem gi && gi.GetGroupUnitMultiplier(unitType) != 0f)
-                    {
-                        string gid = gi.GetId();
-                        if (gid.StartsWith("Rocket") && gid != "RocketReactor")
-                        {
-                            c = multiplayerGetCount(gid);
-                            return true;
-                        }
-                    }
-                }
-                c = 0;
-                return false;
-            }
             return rocketCountsByUnitType.TryGetValue(unitType, out c);
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldUnitsGenerationDisplayer), "RefreshDisplay")]
-        static bool WorldUnitsGenerationDisplayer_RefreshDisplay(ref IEnumerator __result, float timeRepeat,
-            WorldUnitsHandler ___worldUnitsHandler, List<TextMeshProUGUI> ___textFields, List<DataConfig.WorldUnitType> ___correspondingUnit)
+        static bool WorldUnitsGenerationDisplayer_RefreshDisplay(
+            WorldUnitsGenerationDisplayer __instance,
+            ref IEnumerator __result, 
+            float timeRepeat,
+            List<TextMeshProUGUI> ___textFields, 
+            List<DataConfig.WorldUnitType> ___correspondingUnit)
         {
-            __result = RefreshDisplayEnumerator(timeRepeat, ___worldUnitsHandler, ___textFields, ___correspondingUnit);
+            __result = RefreshDisplayEnumerator(timeRepeat, __instance, ___textFields, ___correspondingUnit);
             return false;
         }
 
-        static IEnumerator RefreshDisplayEnumerator(float timeRepeat, WorldUnitsHandler worldUnitsHandler, 
-            List<TextMeshProUGUI> textFields, List<DataConfig.WorldUnitType> correspondingUnit)
+        static IEnumerator RefreshDisplayEnumerator(
+            float timeRepeat,
+            WorldUnitsGenerationDisplayer instance, 
+            List<TextMeshProUGUI> textFields, 
+            List<DataConfig.WorldUnitType> correspondingUnit)
         {
+            WorldUnitsHandler worldUnitsHandler = null;
             for (; ; )
             {
-                if (worldUnitsHandler != null)
+                if (worldUnitsHandler == null)
+                {
+                    worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
+                    AccessTools.Field(typeof(WorldUnitsGenerationDisplayer), "worldUnitsHandler").SetValue(instance, worldUnitsHandler);
+                }
+                if (worldUnitsHandler != null && worldUnitsHandler.AreUnitsInited())
                 {
                     for (int idx = 0; idx < textFields.Count; idx++)
                     {
@@ -133,21 +114,20 @@ namespace UIShowRocketCount
 
             foreach (Transform tr in ___grid.transform)
             {
-                EventHoverShowGroup ehg = tr.gameObject.GetComponent<EventHoverShowGroup>();
+                var ehg = tr.gameObject.GetComponent<EventHoverShowGroup>();
                 if (ehg != null)
                 {
-                    Group g = associatedGroup.GetValue(ehg) as Group;
-                    if (g != null)
+                    if (fEventHoverShowGroupAssociatedGroup(ehg) is Group g)
                     {
                         TryGetCountByGroupId(g.GetId(), out int c);
                         if (c > 0)
                         {
-                            GameObject go = new GameObject();
+                            var go = new GameObject();
                             Transform parent = tr.gameObject.transform;
-                            go.transform.parent = parent;
+                            go.transform.SetParent(parent, false);
 
-                            Text text = go.AddComponent<Text>();
-                            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                            var text = go.AddComponent<Text>();
+                            text.font = font;
                             text.text = c + " x";
                             text.color = new Color(1f, 1f, 1f, 1f);
                             text.fontSize = fs;
@@ -158,7 +138,7 @@ namespace UIShowRocketCount
 
                             Vector2 v = tr.gameObject.GetComponent<Image>().GetComponent<RectTransform>().sizeDelta;
 
-                            RectTransform rectTransform = text.GetComponent<RectTransform>();
+                            var rectTransform = text.GetComponent<RectTransform>();
                             rectTransform.localPosition = new Vector3(0, v.y / 2 + 10, 0);
                             rectTransform.sizeDelta = new Vector2(fs * 3, fs + 5);
                         }
@@ -167,25 +147,20 @@ namespace UIShowRocketCount
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
+        static void PlanetLoader_HandleDataAfterLoad()
         {
             rocketCountsByGroupId.Clear();
             rocketCountsByUnitType.Clear();
 
-            if (multiplayerGetCount == null)
+            logger.LogInfo("Counting rockets");
+            foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
             {
-                logger.LogInfo("Counting rockets");
-                foreach (WorldObject wo in WorldObjectsHandler.GetAllWorldObjects())
+                if (wo.GetGroup() is GroupItem gi)
                 {
-                    if (wo.GetGroup() is GroupItem gi)
+                    string gid = gi.GetId();
+                    if (gid.StartsWith("Rocket") && gid != "RocketReactor")
                     {
-                        string gid = gi.GetId();
-                        if (gid.StartsWith("Rocket") && gid != "RocketReactor")
-                        {
-                            UpdateCount(gid, gi);
-                        }
+                        UpdateCount(gid, gi);
                     }
                 }
             }
@@ -193,14 +168,11 @@ namespace UIShowRocketCount
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionSendInSpace), "HandleRocketMultiplier")]
-        static void ActionSendInSpace_HandleRocketMultiplier(WorldObject _worldObjectToSend)
+        static void ActionSendInSpace_HandleRocketMultiplier(WorldObject worldObjectToSend)
         {
-            if (multiplayerGetCount == null)
+            if (worldObjectToSend.GetGroup() is GroupItem gi)
             {
-                if (_worldObjectToSend.GetGroup() is GroupItem gi)
-                {
-                    UpdateCount(gi.GetId(), gi);
-                }
+                UpdateCount(gi.GetId(), gi);
             }
         }
 

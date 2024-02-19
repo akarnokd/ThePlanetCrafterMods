@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -8,9 +11,11 @@ using BepInEx.Logging;
 
 namespace CheatBirthday
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatbirthday", "(Cheat) Birthday", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modCheatBirthdayGuid, "(Cheat) Birthday", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatBirthdayGuid = "akarnokd.theplanetcraftermods.cheatbirthday";
+
         static ConfigEntry<bool> isEnabled;
 
         static ManualLogSource logger;
@@ -19,6 +24,8 @@ namespace CheatBirthday
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -27,12 +34,11 @@ namespace CheatBirthday
             logger = Logger;
             me = this;
 
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modCheatBirthdayGuid, PlanetLoader_HandleDataAfterLoad);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start(SessionController __instance)
+        static void PlanetLoader_HandleDataAfterLoad(PlanetLoader __instance)
         {
             if (isEnabled.Value)
             {
@@ -104,12 +110,14 @@ namespace CheatBirthday
                 {
                     if (go2.GetComponent<ActionCrafter>() == null)
                     {
+                        go2.AddComponent<SuppressCraftAnimationCall>();
+
                         var ac = go2.AddComponent<ActionCrafter>();
                         ac.craftableIdentifier = DataConfig.CraftableIn.CraftOvenT1;
                         ac.craftSpawn = new GameObject();
                         ac.craftSpawn.AddComponent<MeshRenderer>();
                         ac.transform.position = go2.transform.position;
-                        ac.particlesOnCraft = new();
+                        ac.particlesOnCraft = [];
                     }
                     kitchen = true;
                 }
@@ -132,6 +140,23 @@ namespace CheatBirthday
         static bool ConstraintOnSurfaces_LateUpdate(ConstraintOnSurfaces __instance)
         {
             return __instance.gameObject.GetComponent<ConstructibleGhost>() != null;
+        }
+
+        class SuppressCraftAnimationCall : MonoBehaviour
+        {
+
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionCrafter), nameof(ActionCrafter.CraftAnimation))]
+        static bool ActionCrafter_CraftAnimation(ActionCrafter __instance)
+        {
+            if (__instance.GetComponent<SuppressCraftAnimationCall>() != null)
+            {
+                __instance.PlayCraftSound();
+                return false;
+            }
+            return true;
         }
     }
 }

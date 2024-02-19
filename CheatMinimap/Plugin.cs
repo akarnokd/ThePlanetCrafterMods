@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -8,34 +11,49 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Collections;
-using UnityEngine.UI;
 using UnityEngine.InputSystem.Controls;
-using System;
-using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 namespace CheatMinimap
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", PluginInfo.PLUGIN_VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public partial class Plugin : BaseUnityPlugin
     {
         Texture2D barren;
         Texture2D lush;
         Texture2D marker;
+        Texture2D marker2;
         Texture2D chest;
         Texture2D golden;
+        Texture2D ladder;
+        Texture2D server;
+        Texture2D below;
+        Texture2D above;
+        Texture2D safe;
+        Texture2D outOfBoundsTexture;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
         ConfigEntry<int> mapPanelLeft;
         ConfigEntry<int> zoomLevel;
+        ConfigEntry<int> maxZoomLevel;
         ConfigEntry<string> toggleKey;
         ConfigEntry<int> zoomInMouseButton;
         ConfigEntry<int> zoomOutMouseButton;
         ConfigEntry<int> autoScanForChests;
         ConfigEntry<int> fixedRotation;
+        
+        static ConfigEntry<bool> showLadders;
+        static ConfigEntry<bool> showServers;
+        static ConfigEntry<bool> showSafes;
+
+        static ConfigEntry<bool> mapManualVisible;
+        static ConfigEntry<int> fontSize;
+
+        static ConfigEntry<string> outOfBoundsColor;
+        static string lastOutOfBoundsColor;
 
         static bool mapVisible = true;
-        static bool mapManualVisible = true;
         static int autoScanEnabled = 0;
         static bool coroutineRunning = false;
         static ConfigEntry<bool> photographMap;
@@ -44,6 +62,8 @@ namespace CheatMinimap
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -53,19 +73,33 @@ namespace CheatMinimap
             barren = LoadPNG(Path.Combine(dir, "map_barren.png"));
             lush = LoadPNG(Path.Combine(dir, "map_lush.png"));
             marker = LoadPNG(Path.Combine(dir, "player_marker.png"));
+            marker2 = LoadPNG(Path.Combine(dir, "player_marker_2.png"));
             chest = LoadPNG(Path.Combine(dir, "chest.png"));
             golden = LoadPNG(Path.Combine(dir, "chest_golden.png"));
+            ladder = LoadPNG(Path.Combine(dir, "ladder.png"));
+            server = LoadPNG(Path.Combine(dir, "server.png"));
+            above = LoadPNG(Path.Combine(dir, "above.png"));
+            below = LoadPNG(Path.Combine(dir, "below.png"));
+            safe = LoadPNG(Path.Combine(dir, "safe.png"));
+            outOfBoundsTexture = new Texture2D(1, 1);
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
             mapPanelLeft = Config.Bind("General", "MapLeft", 0, "Panel position from the left of the screen");
             zoomLevel = Config.Bind("General", "ZoomLevel", 4, "The zoom level");
+            maxZoomLevel = Config.Bind("General", "MaxZoomLevel", 13, "The maximum zoom level");
             toggleKey = Config.Bind("General", "ToggleKey", "N", "The key to press to toggle the minimap");
             zoomInMouseButton = Config.Bind("General", "ZoomInMouseButton", 4, "Which mouse button to use for zooming in (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
             fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
             photographMap = Config.Bind("General", "PhotographMap", false, "Not meant for end-users. (Photographs the map when pressing U for development purposes.)");
+            mapManualVisible = Config.Bind("General", "MapVisible", true, "Should the map be visible?");
+            fontSize = Config.Bind("General", "FontSize", 16, "The size of the names of other players, use 0 to disable showing their name.");
+            showLadders = Config.Bind("General", "ShowWreckLadders", true, "Show the ladders in the procedural wrecks?");
+            showServers = Config.Bind("General", "ShowServers", true, "Show the server racks?");
+            showSafes = Config.Bind("General", "ShowSafes", true, "Show the wreck safes?");
+            outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
 
             self = this;
 
@@ -74,25 +108,25 @@ namespace CheatMinimap
 
         static ButtonControl MouseButtonForIndex(int index)
         {
-            switch (index)
+            return index switch
             {
-                case 1: return Mouse.current.leftButton;
-                case 2: return Mouse.current.rightButton;
-                case 3: return Mouse.current.middleButton;
-                case 4: return Mouse.current.forwardButton;
-                case 5: return Mouse.current.backButton;
-                default: return null;
-            }
+                1 => Mouse.current.leftButton,
+                2 => Mouse.current.rightButton,
+                3 => Mouse.current.middleButton,
+                4 => Mouse.current.forwardButton,
+                5 => Mouse.current.backButton,
+                _ => null,
+            };
         }
 
-        static List<GameObject> chests = new List<GameObject>();
+        static readonly List<GameObject> chests = [];
 
         IEnumerator AutoScan()
         {
             for (; ; )
             {
                 int n = autoScanForChests.Value;
-                if (mapManualVisible && n > 0 && autoScanEnabled == 1)
+                if (mapManualVisible.Value && n > 0 && autoScanEnabled == 1)
                 {
                     FindChests();
                 }
@@ -125,23 +159,23 @@ namespace CheatMinimap
 
                 if (MouseButtonForIndex(zoomInMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
-                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, maxZoomLevel.Value);
                 }
                 if (MouseButtonForIndex(zoomOutMouseButton.Value)?.wasPressedThisFrame ?? false)
                 {
-                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                    zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, maxZoomLevel.Value);
                 }
 
                 if (Keyboard.current[k].wasPressedThisFrame)
                 {
                     if (Keyboard.current[Key.LeftShift].isPressed)
                     {
-                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, 10);
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value + 1, 1, maxZoomLevel.Value);
                     }
                     else
                     if (Keyboard.current[Key.LeftCtrl].isPressed)
                     {
-                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, 10);
+                        zoomLevel.Value = Mathf.Clamp(zoomLevel.Value - 1, 1, maxZoomLevel.Value);
                     }
                     else
                     if (Keyboard.current[Key.LeftAlt].isPressed)
@@ -177,7 +211,7 @@ namespace CheatMinimap
                     }
                     else
                     {
-                        mapManualVisible = !mapManualVisible;
+                        mapManualVisible.Value = !mapManualVisible.Value;
                     }
                 }
             }
@@ -193,9 +227,43 @@ namespace CheatMinimap
                 try
                 {
                     var go = ia.gameObject;
-                    if (go.name.Contains("WorldContainer") || go.name.Contains("GoldenContainer") || go.name.Contains("WorldCanister"))
+                    if (go.name.Contains("WorldContainer") 
+                        || go.name.Contains("GoldenContainer") 
+                        || go.name.Contains("WorldCanister")
+                        || go.name.Contains("WreckContainer")
+                        || go.name.Contains("WreckCanister")
+                    )
                     {
                         chests.Add(go);
+                    }
+                    else if (go.name.Contains("WreckSafe") && showSafes.Value)
+                    {
+                        var invAssoc = go.GetComponentInParent<InventoryAssociated>();
+                        var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
+
+                        if (invAssoc != null && (invAssocProxy == null || (NetworkManager.Singleton?.IsServer ?? false)))
+                        {
+                            var id = invAssoc.GetInventoryId();
+                            if (id > 0)
+                            {
+                                var inv = InventoriesHandler.Instance.GetInventoryById(id);
+                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                {
+                                    chests.Add(go);
+                                }
+                            }
+                        }
+                        else if (invAssocProxy != null)
+                        {
+                            var go1 = go;
+                            invAssocProxy.GetInventory((inv, wo) =>
+                            {
+                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                {
+                                    chests.Add(go1);
+                                }
+                            });
+                        }
                     }
                 }
                 catch
@@ -203,6 +271,42 @@ namespace CheatMinimap
                     // some kind of despawn?
                 }
             }
+            if (showLadders.Value)
+            {
+                var ladderSet = new HashSet<GameObject>();
+                foreach (var am in FindObjectsByType<ActionMovePlayer>(FindObjectsSortMode.None))
+                {
+                    if (am != null && am.transform.parent != null 
+                        && am.transform.parent.parent != null
+                        && am.transform.parent.parent.gameObject.name.Contains("LadderWreck"))
+                    {
+                        var go = am.transform.parent.parent.gameObject;
+                        if (ladderSet.Add(go))
+                        {
+                            chests.Add(go);
+                        }
+                    }
+                    if (am != null && am.gameObject.name.Contains("ladder_"))
+                    {
+                        var go = am.transform.parent.gameObject;
+                        if (ladderSet.Add(go))
+                        {
+                            chests.Add(go);
+                        }
+                    }
+                }
+            }
+            if (showServers.Value)
+            {
+                foreach (var id in FindObjectsByType<ActionDeconstructible>(FindObjectsSortMode.None))
+                {
+                    if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
+                    {
+                        chests.Add(id.transform.parent.gameObject);
+                    }
+                }
+            }
+
             if (autoScanEnabled == 0)
             {
                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
@@ -211,19 +315,23 @@ namespace CheatMinimap
 
         void OnGUI()
         {
-            if (mapVisible && mapManualVisible)
+            if (mapVisible && mapManualVisible.Value)
             {
                 PlayersManager pm = Managers.GetManager<PlayersManager>();
                 PlayerMainController player = pm?.GetActivePlayerController();
                 WindowsHandler wh = Managers.GetManager<WindowsHandler>();
                 if (player != null && wh != null && !wh.GetHasUiOpen())
                 {
+                    UpdateOutOfBoundsTexture();
+
                     int panelWidth = mapSize.Value;
 
                     float angle = player.transform.eulerAngles.y;
-                    Rect minimapRect = new Rect(mapPanelLeft.Value, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
-                    Vector2 mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
+                    var minimapRect = new Rect(mapPanelLeft.Value, Screen.height - panelWidth - mapBottom.Value, panelWidth, panelWidth);
+                    var mapCenter = new Vector2(panelWidth / 2, panelWidth / 2);
                     float zoom = zoomLevel.Value;
+
+                    var playerY = player.transform.position.y;
 
                     Texture2D theMap = barren;
 
@@ -283,14 +391,12 @@ namespace CheatMinimap
 
                     GUI.BeginGroup(minimapRect);
 
-                    if (fixRot >= 0)
-                    {
-                        GUIUtility.RotateAroundPivot(fixedAngle, mapCenter);
-                    }
-                    else
-                    {
-                        GUIUtility.RotateAroundPivot(-angle, mapCenter);
-                    }
+                    var unrotatedMatrix = GUI.matrix;
+                    float rotateAround = fixRot >= 0 ? fixedAngle : -angle;
+                    GUIUtility.RotateAroundPivot(rotateAround, mapCenter);
+
+                    GUI.DrawTexture(new Rect(0, 0, minimapRect.width, minimapRect.height), outOfBoundsTexture, ScaleMode.ScaleAndCrop, true);
+
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
@@ -305,18 +411,51 @@ namespace CheatMinimap
 
                                 float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
                                 float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
+                                int chestW = 12;
+                                int chestH = 10;
 
                                 Texture2D img;
-                                if (go.name.Contains("GoldenContainer"))
+                                var nm = go.name;
+                                if (nm.Contains("Ladder", System.StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    img = ladder;
+                                    chestW = 10;
+                                    chestH = 20;
+                                }
+                                else if (nm.Contains("WreckServer"))
+                                {
+                                    img = server;
+                                    chestW = 10;
+                                    chestH = 15;
+                                }
+                                else if (nm.Contains("GoldenContainer"))
                                 {
                                     img = golden;
+                                }
+                                else if (nm.Contains("WreckSafe"))
+                                {
+                                    img = safe;
+                                    chestW = 16;
+                                    chestH = 16;
                                 }
                                 else
                                 {
                                     img = chest;
                                 }
 
-                                GUI.DrawTexture(new Rect(chestX - 6, chestY - 5, 12, 10), img, ScaleMode.ScaleAndCrop, true);
+                                GUI.DrawTexture(new Rect(chestX - chestW / 2, chestY - chestH / 2, chestW, chestH), img, ScaleMode.ScaleAndCrop, true);
+
+                                if (playerY + 1.5 < vec.y)
+                                {
+                                    GUI.DrawTexture(new Rect(chestX - 5, chestY - chestH / 2 - 8, 10, 6), above, ScaleMode.ScaleAndCrop, true);
+                                }
+
+                                if (playerY - 0.5 > vec.y)
+                                {
+                                    GUI.DrawTexture(new Rect(chestX - 5, chestY + chestH / 2 + 2, 10, 6), below, ScaleMode.ScaleAndCrop, true);
+                                }
+
+                                //Logger.LogInfo("Chest " + vec + " rendered at " + chestX + ", " + chestY);
                             }
                             else
                             {
@@ -329,6 +468,53 @@ namespace CheatMinimap
                         }
 
                     }
+
+                    List<PlayerMainController> players = pm.playersControllers; // [player /*, player, player */];
+                    foreach (var controller in players)
+                    {
+                        if (controller != player)
+                        {
+                            var vec = controller.transform.position;
+                            float chestX = zx + zw * (vec.x - mapLeft) / mapWidth;
+                            float chestY = zy + zh * (mapTop - vec.z) / mapHeight;
+
+                            GUI.DrawTexture(new Rect(chestX - 8, chestY - 8, 16, 16), marker2, ScaleMode.ScaleAndCrop, true);
+
+                            var fs = fontSize.Value;
+                            if (fs > 0)
+                            {
+                                var labelStyle = new GUIStyle("label")
+                                {
+                                    fontSize = fs,
+                                    alignment = TextAnchor.UpperCenter,
+                                    clipping = TextClipping.Overflow,
+                                    wordWrap = false,
+                                    fontStyle = FontStyle.Bold
+                                };
+
+                                var colorSave = GUI.color;
+                                var matrixSave = GUI.matrix;
+                                GUI.color = Color.blue;
+
+                                var chest = new Vector2(chestX, chestY);
+                                GUI.matrix = unrotatedMatrix;
+                                var chestToCenter = chest - mapCenter;
+                                var beta = Mathf.Deg2Rad * rotateAround;
+
+                                var x2 = Mathf.Cos(beta) * chestToCenter.x - Mathf.Sin(beta) * chestToCenter.y;
+                                var y2 = Mathf.Sin(beta) * chestToCenter.x + Mathf.Cos(beta) * chestToCenter.y;
+
+                                var newPos = new Vector2(mapCenter.x + x2, mapCenter.y + y2);
+
+                                GUI.Label(new Rect(newPos.x, newPos.y + 9, 1, 1), controller.playerName, labelStyle);
+
+                                // restore color and pivot
+                                GUI.color = colorSave;
+                                GUI.matrix = matrixSave;
+                            }
+                        }
+                    }
+
                     GUI.EndGroup();
 
                     GUI.BeginGroup(minimapRect);
@@ -339,9 +525,35 @@ namespace CheatMinimap
             }
         }
 
+        void UpdateOutOfBoundsTexture()
+        {
+            if (lastOutOfBoundsColor != outOfBoundsColor.Value)
+            {
+                lastOutOfBoundsColor = outOfBoundsColor.Value;
+
+                try
+                {
+                    var parts = lastOutOfBoundsColor.Split(',');
+                    var a = int.Parse(parts[0]);
+                    var r = int.Parse(parts[1]);
+                    var g = int.Parse(parts[2]);
+                    var b = int.Parse(parts[3]);
+
+                    var color = new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+
+                    outOfBoundsTexture.SetPixel(0, 0, color);
+                    outOfBoundsTexture.Apply();
+                }
+                catch
+                {
+                    // we ignore the parsing errors for now
+                }
+            }
+        }
+
         static Texture2D LoadPNG(string filename)
         {
-            Texture2D tex = new Texture2D(750, 1000);
+            var tex = new Texture2D(750, 1000);
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;
@@ -373,237 +585,11 @@ namespace CheatMinimap
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit(UiWindowPause __instance)
+        static void UiWindowPause_OnQuit()
         {
             self.StopAllCoroutines();
             coroutineRunning = false;
             chests.Clear();
-        }
-
-
-
-        void UpdatePhoto()
-        {
-            if (photographMap.Value)
-            {
-                var healthGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseHealthChangeValuePerSec");
-                healthGauge.SetValue(null, 0.0001f);
-                var waterGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseThirstChangeValuePerSec");
-                waterGauge.SetValue(null, 0.0001f);
-                var oxygenGauge = AccessTools.Field(typeof(GaugesConsumptionHandler), "baseOxygenChangeValuePerSec");
-                oxygenGauge.SetValue(null, 0.0001f);
-
-                PlayersManager playersManager = Managers.GetManager<PlayersManager>();
-                if (playersManager != null)
-                {
-                    PlayerMainController pm = playersManager.GetActivePlayerController();
-                    if (Keyboard.current[Key.U].wasPressedThisFrame)
-                    {
-                        if (photoroutine == null)
-                        {
-                            Assembly me = Assembly.GetExecutingAssembly();
-                            string dir = Path.GetDirectoryName(me.Location) + "\\map";
-
-                            if (!Directory.Exists(dir))
-                            {
-                                Directory.CreateDirectory(dir);
-                            }
-                            else
-                            {
-                                foreach (string f in Directory.EnumerateFiles(dir))
-                                {
-                                    string n = Path.GetFileName(f);
-                                    if (n.StartsWith("map_") && n.EndsWith(".png"))
-                                    {
-                                        File.Delete(f);
-                                    }
-                                }
-                            }
-
-                            photoroutine = PhotographMap(dir, pm);
-                        }
-                        else
-                        {
-                            photoroutine = null;
-                        }
-                    }
-                }
-
-                if (photoroutine != null)
-                {
-                    if (!photoroutine.MoveNext())
-                    {
-                        photoroutine = null;
-                    }
-                }
-            }
-        }
-
-        static IEnumerator photoroutine;
-
-        void SetVisuals(int step, PlayerMainController pm)
-        {
-            Camera.main.orthographic = true;
-            Camera.main.orthographicSize = step;
-            Camera.main.aspect = 1;
-            Camera.main.farClipPlane = 700;
-            Camera.main.nearClipPlane = -400;
-            Camera.main.layerCullDistances = new float[32];
-
-            RenderSettings.fog = false;
-            RenderSettings.ambientSkyColor = Color.white;
-            RenderSettings.ambientGroundColor = Color.white;
-            RenderSettings.ambientEquatorColor = Color.white;
-            RenderSettings.ambientLight = Color.white;
-            RenderSettings.sun.color = Color.white;
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-
-            QualitySettings.shadows = ShadowQuality.Disable;
-
-            var pw = pm.GetComponentInChildren<PlayerView>();
-            pw.enabled = false;
-            pw.damageViewVolume.weight = 0;
-            pw.damageViewVolume.enabled = false;
-
-            foreach (Light lg in FindObjectsByType<Light>(FindObjectsSortMode.None))
-            {
-                lg.shadows = LightShadows.None;
-                lg.color = Color.white;
-                lg.range = 1000;
-            }
-            /*
-            foreach (var ps in FindObjectsOfType<ParticleSystem>())
-            {
-                ps.gameObject.SetActive(false);
-            }
-            */
-        }
-
-        public static bool allowUnload = true;
-        static bool loaded;
-
-        IEnumerator PhotographMap(string dir, PlayerMainController pm)
-        {
-            var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
-            var move = pm.GetPlayerMovable();
-            move.flyMode = true;
-            int playerX = 400;
-            int playerZ = 800;
-
-            pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
-            SetVisuals(4000 / 2, pm);
-            foreach (ParticleSystem ps in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
-            {
-                var em = ps.emission;
-                em.enabled = false;
-            }
-
-            allowUnload = false;
-            Time.timeScale = 1f;
-
-            Logger.LogInfo("Begin Sector loading");
-
-            // disable all decoys
-            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
-            Logger.LogInfo("Sector count: " + sectors.Length);
-            foreach (Sector sector in sectors)
-            {
-                Logger.LogInfo("Checking a sector");
-                if (sector == null || sector.gameObject == null)
-                {
-                    continue;
-                }
-                string name = sector.gameObject.name;
-                Logger.LogInfo("Sector: " + name);
-                if (/*name.StartsWith("Sector-Cave-") || */name.Contains("_Interior"))
-                {
-                    Logger.LogInfo("Sector: " + name + " Ignored");
-                    continue;
-                }
-                bool found = false;
-                /*
-                for (int i = 0; i < SceneManager.sceneCount; i++)
-                {
-                    var sc = SceneManager.GetSceneAt(i);
-                    if (sc.name == name)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                */
-                if (!found)
-                {
-                    var info = "Sector: " + name + " loading";
-                    Logger.LogInfo(info);
-                    //File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
-                    loaded = false;
-                    SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
-
-                    while (!loaded)
-                    {
-                        yield return 0;
-                    }
-
-                    Logger.LogInfo("        " + name + " hiding decoys");
-                    foreach (GameObject gameObject in sector.decoyGameObjects)
-                    {
-                        if (gameObject != null)
-                        {
-                            gameObject.SetActive(true);
-                        }
-                    }
-                    Logger.LogInfo("        " + name + " loaded successfully");
-                }
-            }
-            
-            foreach (var lg in FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
-            {
-                lg.enabled = false;
-            }
-
-
-            Logger.LogInfo("Screenshot all");
-
-            int[] ys = new[] { 50, 75, 100, 125, 150, 200, 300, 325, 350, 375, 400, 500 };
-
-            foreach (int y in ys) {
-                pm.SetPlayerPlacement(new Vector3(playerX, y, playerZ), q);
-                SetVisuals(4000 / 2, pm);
-                yield return 0;
-                ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
-                yield return 0;
-            }
-            
-            allowUnload = true;
-            Time.timeScale = 1f;
-            yield break;
-        }
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
-        static bool PlayerMovable_UpdatePlayerMovement()
-        {
-            return photoroutine == null;
-        }
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerFallDamage), "Update")]
-        static bool PlayerFallDamage_Update()
-        {
-            return photoroutine == null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Sector), nameof(Sector.UnloadSector))]
-        static bool Sector_UnloadSector()
-        {
-            return allowUnload;
-        }
-        */
-
-        static void OnSceneLoaded(AsyncOperation obj)
-        {
-            loaded = true;
         }
     }
 }

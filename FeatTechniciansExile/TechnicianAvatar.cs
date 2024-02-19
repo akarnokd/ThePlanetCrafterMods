@@ -1,8 +1,7 @@
-﻿using SpaceCraft;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace FeatTechniciansExile
 {
@@ -49,7 +48,7 @@ namespace FeatTechniciansExile
 
         internal static TechnicianAvatar CreateAvatar(Color color)
         {
-            TechnicianAvatar result = new TechnicianAvatar();
+            var result = new TechnicianAvatar();
 
             SpriteRenderer sr;
 

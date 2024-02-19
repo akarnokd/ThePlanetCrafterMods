@@ -1,13 +1,11 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using TMPro;
-using UnityEngine;
 using System;
-using System.Collections.Generic;
-using BepInEx.Bootstrap;
-using System.Reflection;
-using BepInEx.Configuration;
 
 namespace UIShowETA
 {
@@ -15,8 +13,10 @@ namespace UIShowETA
     [BepInDependency("akarnokd.theplanetcraftermods.fixunofficialpatches", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -27,7 +27,8 @@ namespace UIShowETA
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
         static void ScreenTerraStage_RefreshDisplay(
-            TextMeshProUGUI ___percentageProcess, TerraformStagesHandler ___terraformStagesHandler)
+            TextMeshProUGUI ___percentageProcess, 
+            TerraformStagesHandler ___terraformStagesHandler)
         {
             TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
             if (nextGlobalStage == null)

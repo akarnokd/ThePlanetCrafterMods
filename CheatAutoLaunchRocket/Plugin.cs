@@ -1,45 +1,36 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using System.Collections;
-using System;
-using BepInEx.Bootstrap;
 using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
+using Unity.Netcode;
 
 namespace CheatAutoLaunchRocket
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatautolaunchrocket", "(Cheat) Auto Launch Rockets", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         static ConfigEntry<bool> isEnabled;
 
         static ConfigEntry<bool> debugMode;
-
-        static Func<string> getMultiplayerMode;
 
         static ManualLogSource logger;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
-
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                Logger.LogInfo("Mod " + modFeatMultiplayerGuid + " found, managing multiplayer mode");
-
-                getMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-
-            }
 
             logger = Logger;
 
@@ -57,30 +48,46 @@ namespace CheatAutoLaunchRocket
             }
         }
 
-        static Dictionary<int, WorldObject> rockets = new();
+        static readonly Dictionary<int, WorldObject> rockets = [];
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WorldObjectsHandler), "StoreNewWorldObject")]
-        static void WorldObjectsHandler_StoreNewWorldObject(WorldObject _worldObject)
+        static void WorldObjectsHandler_StoreNewWorldObject(WorldObject worldObject)
         {
-            var gid = _worldObject.GetGroup().GetId();
+            var gid = worldObject.GetGroup().GetId();
             if (gid.StartsWith("Rocket") && gid != "RocketReactor")
             {
-                rockets[_worldObject.GetId()] = _worldObject;
+                rockets[worldObject.GetId()] = worldObject;
             }
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject))]
-        static void WorldObjectsHandler_DestroyWorldObject(WorldObject _worldObject)
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject), [typeof(WorldObject), typeof(bool)])]
+        static void WorldObjectsHandler_DestroyWorldObject(WorldObject worldObject)
         {
-            int id = _worldObject.GetId();
+            int id = worldObject.GetId();
             if (!WorldObjectsIdHandler.IsWorldObjectFromScene(id))
             {
-                var gid = _worldObject.GetGroup().GetId();
+                var gid = worldObject.GetGroup().GetId();
                 if (gid.StartsWith("Rocket") && gid != "RocketReactor")
                 {
                     rockets.Remove(id);
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject), [typeof(int), typeof(bool)])]
+        static void WorldObjectsHandler_DestroyWorldObject(WorldObjectsHandler __instance, int woId)
+        {
+            var worldObject = __instance.GetWorldObjectViaId(woId);
+            if (worldObject != null && !WorldObjectsIdHandler.IsWorldObjectFromScene(woId))
+            {
+
+                var gid = worldObject.GetGroup().GetId();
+                if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+                {
+                    rockets.Remove(woId);
                 }
             }
         }
@@ -100,7 +107,7 @@ namespace CheatAutoLaunchRocket
 
         }
 
-        static void log(string s)
+        static void Log(string s)
         {
             if (debugMode.Value)
             {
@@ -112,34 +119,34 @@ namespace CheatAutoLaunchRocket
         {
             for (; ; )
             {
-                if (isEnabled.Value && (getMultiplayerMode == null || getMultiplayerMode() != "CoopClient"))
+                if (NetworkManager.Singleton?.IsServer ?? true)
                 {
-                    log("Launch check for " + rockets.Count + " known rockets");
+                    Log("Launch check for " + rockets.Count + " known rockets");
                     var pos = parent.transform.position;
-                    List<int> toRemove = new();
+                    List<int> toRemove = [];
                     foreach (var wo in rockets.Values)
                     {
-                        log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
+                        Log("       Rocket: " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                         if (wo.GetIsPlaced())
                         {
                             var go = wo.GetGameObject();
                             if (go != null)
                             {
-                                if (go.activeSelf)
+                                if (go.activeSelf && go.GetComponent<GhostFx>() == null)
                                 {
                                     var dist = Vector3.Distance(pos, go.transform.position);
-                                    log("           Distance to button: " + dist);
+                                    Log("           Distance to button: " + dist);
                                     if (dist < 30f)
                                     {
                                         if (go.GetComponent<AutoLaunchDelay>() == null)
                                         {
                                             Destroy(go.AddComponent<AutoLaunchDelay>(), 40f);
-                                            log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
+                                            Log("Launching " + wo.GetId() + ", " + wo.GetGroup().GetId() + ", " + go.transform.position);
                                             parent.OnAction();
                                         }
                                         else
                                         {
-                                            log("           Already launched");
+                                            Log("           Already launched");
                                         }
                                     }
                                 }
@@ -158,7 +165,7 @@ namespace CheatAutoLaunchRocket
                     {
                         if (rockets.TryGetValue(id, out var wo))
                         {
-                            log("Removing " + id + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
+                            Log("Removing " + id + ", " + wo.GetGroup().GetId() + ", " + wo.GetPosition());
                             rockets.Remove(id);
                         }
                     }

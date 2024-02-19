@@ -1,8 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MiscPluginUpdateChecker;
-using System;
-using System.Collections.Generic;
-using System.IO;
+// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -15,7 +13,7 @@ namespace XTestPlugins
         [TestMethod]
         public void GenerateDefaultPluginInfos()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
             string pattern2 = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,";
             string patternConst = "BepInPlugin\\((.*?)\\s*,\\s*\"(.*?)\"\\s*,";
@@ -58,9 +56,9 @@ namespace XTestPlugins
                             }
                         }
                     }
-                    sb.Append("    <plugin guid=\"").Append(guid).Append("\"").AppendLine();
-                    sb.Append("            description=\"").Append(desc).Append("\"").AppendLine();
-                    sb.Append("            discover=\"https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/").Append(d).Append("/").Append(d).Append(".csproj\"").AppendLine();
+                    sb.Append("    <plugin guid=\"").Append(guid).Append('"').AppendLine();
+                    sb.Append("            description=\"").Append(desc).Append('"').AppendLine();
+                    sb.Append("            discover=\"https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/").Append(d).Append('/').Append(d).Append(".csproj\"").AppendLine();
                     sb.Append("            method=\"CsprojVersionTag\"").AppendLine();
                     sb.Append("            link=\"https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest\"").AppendLine();
                     sb.Append("            />").AppendLine();

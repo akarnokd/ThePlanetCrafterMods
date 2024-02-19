@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
@@ -28,8 +31,10 @@ namespace MiscPluginUpdateChecker
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> debugMode;
 
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+            
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -71,7 +76,7 @@ namespace MiscPluginUpdateChecker
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start(Intro __instance)
+        static void Intro_Start()
         {
             if (isEnabled.Value)
             {
@@ -94,7 +99,7 @@ namespace MiscPluginUpdateChecker
             }
         }
 
-        void Update()
+        public void Update()
         {
             var pis = pluginInfos;
             if (!cancelDownload.IsCancellationRequested)
@@ -148,7 +153,7 @@ namespace MiscPluginUpdateChecker
             }
         }
 
-        static void Destroy()
+        public void OnDestroy()
         {
             cancelDownload?.Cancel();
             pluginInfos = null;
@@ -160,8 +165,8 @@ namespace MiscPluginUpdateChecker
         static GameObject scrollUp;
         static GameObject scrollDown;
         static int scrollIndex;
-        static readonly List<PluginVersionDiff> scrollEntries = new();
-        static readonly List<GameObject> toHide = new();
+        static readonly List<PluginVersionDiff> scrollEntries = [];
+        static readonly List<GameObject> toHide = [];
 
         static void DisplayPluginDiffs(List<PluginVersionDiff> diffs)
         {
@@ -218,7 +223,6 @@ namespace MiscPluginUpdateChecker
 
 
             int w = Screen.width * 3 / 4;
-            int maxh = Screen.height * 3 / 4;
 
             int contentHeight = (list.Count * 3 + 2) * (fs + 5) + (fs + 10) + fs;
 
@@ -280,7 +284,7 @@ namespace MiscPluginUpdateChecker
                 y -= fs + 5;
                 CreateText(x, y, w, de.local.description, new Color(0.8f, 0.8f, 0.8f), fs);
                 y -= fs + 5;
-                CreateText(x, y, w, de.local.explicitVersion + " -> " + de.remote.version, new Color(0.5f, 1, 0.5f), fs);
+                CreateText(x, y, w, de.local.explicitVersion + " -> " + de.remote.Version, new Color(0.5f, 1, 0.5f), fs);
                 y -= fs + 5;
 
                 if (y < miny)
@@ -323,10 +327,12 @@ namespace MiscPluginUpdateChecker
             var result = new Dictionary<string, PluginEntry>();
             foreach (var pi in Chainloader.PluginInfos)
             {
-                var pe = new PluginEntry();
-                pe.guid = pi.Key;
-                pe.description = pi.Value.Metadata.Name;
-                pe.explicitVersion = pi.Value.Metadata.Version;
+                var pe = new PluginEntry
+                {
+                    guid = pi.Key,
+                    description = pi.Value.Metadata.Name,
+                    explicitVersion = pi.Value.Metadata.Version
+                };
 
                 result[pi.Key] = pe;
             }
@@ -346,7 +352,7 @@ namespace MiscPluginUpdateChecker
                 );
                 LogInfo("Comparing local and remote plugins");
 
-                List<PluginVersionDiff> diffs = new();
+                List<PluginVersionDiff> diffs = [];
 
                 foreach (var local in localPlugins.Values)
                 {

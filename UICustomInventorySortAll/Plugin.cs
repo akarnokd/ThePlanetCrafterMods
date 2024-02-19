@@ -1,92 +1,70 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
-using System;
-using BepInEx.Bootstrap;
 
 namespace UICustomInventorySortAll
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uicustominventorysortall", "(UI) Customize Inventory Sort Order", PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency(modFeatMultiplayerGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string modFeatMultiplayerGuid = "akarnokd.theplanetcraftermods.featmultiplayer";
-
         /// <summary>
         /// List of comma-separated resource ids to look for in order.
         /// </summary>
-        private static Dictionary<string, int> preferenceMap;
+        static readonly Dictionary<string, int> preferenceMap = [];
 
-        static readonly string defaultPreference = string.Join(",", new string[]
-        {
+        static readonly string defaultPreference = string.Join(",",
+        [
             "OxygenCapsule1",
             "WaterBottle1",
             "astrofood" // no capitalization in the game
-        });
+        ]);
 
-        static Func<string> apiGetMultiplayerMode;
+        static ConfigEntry<string> preference;
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
 
-            ConfigEntry<string> preference = Config.Bind("General", "Preference", defaultPreference, "List of comma-separated resource ids to look for in order.");
-            string[] preferenceArray = preference.Value.Split(',');
-
-            // associate an index with the preference resource ids
-            preferenceMap = new Dictionary<string, int>();
-            for (int i = 0; i < preferenceArray.Length; i++)
-            {
-                preferenceMap[preferenceArray[i]] = i;
-            }
-
-            if (Chainloader.PluginInfos.TryGetValue(modFeatMultiplayerGuid, out var pi))
-            {
-                apiGetMultiplayerMode = (Func<string>)AccessTools.Field(pi.Instance.GetType(), "apiGetMultiplayerMode").GetValue(null);
-
-                AccessTools.Field(pi.Instance.GetType(), "inventoryAutoSortOverride").SetValue(null, new Action<List<WorldObject>>(DoSort));
-
-                Logger.LogInfo(modFeatMultiplayerGuid + " found, installing AutoSort override");
-            } 
-            else
-            {
-                Logger.LogInfo(modFeatMultiplayerGuid + " not found");
-            }
+            preference = Config.Bind("General", "Preference", defaultPreference, "List of comma-separated resource ids to look for in order.");
+            ParsePreferences();
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.AutoSort))]
-        static bool Inventory_AutoSort(List<WorldObject> ___worldObjectsInInventory, InventoryDisplayer ___inventoryDisplayer)
+        static bool Inventory_AutoSort(List<WorldObject> ____worldObjectsInInventory, InventoryDisplayer ____inventoryDisplayer)
         {
-            if (apiGetMultiplayerMode == null || apiGetMultiplayerMode() == "SinglePlayer")
-            {
-                DoSort(___worldObjectsInInventory);
-                ___inventoryDisplayer?.RefreshContent();
-                return false;
-            }
-            return true;
+            DoSort(____worldObjectsInInventory);
+            ____inventoryDisplayer?.RefreshContent();
+            
+            return false;
         }
 
-        static void DoSort(List<WorldObject> ___worldObjectsInInventory)
+        static void DoSort(List<WorldObject> ____worldObjectsInInventory)
         {
-            ___worldObjectsInInventory.Sort((a, b) =>
+            ____worldObjectsInInventory.Sort((a, b) =>
             {
-                string ga = a.GetGroup().GetId();
-                string gb = b.GetGroup().GetId();
+                Group groupA = a.GetGroup();
+                Group groupB = b.GetGroup();
 
-                int ia;
-                if (!preferenceMap.TryGetValue(ga, out ia))
+                string ga = groupA.GetId();
+                string gb = groupB.GetId();
+
+                if (!preferenceMap.TryGetValue(ga, out var ia))
                 {
                     ia = int.MaxValue;
                 }
-                int ib;
-                if (!preferenceMap.TryGetValue(gb, out ib))
+                if (!preferenceMap.TryGetValue(gb, out var ib))
                 {
                     ib = int.MaxValue;
                 }
@@ -100,8 +78,26 @@ namespace UICustomInventorySortAll
                     return 1;
                 }
 
-                return ga.CompareTo(gb);
+                return groupA.stableHashCode.CompareTo(groupB.stableHashCode);
             });
+        }
+
+        static void ParsePreferences()
+        {
+            preferenceMap.Clear();
+
+            string[] preferenceArray = preference.Value.Split(',');
+
+            // associate an index with the preference resource ids
+            for (int i = 0; i < preferenceArray.Length; i++)
+            {
+                preferenceMap[preferenceArray[i]] = i;
+            }
+        }
+
+        static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ParsePreferences();
         }
     }
 }

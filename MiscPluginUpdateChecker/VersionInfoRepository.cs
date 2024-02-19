@@ -1,17 +1,17 @@
-﻿using System;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace MiscPluginUpdateChecker
 {
     internal class VersionInfoRepository
     {
-        internal readonly List<PluginEntry> plugins = new();
-        internal readonly List<IncludeEntry> includes = new();
+        internal readonly List<PluginEntry> plugins = [];
+        internal readonly List<IncludeEntry> includes = [];
 
         internal static VersionInfoRepository Load(Stream stream)
         {
@@ -39,9 +39,11 @@ namespace MiscPluginUpdateChecker
             {
                 if (xPlugin.Name.LocalName == "plugin")
                 {
-                    var pluginEntry = new PluginEntry();
-                    pluginEntry.guid = xPlugin.AttributeWithName("guid");
-                    pluginEntry.description = xPlugin.AttributeWithName("description");
+                    var pluginEntry = new PluginEntry
+                    {
+                        guid = xPlugin.AttributeWithName("guid"),
+                        description = xPlugin.AttributeWithName("description")
+                    };
 
                     var v = xPlugin.AttributeWithName("version");
                     if (v != null) {
@@ -62,11 +64,13 @@ namespace MiscPluginUpdateChecker
                     {
                         if (xChangelog.Name.LocalName == "changelog")
                         {
-                            var logEntry = new ChangelogEntry();
-                            logEntry.version = Version.Parse(xChangelog.AttributeWithName("version"));
-                            logEntry.title = xChangelog.AttributeWithName("title");
-                            logEntry.link = xChangelog.AttributeWithName("link");
-                            logEntry.content = xChangelog.Value;
+                            var logEntry = new ChangelogEntry
+                            {
+                                version = Version.Parse(xChangelog.AttributeWithName("version")),
+                                title = xChangelog.AttributeWithName("title"),
+                                link = xChangelog.AttributeWithName("link"),
+                                content = xChangelog.Value
+                            };
 
                             pluginEntry.changelog.Add(logEntry);
                         }
@@ -78,8 +82,10 @@ namespace MiscPluginUpdateChecker
                 else
                 if (xPlugin.Name == "include")
                 {
-                    var ie = new IncludeEntry();
-                    ie.url = xPlugin.AttributeWithName("url");
+                    var ie = new IncludeEntry
+                    {
+                        url = xPlugin.AttributeWithName("url")
+                    };
                     result.includes.Add(ie);
                 }
             }
@@ -95,9 +101,9 @@ namespace MiscPluginUpdateChecker
         internal DiscoverMethod discoverMethod;
         internal Version discoverVersion;
         internal string link;
-        internal readonly List<ChangelogEntry> changelog = new();
+        internal readonly List<ChangelogEntry> changelog = [];
 
-        internal Version version
+        internal Version Version
         {
             get
             {

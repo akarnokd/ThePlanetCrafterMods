@@ -1,15 +1,15 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using TMPro;
-using System.IO;
 using System;
 using System.Linq;
-using UnityEngine.SceneManagement;
 using System.Collections;
 using BepInEx.Bootstrap;
 using System.Reflection;
@@ -27,8 +27,10 @@ namespace UIModConfigMenu
 
         static string filterValue = "";
 
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -59,6 +61,23 @@ namespace UIModConfigMenu
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WindowsHandler), "Start")]
+        static void WindowsHandler_Start(WindowsHandler __instance)
+        {
+            __instance.StartCoroutine(DeferredStart());
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowOptions), nameof(UiWindowOptions.OnClose))]
+        static void UiWindowOptions_OnClose()
+        {
+            foreach (var tooltip in FindObjectsByType<ModConfigEntryHover>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                tooltip.OnPointerExit(default);
+            }
+        }
+
         static List<BepInEx.PluginInfo> pluginList;
         static GameObject modScrollContent;
         static Transform otherOptions;
@@ -76,6 +95,7 @@ namespace UIModConfigMenu
             GameObject buttonGraphics = default;
             GameObject scrollViewControls = default;
             OptionsPanel optionsPanel = default;
+            GameObject applyBtn = default;
 
             foreach (var go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
@@ -95,17 +115,24 @@ namespace UIModConfigMenu
                 {
                     optionsPanel = go.GetComponent<OptionsPanel>();
                 }
+                if (go.name == "ApplyButton")
+                {
+                    applyBtn = go;
+                }
             }
 
             if (buttonControls != null && buttonGraphics != null && scrollViewControls != null
-                && optionsPanel != null)
+                && optionsPanel != null && applyBtn != null)
             {
                 buttonMods = Instantiate(buttonGraphics);
                 buttonMods.name = "ButtonMods";
                 buttonMods.transform.SetParent(buttonGraphics.transform.parent, false);
 
+                /*
                 buttonMods.transform.localPosition = buttonGraphics.transform.localPosition
                     + new Vector3(buttonGraphics.transform.localPosition.x - buttonControls.transform.localPosition.x, 0, 0);
+                */
+                buttonMods.transform.SetSiblingIndex(buttonGraphics.transform.parent.childCount - 2);
 
                 var lt = buttonMods.GetComponentInChildren<LocalizedText>();
                 lt.textId = "ModConfigMenu_Button";
@@ -114,6 +141,12 @@ namespace UIModConfigMenu
                 var btn = buttonMods.GetComponent<Button>();
                 var bc = new Button.ButtonClickedEvent();
                 btn.onClick = bc;
+
+                optionsPanel.tabsButtons.Add(buttonMods);
+
+                var buttonsRt = buttonGraphics.transform.parent.GetComponent<RectTransform>();
+                var buttonGraphicsRT = buttonGraphics.GetComponent<RectTransform>();
+                buttonsRt.localPosition -= new Vector3(buttonGraphicsRT.sizeDelta.x / 2, 0, 0);
 
                 otherOptions = scrollViewControls.transform.Find("Viewport/Content/Other Options");
                 otherOptionsX = otherOptions.GetComponent<RectTransform>().localPosition.x;
@@ -141,18 +174,25 @@ namespace UIModConfigMenu
                     filterGo.SetActive(true);
                 });
 
+                if (applyBtn != null)
+                {
+                    var applyRt = applyBtn.GetComponent<RectTransform>();
+                    applyRt.localPosition -= new Vector3(0, applyRt.sizeDelta.y * 1.5f, 0);
+                }
+
                 RenderPluginList();
             }
             else
             {
-                logger.LogInfo("ButtonControls" + (buttonControls != null));
-                logger.LogInfo("ButtonGraphics" + (buttonGraphics != null));
-                logger.LogInfo("Scroll View Control" + (scrollViewControls != null));
-                logger.LogInfo("OptionsPanel" + (optionsPanel != null));
+                logger.LogInfo("ButtonControls: " + (buttonControls != null));
+                logger.LogInfo("ButtonGraphics: " + (buttonGraphics != null));
+                logger.LogInfo("Scroll View Control: " + (scrollViewControls != null));
+                logger.LogInfo("OptionsPanel: " + (optionsPanel != null));
+                logger.LogInfo("ApplyBtn: " + (optionsPanel != null));
             }
         }
 
-        void Update()
+        public void Update()
         {
             if (modScroll != null && filterGo != null && !modScroll.activeSelf && filterGo.activeSelf)
             {
@@ -246,13 +286,14 @@ namespace UIModConfigMenu
             if (coroutineRenderPluginListDelayed != null)
             {
                 img.StopCoroutine(coroutineRenderPluginListDelayed);
+                coroutineRenderPluginListDelayed = null;
             }
             coroutineRenderPluginListDelayed = img.StartCoroutine(RenderPluginListDelayed());
         }
         
         static IEnumerator RenderPluginListDelayed()
         {
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
             RenderPluginList();
         }
 
@@ -284,7 +325,7 @@ namespace UIModConfigMenu
                             bool foundKey = false;
                             foreach (var cef in pi.Instance.Config.Keys)
                             {
-                                if (cef.Key.Contains(ft.Substring(1), StringComparison.InvariantCultureIgnoreCase))
+                                if (cef.Key.Contains(ft[1..], StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     foundKey = true;
                                     break;
@@ -310,6 +351,15 @@ namespace UIModConfigMenu
                 }
 
                 cnt++;
+
+                // [Optionally] call a method on the mod if the config is changed live
+                MethodInfo mOnModConfigChanged = pi.Instance.GetType().GetMethod(
+                    "OnModConfigChanged", 
+                    AccessTools.all, 
+                    null, 
+                    [typeof(ConfigEntryBase)], 
+                    []
+                );
 
                 // Create the mods header row with version
                 // ---------------------------------------
@@ -451,9 +501,11 @@ namespace UIModConfigMenu
 
                                     btnComp.onClick.AddListener(new UnityAction(() =>
                                     {
-                                        ceb.SetSerializedValue(ce.Value.GetSerializedValue() == "true" ? "false" : "true");
+                                        ceb.SetSerializedValue(ceb.GetSerializedValue() == "true" ? "false" : "true");
                                         pcfg.Save();
-                                        img.color = ce.Value.GetSerializedValue() == "true" ? colorOn : colorOff;
+                                        img.color = ceb.GetSerializedValue() == "true" ? colorOn : colorOff;
+
+                                        mOnModConfigChanged?.Invoke(null, [ceb]);
                                     }));
                                 }
                                 else
@@ -499,6 +551,7 @@ namespace UIModConfigMenu
                                     {
                                         ceb.SetSerializedValue(e);
                                         pcfg.Save();
+                                        mOnModConfigChanged?.Invoke(null, [ceb]);
                                     }));
 
                                     editor.caretColor = Color.white;
@@ -600,6 +653,8 @@ namespace UIModConfigMenu
             {
                 Destroy(tooltipGo);
             }
+
+
         }
     }
 }

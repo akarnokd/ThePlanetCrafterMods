@@ -1,11 +1,13 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BepInEx.Configuration;
 using System.Linq;
-using UnityEngine.UIElements;
 
 namespace CheatMoreTrade
 {
@@ -13,7 +15,7 @@ namespace CheatMoreTrade
     public class Plugin : BaseUnityPlugin
     {
         // just some defaults
-        static Dictionary<string, int> tradeValues = new() 
+        static readonly Dictionary<string, int> tradeValues = new() 
         {
             { "Vegetable0Seed", 500 },
             { "Vegetable1Seed", 1000 },
@@ -26,8 +28,10 @@ namespace CheatMoreTrade
 
         static ManualLogSource logger;
 
-        void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             Logger.LogInfo($"Plugin is enabled.");
             
             logger = Logger;
@@ -55,7 +59,7 @@ namespace CheatMoreTrade
         {
             foreach (var gr in ___groupsData)
             {
-                if (gr.associatedGameObject != null)
+                if (gr != null && gr.associatedGameObject != null)
                 {
                     if (tradeValues.TryGetValue(gr.id, out var value))
                     {

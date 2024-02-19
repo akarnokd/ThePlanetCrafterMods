@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
@@ -9,14 +12,16 @@ namespace CheatAutoConsume
     public class Plugin : BaseUnityPlugin
     {
 
-        private static ConfigEntry<int> threshold;
+        static ConfigEntry<int> threshold;
 
         static bool oxygenWarning;
         static bool waterWarning;
         static bool foodWarning;
 
-        private void Awake()
+        public void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -32,23 +37,24 @@ namespace CheatAutoConsume
             PlayerGaugesHandler gh = activePlayerController.GetGaugesHandler();
             foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
             {
-                if (_worldObject.GetGroup() is GroupItem)
+                if (_worldObject.GetGroup() is GroupItem groupItem)
                 {
-                    GroupItem groupItem = (GroupItem)_worldObject.GetGroup();
                     int groupValue = groupItem.GetGroupValue();
                     if (groupItem.GetUsableType() == type)
                     {
                         if ((type == DataConfig.UsableType.Eatable && gh.Eat(groupValue))
                                 || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
-                                ) {
+                                )
+                        {
 
                             if (groupItem.GetEffectOnPlayer() != null)
                             {
                                 activePlayerController.GetPlayerEffects().ActivateEffect(groupItem.GetEffectOnPlayer());
                             }
 
-                            inv.RemoveItem(_worldObject, true);
+                            InventoriesHandler.Instance.RemoveItemFromInventory(_worldObject, inv, true, null);
+
                             return true;
                         }
                     }

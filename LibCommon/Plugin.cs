@@ -1,12 +1,8 @@
-﻿using BepInEx;
-using BepInEx.Logging;
-using SpaceCraft;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using HarmonyLib;
-using System.Collections.Generic;
-using System;
-using System.Text;
-using System.IO;
-using UnityEngine;
 
 namespace LibCommon
 {
@@ -14,18 +10,15 @@ namespace LibCommon
     public class Plugin : BaseUnityPlugin
     {
 
-        static ManualLogSource logger;
-
-        private void Awake()
+        public void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
-            logger = Logger;
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Logger.LogInfo($"Plugin destroyed!");
         }

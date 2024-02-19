@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using UnityEngine.InputSystem;
@@ -6,8 +9,6 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
-using System;
-using UnityEngine.UI;
 using LibCommon;
 
 namespace CheatNearbyResourcesHighlight
@@ -69,10 +70,12 @@ namespace CheatNearbyResourcesHighlight
             }
         }
 
-        static List<GameObjectTTL> scannerImageList = new List<GameObjectTTL>();
+        static readonly List<GameObjectTTL> scannerImageList = [];
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -108,11 +111,13 @@ namespace CheatNearbyResourcesHighlight
                     //
                     if (Keyboard.current[k].wasPressedThisFrame)
                     {
-                        List<string> scanSetList = new();
-                        scanSetList.AddRange(resourceSetStr.Value.Split(','));
-                        scanSetList.AddRange(larvaeSetStr.Value.Split(','));
-                        scanSetList.AddRange(fishSetStr.Value.Split(','));
-                        scanSetList.AddRange(frogSetStr.Value.Split(','));
+                        List<string> scanSetList =
+                        [
+                            .. resourceSetStr.Value.Split(','),
+                            .. larvaeSetStr.Value.Split(','),
+                            .. fishSetStr.Value.Split(','),
+                            .. frogSetStr.Value.Split(','),
+                        ];
 
                         if (Keyboard.current[Key.LeftShift].isPressed)
                         {
@@ -137,7 +142,7 @@ namespace CheatNearbyResourcesHighlight
                         {
                             if (currentResource == null)
                             {
-                                currentResource = scanSetList[scanSetList.Count - 1];
+                                currentResource = scanSetList[^1];
                             }
                             else
                             {
@@ -179,7 +184,7 @@ namespace CheatNearbyResourcesHighlight
             float maxRangeSqr = radius.Value * radius.Value;
             float sy = stretchY.Value;
             // prepare resource sets to highlight
-            HashSet<string> scanSet = new HashSet<string>();
+            var scanSet = new HashSet<string>();
             bool hasResources = false;
             bool hasLarvae = false;
             bool hasFish = false;
@@ -229,7 +234,7 @@ namespace CheatNearbyResourcesHighlight
 
 
             // Where are the minable objects?
-            List<Component> candidates = new();
+            List<Component> candidates = [];
             if (hasResources)
             {
                 candidates.AddRange(FindObjectsByType<ActionMinable>(FindObjectsSortMode.None));
@@ -266,8 +271,8 @@ namespace CheatNearbyResourcesHighlight
                     if (resourcePosition.x != 0f && resourcePosition.y != 0f && resourcePosition.z != 0f
                         && (resourcePosition - playerPosition).sqrMagnitude < maxRangeSqr)
                     {
-                        GameObject iconGo = new GameObject("ScannerImage-" + gid);
-                        SpriteRenderer spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
+                        var iconGo = new GameObject("ScannerImage-" + gid);
+                        var spriteRenderer = iconGo.AddComponent<SpriteRenderer>();
                         spriteRenderer.sprite = icon;
                         spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
                         iconGo.transform.position = new Vector3(resourcePosition.x, resourcePosition.y + 3f, resourcePosition.z);
@@ -276,16 +281,18 @@ namespace CheatNearbyResourcesHighlight
                         iconGo.transform.LookAt(player, player.up);
                         iconGo.SetActive(true);
 
-                        GameObjectTTL go = new GameObjectTTL();
-                        go.resource = resource.gameObject;
-                        go.icon = iconGo;
-                        go.time = Time.time + timeToLive.Value;
+                        var go = new GameObjectTTL
+                        {
+                            resource = resource.gameObject,
+                            icon = iconGo,
+                            time = Time.time + timeToLive.Value
+                        };
 
                         float barLen = lineIndicatorLength.Value;
                         if (barLen > 0)
                         {
                             float barWidth = 0.1f;
-                            GameObject bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
+                            var bar1 = new GameObject("ScannerImage-" + gid + "-Bar1");
                             var image1 = bar1.AddComponent<SpriteRenderer>();
                             image1.sprite = icon;
                             image1.color = new Color(1f, 1f, 1f, 1f);
@@ -294,7 +301,7 @@ namespace CheatNearbyResourcesHighlight
                             bar1.transform.localScale = new Vector3(barWidth, barLen, barWidth);
                             bar1.SetActive(true);
 
-                            GameObject bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
+                            var bar2 = new GameObject("ScannerImage-" + gid + "-Bar2");
                             var image2 = bar2.AddComponent<SpriteRenderer>();
                             image2.sprite = icon;
                             image2.color = new Color(1f, 1f, 1f, 1f);

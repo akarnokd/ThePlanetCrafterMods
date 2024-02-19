@@ -1,5 +1,6 @@
 TechniciansExile_Name=Technikus #221021
 TechniciansExile_Talk=Beszélgetés
+TechniciansExile_Talk_HostOnly=Csak a házigazda beszélhet ezzel a személlyel.
 TechniciansExile_Convict=Elítélt (Te)
 TechniciansExile_Technician=Technikus
 TechniciansExile_Message=Van valaki ezen a bolygón?<br>Kérem, segítsen! Nincsen ételem és vizem!<br>A koordinátáim 1995:75:1073.

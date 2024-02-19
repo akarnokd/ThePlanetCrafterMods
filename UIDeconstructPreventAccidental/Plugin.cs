@@ -1,4 +1,7 @@
-﻿using BepInEx;
+﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+// Licensed under the Apache License, Version 2.0
+
+using BepInEx;
 using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
@@ -12,6 +15,8 @@ namespace UIDeconstructPreventAccidental
 
         private void Awake()
         {
+            LibCommon.BepInExLoggerFix.ApplyFix();
+            
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -22,7 +27,7 @@ namespace UIDeconstructPreventAccidental
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.OnAction))]
-        static bool ActionDeconstructible_OnAction(BaseHudHandler ___hudHandler)
+        static bool ActionDeconstructible_OnAction(BaseHudHandler ____hudHandler)
         {
             var ap = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             if (modEnabled.Value 
@@ -30,7 +35,7 @@ namespace UIDeconstructPreventAccidental
                 && !ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey()
             )
             {
-                ___hudHandler.DisplayCursorText("", 3, "Hold the <Accessibility Key> to safely deconstruct.");
+                ____hudHandler.DisplayCursorText("", 3, "Hold the <Accessibility Key> to safely deconstruct.");
                 return false;
             }
             return true;
@@ -38,7 +43,7 @@ namespace UIDeconstructPreventAccidental
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionPanelDeconstruct), nameof(ActionDeconstructible.OnAction))]
-        static bool ActionPanelDeconstruct_OnAction(BaseHudHandler ___hudHandler)
+        static bool ActionPanelDeconstruct_OnAction(BaseHudHandler ____hudHandler)
         {
             var ap = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             if (modEnabled.Value
@@ -46,7 +51,7 @@ namespace UIDeconstructPreventAccidental
                 && !ap.GetPlayerInputDispatcher().IsPressingAccessibilityKey()
             )
             {
-                ___hudHandler.DisplayCursorText("", 3, "Hold the <Accessibility Key> to safely deconstruct.");
+                ____hudHandler.DisplayCursorText("", 3, "Hold the <Accessibility Key> to safely deconstruct.");
                 return false;
             }
             return true;
