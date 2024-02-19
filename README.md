@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.013
+## Supported Game Version: 0.9.025
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -45,7 +45,6 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 ### Content
 
 - [Command Console](#feat-command-console)
-- [Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
 - [Technician's Exile](#feat-technicians-exile)
 - [Space Cows](#feat-space-cows)
 - [Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Misc%29-Plugin-Update-Checker)
@@ -65,13 +64,11 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [More Trade](#cheat-more-trade)
 - [Photomode Hide Water](#cheat-photomode-hide-water)
 - [Recyclers Deposit Into Remote Containers](#cheat-recyclers-deposit-into-remote-containers)
-- [Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable)
 
 ### User Interface or Quality of Life
 
 - [Beacon Text](#ui-beacon-text)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
-- [Don't Close Craft Window](#ui-dont-close-craft-window)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
 - [Logistic Select All](#logistic-select-all)
@@ -105,7 +102,6 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Reduce Save Size](#perf-reduce-save-size)
 - [Save Auto Backup](#save-auto-backup)
 - [Auto Save](#save-auto-save)
-- [Unbrick Save](#fix-unbrick-save)
 - [Unofficial Patches](#fix-unofficial-patches)
 
 ### Mods from former Modders
@@ -114,8 +110,17 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Auto Move](#lathrey-auto-move)
 - [Disable Build Constraints](#lathrey-disable-build-constraints)
-- [Improve Performance](#lathrey-improve-performance)
 
+
+### Discontinued mods (via 0.9.025)
+
+- [Teleport to Nearest Minable](#cheat-teleport-to-nearest-minable)
+- [Improve Performance](#lathrey-improve-performance)
+- [Unbrick Save](#fix-unbrick-save)
+- [Multiplayer](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
+- [Don't Close Craft Window](#ui-dont-close-craft-window)
+
+ 
 ## (Cheat) Asteroid Landing Position Override
 
 Fixes the asteroid landing position relative to the player by an offset.
