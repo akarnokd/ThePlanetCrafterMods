@@ -35,6 +35,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackDroneStation;
 
         static ConfigEntry<bool> debugMode;
+        static ConfigEntry<int> networkBufferScaling;
 
         static string expectedGroupIdToAdd;
 
@@ -103,6 +104,8 @@ namespace CheatInventoryStacking
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
+
+            networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
 
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);

@@ -76,9 +76,21 @@ namespace CheatInventoryStacking
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoryShowContent), "RegisterToInventory")]
-        static void Patch_InventoryShowContent_RegisterToInventory(Inventory inventory)
+        static void Patch_InventoryShowContent_RegisterToInventory(
+            InventoryShowContent __instance, 
+            Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            if (__instance.GetComponent<MachineOptimizer>() != null)
+            {
+                if (!stackOptimizer.Value)
+                {
+                    noStackingInventories.Add(inventory.GetId());
+                }
+            }
+            else
+            {
+                noStackingInventories.Add(inventory.GetId());
+            }
         }
 
         [HarmonyPostfix]
@@ -110,7 +122,12 @@ namespace CheatInventoryStacking
         {
             if (overrideBufferSizeInRpc)
             {
-                __result = new FastBufferWriter(1024, Unity.Collections.Allocator.Temp, 65536 + 128 * 8 * stackSize.Value);
+                var n = networkBufferScaling.Value * 1L * stackSize.Value + 65536;
+                if (n > 128L * 1024 * 1024 || n < 65536L)
+                {
+                    n = -1L;
+                }
+                __result = new FastBufferWriter(1024, Unity.Collections.Allocator.Temp, (int)n);
                 return false;
             }
             return true;
