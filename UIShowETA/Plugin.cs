@@ -33,7 +33,7 @@ namespace UIShowETA
             TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
             if (nextGlobalStage == null)
             {
-                ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Done";
+                ___percentageProcess.text = "<br><color=#FFFF00>ETA</color><br>Done";
             }
             else
             {
