@@ -3,6 +3,7 @@
 
 using HarmonyLib;
 using SpaceCraft;
+using Unity.Netcode;
 
 namespace CheatInventoryStacking
 {
@@ -85,6 +86,34 @@ namespace CheatInventoryStacking
         static void Patch_InventoryLockContent_FirstInventoryCheck(Inventory ____inventory)
         {
             noStackingInventories.Add(____inventory.GetId());
+        }
+
+        static bool overrideBufferSizeInRpc;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void Patch_InventoriesHandler_RetrieveInventoryClientRpc_Pre()
+        {
+            overrideBufferSizeInRpc = stackSize.Value > 1;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void Patch_InventoriesHandler_RetrieveInventoryClientRpc_Post()
+        {
+            overrideBufferSizeInRpc = false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NetworkBehaviour), "__beginSendClientRpc")]
+        static bool Patch_NetworkBehaviour___beginSendClientRpc(ref FastBufferWriter __result)
+        {
+            if (overrideBufferSizeInRpc)
+            {
+                __result = new FastBufferWriter(1024, Unity.Collections.Allocator.Temp, 65536 + 128 * 8 * stackSize.Value);
+                return false;
+            }
+            return true;
         }
     }
 }
