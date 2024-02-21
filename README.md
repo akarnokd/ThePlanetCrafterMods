@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.025
+## Supported Game Version: 0.9.026
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -64,6 +64,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [More Trade](#cheat-more-trade)
 - [Photomode Hide Water](#cheat-photomode-hide-water)
 - [Recyclers Deposit Into Remote Containers](#cheat-recyclers-deposit-into-remote-containers)
+- [Wreck Minimap](#cheat-wreck-minimap)
 
 ### User Interface or Quality of Life
 
@@ -92,6 +93,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Český překlad](#ui-cesky-preklad) (Czech translation)
 - [Estonian Translation](#ui-estonian-translation)
+- [Korean Translation](#ui-korean-translation)
 - [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
 - [Polish Translation](#ui-polish-translation)
@@ -101,7 +103,8 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Reduce Save Size](#perf-reduce-save-size)
 - [Save Auto Backup](#save-auto-backup)
-- [Auto Save](#save-auto-save)
+- [Save Auto Save](#save-auto-save)
+- [Startup Performance](#perf-startup)
 - [Unofficial Patches](#fix-unofficial-patches)
 
 ### Mods from former Modders
