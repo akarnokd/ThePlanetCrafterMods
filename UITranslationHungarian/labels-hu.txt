@@ -1171,3 +1171,5 @@ GROUP_DESC_Flare=Különféle helyszínek más-más színnel tőrténő megvilá
 GROUP_NAME_PortalGenerator1=Portál generátor
 GROUP_DESC_PortalGenerator1=Távoli, egyedi tárgyakat tartalmazó roncsok eléréséhez
 UI_SAVED_WAITING=Mentés folyamatban
+GROUP_NAME_FuseTradeRocketsSpeed1=Kereskedelmi rakéta szorzó biztosíték
+GROUP_DESC_FuseTradeRocketsSpeed1=Helyezd be ezt a biztosítékot egy optimalizálóba a közeli Kereskedelmi rakéták sebességének növeléséhez.
