@@ -81,6 +81,8 @@ namespace CheatInventoryStacking
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
 
+        static Font font;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -121,6 +123,8 @@ namespace CheatInventoryStacking
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
 
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
+
+            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -316,7 +320,7 @@ namespace CheatInventoryStacking
 
                 // Since 0.9.020 (vanilla gamepad improvements)
                 var selectableEnablerComponent = __instance.GetComponentInParent<SelectableEnabler>();
-                var selectablesEnabled = selectableEnablerComponent != null && selectableEnablerComponent.SelectablesEnabled;
+                var selectablesEnabled = selectableEnablerComponent == null || selectableEnablerComponent.SelectablesEnabled;
 
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnImageClicked, __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnDropClicked, __instance);
@@ -366,7 +370,7 @@ namespace CheatInventoryStacking
                             count.transform.SetParent(component.transform, false);
                             Text text = count.AddComponent<Text>();
                             text.text = slot.Count.ToString();
-                            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                            text.font = font;
                             text.color = new Color(1f, 1f, 1f, 1f);
                             text.fontSize = fs;
                             text.resizeTextForBestFit = false;
