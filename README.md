@@ -1158,7 +1158,7 @@ MoveFewAmount = 5
 # Default value: 50
 MoveManyAmount = 50
 ```
-</summary>
+</details>
 
 ## (UI) Overview Panel
 
