@@ -64,22 +64,25 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [More Trade](#cheat-more-trade)
 - [Photomode Hide Water](#cheat-photomode-hide-water)
 - [Recyclers Deposit Into Remote Containers](#cheat-recyclers-deposit-into-remote-containers)
-- [Wreck Minimap](#cheat-wreck-minimap)
+- [Wreck Map](#cheat-wreck-map)
 
 ### User Interface or Quality of Life
 
 - [Beacon Text](#ui-beacon-text)
+- [Continue](#ui-continue)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
 - [Logistic Select All](#logistic-select-all)
 - [Menu Shortcut Keys](#ui-menu-shortcut-keys)
+- [Mod Config Menu](#ui-mod-config-menu)
 - [Overview Panel](#ui-overview-panel)
 - [Pin Recipe to Screen](#ui-pin-recipe-to-screen)
 - [Prevent Accidental Deconstruct](#ui-prevent-accidental-deconstruct)
 - [Save When Quitting](#ui-save-when-quitting)
 - [Show Consumable Counts](#ui-show-consumable-counts)
 - [Show Container Content Info](#ui-show-container-content-info)
+- [Show Crash](#ui-show-crash)
 - [Show ETA](#ui-show-eta)
 - [Show Grab N Mine Count](#ui-show-grab-n-mine-count)
 - [Show MultiTool Mode](#ui-show-multitool-mode)
@@ -87,6 +90,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Show Player Tooltip Item Count](#ui-show-player-tooltip-item-count)
 - [Show Rocket Counts](#ui-show-rocket-counts)
 - [Sort Saves](#ui-sort-saves)
+- [Stack In-Range List](#ui-stack-in-range-list)
 - [Telemetry Font Sizer](#ui-telemetry-font-sizer)
 
 ### Translations
@@ -103,7 +107,8 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Reduce Save Size](#perf-reduce-save-size)
 - [Save Auto Backup](#save-auto-backup)
-- [Save Auto Save](#save-auto-save)
+- [Auto Save](#save-auto-save)
+- [Quick Save](#save-quick-save)
 - [Startup Performance](#perf-startup)
 - [Unofficial Patches](#fix-unofficial-patches)
 
@@ -143,10 +148,20 @@ Note that currently, this may fail if the landing position is determined by the 
 # Default value: 100
 DeltaX = 100
 
+## Relative position up-down.
+# Setting type: Int32
+# Default value: 0
+DeltaY = 0
+
 ## Relative position north-south (north is positive).
 # Setting type: Int32
 # Default value: 0
 DeltaZ = 0
+
+## Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.
+# Setting type: Boolean
+# Default value: false
+Absolute = false
 ```
 
 ## (Cheat) Auto Consume Oxygen-Water-Food
@@ -433,7 +448,7 @@ Press <kbd>Ctrl+X</kbd> to highlight and cycle backward through the set of resou
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight.cfg`
+<details><summary> akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight.cfg </summary>
 
 ```
 [General]
@@ -472,8 +487,8 @@ LineIndicatorLength = 5
 # Setting type: Single
 # Default value: 15
 TimeToLive = 15
-
 ```
+</details>
 
 ## (Cheat) Inventory Capacity Override
 
@@ -485,7 +500,7 @@ This mod makes no attempts at remedying this shortcoming.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatinventorycapacity.cfg`
+<details><summary> akarnokd.theplanetcraftermods.cheatinventorycapacity.cfg </summary>
 
 ```
 [General]
@@ -500,6 +515,7 @@ Capacity = 250
 # Default value: true
 Enabled = false
 ```
+</details>
 
 ## (Cheat) Machines Deposit Into Remote Containers
 
@@ -545,17 +561,31 @@ Note also that machines are slow to mine resources.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatmachineremotedeposit.cfg`
+<details><summary> akarnokd.theplanetcraftermods.cheatmachineremotedeposit.cfg </summary>
 
 ```
 [General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Produce detailed logs? (chatty)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
 ## A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C
 # Setting type: String
 # Default value: 
 Aliases = 
 ```
+</details>
 
 ## (Cheat) Teleport to Nearest Minable
+
+:warning: **Discontinued**.
 
 Locates the nearest **minable resource** or **grabable larvae** (configurable).
 
@@ -612,7 +642,7 @@ Display a minimap on the lower left side of the screen.
 Press <kbd>N</kbd> to show/hide the minimap.
 Press <kbd>Shift+N</kbd> or <kbd>Mouse 4</kbd> to zoom in.
 Press <kbd>Ctrl+N</kbd> or <kbd>Mouse 5</kbd> to zoom out.
-Press <kbd>Alt+N</kbd> to show/hide/autoscan chests.
+Press <kbd>Alt+N</kbd> to show/hide/autoscan chests/servers/ladders.
 
 Notes
 - Uses two static maps: barren and lush, where lush is currently set to show after 200 MTi.
@@ -623,7 +653,7 @@ Notes
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatminimap.cfg`
+<details><summary> akarnokd.theplanetcraftermods.cheatminimap.cfg </summary>
 
 ```
 [General]
@@ -641,12 +671,17 @@ MapBottom = 350
 ## Panel position from the left of the screen
 # Setting type: Int32
 # Default value: 0
-MapLeft = 150
+MapLeft = 0
 
 ## The zoom level
 # Setting type: Int32
 # Default value: 4
-ZoomLevel = 4
+ZoomLevel = 20
+
+## The maximum zoom level
+# Setting type: Int32
+# Default value: 13
+MaxZoomLevel = 20
 
 ## The key to press to toggle the minimap
 # Setting type: String
@@ -672,7 +707,43 @@ AutoScanForChests = 5
 # Setting type: Int32
 # Default value: -1
 FixedRotation = -1
+
+## Not meant for end-users. (Photographs the map when pressing U for development purposes.)
+# Setting type: Boolean
+# Default value: false
+PhotographMap = false
+
+## Should the map be visible?
+# Setting type: Boolean
+# Default value: true
+MapVisible = false
+
+## The size of the names of other players, use 0 to disable showing their name.
+# Setting type: Int32
+# Default value: 16
+FontSize = 16
+
+## Show the ladders in the procedural wrecks?
+# Setting type: Boolean
+# Default value: true
+ShowWreckLadders = true
+
+## Show the server racks?
+# Setting type: Boolean
+# Default value: true
+ShowServers = true
+
+## Show the wreck safes?
+# Setting type: Boolean
+# Default value: true
+ShowSafes = true
+
+## The color of the out-of-bounds area as ARGB ints of range 0-255
+# Setting type: String
+# Default value: 255,127,106,0
+OutOfBoundsColor = 255,127,106,0
 ```
+</details>
 
 ## (Cheat) Inventory Stacking
 
@@ -685,15 +756,20 @@ found all places where this can be bad. Backup your saves!
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.cheatinventorystacking.cfg`
+<details><summary> akarnokd.theplanetcraftermods.cheatinventorystacking.cfg </summary>
 
 ```
 [General]
 
+## Produce detailed logs? (chatty)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
 ## The stack size of all item types in the inventory
 # Setting type: Int32
 # Default value: 10
-StackSize = 250
+StackSize = 10
 
 ## The font size for the stack amount
 # Setting type: Int32
@@ -719,7 +795,48 @@ StackOptimizer = false
 # Setting type: Boolean
 # Default value: true
 StackBackpack = true
+
+## Allow stacking in Ore Extractors.
+# Setting type: Boolean
+# Default value: true
+StackOreExtractors = true
+
+## Allow stacking in Water Collectors.
+# Setting type: Boolean
+# Default value: true
+StackWaterCollectors = true
+
+## Allow stacking in Gas Extractors.
+# Setting type: Boolean
+# Default value: true
+StackGasExtractors = true
+
+## Allow stacking in Beehives.
+# Setting type: Boolean
+# Default value: true
+StackBeehives = true
+
+## Allow stacking in Biodomes.
+# Setting type: Boolean
+# Default value: true
+StackBiodomes = true
+
+## Allow stacking in AutoCrafters.
+# Setting type: Boolean
+# Default value: true
+StackAutoCrafter = true
+
+## Allow stacking in Drone Stations.
+# Setting type: Boolean
+# Default value: true
+StackDroneStation = true
+
+## Workaround for the limited vanilla network buffers and too big stack sizes.
+# Setting type: Int32
+# Default value: 1024
+NetworkBufferScaling = 1024
 ```
+</details>
 
 ## (Perf) Load Inventories Faster
 
@@ -743,6 +860,8 @@ None.
 
 ## (Fix) Unbrick Save
 
+:warning: **Discontinued**
+
 The mod prevents the game from crashing in case the save contains an unplaceable object (often added by 3rd party mods).
 
 Current fixes:
@@ -761,12 +880,12 @@ None.
 A mod that hosts the unofficial patches for the game. Eventually, these patches may end up becoming vanilla fixes.
 
 Current fixes:
-- Scroll the File List screen from whereever the mouse is currently at.
-- Remove the dev-branch nagging screen.
-- Prevent a silent crash when trying to place items on water but on an invalid position.
-- Prevent a silent crash with butterfly flock management upon loading a save
-- Prevent a silent crash with grabable vegetables upon quitting to the main menu.
-
+- Fix for the mouse scroll not working in the world selection menu.
+- Fix for the silent crashes caused by missing label codes used in translating UI.
+- Fix for the crashes when loading a save created on a machine with different locale.
+- Fix for loading color information when a save was created on a machine with different locale.
+- Fix for a silent crash related to the options screen dropdowns.
+- Fix for a silent crash with highlighted objects when quitting a world. 
 
 ### Configuration
 
@@ -787,7 +906,7 @@ Why does it have a helmet? She dislikes your atmosphere.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.featspacecows.cfg`
+<details><summary> akarnokd.theplanetcraftermods.featspacecows.cfg </summary>
 
 ```
 [General]
@@ -802,7 +921,7 @@ Enabled = true
 # Default value: false
 DebugMode = false
 ```
-
+</details>
 
 
 ## (Perf) Reduce Save Size
@@ -838,7 +957,7 @@ Files are saved based on the name of your world plus a timestamp:
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.saveautobackup.cfg`
+<details><summary> akarnokd.theplanetcraftermods.saveautobackup.cfg </summary>
 
 ```
 [General]
@@ -869,6 +988,7 @@ KeepAge = 0
 # Default value: true
 Async = true
 ```
+</details>
 
 ## (Save) Auto Save
 
@@ -877,7 +997,7 @@ Saves the game automatically. You can configure the save period via the config f
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.saveautosave.cfg`
+<details><summary> akarnokd.theplanetcraftermods.saveautosave.cfg </summary>
 
 ```
 [General]
@@ -887,6 +1007,7 @@ Saves the game automatically. You can configure the save period via the config f
 # Default value: 5
 SaveDelay = 5
 ```
+</details>
 
 ## (UI) Customize Inventory Sort Order
 
@@ -894,7 +1015,7 @@ Specify the order of items when clicking on the sort all button in inventories.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uicustominventorysortall.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uicustominventorysortall.cfg </summary>
 
 ```
 [General]
@@ -904,6 +1025,7 @@ Specify the order of items when clicking on the sort all button in inventories.
 # Default value: OxygenCapsule1,WaterBottle1,astrofood
 Preference = OxygenCapsule1,WaterBottle1,astrofood
 ```
+</details>
 
 ## (UI) Prevent Accidental Deconstruct
 
@@ -914,7 +1036,7 @@ The accessibility key is a vanilla feature, configurable in the game's settings 
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uideconstructpreventaccidental.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uideconstructpreventaccidental.cfg </summary>
 
 ```
 [General]
@@ -924,9 +1046,12 @@ The accessibility key is a vanilla feature, configurable in the game's settings 
 # Default value: true
 Enabled = true
 ```
+</details>
 
 
 ## (UI) Don't Close Craft Window
+
+:warning: **Discontinued**
 
 When crafting an item, <kbd>Right Click</kbd> to not close the crafting window.
 
@@ -979,7 +1104,7 @@ Multi-build is allowed by holding <kbd>CTRL</kbd> while clicking to build someth
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uihotbar.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uihotbar.cfg </summary>
 
 ```
 [General]
@@ -998,7 +1123,14 @@ FontSize = 20
 # Setting type: Int32
 # Default value: 40
 SlotBottom = 40
+
+## Enable debug mode logging? (Chatty!)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
 ```
+</details>
 
 ## (UI) Inventory Move Multiple Items
 
@@ -1011,7 +1143,7 @@ When transferring items between the player backpack and any container,
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uiinventorymovemultiple.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uiinventorymovemultiple.cfg </summary>
 
 ```
 [General]
@@ -1026,6 +1158,7 @@ MoveFewAmount = 5
 # Default value: 50
 MoveManyAmount = 50
 ```
+</summary>
 
 ## (UI) Overview Panel
 
@@ -1033,7 +1166,7 @@ Pressing the <kbd>F1</kbd> (configurable) shows an overview panel with the curre
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uioverviewpanel.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uioverviewpanel.cfg </summary>
 
 ```
 [General]
@@ -1048,6 +1181,7 @@ FontSize = 19
 # Default value: F1
 Key = F1
 ```
+</details>
 
 ## (UI) Show Consumable Counts
 
@@ -1056,7 +1190,7 @@ the player has in its inventory.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uishowconsumablecount.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uishowconsumablecount.cfg </summary>
 
 ```
 [General]
@@ -1066,6 +1200,7 @@ the player has in its inventory.
 # Default value: 20
 FontSize = 20
 ```
+</details>
 
 ## (UI) Show Container Content Info
 
@@ -1074,6 +1209,11 @@ items are in there, the capacity of the container and the very first item type.
 (Pro tip: store different types of items in different containers)
 
 Example: `Open Container [ 5 / 30 ] Cobalt`
+
+If the *(Cheat) Inventory Stacking* mod is also installed and looking at a stackable container, the mod will show
+the slot usage and the total number of items vs capacity.
+
+Example: `Open Container [ 5 / 30 (50 / 300) ] Cobalt`
 
 ### Configuration
 
@@ -1086,7 +1226,7 @@ and how many of the same item is now in your inventory.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uishowgrabnminecount.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uishowgrabnminecount.cfg </summary>
 
 ```
 [General]
@@ -1096,6 +1236,7 @@ and how many of the same item is now in your inventory.
 # Default value: true
 Enabled = true
 ```
+</details>
 
 
 ## (UI) Show Player Inventory Counts
@@ -1106,6 +1247,11 @@ how many items can be added to it.
 
 Example: `800,0,100:4:60   <[  5  /  30  (  -25  )]>`
 
+If the *(Cheat) Inventory Stacking* mod is also installed and backpack stacking is enabled, the mod will show
+the slot usage and the total number of items vs capacity.
+
+Example: `Open Container [ 5 / 30 (50 / 300)] Cobalt`
+
 ### Configuration
 
 None.
@@ -1113,9 +1259,9 @@ None.
 ## (UI) Show Player Tooltip Item Count
 
 When in an inventory or build screen, in the tooltip of an item, show the number of items of the same
-type in the player's backpack.
+type in the player's backpack and how many such items can be crafted from the backpack if possible.
 
-Example: `Cobalt x 5`
+Example: `Cobalt x 5`, `Water Bottle x 5 < 10 >`.
 
 ### Configuration
 
@@ -1149,7 +1295,7 @@ Shows the current multitool mode as text and icon on the 2D hud. Useful when run
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uishowmultitoolmode.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uishowmultitoolmode.cfg </summary>
 
 ```
 [General]
@@ -1194,6 +1340,7 @@ Bottom = 30
 # Default value: 10
 Right = 10
 ```
+</details>
 
 ## (UI) Pin Recipe to Screen
 
@@ -1210,7 +1357,7 @@ Note that pinned recipes can't be saved currently as it requires save modding.
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uipinrecipe.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uipinrecipe.cfg </summary>
 
 ```cs
 [General]
@@ -1235,6 +1382,7 @@ PanelTop = 150
 # Default value: C
 ClearKey = C
 ```
+</details>
 
 ## (UI) Beacon Text
 
@@ -1245,31 +1393,52 @@ Use <kbd>B</kbd> (configurable) to toggle between showing no text, just the titl
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uibeacontext`
+<details><summary> akarnokd.theplanetcraftermods.uibeacontext </summary>
 
 ```
 [General]
 
-## The font size
+## The font size.
 # Setting type: Int32
 # Default value: 20
 FontSize = 20
 
-## Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text
+## Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.
 # Setting type: Int32
 # Default value: 3
 DisplayMode = 3
 
-## The toggle key
+## The toggle key for changing the display mode.
 # Setting type: String
 # Default value: B
-DisplayModeToggleKey = B
+DisplayModeToggleKey = <Keyboard>/B
+
+## Show the distance above the beacon hexagon if true, below if false
+# Setting type: Boolean
+# Default value: true
+ShowDistanceOnTop = true
+
+## If true, the vanilla beacon text is hidden and replaced by this mod's label
+# Setting type: Boolean
+# Default value: true
+HideVanillaLabel = true
+
+## Enable debug logging? Chatty!
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+## The built-in font name, including its extesion.
+# Setting type: String
+# Default value: Arial.ttf
+Font = Arial.ttf
 ```
+</details>
 
 
 ## (UI) Craft Equipment Inplace
 
-:warning: Discontinued. Now part of the vanilla. :warning:
+:warning: **Discontinued. Now part of the vanilla.** :warning:
 
 When crafting upgrades to equimpent currently equipped, the newer equipment
 will be replaced inplace. This avoids loosing backpack capacity or equipment capacity
@@ -1482,9 +1651,10 @@ Currently, the following shortcuts are supported:
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.uimenushortcutkeys.cfg`
+<details><summary> akarnokd.theplanetcraftermods.uimenushortcutkeys.cfg </summary>
 
 ```
+
 [General]
 
 ## The font size
@@ -1494,24 +1664,30 @@ FontSize = 20
 
 ## Toggle the tier-filter microchip's effect in the build screen
 # Setting type: String
-# Default value: F
+# Default value: <Keyboard>/F
 BuildToggleFilter = <Keyboard>/F
 
 ## Take everything from the currently open container
 # Setting type: String
-# Default value: R
+# Default value: <Keyboard>/R
 ContainerTakeAll = <Keyboard>/R
 
 ## Sort the player's inventory
 # Setting type: String
-# Default value: G
+# Default value: <Keyboard>/G
 SortPlayerInventory = <Keyboard>/G
 
 ## Sort the other inventory
 # Setting type: String
-# Default value: T
+# Default value: <Keyboard>/T
 SortOtherInventory = <Keyboard>/T
+
+## Turn this true to see log messages.
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
 ```
+</details>
 
 ## (Feat) Command Console
 
@@ -1524,10 +1700,11 @@ Type in `/help` to see a list of commands. Type `/help [name]` to show a short d
 Notable commands:
 - `/tp` - teleport
 - `/spawn` - add an item to your inventory
+- `/build` - start constructing a building or machine
 
 ### Configuration
 
-`akarnokd.theplanetcraftermods.featcommandconsole.cfg`
+<details><summary> akarnokd.theplanetcraftermods.featcommandconsole.cfg </summary>
 
 ```
 [General]
@@ -1540,7 +1717,7 @@ Enabled = true
 ## Enable the detailed logging of this mod
 # Setting type: Boolean
 # Default value: false
-DebugMode = true
+DebugMode = false
 
 ## Key to open the console
 # Setting type: String
@@ -1550,12 +1727,12 @@ ToggleKey = <Keyboard>/enter
 ## Console window's position relative to the top of the screen.
 # Setting type: Int32
 # Default value: 200
-ConsoleTop = 100
+ConsoleTop = 200
 
 ## Console window's position relative to the left of the screen.
 # Setting type: Int32
 # Default value: 300
-ConsoleLeft = 400
+ConsoleLeft = 300
 
 ## Console window's position relative to the right of the screen.
 # Setting type: Int32
@@ -1571,9 +1748,22 @@ ConsoleBottom = 200
 # Setting type: Int32
 # Default value: 20
 FontSize = 20
+
+## The font name in the console
+# Setting type: String
+# Default value: arial.ttf
+FontName = arial.ttf
+
+## How transparent the console background should be (0..1).
+# Setting type: Single
+# Default value: 0.98
+Transparency = 0.98
 ```
+</details>
 
 ## (Feat) Multiplayer
+
+:warning: **Discontinued**
 
 [See the wiki](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Feat%29-Multiplayer)
 
@@ -1672,6 +1862,8 @@ Toggle_Auto_Move_Key = CapsLock
 </details>
 
 ## (Lathrey) Improve Performance
+
+:warning: **Discontinued**
 
 Disable lights and particle effects on a configurable set of buildings.
 
@@ -1871,3 +2063,205 @@ Custom = Vegetable0Seed=500,Vegetable1Seed=1000,Vegetable2Seed=1500,Vegetable3Se
 ```
 </details>
 
+## (Cheat) Wreck Map
+
+A very basic map-as-you-go style minimap for procedural wrecks. Includes persistence. Not many POIs supported yet: green cells indicate ladders.
+
+- Toggle the map with <kbd>L</kbd>. To clear the map, press <kbd>Ctrl+L</kbd>.
+- View the levels above via <kbd>PgUp</kbd> or below via <kbd>PgDown</kbd>.
+
+
+Known limitations:
+- flickering during walking,
+- character indicator is not smooth,
+- using ladders doesn't update the level map unless stepping away,
+- entrance/chest room has no map.
+
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.cheatwreckmap.cfg</summary>
+
+```
+[General]
+
+## Mod is enabled
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The map is currently visible
+# Setting type: Boolean
+# Default value: true
+MapVisible = true
+
+## Mod is enabled
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+## The basic color of a cell in ARGB values in range 0..255
+# Setting type: String
+# Default value: 255,255,255,0
+BaseColor = 255,255,255,0
+
+## The basic color of emptyness in ARGB values in range 0..255
+# Setting type: String
+# Default value: 127,25,25,25
+EmptyColor = 127,25,25,25
+
+## The basic color of ladders in ARGB values in range 0..255
+# Setting type: String
+# Default value: 255,0,255,0
+LadderColor = 255,0,255,0
+
+## The map width in pixels
+# Setting type: Int32
+# Default value: 750
+MapWidth = 750
+
+## The map height in pixels
+# Setting type: Int32
+# Default value: 750
+MapHeight = 750
+
+## The font size
+# Setting type: Int32
+# Default value: 30
+FontSize = 30
+```
+</details>
+
+## (Save) Quick Save
+
+Saves the game by pressing the <kbd>F5</kbd> key (configurable).
+
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.savequicksave.cfg</summary>
+
+```
+[General]
+
+## Is this mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The shortcut key for quick saving.
+# Setting type: String
+# Default value: F5
+ShortcutKey = <Keyboard>/F5
+```
+</details>
+
+## (Perf) Startup Performance
+
+Speeds up the loading of the main menu and the list of worlds, especially with a lot of worlds or very large worlds.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.perfstartup.cfg</summary>
+
+```
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+```
+</details>
+
+## (UI) Continue
+
+Displays a *Continue* button in the main menu and shows the name, Ti and date of very last save the user played, if any.
+
+### Configuration
+
+None.
+
+## (UI) Mod Config Menu
+
+Adds a Mods menu to the ingame options dialog which lists all installed mods and their BepInEx configuration options in an editable fashion.
+
+:warning: Note that some configuration changes may not take effect until the current world is reloaded or the game is completely restarted. When in doubt, restart the game after such change.
+
+- Hover over an entry to show a tooltip for that configuration option.
+- Filter for mods or parameters in the bottom input box. Example akarnokd cheat - filter for any mod whose name contains akarnokd and cheat, ui #enabled - filter for those mods whose name contains ui and has a parameter named enabled.
+- Some changes for certain mods may require restarting the game.
+- Click on the Open .cfg button (purple) to show the specific config file in the system default text editor.
+
+### Configuration
+
+None.
+
+## (UI) Show Crash
+
+Monitors the game's log file for signs of silent crashes, then displays a red warning overlay every time a new crash was discovered, including some crash details.
+
+:information_source: This mod is mainly for development and testing purposes so bugs and crashes don't go unnoticed.
+
+Press <kbd>F11</kbd> to toggle the monitoring on/off (in case of a flood of errors).
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.uishowcrash.cfg</summary>
+
+```
+[General]
+
+## Is this mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The font size
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
+
+## Press F11 to generate a crash log entry.
+# Setting type: Boolean
+# Default value: false
+TestMode = false
+```
+</details>
+
+## (UI) Stack In-Range List
+
+Display the nearby chests and ground items in a stacked way when looking at an Auto-Crafter's screen.
+
+For example, having 13 chests nearby will show only one chest with the number 13 over it.
+
+The number is likely blocking out the item's icon so hover over them via the mouse to see what exactly that item type is.
+
+It is possible to enable such stacking when looking at the vanilla pinned recipes and portal quartz requirements, but these are disabled by default to avoid confusion.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.uishowcrash.cfg</summary>
+
+```
+## Font size
+# Setting type: Int32
+# Default value: 15
+FontSize = 15
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Stack the ingredients of the pinned recipes?
+# Setting type: Boolean
+# Default value: false
+StackPins = false
+
+## Stack the requirements for opening a portal?
+# Setting type: Boolean
+# Default value: false
+StackPortals = false
+```
+</details>
