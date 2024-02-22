@@ -118,6 +118,7 @@ namespace CheatRecyclerRemoteDeposit
         {
             if (modEnabled.Value)
             {
+                Log("ActionRecycle.OnAction called");
                 if (!isRunning)
                 {
                     isRunning = true;
@@ -127,6 +128,9 @@ namespace CheatRecyclerRemoteDeposit
 
                     __instance.GetComponentInParent<InventoryAssociatedProxy>()
                         .GetInventory(depositor.OnMachineReceived);
+                } else
+                {
+                    Log("ActionRecycle.OnAction -> recycling is still going on");
                 }
                 return false;
             }
@@ -342,9 +346,11 @@ namespace CheatRecyclerRemoteDeposit
                                 {
                                     var wo = (WorldObject)item;
                                     Log("    Can't be deposited: " + toRecycleWo.GetId() + " - " + wo.GetId());
+
                                     WorldObjectsHandler.Instance.DropOnFloor(wo, position, 0.6f, dropSound: false);
                                 }
 
+                                continue;
                             }
                         }
                     }
