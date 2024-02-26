@@ -155,20 +155,25 @@ namespace LibCommon
 
             ___localizationDictionary[languageKey] = labels;
 
-            if (checkMissing.Value)
+            if (checkMissing.Value && ___localizationDictionary.TryGetValue("english", out var english))
             {
-                Dictionary<string, string> english = ___localizationDictionary["english"];
+                var sbMissing = new StringBuilder(16 * 1024);
+                sbMissing.AppendLine();
+                var sbNotTranslated = new StringBuilder(16 * 1024);
+                sbNotTranslated.AppendLine();
                 foreach (string key in english.Keys)
                 {
                     if (!labels.ContainsKey(key))
                     {
-                        logger.LogWarning("Missing translation\r\n" + key + "=" + english[key]);
+                        sbMissing.Append(key).Append('=').Append(english[key]).AppendLine();
                     }
-                    else if (labels[key] == english[key])
+                    else if (labels[key] == english[key] && labels[key].Length != 0)
                     {
-                        logger.LogWarning("Not translated\r\n" + key + "=" + english[key]);
+                        sbNotTranslated.Append(key).Append('=').Append(english[key]).AppendLine();
                     }
                 }
+                logger.LogWarning("The following labels are not present in " + languageKey + sbMissing);
+                logger.LogWarning("The following labels are not translated " + languageKey + sbNotTranslated);
             }
         }
 

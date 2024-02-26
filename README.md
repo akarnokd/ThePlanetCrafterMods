@@ -2241,7 +2241,7 @@ It is possible to enable such stacking when looking at the vanilla pinned recipe
 
 ### Configuration
 
-<details><summary>akarnokd.theplanetcraftermods.uishowcrash.cfg</summary>
+<details><summary>akarnokd.theplanetcraftermods.uistackinrangelist.cfg</summary>
 
 ```
 ## Font size

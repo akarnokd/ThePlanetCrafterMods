@@ -2,32 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>UITranslationKorean</AssemblyName>
-    <Description>(UI) Korean Translation</Description>
-    <Version>1.0.0.8</Version>
+    <AssemblyName>CheatAutoStore</AssemblyName>
+    <Description>(Cheat) Auto Store</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-	<Import Project="$(SolutionDir)\solution_private.targets" />
+  <Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
-		<Compile Include="..\LibCommon\UITranslator.cs" Link="UITranslator.cs" />
 	</ItemGroup>
-
-
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
-	<Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  
-	  
-    <Copy SourceFiles="$(SourceDir)labels-ko.txt" DestinationFolder="$(Destination1)" />
-	<Copy SourceFiles="$(SourceDir)labels-ko.txt" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)labels-ko.txt" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
+	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
