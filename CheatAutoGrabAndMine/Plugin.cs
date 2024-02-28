@@ -402,7 +402,14 @@ namespace CheatAutoGrabAndMine
                 {
                     return true;
                 }
-                o = o.transform.parent.gameObject;
+                if (o.transform.parent != null)
+                {
+                    o = o.transform.parent.gameObject;
+                }
+                else
+                {
+                    break;
+                }
             }
             return false;
         }
