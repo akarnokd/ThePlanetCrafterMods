@@ -51,8 +51,6 @@ namespace CheatAutoGrabAndMine
 
         static InputAction toggleAction;
 
-        static bool inventoryGrabbingActive;
-
         static ManualLogSource logger;
 
         static Coroutine scanningCoroutine;
@@ -391,7 +389,22 @@ namespace CheatAutoGrabAndMine
         {
             return ag.GetComponentInParent<InventoryShowContent>() != null
                 || ag.GetComponentInParent<ActionCrafter>() != null
-                || ag.GetComponentInParent<MachineAutoCrafter>() != null;
+                || ag.GetComponentInParent<MachineAutoCrafter>() != null
+                || IsInsideBiolab(ag);
+        }
+
+        static bool IsInsideBiolab(Actionnable ag)
+        {
+            GameObject o = ag?.gameObject;
+            while (o != null)
+            {
+                if (o.name.Contains("VegetubeCrafter"))
+                {
+                    return true;
+                }
+                o = o.transform.parent.gameObject;
+            }
+            return false;
         }
 
         static int CountInInventory(Inventory inv, Group gr)
