@@ -10,6 +10,7 @@ using UnityEngine;
 using System.Collections;
 using BepInEx.Logging;
 using System.Linq;
+using LibCommon;
 
 namespace CheatAutoGrabAndMine
 {
@@ -46,6 +47,8 @@ namespace CheatAutoGrabAndMine
 
         static ConfigEntry<bool> mineMinerals;
 
+        static ConfigEntry<bool> grabRods;
+
         static InputAction toggleAction;
 
         static bool inventoryGrabbingActive;
@@ -81,6 +84,7 @@ namespace CheatAutoGrabAndMine
             grabAlgae = Config.Bind("General", "Algae", false, "If true, nearby algae can be grabbed. Subject to Include/Exclude though.");
 
             mineMinerals = Config.Bind("General", "Minerals", true, "If true, nearby minerals can be mined. Subject to Include/Exclude though.");
+            grabRods = Config.Bind("General", "Rods", true, "If true, nearby rods can be grabbed. Subject to Include/Exclude though.");
 
             if (!key.Value.Contains("<"))
             {
@@ -237,7 +241,7 @@ namespace CheatAutoGrabAndMine
                             var wo = woa.GetWorldObject();
                             if (wo != null)
                             {
-                                AddToInventoryFiltered(wo, null);
+                                AddToInventoryFiltered(wo, minable);
                             }
                         }
                     }
@@ -250,7 +254,7 @@ namespace CheatAutoGrabAndMine
 
             Log("Done");
 
-            void AddToInventoryFiltered(WorldObject wo, ActionGrabable ag)
+            void AddToInventoryFiltered(WorldObject wo, Actionnable ag)
             {
                 Log("  Check for " + wo.GetId() + " (" + wo.GetGroup().id + ")");
                 var group = wo.GetGroup();
@@ -294,6 +298,19 @@ namespace CheatAutoGrabAndMine
                     Log("    Grabbing algae is disabled");
                     return;
                 }
+                else if (IsGrabableOre(grid) && !mineMinerals.Value)
+                {
+                    Log("    Grabbing ore is disabled");
+                    return;
+                }
+                else if (IsRod(grid) && !grabRods.Value)
+                {
+                    Log("    Grabbing rods is disabled");
+                    return;
+                }
+
+                // ---
+
                 if (ag != null && !IsGrabTarget(grid))
                 {
                     Log("    Not a grab target");
@@ -321,10 +338,10 @@ namespace CheatAutoGrabAndMine
                             ?.GetItemWorldDisplayer()
                             ?.Hide();
 
-                        if (ag != null)
+                        if (ag != null && ag is ActionGrabable agr)
                         {
-                            var onGrab = ag.grabedEvent;
-                            ag.grabedEvent = null;
+                            var onGrab = agr.grabedEvent;
+                            agr.grabedEvent = null;
                             if (onGrab != null)
                             {
                                 Log("    Invoking grabedEvent");
@@ -366,12 +383,15 @@ namespace CheatAutoGrabAndMine
         static bool IsGrabTarget(string grid)
         {
             return IsLarvae(grid) || IsFishEggs(grid) || IsFrogEggs(grid)
-                || IsFood(grid) || IsAlgae(grid);
+                || IsFood(grid) || IsAlgae(grid) || IsGrabableOre(grid)
+                || IsRod(grid);
         }
 
-        static bool IsOnDisplay(ActionGrabable ag)
+        static bool IsOnDisplay(Actionnable ag)
         {
-            return ag.GetComponentInParent<InventoryShowContent>() != null;
+            return ag.GetComponentInParent<InventoryShowContent>() != null
+                || ag.GetComponentInParent<ActionCrafter>() != null
+                || ag.GetComponentInParent<MachineAutoCrafter>() != null;
         }
 
         static int CountInInventory(Inventory inv, Group gr)
@@ -385,6 +405,16 @@ namespace CheatAutoGrabAndMine
                 }
             }
             return count;
+        }
+
+        static bool IsGrabableOre(string grid)
+        {
+            return StandardResourceSets.defaultOreSet.Contains(grid);
+        }
+
+        static bool IsRod(string grid)
+        {
+            return grid.StartsWith("Rod-");
         }
     }
 }

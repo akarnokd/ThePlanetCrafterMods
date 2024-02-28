@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2022-2024, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
+using System.Collections.Generic;
+
 namespace LibCommon
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace LibCommon
     /// </summary>
     internal class StandardResourceSets
     {
-        internal static readonly string defaultOres = string.Join(",",
+        internal static readonly HashSet<string> defaultOreSet =
         [
             "Cobalt",
             "Silicon",
@@ -25,8 +27,14 @@ namespace LibCommon
             "Sulfur",
             "PulsarQuartz",
             "PulsarShard",
-            "Obsidian"
-        ]);
+            "Obsidian",
+            "SolarQuartz",
+            "MagnetarQuartz",
+            "BalzarQuartz", // it is misspelled in the game
+            "QuasarQuartz"
+        ];
+
+        internal static readonly string defaultOres = string.Join(",", defaultOreSet);
 
         internal static readonly string defaultLarvae = string.Join(",",
         [

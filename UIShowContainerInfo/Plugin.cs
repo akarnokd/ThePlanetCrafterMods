@@ -64,7 +64,7 @@ namespace UIShowContainerInfo
             BaseHudHandler ____hudHandler)
         {
             InventoryAssociated inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
-            if (inventoryAssoc != null)
+            if (inventoryAssoc == null)
             {
                 inventoryAssoc = __instance.GetComponentInChildren<InventoryAssociated>();
             }
