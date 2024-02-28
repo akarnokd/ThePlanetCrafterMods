@@ -390,7 +390,8 @@ namespace CheatAutoGrabAndMine
         static bool IsOnDisplay(Actionnable ag)
         {
             return ag.GetComponentInParent<InventoryShowContent>() != null
-                || ag.GetComponentInParent<ActionCrafter>() != null;
+                || ag.GetComponentInParent<ActionCrafter>() != null
+                || ag.GetComponentInParent<MachineAutoCrafter>() != null;
         }
 
         static int CountInInventory(Inventory inv, Group gr)
