@@ -7,14 +7,19 @@ using HarmonyLib;
 using TMPro;
 using System.Collections.Generic;
 using System;
+using BepInEx.Bootstrap;
 
 namespace UIShowPlayerTooltipItemCount
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uishowplayertooltipitemcount", "(UI) Show Player Tooltip Item Count", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatCraftFromNearbyContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatCraftFromNearbyContainersGuid = "akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers";
 
         static AccessTools.FieldRef<EventHoverShowGroup, Group> fEventHoverShowGroupAssociatedGroup;
+
+        static AccessTools.FieldRef<object, List<Inventory>> fCandidateInventories;
 
         void Awake()
         {
@@ -24,6 +29,17 @@ namespace UIShowPlayerTooltipItemCount
             Logger.LogInfo($"Plugin is loaded!");
 
             fEventHoverShowGroupAssociatedGroup = AccessTools.FieldRefAccess<EventHoverShowGroup, Group>("_associatedGroup");
+
+            if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out var pi))
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found. Considering nearby containers");
+
+                fCandidateInventories = AccessTools.FieldRefAccess<List<Inventory>>(pi.Instance.GetType(), "candidateInventories");
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
+            }
 
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -67,6 +83,26 @@ namespace UIShowPlayerTooltipItemCount
                 var ingredients = group.GetRecipe().GetIngredientsGroupInRecipe();
                 if (ingredients.Count != 0)
                 {
+                    if (fCandidateInventories != null)
+                    {
+                        var candidateInvs = fCandidateInventories();
+                        if (candidateInvs != null)
+                        {
+                            foreach (var inv in candidateInvs)
+                            {
+                                if (inv != null)
+                                {
+                                    foreach (WorldObject wo in inv.GetInsideWorldObjects())
+                                    {
+                                        var gid = wo.GetGroup().GetId();
+
+                                        inventoryCountsCache.TryGetValue(gid, out var itemCount);
+                                        inventoryCountsCache[gid] = itemCount + 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     foreach (var gr in ingredients)
                     {

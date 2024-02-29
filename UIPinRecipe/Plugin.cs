@@ -15,13 +15,17 @@ using System.Reflection;
 using System.Linq;
 using BepInEx.Logging;
 using Unity.Netcode;
+using BepInEx.Bootstrap;
+using LibCommon;
 
 namespace UIPinRecipe
 {
     [BepInPlugin(modUiPinRecipeGuid, "(UI) Pin Recipe to Screen", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatCraftFromNearbyContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
+        const string modCheatCraftFromNearbyContainersGuid = "akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers";
 
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> panelWidth;
@@ -33,6 +37,10 @@ namespace UIPinRecipe
         static ManualLogSource logger;
 
         static Font font;
+
+        static Action<MonoBehaviour, Vector3, Action<List<Inventory>>> apiGetInventoriesInRange;
+
+        static List<Inventory> nearbyInventories = [];
 
         private void Awake()
         {
@@ -50,6 +58,17 @@ namespace UIPinRecipe
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
+            if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out var pi))
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found. Considering nearby containers");
+
+                apiGetInventoriesInRange = (Action<MonoBehaviour, Vector3, Action<List<Inventory>>>)AccessTools.Field(pi.Instance.GetType(), "apiGetInventoriesInRange").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
+            }
+
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiPinRecipeGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
@@ -63,6 +82,29 @@ namespace UIPinRecipe
         {
             for (; ; )
             {
+                nearbyInventories = [];
+                if (apiGetInventoriesInRange != null)
+                {
+                    var pm = Managers.GetManager<PlayersManager>();
+                    if (pm != null)
+                    {
+                        var ac = pm.GetActivePlayerController();
+                        if (ac != null)
+                        {
+                            var callbackWaiter = new CallbackWaiter();
+                            apiGetInventoriesInRange(this, ac.transform.position, list =>
+                            {
+                                nearbyInventories = list;
+                                callbackWaiter.Done();
+                            });
+
+                            while (!callbackWaiter.IsDone)
+                            {
+                                yield return null;
+                            }
+                        }
+                    }
+                }
                 foreach (PinnedRecipe pr in pinnedRecipes)
                 {
                     pr.UpdateState();
@@ -139,6 +181,18 @@ namespace UIPinRecipe
                     string gid = wo.GetGroup().GetId();
                     inventoryCounts.TryGetValue(gid, out int c);
                     inventoryCounts[gid] = c + 1;
+                }
+                foreach (var inv in nearbyInventories)
+                {
+                    if (inv != null)
+                    {
+                        foreach (var wo in inv.GetInsideWorldObjects())
+                        {
+                            string gid = wo.GetGroup().GetId();
+                            inventoryCounts.TryGetValue(gid, out int c);
+                            inventoryCounts[gid] = c + 1;
+                        }
+                    }
                 }
 
                 int craftableCount = int.MaxValue;

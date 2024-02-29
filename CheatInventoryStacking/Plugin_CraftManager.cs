@@ -27,7 +27,7 @@ namespace CheatInventoryStacking
             ref bool __result
         )
         {
-            if (stackSize.Value > 1)
+            if (stackSize.Value > 1 && !apiTryToCraftInInventoryHandled())
             {
                 var ingredients = groupItem.GetRecipe().GetIngredientsGroupInRecipe();
                 var backpack = playerController.GetPlayerBackpack();

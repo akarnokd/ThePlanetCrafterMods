@@ -14,12 +14,16 @@ using UnityEngine.EventSystems;
 using System;
 using BepInEx.Logging;
 using System.Linq;
+using BepInEx.Bootstrap;
 
 namespace CheatInventoryStacking
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatCraftFromNearbyContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public partial class Plugin : BaseUnityPlugin
     {
+        const string modCheatCraftFromNearbyContainersGuid = "akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers";
+
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> stackTradeRockets;
@@ -83,6 +87,8 @@ namespace CheatInventoryStacking
 
         static Font font;
 
+        static Func<bool> apiTryToCraftInInventoryHandled;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -125,6 +131,18 @@ namespace CheatInventoryStacking
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+            if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out var pi))
+            {
+                logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found, TryToCraftInInventory will be handled by it.");
+                apiTryToCraftInInventoryHandled = (Func<bool>)AccessTools.Field(pi.Instance.GetType(), "apiTryToCraftInInventoryHandled").GetValue(null);
+                AccessTools.Field(pi.Instance.GetType(), "apiIsFullStackedInventory").SetValue(null, apiIsFullStackedInventory);
+            }
+            else
+            {
+                logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
+                apiTryToCraftInInventoryHandled = () => false;
+            }
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
