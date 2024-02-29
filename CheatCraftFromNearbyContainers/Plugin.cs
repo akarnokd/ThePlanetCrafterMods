@@ -13,6 +13,7 @@ using System;
 using UnityEngine.InputSystem;
 using LibCommon;
 using System.Reflection;
+using UnityEngine.UIElements;
 
 namespace CheatCraftFromNearbyContainers
 {
@@ -63,6 +64,8 @@ namespace CheatCraftFromNearbyContainers
         public static Action<MonoBehaviour, Vector3, Action> apiPrepareSetNewGhost = PrepareSetNewGhost;
 
         static MethodInfo mPlayerInputDispatcherIsTyping;
+
+        static Coroutine vanillaPinUpdaterCoroutine;
 
         public void Awake()
         {
@@ -786,6 +789,87 @@ namespace CheatCraftFromNearbyContainers
                 candidateInventories = list;
                 onReady();
             });
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(CanvasPinedRecipes), "SetPlayerInventory")]
+        static void CanvasPinnedRecipes_SetPlayerInventory(CanvasPinedRecipes __instance, 
+            Inventory _inventory,
+            List<InformationDisplayer> ___informationDisplayers,
+            List<Group> ___groupsAdded)
+        {
+            if (vanillaPinUpdaterCoroutine != null)
+            {
+                __instance.StopCoroutine(vanillaPinUpdaterCoroutine);
+                vanillaPinUpdaterCoroutine = null;
+            }
+            vanillaPinUpdaterCoroutine = __instance.StartCoroutine(UpdateVanillaPinsCoroutine(__instance,
+                _inventory, 
+                ___informationDisplayers, 
+                ___groupsAdded));
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(CanvasPinedRecipes), "OnUiWindowEvent")]
+        static void CanvasPinnedRecipes_OnUiWindowEvent(CanvasPinedRecipes __instance,
+            Inventory ___playerInventory,
+            List<InformationDisplayer> ___informationDisplayers,
+            List<Group> ___groupsAdded)
+        {
+            CanvasPinnedRecipes_SetPlayerInventory(__instance, ___playerInventory, ___informationDisplayers, ___groupsAdded);
+        }
+
+        static IEnumerator UpdateVanillaPinsCoroutine(CanvasPinedRecipes __instance, 
+            Inventory _inventory,
+            List<InformationDisplayer> ___informationDisplayers, 
+            List<Group> ___groupsAdded)
+        {
+            var wait = new WaitForSeconds(0.25f);
+            var cw = new CallbackWaiter();
+            for (; ; )
+            {
+                var pm = Managers.GetManager<PlayersManager>();
+                if (pm != null)
+                {
+                    var ac = pm.GetActivePlayerController();
+                    if (ac != null)
+                    {
+                        var pos = ac.transform.position;
+
+                        cw.Reset();
+                        GetInventoriesInRange(__instance, pos, list =>
+                        {
+                            try
+                            {
+                                candidateInventories = list;
+
+                                for (int i = 0; i < ___groupsAdded.Count; i++)
+                                {
+                                    var gr = ___groupsAdded[i];
+                                    var id = ___informationDisplayers[i];
+
+                                    id.SetGroupListGroupsAvailability(
+                                        _inventory.ItemsContainsStatus(gr.GetRecipe().GetIngredientsGroupInRecipe())
+                                    );
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex);
+                            }
+                            cw.Done();
+                        });
+
+                        while (!cw.IsDone)
+                        {
+                            yield return null;
+                        }
+                    }
+                }
+
+                yield return wait;
+            }
+
         }
     }
 }
