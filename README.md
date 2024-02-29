@@ -2751,7 +2751,7 @@ Minerals = true
 ## (Cheat) Craft From Nearby Containers
 
 When manually crafting items in machines, crafting rockets, building buildings, the ingredients are checked and
-gathered from nearby ingredients in addition to the player's backpack.
+gathered from nearby containers in addition to the player's backpack.
 
 Enable/disable this proximity-based inventory usage via <kbd>Home</kbd> (configurable).
 
