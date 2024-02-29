@@ -3488,17 +3488,19 @@ namespace FeatCommandConsole
                             n = int.Parse(args[2]);
                         }
                         var full = false;
-                        for (int k = 0; k < n; k++)
+                        foreach (var ri in recipe)
                         {
-                            foreach (var ri in recipe)
+                            var c = 0;
+                            for (int k = 0; k < n; k++)
                             {
                                 if (!TryAddToInventory(inv, ri))
                                 {
                                     full = true;
                                     break;
                                 }
-                                AddLine("<margin=2em>" + n + " x <color=#FFFFFF>" + ri.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(ri) + "\"");
+                                c++;
                             }
+                            AddLine("<margin=2em>" + c + " x <color=#FFFFFF>" + ri.id + "</color> <color=#00FF00>\"" + Readable.GetGroupName(ri) + "\"");
                             if (full)
                             {
                                 break;
@@ -3708,6 +3710,19 @@ namespace FeatCommandConsole
             {
                 AddLine("<color=#FF0000>No world object found.");
             }
+        }
+
+        [Command("/locateme", "Displays the player's x, y, z position.")]
+        public void LocateMe(List<string> _)
+        {
+            var pos = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position;
+
+            AddLine("<margin=1em>Player at ( "
+                    + pos.x.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                    + " )"
+                );
         }
 
 
