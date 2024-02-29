@@ -12,7 +12,7 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.027
+## Supported Game Version: 0.9.028
 
 Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
 
@@ -59,6 +59,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Auto Sequence DNA](#cheat-auto-sequence-dna)
 - [Auto Store](#cheat-auto-store)
 - [Birthday](#cheat-birthday)
+- [Craft From Nearby Containers](#cheat-craft-from-nearby-containers)
 - [Highlight Nearby Resources](#cheat-highlight-nearby-resources)
 - [Inventory Stacking](#cheat-inventory-stacking)
 - [Machines Deposit Into Remote Containers](#cheat-machines-deposit-into-remote-containers)
@@ -2744,5 +2745,53 @@ Algae = false
 # Setting type: Boolean
 # Default value: true
 Minerals = true
+```
+</details>
+
+## (Cheat) Craft From Nearby Containers
+
+When manually crafting items in machines, crafting rockets, building buildings, the ingredients are checked and
+gathered from nearby ingredients in addition to the player's backpack.
+
+Enable/disable this proximity-based inventory usage via <kbd>Home</kbd> (configurable).
+
+:information_source: This mod is the remake of the functionality of Aedenthorn's *Craft From Containers* mod.
+
+Integration / Interoperation:
+
+- Tooltips get updated when hovering over the item or building in the craft/construct menus.
+- Vanilla pinned recipes get updated as getting in or out of range.
+- *(Cheat) Inventory Stacking* - service exchanges. **v1.0.0.90+**
+- *(UI) Pin Recipes* - the available and buildable counts displayed consider nearby inventories when enabled. **v1.0.0.23+**
+- *(UI) Hotbar* - the buildable counts consider nearby inventories when enabled. **v1.0.0.24+**
+- *(UI) Show Player Item Tooltip Count* - the buildable counts consider nearby inventories when enabled. **v1.0.0.9+**
+
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers.cfg</summary>
+
+```
+[General]
+
+## Is this mod enabled
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable detailed logging? Chatty!
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+## The range to look for containers within.
+# Setting type: Int32
+# Default value: 20
+Range = 20
+
+## The input action shortcut toggle this mod on or off.
+# Setting type: String
+# Default value: <Keyboard>/Home
+Key = <Keyboard>/Home
 ```
 </details>
