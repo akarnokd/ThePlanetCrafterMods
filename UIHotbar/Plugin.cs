@@ -16,16 +16,20 @@ using System.Linq;
 using System.Reflection;
 using Unity.Netcode;
 using BepInEx.Bootstrap;
+using System.Collections;
+using LibCommon;
 
 namespace UIHotbar
 {
     [BepInPlugin(modUiHotbarGuid, "(UI) Hotbar", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(modUiPinRecipeGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modCheatCraftFromNearbyContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string modUiHotbarGuid = "akarnokd.theplanetcraftermods.uihotbar";
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
+        const string modCheatCraftFromNearbyContainersGuid = "akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers";
 
         static ConfigEntry<int> slotSize;
         static ConfigEntry<int> slotBottom;
@@ -40,6 +44,12 @@ namespace UIHotbar
 
         static AccessTools.FieldRef<CanvasPinedRecipes, List<Group>> fCanvasPinedRecipesGroupsAdded;
         static MethodInfo mCanvasPinedRecipesRemovePinnedRecipeAtIndex;
+
+        static Action<MonoBehaviour, Vector3, Action<List<Inventory>>> apiGetInventoriesInRange;
+
+        static List<Inventory> nearbyInventories = [];
+
+        static Coroutine nearbyInventoriesChecker;
 
         void Awake()
         {
@@ -69,6 +79,17 @@ namespace UIHotbar
             else
             {
                 Logger.LogInfo("Mod " + modUiPinRecipeGuid + " not found, using vanilla pins");
+            }
+
+            if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out pi))
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found. Considering nearby containers");
+
+                apiGetInventoriesInRange = (Action<MonoBehaviour, Vector3, Action<List<Inventory>>>)AccessTools.Field(pi.Instance.GetType(), "apiGetInventoriesInRange").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
             }
 
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -225,6 +246,15 @@ namespace UIHotbar
                 }
 
                 RestoreHotbar();
+
+                if (nearbyInventoriesChecker != null) {
+                    StopCoroutine(nearbyInventoriesChecker);
+                    nearbyInventoriesChecker = null;
+                }
+                if (apiGetInventoriesInRange != null)
+                {
+                    nearbyInventoriesChecker = StartCoroutine(UpdateNearbyInventories());
+                }
             }
         }
 
@@ -241,6 +271,40 @@ namespace UIHotbar
             Destroy(parent);
             parent = null;
             activeSlot = -1;
+            if (nearbyInventoriesChecker != null)
+            {
+                StopCoroutine(nearbyInventoriesChecker);
+                nearbyInventoriesChecker = null;
+            }
+        }
+
+        IEnumerator UpdateNearbyInventories()
+        {
+            var wait = new WaitForSeconds(0.25f);
+
+            for (; ; )
+            {
+                var pm = Managers.GetManager<PlayersManager>();
+                if (pm != null)
+                {
+                    var ac = pm.GetActivePlayerController();
+                    if (ac != null)
+                    {
+                        var callbackWaiter = new CallbackWaiter();
+                        apiGetInventoriesInRange(this, ac.transform.position, list =>
+                        {
+                            nearbyInventories = list;
+                            callbackWaiter.Done();
+                        });
+
+                        while (!callbackWaiter.IsDone)
+                        {
+                            yield return null;
+                        }
+                    }
+                }
+                yield return wait;
+            }
         }
 
         void UpdateRender(PlayerMainController player)
@@ -369,6 +433,13 @@ namespace UIHotbar
         static void CountInventory(PlayerMainController player, Dictionary<string, int> inventoryCounts)
         {
             CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
+            foreach (var inv in nearbyInventories)
+            {
+                if (inv != null)
+                {
+                    CountInventory(inv, inventoryCounts);
+                }
+            }
         }
 
         static int BuildableCount(Dictionary<string, int> inventoryCounts, GroupConstructible gc)
