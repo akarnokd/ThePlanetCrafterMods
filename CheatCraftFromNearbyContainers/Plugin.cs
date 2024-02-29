@@ -56,6 +56,12 @@ namespace CheatCraftFromNearbyContainers
         // Set from Inventory Stacking if present
         public static Func<Inventory, string, bool> apiIsFullStackedInventory = (inv, grid) => inv.IsFull();
 
+        /// <summary>
+        /// Call this method to make inventory preparations before setting a construction ghost.
+        /// Otherwise the vanilla logic may not pick up the nearby inventories.
+        /// </summary>
+        public static Action<MonoBehaviour, Vector3, Action> apiPrepareSetNewGhost = PrepareSetNewGhost;
+
         static MethodInfo mPlayerInputDispatcherIsTyping;
 
         public void Awake()
@@ -384,7 +390,10 @@ namespace CheatCraftFromNearbyContainers
                     if (newSpawnedObject != null)
                     {
                         sourceCrafter.PlayCraftSound();
-                        sourceCrafter.StartCoroutine(RemoveFromInventories(discovery));
+                        sourceCrafter.StartCoroutine(RemoveFromInventories(discovery, () =>
+                        {
+                            fCraftManagerCrafting() = false;
+                        }));
                         return;
                     }
                     fCraftManagerCrafting() = false;
@@ -466,7 +475,7 @@ namespace CheatCraftFromNearbyContainers
             }
         }
         
-        static IEnumerator RemoveFromInventories(Dictionary<int, (Inventory, WorldObject)> discovery)
+        static IEnumerator RemoveFromInventories(Dictionary<int, (Inventory, WorldObject)> discovery, Action onComplete)
         {
             var callbackWaiter = new CallbackWaiter();
             foreach (var invWo in discovery.Values)
@@ -488,7 +497,7 @@ namespace CheatCraftFromNearbyContainers
                     informationsDisplayer?.AddInformation(2f, Readable.GetGroupName(gr), DataConfig.UiInformationsType.OutInventory, gr.GetImage());
                 }
             }
-            fCraftManagerCrafting() = false;
+            onComplete?.Invoke();
         }
 
         [HarmonyPrefix]
@@ -675,6 +684,108 @@ namespace CheatCraftFromNearbyContainers
             DiscoverAvailability(discovery, groups, backpackInv, equipmentInv, [], __result);
 
             return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerBuilder), "OnConstructed")]
+        static bool PlayerBuilder_OnConstructed(PlayerBuilder __instance, 
+            ref ConstructibleGhost ___ghost,
+            GroupConstructible ___ghostGroupConstructible)
+        {
+            if (!modEnabled.Value)
+            {
+                return true;
+            }
+
+            ___ghost = null;
+            __instance.GetComponent<PlayerAudio>().PlayBuildGhost();
+            __instance.GetComponent<PlayerAnimations>().AnimateConstruct(true, -1f);
+            __instance.GetComponent<PlayerShareState>().StartConstructing();
+            __instance.Invoke("StopAnimation", 0.5f);
+            __instance.StartCoroutine(Build_Deduce(__instance, ___ghostGroupConstructible));
+
+            return false;
+        }
+
+        static IEnumerator Build_Deduce(PlayerBuilder __instance, GroupConstructible ___ghostGroupConstructible)
+        {
+            var cw = new CallbackWaiter();
+            GetInventoriesInRange(__instance, __instance.transform.position, list =>
+            {
+                candidateInventories = list;
+                cw.Done();
+            });
+
+            while (!cw.IsDone)
+            {
+                yield return null;
+            }
+
+            var backpackInv = __instance.GetComponent<PlayerBackpack>().GetInventory();
+
+            if (CheckInventoryForDirectBuild(backpackInv, __instance, ___ghostGroupConstructible))
+            {
+                yield break;
+            }
+
+            foreach (var inv in candidateInventories)
+            {
+                if (inv != null)
+                {
+                    if (CheckInventoryForDirectBuild(inv, __instance, ___ghostGroupConstructible))
+                    {
+                        yield break;
+                    }
+                }
+            }
+
+            var recipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+
+            var discovery = new Dictionary<int, (Inventory, WorldObject)>();
+
+            DiscoverAvailability(discovery, recipe, backpackInv, null, null, null);
+
+            yield return RemoveFromInventories(discovery, () =>
+            {
+                Build_CheckChain(__instance, true, ___ghostGroupConstructible);
+            });
+        }
+
+        static bool CheckInventoryForDirectBuild(Inventory inv, PlayerBuilder __instance, GroupConstructible ___ghostGroupConstructible)
+        {
+            foreach (var wo in inv.GetInsideWorldObjects())
+            {
+                if (wo.GetGroup() == ___ghostGroupConstructible)
+                {
+                    InventoriesHandler.Instance.RemoveItemFromInventory(wo, inv, true, success =>
+                    {
+                        var informationsDisplayer = Managers.GetManager<DisplayersHandler>()?.GetInformationsDisplayer();
+                        informationsDisplayer?.AddInformation(2f, Readable.GetGroupName(___ghostGroupConstructible), DataConfig.UiInformationsType.OutInventory, ___ghostGroupConstructible.GetImage());
+
+                        Build_CheckChain(__instance, success, ___ghostGroupConstructible);
+                    });
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static void Build_CheckChain(PlayerBuilder __instance, bool success, GroupConstructible ___ghostGroupConstructible)
+        {
+            if (success && __instance.GetComponent<PlayerInputDispatcher>().IsPressingAccessibilityKey() 
+                && ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe().Count > 0)
+            {
+                __instance.SetNewGhost(___ghostGroupConstructible);
+            }
+        }
+
+        static void PrepareSetNewGhost(MonoBehaviour parent, Vector3 position, Action onReady)
+        {
+            GetInventoriesInRange(parent, position, list =>
+            {
+                candidateInventories = list;
+                onReady();
+            });
         }
     }
 }

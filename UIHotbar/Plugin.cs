@@ -46,6 +46,7 @@ namespace UIHotbar
         static MethodInfo mCanvasPinedRecipesRemovePinnedRecipeAtIndex;
 
         static Action<MonoBehaviour, Vector3, Action<List<Inventory>>> apiGetInventoriesInRange;
+        static Action<MonoBehaviour, Vector3, Action> apiPrepareSetNewGhost;
 
         static List<Inventory> nearbyInventories = [];
 
@@ -86,6 +87,7 @@ namespace UIHotbar
                 Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found. Considering nearby containers");
 
                 apiGetInventoriesInRange = (Action<MonoBehaviour, Vector3, Action<List<Inventory>>>)AccessTools.Field(pi.Instance.GetType(), "apiGetInventoriesInRange").GetValue(null);
+                apiPrepareSetNewGhost = (Action<MonoBehaviour, Vector3, Action>)AccessTools.Field(pi.Instance.GetType(), "apiPrepareSetNewGhost").GetValue(null);
             }
             else
             {
@@ -350,7 +352,18 @@ namespace UIHotbar
                                 if (isFreeCraft || BuildableCount(inventoryCounts, gc) > 0)
                                 {
                                     Log("Activating ghost for " + gc.GetId());
-                                    pb.SetNewGhost(gc);
+
+                                    if (apiPrepareSetNewGhost != null)
+                                    {
+                                        apiPrepareSetNewGhost(this, pb.transform.position, () =>
+                                        {
+                                            pb.SetNewGhost(gc);
+                                        });
+                                    }
+                                    else
+                                    {
+                                        pb.SetNewGhost(gc);
+                                    }
                                 }
                                 else
                                 {
