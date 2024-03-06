@@ -73,6 +73,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 - [Beacon Text](#ui-beacon-text)
 - [Continue](#ui-continue)
+- [Customize Flashlight](#misc-customize-flashlight)
 - [Customize Inventory Sort Order](#ui-customize-inventory-sort-order)
 - [Hotbar](#ui-hotbar)
 - [Inventory Move Multiple Items](#ui-inventory-move-multiple-items)
@@ -2793,5 +2794,63 @@ Range = 20
 # Setting type: String
 # Default value: <Keyboard>/Home
 Key = <Keyboard>/Home
+```
+</details>
+
+## (Misc) Customize Flashlight
+
+Change the color, range, angle and other properties of the player's flashlight - both T1 and T2.
+
+To reset to the game's default, disable the mod and restart the game.
+
+:information_source: This mod is the remake of the functionality of Aedenthorn's *Custom Flashlight* mod.
+
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.misccustomizeflashlight.cfg</summary>
+
+```
+[General]
+
+## Enable this mod
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Use color temperature.
+# Setting type: Boolean
+# Default value: false
+UseColorTemp = false
+
+## Flashlight color in ARGB hex format, no hashmark. Example: FFFFCC00
+# Setting type: String
+# Default value: FFFFF8E6
+Color = FFFF0000
+
+## Color temperature.
+# Setting type: Int32
+# Default value: 6570
+ColorTemp = 6570
+
+## Flashlight angle.
+# Setting type: Single
+# Default value: 55.8698
+FlashlightAngle = 55.8698
+
+## Flashlight inner angle.
+# Setting type: Single
+# Default value: 36.6912
+FlashlightInnerAngle = 36.6912
+
+## Flashlight intensity.
+# Setting type: Single
+# Default value: 40
+FlashlightIntensity = 40
+
+## Flashlight range.
+# Setting type: Single
+# Default value: 40
+FlashlightRange = 40
 ```
 </details>

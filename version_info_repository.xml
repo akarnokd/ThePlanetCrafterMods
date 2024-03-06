@@ -48,6 +48,12 @@
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
+	<plugin guid="akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers"
+            description="(Cheat) Craft From Nearby Containers"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatCraftFromNearbyContainers/CheatCraftFromNearbyContainers.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
 	<plugin guid="akarnokd.theplanetcraftermods.cheatinventorystacking"
             description="(Cheat) Inventory Stacking"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/CheatInventoryStacking/CheatInventoryStacking.csproj"
@@ -141,6 +147,12 @@
 	<plugin guid="akarnokd.theplanetcraftermods.libcommon"
             description="(Lib) Common tools for other mods"
             discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/LibCommon/LibCommon.csproj"
+            method="CsprojVersionTag"
+            link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
+            />
+	<plugin guid="akarnokd.theplanetcraftermods.misccustomizeflashlight"
+            description="(Misc) Customize Flashlight"
+            discover="https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/MiscCustomizeFlashlight/MiscCustomizeFlashlight.csproj"
             method="CsprojVersionTag"
             link="https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest"
             />
