@@ -5,12 +5,7 @@ using BepInEx;
 using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
 using UnityEngine;
-using System.Collections;
-using BepInEx.Logging;
-using System.Linq;
-using LibCommon;
 
 /// -------------------------------------------------------------------------------------------------------
 /// Remake of https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CustomFlashlight/BepInExPlugin.cs
