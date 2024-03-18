@@ -166,19 +166,21 @@ namespace UIContinue
                 Destroy(lastSaveInfo.GetComponentInChildren<Button>());
                 Destroy(lastSaveInfo.GetComponentInChildren<LocalizedText>());
 
-                var lastSaveInfoBackground = new GameObject("ContinueLastSaveInfoBackground");
-                lastSaveInfoBackground.transform.SetParent(lastSaveInfo.transform, false);
-                lastSaveInfoBackground.transform.SetAsFirstSibling();
-                var img = lastSaveInfoBackground.AddComponent<Image>();
-                img.color = Color.black;
-                var lastSaveInfoBackgroundRT = lastSaveInfoBackground.GetComponent<RectTransform>();
+                {
+                    var lastSaveInfoBackground = new GameObject("ContinueLastSaveInfoBackground");
+                    lastSaveInfoBackground.transform.SetParent(lastSaveInfo.transform, false);
+                    lastSaveInfoBackground.transform.SetAsFirstSibling();
+                    var img = lastSaveInfoBackground.AddComponent<Image>();
+                    img.color = Color.black;
+                    var lastSaveInfoBackgroundRT = lastSaveInfoBackground.GetComponent<RectTransform>();
 
-                var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
-                txtInfo.text = lastSaveInfoText;
-                txtInfo.overflowMode = TextOverflowModes.Overflow;
-                txtInfo.textWrappingMode = TextWrappingModes.NoWrap;
+                    var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
+                    txtInfo.text = lastSaveInfoText;
+                    txtInfo.overflowMode = TextOverflowModes.Overflow;
+                    txtInfo.textWrappingMode = TextWrappingModes.NoWrap;
 
-                lastSaveInfoBackgroundRT.sizeDelta = new Vector2(txtInfo.preferredWidth + 20, txtInfo.preferredHeight);
+                    lastSaveInfoBackgroundRT.sizeDelta = new Vector2(txtInfo.preferredWidth + 20, txtInfo.preferredHeight);
+                }
 
                 lastSaveDate = Instantiate(continueButton);
                 lastSaveDate.name = "ContinueLastSaveDate";
@@ -187,25 +189,49 @@ namespace UIContinue
                 Destroy(lastSaveDate.GetComponentInChildren<Button>());
                 Destroy(lastSaveDate.GetComponentInChildren<LocalizedText>());
 
-                var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
-                txtDate.text = lastSaveDateText;
-                txtDate.overflowMode = TextOverflowModes.Overflow;
-                txtDate.textWrappingMode = TextWrappingModes.NoWrap;
+                {
+                    var lastSaveDateBackground = new GameObject("ContinueLastSaveDateBackground");
+                    lastSaveDateBackground.transform.SetParent(lastSaveDate.transform, false);
+                    lastSaveDateBackground.transform.SetAsFirstSibling();
+                    var img = lastSaveDateBackground.AddComponent<Image>();
+                    img.color = Color.black;
+                    var lastSaveDateBackgroundRT = lastSaveDateBackground.GetComponent<RectTransform>();
+
+                    var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
+                    txtDate.text = lastSaveDateText;
+                    txtDate.overflowMode = TextOverflowModes.Overflow;
+                    txtDate.textWrappingMode = TextWrappingModes.NoWrap;
+
+                    lastSaveDateBackgroundRT.sizeDelta = new Vector2(txtDate.preferredWidth + 20, txtDate.preferredHeight);
+
+                }
             }
 
+            var screenWidth = 0;
+            var screenHeight = 0;
+
+            while (lastSaveInfo != null)
             {
-                var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
-                var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
-                var rect = continueButton.GetComponent<RectTransform>();
-
-                lastSaveInfo.transform.position = continueButton.transform.position
-                    + new Vector3(rect.sizeDelta.x * rect.localScale.x / 1.75f + txtInfo.preferredWidth / 2, txtInfo.preferredHeight / 2, 0)
-                    ;
-
-                lastSaveDate.transform.position = continueButton.transform.position
-                    + new Vector3(rect.sizeDelta.x * rect.localScale.x / 1.75f + txtDate.preferredWidth / 2, -txtInfo.preferredHeight, 0)
-                    ;
+                if (screenWidth != Screen.width || screenHeight != Screen.height)
+                {
+                    screenWidth = Screen.width;
+                    screenHeight = Screen.height;
+                    RepositionInfoAndDate();
+                }
+                yield return new WaitForSecondsRealtime(1);
             }
+        }
+
+        static void RepositionInfoAndDate()
+        {
+            var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
+            var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
+            var buttonsRect = continueButton.transform.parent.gameObject.GetComponent<RectTransform>();
+            var lastSaveInfoRect = lastSaveInfo.GetComponent<RectTransform>();
+            var lastSaveDateRect = lastSaveDate.GetComponent<RectTransform>();
+
+            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(buttonsRect.sizeDelta.x - 0 * txtInfo.preferredWidth / 2, 0, 0);
+            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(buttonsRect.sizeDelta.x - 0 * txtDate.preferredWidth / 2, -50, 0);
         }
 
         [HarmonyPostfix]
