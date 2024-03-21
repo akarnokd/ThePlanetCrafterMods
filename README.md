@@ -1608,6 +1608,19 @@ The translation was kindly provided by Annika on the Official Discord of the gam
 
 Only diagnostic options. Not relevant for the player.
 
+# (UI) Korean Translation
+
+Patches in labels and enables switching to Korean ("한국어") in the game's options screen. Note that some labels do not change when switching to Korean the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
+
+The translation was kindly provided by Korean fans on the Official Discord of the game.
+
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Korean myself.
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
+
+
 ## (UI) Telemetry Font Sizer
 
 Allows modifying the font size on the bottom left (coordinates) and bottom right (version, framerate) telemetry text display.
