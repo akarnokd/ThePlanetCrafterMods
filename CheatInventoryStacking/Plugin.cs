@@ -15,6 +15,7 @@ using System;
 using BepInEx.Logging;
 using System.Linq;
 using BepInEx.Bootstrap;
+using System.Text;
 
 namespace CheatInventoryStacking
 {
@@ -180,6 +181,30 @@ namespace CheatInventoryStacking
             groupCounts[gid] = count;
         }
 
+        static string GetStackId(WorldObject wo)
+        {
+            var grid = wo.GetGroup().GetId();
+            if (grid == "GeneticTrait")
+            {
+                grid += "_" + ((int)wo.GetGeneticTraitType()) + "_" + wo.GetGeneticTraitValue();
+            }
+            if (grid == "DNASequence")
+            {
+                var sb = new StringBuilder(48);
+                var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
+                if (inv != null)
+                {
+                    sb.Append(grid);
+                    foreach (var wo2 in inv.GetInsideWorldObjects())
+                    {
+                        sb.Append('_').Append((int)wo2.GetGeneticTraitType()).Append('_').Append(wo2.GetGeneticTraitValue());
+                    }
+                }
+                grid = sb.ToString();
+            }
+            return grid;
+        }
+
         static Action<EventTriggerCallbackData> CreateMouseCallback(MethodInfo mi, InventoryDisplayer __instance)
         {
             return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
@@ -199,7 +224,7 @@ namespace CheatInventoryStacking
             {
                 if (worldObject != null)
                 {
-                    string gid = worldObject.GetGroup().GetId();
+                    string gid = GetStackId(worldObject);
 
                     if (currentSlot.TryGetValue(gid, out var slot))
                     {
@@ -281,7 +306,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
         static void Patch_Inventory_AddItemInInventory(WorldObject worldObject)
         {
-            expectedGroupIdToAdd = worldObject.GetGroup().GetId();
+            expectedGroupIdToAdd = GetStackId(worldObject);
         }
 
         [HarmonyPrefix]
