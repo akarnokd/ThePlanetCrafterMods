@@ -3725,17 +3725,17 @@ namespace FeatCommandConsole
                 );
         }
 
-        [Command("/spawn-genetic-trait", "Spawns genetic trait with a specific type and value.")]
+        [Command("/spawn-gt", "Spawns genetic trait(s) with a specific type and value.")]
         public void SpawnTrait(List<string> args)
         {
-            if (args.Count <= 3)
+            if (args.Count < 3)
             {
-                AddLine("<margin=1em>Spawns genetic trait with a specific type and value.");
+                AddLine("<margin=1em>Spawns genetic trait(s) with a specific type and value.");
                 AddLine("<margin=1em>Usage:");
-                AddLine("<margin=2em><color=#FFFF00>/spawn-genetic-trait type value [count]</color> - spawn a genetic trait with the type(int) and value(int)");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-gt type value [count]</color> - spawn a genetic trait with the type(int), value(int) and optional count of times");
                 AddLine("<margin=3em>Type codes:");
-                AddLine("<maring=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
-                AddLine("<maring=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
+                AddLine("<margin=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
+                AddLine("<margin=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
             }
             else
             {
@@ -3750,6 +3750,7 @@ namespace FeatCommandConsole
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var inv = pm.GetPlayerBackpack().GetInventory();
                 var gr = GroupsHandler.GetGroupViaId("GeneticTrait");
+                var n = 0;
                 for (int i = 0; i < count; i++) {
                     if (InventoryCanAdd(inv, gr.id))
                     {
@@ -3764,15 +3765,19 @@ namespace FeatCommandConsole
                                 var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
                                 wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
                                 wo.SetGeneticTraitValue(value);
-                                AddLine("<margin=1em>Trait type " + wo.GetGeneticTraitType() + " (" + wo.GetGeneticTraitValue() + ") added."); 
                             }
                         });
+                        n++;
                     }
-                    else
-                    {
-                        AddLine("<margin=1em>Inventory full.");
-                        break;
-                    }
+                }
+
+                if (n > 0)
+                {
+                    AddLine("<margin=1em>Genetic Trait: " + type + " - " + ((DataConfig.GeneticTraitType)type) + " (" + value + ") x " + n + " added.");
+                }
+                if (n != count)
+                {
+                    AddLine("<margin=1em>Inventory full.");
                 }
             }
         }

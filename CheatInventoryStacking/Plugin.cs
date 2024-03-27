@@ -15,7 +15,6 @@ using System;
 using BepInEx.Logging;
 using System.Linq;
 using BepInEx.Bootstrap;
-using System.Collections.ObjectModel;
 
 namespace CheatInventoryStacking
 {
