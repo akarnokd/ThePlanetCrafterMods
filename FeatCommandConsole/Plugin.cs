@@ -3725,6 +3725,57 @@ namespace FeatCommandConsole
                 );
         }
 
+        [Command("/spawn-genetic-trait", "Spawns genetic trait with a specific type and value.")]
+        public void SpawnTrait(List<string> args)
+        {
+            if (args.Count <= 3)
+            {
+                AddLine("<margin=1em>Spawns genetic trait with a specific type and value.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-genetic-trait type value [count]</color> - spawn a genetic trait with the type(int) and value(int)");
+                AddLine("<margin=3em>Type codes:");
+                AddLine("<maring=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
+                AddLine("<maring=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
+            }
+            else
+            {
+                int type = int.Parse(args[1]);
+                int value = int.Parse(args[2]);
+                int count = 1;
+                if (args.Count >= 4)
+                {
+                    count = int.Parse(args[3]);
+                }
+
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var inv = pm.GetPlayerBackpack().GetInventory();
+                var gr = GroupsHandler.GetGroupViaId("GeneticTrait");
+                for (int i = 0; i < count; i++) {
+                    if (InventoryCanAdd(inv, gr.id))
+                    {
+                        InventoriesHandler.Instance.AddItemToInventory(gr, inv, (success, id) =>
+                        {
+                            if (!success && id != 0)
+                            {
+                                WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                            }
+                            else
+                            {
+                                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                                wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
+                                wo.SetGeneticTraitValue(value);
+                                AddLine("<margin=1em>Trait type " + wo.GetGeneticTraitType() + " (" + wo.GetGeneticTraitValue() + ") added."); 
+                            }
+                        });
+                    }
+                    else
+                    {
+                        AddLine("<margin=1em>Inventory full.");
+                        break;
+                    }
+                }
+            }
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]

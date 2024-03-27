@@ -745,5 +745,12 @@ namespace UIHotbar
             }
         }
 
+        // Do not emote while the command console is open by pressing 1-9
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerThirdPersonView), "ShortcutEmote")]
+        static bool PlayerThirdPersonView_ShortcutEmote()
+        {
+            return Keyboard.current[Key.LeftAlt].isPressed;
+        }
     }
 }
