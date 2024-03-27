@@ -127,7 +127,7 @@ namespace CheatAutoHarvest
         static void DoHarvest()
         {
             var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
-            foreach (var wo in pickables)
+            foreach (var wo in new List<WorldObject>(pickables))
             {
                 if (wo.GetIsPlaced())
                 {

@@ -1232,3 +1232,4 @@ GROUP_DESC_WardensChip=Szereld fel ezt a csipet a gondviselők rejtett struktúr
 GROUP_NAME_EndingExplosives=Nagy robbanóeszköz
 GROUP_DESC_EndingExplosives=Helyezd ezt az anomália alá, majd aktiváld, hogy elhagyhasd a bolygót.
 Terrastage_complete=Terraformálás befejezve
+UI_Genetics_informations=Genetikai jellemvonás információ
