@@ -15,6 +15,7 @@ using System;
 using BepInEx.Logging;
 using System.Linq;
 using BepInEx.Bootstrap;
+using System.Collections.ObjectModel;
 
 namespace CheatInventoryStacking
 {
@@ -89,6 +90,8 @@ namespace CheatInventoryStacking
 
         static Func<bool> apiTryToCraftInInventoryHandled;
 
+        static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -143,6 +146,8 @@ namespace CheatInventoryStacking
                 logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
                 apiTryToCraftInInventoryHandled = () => false;
             }
+
+            fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
 
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -281,15 +286,19 @@ namespace CheatInventoryStacking
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
-        static bool Patch_InventoryDisplayer_TrueRefreshContent(
+        [HarmonyPatch(typeof(InventoryDisplayer), "SetInventoryBlocks")]
+        static bool Patch_InventoryDisplayer_SetInventoryBlocks(
             InventoryDisplayer __instance,
             LogisticManager ____logisticManager,
             Inventory ____inventory, 
             GridLayoutGroup ____grid, 
             ref int ____selectionIndex,
-            ref Vector2 ____originalSizeDelta, 
-            ref Inventory ____inventoryInteracting
+            ref Inventory ____inventoryInteracting,
+            GroupInfosDisplayerBlocksSwitches infosDisplayerBlockSwitches, 
+            bool shouldCheckItemsLogisticsStatus, 
+            bool enabled,
+            VisualsResourcesHandler ____visualResourcesHandler,
+            WindowsGamepadHandler ____windowsHandlerControllers
         )
         {
             int n = stackSize.Value;
@@ -300,45 +309,18 @@ namespace CheatInventoryStacking
                 sw.Start();
                 */
 
-                // Since 0.9.020 (vanilla gamepad improvements)
-                GameObject currentSelectedGameObject = EventSystem.current.currentSelectedGameObject;
-                if (currentSelectedGameObject != null
-                    && currentSelectedGameObject.GetComponentInParent<InventoryDisplayer>() == __instance
-                    && currentSelectedGameObject.GetComponent<EventGamepadAction>() != null)
-                {
-                    ____selectionIndex = currentSelectedGameObject.GetComponent<EventGamepadAction>().GetReferenceInt();
-                    ____inventoryInteracting = ____inventory;
-                }
-
                 int fs = fontSize.Value;
 
                 GameObjects.DestroyAllChildren(____grid.gameObject, false);
 
-                WindowsGamepadHandler manager = Managers.GetManager<WindowsGamepadHandler>();
-
-                var groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches 
-                {
-                    showActions = true,
-                    showDescription = true,
-                    showMultipliers = true,
-                    showInfos = true
-                };
-
-                VisualsResourcesHandler manager2 = Managers.GetManager<VisualsResourcesHandler>();
-                GameObject inventoryBlock = manager2.GetInventoryBlock();
+                GameObject inventoryBlock = ____visualResourcesHandler.GetInventoryBlock();
 
                 bool showDropIconAtAll = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ____inventory;
 
                 var authorizedGroups = ____inventory.GetAuthorizedGroups();
-                Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups.First()) : null;
-
-                bool logisticFlag = ____logisticManager.GetGlobalLogisticsEnabled() && ____inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
+                Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? ____visualResourcesHandler.GetGroupItemCategoriesSprite(authorizedGroups.First()) : null;
 
                 __instance.groupSelector.gameObject.SetActive(Application.isEditor && Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft());
-
-                // Since 0.9.020 (vanilla gamepad improvements)
-                var selectableEnablerComponent = __instance.GetComponentInParent<SelectableEnabler>();
-                var selectablesEnabled = selectableEnablerComponent == null || selectableEnablerComponent.SelectablesEnabled;
 
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnImageClicked, __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnDropClicked, __instance);
@@ -368,7 +350,7 @@ namespace CheatInventoryStacking
                             showDropIcon = false;
                         }
 
-                        component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
+                        component.SetDisplay(worldObject, infosDisplayerBlockSwitches, showDropIcon);
 
                         RectTransform rectTransform;
 
@@ -421,7 +403,7 @@ namespace CheatInventoryStacking
                             );
                         }
 
-                        if (logisticFlag)
+                        if (shouldCheckItemsLogisticsStatus)
                         {
                             // Since any of the world objects in a slot could be part of a logistic task,
                             // we need to check all of them and mark the entire slot accordingly
@@ -439,7 +421,7 @@ namespace CheatInventoryStacking
                     }
                     else
                     {
-                        if (logisticFlag)
+                        if (shouldCheckItemsLogisticsStatus)
                         {
                             component.SetLogisticStatus(waitingSlots > 0);
                             waitingSlots -= n;
@@ -448,11 +430,11 @@ namespace CheatInventoryStacking
                             .SetEventGamepadAction(null, null, null, i, null, null, null);
                     }
                     gameObject.SetActive(true);
-                    if (selectablesEnabled)
+                    if (enabled)
                     {
                         if (i == ____selectionIndex && (____inventoryInteracting == null || ____inventoryInteracting == ____inventory))
                         {
-                            manager.SelectForController(gameObject, true, false, true, true, true);
+                            ____windowsHandlerControllers.SelectForController(gameObject, true, false, true, true, true);
                         }
                     }
                     else
@@ -460,28 +442,6 @@ namespace CheatInventoryStacking
                         gameObject.GetComponentInChildren<Selectable>().interactable = false;
                     }
                 }
-                if (____originalSizeDelta == Vector2.zero)
-                {
-                    ____originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
-                }
-                if (____inventory.GetSize() > 35)
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(____originalSizeDelta.x + 70f, ____originalSizeDelta.y);
-                    GridLayoutGroup componentInChildren = __instance.GetComponentInChildren<GridLayoutGroup>();
-                    componentInChildren.cellSize = new Vector2(76f, 76f);
-                    componentInChildren.spacing = new Vector2(3f, 3f);
-                }
-                else if (____inventory.GetSize() > 28)
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(____originalSizeDelta.x + 50f, ____originalSizeDelta.y);
-                }
-                else
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = ____originalSizeDelta;
-                }
-                __instance.SetIconsPositionRelativeToGrid();
-                ____selectionIndex = -1;
-
 
                 /*
                 invokeCount++;

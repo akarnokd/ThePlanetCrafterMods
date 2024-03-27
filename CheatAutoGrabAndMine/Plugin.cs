@@ -320,7 +320,8 @@ namespace CheatAutoGrabAndMine
                     return;
                 }
 
-                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, success =>
+                // FIXME: grabbed: true  ????
+                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, grabbed: false, success =>
                 {
                     if (success)
                     {

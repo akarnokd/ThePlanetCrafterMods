@@ -61,6 +61,7 @@ namespace UIShowGrabNMineCount
                         InventoriesHandler.Instance.AddWorldObjectToInventory(
                             wo,
                             inv,
+                            grabbed: false,
                             success =>
                             {
                                 if (success)
@@ -93,7 +94,9 @@ namespace UIShowGrabNMineCount
             {
                 var inv = ___playerSource.GetPlayerBackpack().GetInventory();
 
-                InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inv, success =>
+                // FIXME: grabbed: true ???
+                InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inv, 
+                    grabbed: false, success =>
                 {
                     if (success)
                     {

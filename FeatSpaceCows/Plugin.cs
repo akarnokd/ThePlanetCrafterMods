@@ -268,7 +268,7 @@ namespace FeatSpaceCows
                 }
             }
 
-            InventoriesHandler.Instance.CreateNewInventory(3, 0, null, inv => LinkInventory(inv, true));
+            InventoriesHandler.Instance.CreateNewInventory(3, 0, 0, null, inv => LinkInventory(inv, true));
 
             void LinkInventory(Inventory inv, bool save)
             {
@@ -587,7 +587,7 @@ namespace FeatSpaceCows
                         var invExist = InventoriesHandler.Instance.GetInventoryById(msg.inventoryId);
                         if (invExist == null)
                         {
-                            InventoriesHandler.Instance.CreateNewInventory(3, msg.inventoryId, null, onInventory);
+                            InventoriesHandler.Instance.CreateNewInventory(3, msg.inventoryId, 0, null, onInventory);
                         }
                         else
                         {

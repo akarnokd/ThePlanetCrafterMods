@@ -234,7 +234,8 @@ namespace CheatAutoHarvest
                             logger?.Invoke("No suitable non-full inventory found for " + DebugWorldObject(worldObject));
                             break;
                         }
-                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, OnInventoryCallback);
+                        // FIXME grabbed: true ???
+                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, grabbed: false, OnInventoryCallback);
                     }
 
                     if (--wip == 0)

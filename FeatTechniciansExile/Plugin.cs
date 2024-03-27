@@ -208,7 +208,7 @@ namespace FeatTechniciansExile
                 escapePod.SetDontSaveMe(false);
                 // make sure this pod's chest is not default-linked to the player's landing pod
                 // since the pod's chest is a scene object
-                InventoriesHandler.Instance.CreateNewInventory(12, 0, null, inv =>
+                InventoriesHandler.Instance.CreateNewInventory(12, 0, 0, null, inv =>
                 {
                     logger.LogInfo("      Inventory overridden: " + inv.GetId());
                     escapePod.SetLinkedInventoryId(inv.GetId());
@@ -393,7 +393,7 @@ namespace FeatTechniciansExile
                 // we need to "place" the seed because AddWorldObjectToInventory only adds an existing world object
                 // if it had position in the world. Weird I know.
                 seed.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
-                InventoriesHandler.Instance.AddWorldObjectToInventory(seed, growerInv, success =>
+                InventoriesHandler.Instance.AddWorldObjectToInventory(seed, growerInv, grabbed: false, success =>
                 {
                     logger.LogInfo("    Seed -> Grower " + (success ? "success" : "failure"));
                 });
@@ -879,7 +879,7 @@ namespace FeatTechniciansExile
                             asteroid = obj.GetComponent<Asteroid>();
                             var isr = 4 * Mathf.Max(asteroid.initialSpeedRange.x, asteroid.initialSpeedRange.y);
                             asteroid.initialSpeedRange = new Vector2(isr, isr);
-                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah));
+                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah), false);
                             asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
                             asteroid.debrisDestroyTime = 15;
                             asteroid.placeAsteroidBody = false;
@@ -1329,7 +1329,7 @@ namespace FeatTechniciansExile
 
             internal int historyScrollOffset;
 
-            void Update()
+            public void Update()
             {
                 var wh = Managers.GetManager<WindowsHandler>();
                 if (conversationDialogCanvas != null && Keyboard.current[Key.Escape].wasPressedThisFrame)
