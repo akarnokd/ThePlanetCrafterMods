@@ -60,7 +60,8 @@ namespace UIStackInRangeList
             GameObject ___imageMore,
             int ___showMoreAt,
             GameObject ___grid,
-            List<GroupDisplayer> ___groupsDisplayer
+            List<GroupDisplayer> ___groupsDisplayer,
+            GroupInfosDisplayerBlocksSwitches _infosDisplayerGroup
         )
         {
             if (modEnabled.Value)
@@ -98,7 +99,7 @@ namespace UIStackInRangeList
                     }
                     else
                     {
-                        AddGroup_Override(group, __instance, groupCountsCache[group.id], _showBacklines, ___groupsDisplayer);
+                        AddGroup_Override(group, __instance, groupCountsCache[group.id], _showBacklines, ___groupsDisplayer, _infosDisplayerGroup);
                     }
                 }
                 return false;
@@ -106,17 +107,21 @@ namespace UIStackInRangeList
             return true;
         }
 
-        static void AddGroup_Override(Group _group, GroupList __instance, 
-            int count, bool _showBacklines, List<GroupDisplayer> ___groupsDisplayer)
+        static void AddGroup_Override(Group _group, GroupList __instance,
+            int count, bool _showBacklines, List<GroupDisplayer> ___groupsDisplayer,
+            GroupInfosDisplayerBlocksSwitches _infosDisplayerGroup)
         {
-            var infoDG = new GroupInfosDisplayerBlocksSwitches();
+            if (_infosDisplayerGroup == null)
+            {
+                _infosDisplayerGroup = new GroupInfosDisplayerBlocksSwitches();
+            }
 
             GameObject gameObject = Instantiate(__instance.groupDisplayerGameObject, __instance.grid.transform);
             gameObject.GetComponent<RectTransform>().localScale = new Vector3(1f, 1f, 1f);
             var gd = gameObject.GetComponent<GroupDisplayer>();
             gd.SetGroupAndUpdateDisplay(_group, false, false, false, _showBacklines);
             ___groupsDisplayer.Add(gd);
-            gameObject.AddComponent<EventHoverShowGroup>().SetHoverGroupEvent(_group, infoDG);
+            gameObject.AddComponent<EventHoverShowGroup>().SetHoverGroupEvent(_group, _infosDisplayerGroup);
 
             if (count > 1)
             {
