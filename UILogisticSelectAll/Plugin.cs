@@ -37,14 +37,13 @@ namespace UILogisticSelectAll
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticEntity), "SanitizeGroups")]
-        static bool LogisticEntity_SanitizeGroups(List<Group> groupsToPrioritize, List<Group> groupsToRemoveFrom)
+        static bool LogisticEntity_SanitizeGroups(HashSet<Group> groupsToPrioritize, HashSet<Group> groupsToRemoveFrom)
         {
             if (!suppressSanitizeAndUiUpdates)
             {
                 if (groupsToPrioritize != null && groupsToRemoveFrom != null)
                 {
-                    var set = new HashSet<Group>(groupsToPrioritize);
-                    groupsToRemoveFrom.RemoveAll(set.Contains);
+                    groupsToRemoveFrom.RemoveWhere(groupsToPrioritize.Contains);
                 }
             }
             return false;
