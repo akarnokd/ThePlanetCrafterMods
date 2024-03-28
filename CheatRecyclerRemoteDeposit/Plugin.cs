@@ -56,6 +56,7 @@ namespace CheatRecyclerRemoteDeposit
 
             ParseAliasConfig();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
             ModNetworking.Init(modGuid, Logger);

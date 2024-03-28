@@ -81,6 +81,7 @@ namespace CheatWreckMap
 
             OnModConfigChanged(baseColor);
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

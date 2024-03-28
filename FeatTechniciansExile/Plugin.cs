@@ -139,7 +139,8 @@ namespace FeatTechniciansExile
                 logger.LogWarning("Failed to create custom font, using the game's default font.");
             }
 
-            var  h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modFeatTechniciansExileGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 

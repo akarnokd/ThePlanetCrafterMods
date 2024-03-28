@@ -44,6 +44,7 @@ namespace CheatAsteroidLandingPosition
             deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
             absolute = Config.Bind("General", "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

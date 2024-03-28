@@ -103,6 +103,7 @@ namespace CheatMinimap
 
             self = this;
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

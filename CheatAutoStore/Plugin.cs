@@ -60,6 +60,7 @@ namespace CheatAutoStore
             storeAction = new InputAction(name: "Store Items", binding: key.Value);
             storeAction.Enable();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -66,6 +66,7 @@ namespace FeatSpaceCows
 
                 fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, List<WorldObject>>("_itemsPickablesWorldObjects");
 
+                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
                 ModNetworking.Init(modFeatSpaceCowsGuid, logger);

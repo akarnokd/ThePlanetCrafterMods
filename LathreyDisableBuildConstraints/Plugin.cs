@@ -43,6 +43,7 @@ namespace LathreyDisableBuildConstraints
             configToggleBuildSnappingKey = Config.Bind("General", "Toggle_Build_Snap_Key", Key.J,
                 "Pick the key to use in combination with the modifier key to toggle building snapping off/on.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
         }

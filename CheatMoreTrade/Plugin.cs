@@ -50,6 +50,7 @@ namespace CheatMoreTrade
                 }
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

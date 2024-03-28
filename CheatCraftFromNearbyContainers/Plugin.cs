@@ -91,7 +91,8 @@ namespace CheatCraftFromNearbyContainers
             fCraftManagerCrafting = AccessTools.FieldRefAccess<bool>(typeof(CraftManager), "_crafting");
             mPlayerInputDispatcherIsTyping = AccessTools.Method(typeof(PlayerInputDispatcher), "IsTyping")
                 ?? throw new InvalidOperationException("PlayerInputDispatcher::IsTyping not found");
-            
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

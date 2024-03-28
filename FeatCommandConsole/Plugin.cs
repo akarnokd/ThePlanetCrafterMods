@@ -206,6 +206,7 @@ namespace FeatCommandConsole
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
         }

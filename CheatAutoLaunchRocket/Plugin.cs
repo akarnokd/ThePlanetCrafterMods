@@ -34,6 +34,7 @@ namespace CheatAutoLaunchRocket
 
             logger = Logger;
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

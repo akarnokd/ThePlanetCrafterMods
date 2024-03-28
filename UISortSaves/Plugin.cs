@@ -39,6 +39,7 @@ namespace UISortSaves
             sortMode = Config.Bind("General", "SortMode", 1, "Sorting mode: 0=default, 1=newest, 2=oldest, 3=name ascending, 4=name descending");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size used");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

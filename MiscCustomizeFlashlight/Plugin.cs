@@ -47,6 +47,7 @@ namespace MiscCustomizeFlashlight
 
             fPlayerMultitoolMultiToolLight = AccessTools.FieldRefAccess<MultiToolLight>(typeof(PlayerMultitool), "multiToolLight");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

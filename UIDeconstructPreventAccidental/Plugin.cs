@@ -22,6 +22,7 @@ namespace UIDeconstructPreventAccidental
 
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

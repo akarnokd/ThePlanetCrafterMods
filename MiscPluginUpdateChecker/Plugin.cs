@@ -46,6 +46,7 @@ namespace MiscPluginUpdateChecker
             fontSize = Config.Bind("General", "FontSize", 16, "The font size");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging of the mod (chatty!)");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -32,6 +32,7 @@ namespace LathreyAutoMove
             configToggleAutoMoveKey = Config.Bind("General", "Toggle_Auto_Move_Key", Key.CapsLock,
                 "Pick the key to use in combination with the modifier key to toggle auto move off/on.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

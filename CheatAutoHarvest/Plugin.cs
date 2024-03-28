@@ -64,6 +64,7 @@ namespace CheatAutoHarvest
                 }
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
             LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoHarvest, _ => PlanetLoader_HandleDataAfterLoad());

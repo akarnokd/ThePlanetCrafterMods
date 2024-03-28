@@ -21,11 +21,12 @@ namespace UIShowETA
             Logger.LogInfo($"Plugin is loaded!");
 
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", new Type[0])]
+        [HarmonyPatch(typeof(ScreenTerraStage), "RefreshDisplay", [])]
         static void ScreenTerraStage_RefreshDisplay(
             TextMeshProUGUI ___percentageProcess, 
             TerraformStagesHandler ___terraformStagesHandler)

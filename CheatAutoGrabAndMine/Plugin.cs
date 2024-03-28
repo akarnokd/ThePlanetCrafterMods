@@ -91,6 +91,7 @@ namespace CheatAutoGrabAndMine
             toggleAction = new InputAction(name: "Toggle periodic scan & grab", binding: key.Value);
             toggleAction.Enable();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             OnModConfigChanged(null);

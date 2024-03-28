@@ -69,6 +69,7 @@ namespace UIPinRecipe
                 Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiPinRecipeGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }

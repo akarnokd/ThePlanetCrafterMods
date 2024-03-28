@@ -13,7 +13,8 @@ namespace UITranslationItalian
         void Awake()
         {
             var h = LibCommon.UITranslator.AddLanguage("italian", "labels-it.txt", this, Logger, Config);
-            
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             h.PatchAll(typeof(Plugin));
         }
 

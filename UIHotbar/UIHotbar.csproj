@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UIHotbar</AssemblyName>
     <Description>(UI) Hotbar</Description>
-    <Version>1.0.0.25</Version>
+    <Version>1.0.0.26</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,7 +14,8 @@
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
 		<Compile Include="..\LibCommon\CallbackWaiter.cs" Link="CallbackWaiter.cs" />
-	</ItemGroup>
+        <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
+    </ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

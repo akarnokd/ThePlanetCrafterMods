@@ -35,6 +35,7 @@ namespace UIShowConsumableCount
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

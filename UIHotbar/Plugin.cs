@@ -94,6 +94,7 @@ namespace UIHotbar
                 Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

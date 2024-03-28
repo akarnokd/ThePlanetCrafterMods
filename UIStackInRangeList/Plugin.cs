@@ -47,6 +47,7 @@ namespace UIStackInRangeList
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             Logger.LogInfo($"Plugin patches applied!");

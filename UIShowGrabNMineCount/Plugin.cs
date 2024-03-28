@@ -22,6 +22,7 @@ namespace UIShowGrabNMineCount
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the visual notification enabled?");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -35,6 +35,7 @@ namespace UIContinue
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -44,6 +44,7 @@ namespace UIShowRocketCount
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiShowRocketCountGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
