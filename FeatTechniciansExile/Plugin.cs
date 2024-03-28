@@ -28,8 +28,8 @@ namespace FeatTechniciansExile
         internal static Texture2D technicianFront;
         internal static Texture2D technicianBack;
 
-        // /tp 1990 76 1073
-        static Vector3 technicianDropLocation = new(1995, 75.7f, 1073);
+        // /tp 1990 70 1073
+        static Vector3 technicianDropLocation = new(1995, 68.8f, 1073);
 
         static TechnicianAvatar avatar;
 
@@ -223,6 +223,17 @@ namespace FeatTechniciansExile
 
                     SetVisibilityViaCurrentPhase();
                 });
+            } 
+            else
+            {
+                // make sure its position in case of surface changes
+                escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
+                var escapeGo = escapePod.GetGameObject();
+                if (escapeGo != null)
+                {
+                    escapeGo.transform.position = escapePod.GetPosition();
+                    escapeGo.transform.rotation = escapePod.GetRotation();
+                }
             }
 
             ingame = true;
