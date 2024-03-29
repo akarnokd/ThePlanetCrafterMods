@@ -135,7 +135,7 @@ namespace LibCommon
             }
         }
 
-        static string OfArchitecture()
+        internal static string OfArchitecture()
         {
             return "x86_" + OfSubArchitecture();
         }
@@ -145,7 +145,7 @@ namespace LibCommon
             return "64";
         }
 
-        static string OfPlatform()
+        internal static string OfPlatform()
         {
             return "steam_" + OfBits();
         }
