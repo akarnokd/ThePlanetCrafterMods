@@ -53,7 +53,11 @@ namespace UIShowConsumableCount
                     {
                         Setup();
                     }
-                    UpdateText(player.GetPlayerBackpack().GetInventory().GetInsideWorldObjects());
+                    var items = player.GetPlayerBackpack()?.GetInventory()?.GetInsideWorldObjects();
+                    if (items != null)
+                    {
+                        UpdateText(items);
+                    }
                 }
             }
         }

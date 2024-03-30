@@ -446,6 +446,11 @@ namespace UIHotbar
 
         static void CountInventory(PlayerMainController player, Dictionary<string, int> inventoryCounts)
         {
+            // In multiplayer, these may be null for a few frames
+            if (player.GetPlayerBackpack() == null || player.GetPlayerBackpack().GetInventory() == null) 
+            {
+                return;    
+            }
             CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
             foreach (var inv in nearbyInventories)
             {

@@ -172,8 +172,18 @@ namespace FeatTechniciansExile
             return tex;
         }
 
+        static bool IsHost()
+        {
+            return NetworkManager.Singleton?.IsServer ?? true;
+        }
+
         static void PlanetLoader_HandleDataAfterLoad()
         {
+            if (!IsHost())
+            {
+                return;
+            }
+
             logger.LogInfo("Start");
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);

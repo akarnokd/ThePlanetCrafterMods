@@ -134,7 +134,10 @@ namespace UISortSaves
         static void SaveFilesSelector_SelectedSaveFile()
         {
             instance = null;
-            parent.SetActive(false);
+            if (parent != null)
+            {
+                parent.SetActive(false);
+            }
         }
 
         static GameObject parent;

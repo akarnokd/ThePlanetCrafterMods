@@ -230,7 +230,10 @@ namespace LibCommon
             if (nm != null)
             {
                 var cmm = nm.CustomMessagingManager;
-                cmm.UnregisterNamedMessageHandler(_modGuid);
+                if (cmm != null)
+                {
+                    cmm.UnregisterNamedMessageHandler(_modGuid);
+                }
             }
         }
 

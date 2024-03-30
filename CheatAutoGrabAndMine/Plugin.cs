@@ -107,6 +107,15 @@ namespace CheatAutoGrabAndMine
 
         public void Update()
         {
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh == null)
+            {
+                return;
+            }
+            if (wh.GetHasUiOpen())
+            {
+                return;
+            }
             if (toggleAction.WasPressedThisFrame())
             {
                 if (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed)

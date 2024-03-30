@@ -2252,11 +2252,28 @@ namespace FeatCommandConsole
                                 pb.InputOnCancelAction();
                             }
 
-                            Logger.LogInfo("Activating ghost for " + gc.GetId());
-                            pb.SetNewGhost(gc);
+                            if (NetworkManager.Singleton.IsServer)
+                            {
+                                Logger.LogInfo("Activating ghost for " + gc.GetId());
+                                pb.SetNewGhost(gc);
+                            }
+                            else
+                            {
+                                Logger.LogInfo("Activating delayed ghost for " + gc.GetId());
+                                pb.StartCoroutine(SetNewGhostDelayed(pb, gc));
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        static IEnumerator SetNewGhostDelayed(PlayerBuilder pb, GroupConstructible gc)
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            if (pb != null)
+            {
+                pb.SetNewGhost(gc);
             }
         }
 
@@ -3948,6 +3965,7 @@ namespace FeatCommandConsole
                 if (background != null)
                 {
                     __instance.gameObject.SetActive(false);
+                    me.CreateOutputLines();
                 }
             }
         }
