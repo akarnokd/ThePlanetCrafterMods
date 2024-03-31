@@ -107,6 +107,10 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Polish Translation](#ui-polish-translation)
 - [Romanian Translation](#ui-romanian-translation)
 
+### Multiplayer
+
+- [Player Locator](#multi-player-locator)
+
 ### Other
 
 - [Reduce Save Size](#perf-reduce-save-size)
@@ -2865,5 +2869,36 @@ FlashlightIntensity = 40
 # Setting type: Single
 # Default value: 40
 FlashlightRange = 40
+```
+</details>
+
+## (Multi) Player Locator
+
+- Displays the list of the players in the current world, above the health indicator.
+- Toggle a player position distance indicator overlay via <kbd>H</kbd>.
+
+In the player list, the current player's name is in yellow and the host is marked with `<Host>`.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.multiplayerlocator.cfg</summary>
+
+```
+[General]
+
+## Enable this mod
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The input action shortcut to toggle the player locator overlay.
+# Setting type: String
+# Default value: H
+Key = <Keyboard>/H
+
+## The font size used
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
 ```
 </details>
