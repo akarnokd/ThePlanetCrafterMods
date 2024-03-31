@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 using LibCommon;
 using System.Reflection;
 using UnityEngine.UIElements;
+using Unity.Netcode;
 
 namespace CheatCraftFromNearbyContainers
 {
@@ -181,6 +182,7 @@ namespace CheatCraftFromNearbyContainers
 
             return false;
         }
+
         static void PrepareInventories(ActionCrafter __instance, PlayerMainController ac)
         {
             if (inventoryLookupInProgress)
@@ -193,33 +195,19 @@ namespace CheatCraftFromNearbyContainers
 
             inventoryLookupInProgress = true;
 
-            var ppos = ac.transform.position;
-
-            List<int> candidateInventoryIds = [];
-            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            GetInventoriesInRange(__instance, ac.transform.position, list =>
             {
-                var grid = wo.GetGroup().GetId();
+                candidateInventories = list;
 
-                if (grid.StartsWith("Container")
-                    && wo.GetLinkedInventoryId() != 0
-                    && Vector3.Distance(ppos, wo.GetPosition()) <= range.Value
-                )
-                {
-                    candidateInventoryIds.Add(wo.GetLinkedInventoryId());
-                }
-            }
+                UiWindowCraft uiWindowCraft = (UiWindowCraft)Managers.GetManager<WindowsHandler>()
+                    .OpenAndReturnUi(DataConfig.UiType.Craft);
+                uiWindowCraft.SetCrafter(__instance, !__instance.cantCraft);
+                uiWindowCraft.ChangeTitle(Localization.GetLocalizedString(__instance.titleLocalizationId));
 
-            Log("  Containers in range: " + candidateInventoryIds.Count);
-
-            candidateInventories = [];
-
-            foreach (var iid in candidateInventoryIds)
-            {
-                InventoriesHandler.Instance.GetInventoryById(iid, candidateInventories.Add);
-            }
-
-            __instance.StartCoroutine(WaitForInventories(candidateInventoryIds.Count, __instance));
+                inventoryLookupInProgress = false;
+            });
         }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnOpenConstructionDispatcher))]
@@ -291,28 +279,95 @@ namespace CheatCraftFromNearbyContainers
 
             Log("Begin GetInventoriesInRange");
 
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                GetInventoriesInRangeSearch(parent, pos, onComplete);
+            }
+            else
+            {
+                parent.StartCoroutine(PrefetchInventoriesInRangeClient(parent, pos, onComplete));
+            }
+        }
+
+        static IEnumerator PrefetchInventoriesInRangeClient(MonoBehaviour parent, Vector3 pos, Action<List<Inventory>> onComplete)
+        {
+            Log("  Prefetching Inventories on the client");
+            var counter = new int[1] { 1 };
+            var n = 0;
+            foreach (var invp in FindObjectsByType<InventoryAssociatedProxy>(FindObjectsSortMode.None))
+            {
+                if (invp.GetComponent<InventoryAssociated>() == null
+                    && invp.GetComponent<ActionOpenable>() != null
+                    && invp.GetComponent<WorldObjectFromScene>() == null)
+                {
+                    counter[0]++;
+                    n++;
+                    invp.GetInventory((inv, wo) => counter[0]--);
+                }
+            }
+            Log("    Waiting for " + n + " objects");
+            counter[0]--;
+            while (counter[0] > 0)
+            {
+                yield return null;
+            }
+            Log("    Continue with the inventory search");
+            GetInventoriesInRangeSearch(parent, pos, onComplete);
+        }
+
+        static void GetInventoriesInRangeSearch(MonoBehaviour parent, Vector3 pos, Action<List<Inventory>> onComplete)
+        {
             List<int> candidateInventoryIds = [];
+            List<WorldObject> candidateGetInventoryOfWorldObject = [];
+            HashSet<int> seen = [];
             foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var grid = wo.GetGroup().GetId();
+                var wpos = Vector3.zero;
+                if (wo.GetIsPlaced())
+                {
+                    wpos = wo.GetPosition();
+                }
+                else
+                {
+                    wpos = wo.GetGameObject()?.transform.position ?? Vector3.zero;
+                }
+                var dist = Vector3.Distance(pos, wpos);
 
                 if (grid.StartsWith("Container")
-                    && wo.GetLinkedInventoryId() != 0
-                    && Vector3.Distance(pos, wo.GetPosition()) <= range.Value
+                    && dist <= range.Value
                 )
                 {
-                    candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                    if (seen.Add(wo.GetId()))
+                    {
+                        Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
+                        if (wo.GetLinkedInventoryId() != 0)
+                        {
+                            candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                        }
+                        else
+                        {
+                            candidateGetInventoryOfWorldObject.Add(wo);
+                        }
+                    }
                 }
             }
 
-            Log("  Containers in range: " + candidateInventoryIds.Count);
+            Log("  Containers in range: "
+                + candidateInventoryIds.Count + " + "
+                + candidateGetInventoryOfWorldObject.Count
+                + " = " + (candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count));
 
             var inventoryList = new List<Inventory>();
             foreach (var iid in candidateInventoryIds)
             {
                 InventoriesHandler.Instance.GetInventoryById(iid, inventoryList.Add);
             }
-            parent.StartCoroutine(GetInventoriesInRangeWait(candidateInventoryIds.Count, inventoryList, onComplete));
+            foreach (var wo in candidateGetInventoryOfWorldObject)
+            {
+                InventoriesHandler.Instance.GetWorldObjectInventory(wo, inventoryList.Add);
+            }
+            parent.StartCoroutine(GetInventoriesInRangeWait(candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count, inventoryList, onComplete));
         }
 
         static IEnumerator GetInventoriesInRangeWait(int n, List<Inventory> inventoryList, Action<List<Inventory>> onComplete)
@@ -324,27 +379,14 @@ namespace CheatCraftFromNearbyContainers
             }
             Log("  Containers in discovered: " + inventoryList.Count);
 
+            foreach (var inv in inventoryList)
+            {
+                Log("    " + inv.GetId());
+            }
+
             onComplete.Invoke(inventoryList);
             
             Log("Done GetInventoriesInRange");
-        }
-
-        static IEnumerator WaitForInventories(int n, ActionCrafter __instance)
-        {
-            Log("  Waiting for GetInventoryById callbacks: " + candidateInventories.Count + " of " + n);
-            while (candidateInventories.Count != n)
-            {
-                yield return null;
-            }
-            Log("  GetInventoryById callbacks done: " + candidateInventories.Count);
-
-
-            UiWindowCraft uiWindowCraft = (UiWindowCraft)Managers.GetManager<WindowsHandler>()
-                .OpenAndReturnUi(DataConfig.UiType.Craft);
-            uiWindowCraft.SetCrafter(__instance, !__instance.cantCraft);
-            uiWindowCraft.ChangeTitle(Localization.GetLocalizedString(__instance.titleLocalizationId));
-
-            inventoryLookupInProgress = false;
         }
 
         [HarmonyPrefix]
