@@ -1236,3 +1236,5 @@ UI_Genetics_informations=Genetikai jellemvonás információ
 Ending_POV_Text_1=Barátom! Most már tudom, többé nem látlak. <br>Annak ellenére, amin keresztül mentél, ami előtted van talán még nehezebb lesz. 
 Ending_POV_Text_2=Vannak dolgok ezen a világon, amellyel szemben se te se én nem győzhetünk, mégha azt hittük, hogy de igen.
 Ending_POV_Text_3=Szeretném, ha boldog vége lenne, de kétlem, hogy az lesz. <br>Good Luck. <br><br>Riley.
+Container_infos_animalShelter=Simogathatsz állatokat. <br>Alkalom adtán, ha simogatod a megetetett állatot, kapsz tőle egy genetikai jellegzetességet.<br>Ez lehet, hogy az állat egyik meglévő jellegzetessége, vagy pedig egy véletlenszerű jellegzetesség.
+Container_infos_animalFeeder=Az állatok az állatetetőbe helyezett ételt eszik.<br><br> Éhes állatok nem fognak jellegzetességet adni simogatásért, nem fognak növekedni és nem járulnak hozzá a terraformálás értékéhez.<br><br> Az állatok ugyanazt eszik, mint te.
