@@ -16,6 +16,9 @@ using BepInEx.Logging;
 using System.Linq;
 using BepInEx.Bootstrap;
 using System.Text;
+using System.Collections;
+using LibCommon;
+using System.Data;
 
 namespace CheatInventoryStacking
 {
@@ -92,8 +95,12 @@ namespace CheatInventoryStacking
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
 
+        static Plugin me;
+
         void Awake()
         {
+            me = this;
+
             LibCommon.BepInExLoggerFix.ApplyFix();
 
             // Plugin startup logic
@@ -492,7 +499,9 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
-        static bool Patch_InventoryDisplayer_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData, Inventory ____inventory)
+        static bool Patch_InventoryDisplayer_OnImageClicked(
+            EventTriggerCallbackData eventTriggerCallbackData, 
+            Inventory ____inventory)
         {
             var n = stackSize.Value;
             if (n > 1 && CanStack(____inventory.GetId()))
@@ -501,31 +510,74 @@ namespace CheatInventoryStacking
                 {
                     if (Keyboard.current[Key.LeftShift].isPressed)
                     {
-                        WorldObject wo = eventTriggerCallbackData.worldObject;
-                        var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
-
-                        foreach (var slot in slots)
+                        DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                        if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.Genetics || openedUi == DataConfig.UiType.DNAExtractor || openedUi == DataConfig.UiType.DNASynthetizer || openedUi == DataConfig.UiType.GroupSelector)
                         {
-                            if (slot.Contains(wo))
+                            UiWindowContainer windowContainer = (UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi);
+                            Inventory otherInventory = windowContainer.GetOtherInventory(____inventory);
+                            if (____inventory != null && otherInventory != null)
                             {
-                                foreach (var toMove in slot)
+                                Log("Transfer from " + ____inventory.GetId() + " to " + otherInventory.GetId() + " start");
+                                WorldObject wo = eventTriggerCallbackData.worldObject;
+                                var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
+
+                                foreach (var slot in slots)
                                 {
-                                    // I know it is inefficient but since it does a lot of network stuff,
-                                    // I don't want to recreate all of those things.
-                                    InventoriesHandler.Instance.AnInventoryHasBeenClicked(____inventory, toMove);
+                                    if (slot.Contains(wo))
+                                    {
+
+                                        me.StartCoroutine(TransferItems(____inventory, otherInventory, slot, wo, windowContainer));
+
+                                        break;
+                                    }
                                 }
-
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, 
-                                    "Transfer " + Readable.GetGroupName(wo.GetGroup()) + " x " + slot.Count);
-
-                                break;
                             }
+                            return false;
                         }
-                        return false;
                     }
                 }
             }
             return true;
+        }
+
+        static IEnumerator TransferItems(
+            Inventory ____from, 
+            Inventory to, 
+            List<WorldObject> slot, 
+            WorldObject wo, 
+            UiWindowContainer windowContainer)
+        {
+            var waiter = new CallbackWaiter();
+            var allSuccess = true;
+            var n = 0;
+            foreach (var item in slot)
+            {
+                waiter.Reset();
+
+                Log("  Move " + item.GetId() + " (" + item.GetGroup().GetId() + ")");
+                InventoriesHandler.Instance.TransferItem(____from, to, item, waiter.Done);
+
+                while (!waiter.IsDone)
+                {
+                    yield return null;
+                }
+                Log("  Move " + item.GetId() + " (" + item.GetGroup().GetId() + ") Done " + waiter.IsSuccess);
+
+                allSuccess &= waiter.IsSuccess;
+                if (waiter.IsSuccess)
+                {
+                    n++;
+                }
+            }
+
+            if (!allSuccess && windowContainer.IsOpen)
+            {
+                InventoriesHandler.Instance.CheckInventoryWatchAndDirty(____from);
+                InventoriesHandler.Instance.CheckInventoryWatchAndDirty(to);
+            }
+
+            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f,
+                            "Transfer " + Readable.GetGroupName(wo.GetGroup()) + " x " + n + " / " + slot.Count + " complete");
         }
 
         [HarmonyPostfix]
