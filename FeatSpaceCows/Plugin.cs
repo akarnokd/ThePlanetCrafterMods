@@ -71,6 +71,7 @@ namespace FeatSpaceCows
 
                 ModNetworking.Init(modFeatSpaceCowsGuid, logger);
                 ModNetworking.Patch(h);
+                ModNetworking._debugMode = debugMode.Value;
                 ModNetworking.RegisterFunction(funcAddRemoveSpaceCow, OnAddRemoveSpaceCow);
 
                 ModPlanetLoaded.Patch(h, modFeatSpaceCowsGuid, _ => PlanetLoader_HandleDataAfterLoad());

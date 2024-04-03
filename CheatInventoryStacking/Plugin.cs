@@ -482,7 +482,7 @@ namespace CheatInventoryStacking
                 {
                     invokeLast = t;
 
-                    logger.LogInfo("InventoryDisplayer_TrueRefreshContent. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
+                    logger.LogInfo("InventoryDisplayer_SetInventoryBlocks. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
 
                     invokeSumTime = 0;
                     invokeCount = 0;
