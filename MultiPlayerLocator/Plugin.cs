@@ -262,6 +262,7 @@ namespace MultiPlayerLocator
                 var canvas = playerListOverlay.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 canvas.sortingOrder = 95;
+                playerListGameObjects.Clear();
             }
 
             var pm = Managers.GetManager<PlayersManager>();

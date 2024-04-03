@@ -165,10 +165,12 @@ namespace FeatSpaceCows
                     }
                 }
             }
+            /*
             else
             {
                 Log("Multiplayer: we run on the client.");
             }
+            */
         }
 
         static Vector2 OnCircle(float radius, float angleRadians)
