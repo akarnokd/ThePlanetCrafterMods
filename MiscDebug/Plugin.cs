@@ -24,5 +24,15 @@ namespace MiscDebug
             // LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             // Harmony.CreateAndPatchAll(typeof(Plugin));
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
+        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
+        {
+            if (__instance.environmentVolumeVariables == null)
+            {
+                logger.LogError(__instance.name);
+            }
+        }
     }
 }
