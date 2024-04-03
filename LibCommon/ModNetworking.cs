@@ -68,6 +68,10 @@ namespace LibCommon
             {
                 throw new ArgumentNullException(nameof(callback));
             }
+            if (_debugMode)
+            {
+                _logger.LogInfo("Registering ModNetworking Function: " + functionName);
+            }
 
             functionCallbacks.TryGetValue(functionName, out var fre);
             if (fre == null)
@@ -117,7 +121,13 @@ namespace LibCommon
             writer.WriteValueSafe(function);
             writer.WriteValueSafe(arguments);
 
-            cmm.SendNamedMessageToAll(_modGuid, writer);
+            if (_debugMode)
+            {
+                _logger.LogInfo("SendAllClients.connectedClientIds: " + string.Join(", ", nm.ConnectedClientsIds));
+            }
+            var list = nm.ConnectedClientsIds.Where(id => id != NetworkManager.ServerClientId).ToList().AsReadOnly();
+
+            cmm.SendNamedMessage(_modGuid, list, writer);
         }
 
         /// <summary>
@@ -208,6 +218,11 @@ namespace LibCommon
         static void Attach()
         {
             var nm = NetworkManager.Singleton;
+
+            if (_debugMode)
+            {
+                _logger.LogInfo("ModNetworking Attaching [" + nm.LocalClientId + "]");
+            }
             var cmm = nm.CustomMessagingManager;
 
             cmm.RegisterNamedMessageHandler(_modGuid, HandleMessage);
@@ -220,8 +235,27 @@ namespace LibCommon
             });
             pm.RegisterToPlayerStopped(pmc =>
             {
+                if (_debugMode)
+                {
+                    _logger.LogInfo(Environment.StackTrace);
+                }
                 DoCallback(pmc.OwnerClientId, FunctionClientDisconnected, pmc.playerName);
             });
+
+            nm.OnClientConnectedCallback += id =>
+            {
+                if (_debugMode)
+                {
+                    _logger.LogInfo("ModNetworking.OnClientConnectedCallback [" + nm.LocalClientId + "] : " + id);
+                }
+            };
+            nm.OnClientDisconnectCallback += id =>
+            {
+                if (_debugMode)
+                {
+                    _logger.LogInfo("ModNetworking.OnClientConnectedCallback [" + nm.LocalClientId + "] : " + id);
+                }
+            };
         }
 
         static void Detach()
@@ -229,6 +263,10 @@ namespace LibCommon
             var nm = NetworkManager.Singleton;
             if (nm != null)
             {
+                if (_debugMode)
+                {
+                    _logger.LogInfo("ModNetworking Detaching [" + nm.LocalClientId + "]");
+                }
                 var cmm = nm.CustomMessagingManager;
                 if (cmm != null)
                 {
@@ -276,11 +314,14 @@ namespace LibCommon
             Attach();
         }
 
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayersDataManager), nameof(PlayersDataManager.OnDestroy))]
-        static void Patch_PlayersDataManager_OnDestroy()
+        static void Patch_PlayersDataManager_OnDestroy(PlayersDataManager __instance)
         {
-            Detach();
+            if (__instance == PlayersDataManager.Instance)
+            {
+                Detach();
+            }
         }
 
         // --------------------------------------------------------------------------------
@@ -297,6 +338,10 @@ namespace LibCommon
 
         static void DoCallback(ulong senderClientId, string function, string arguments) 
         {
+            if (_debugMode)
+            {
+                _logger.LogInfo("ModNetworking Incoming: [" + NetworkManager.Singleton.LocalClientId + "] " + senderClientId + " " + function + " " + arguments);    
+            }
             if (functionCallbacks.TryGetValue(function, out var callback))
             {
                 try

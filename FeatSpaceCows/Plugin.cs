@@ -564,8 +564,11 @@ namespace FeatSpaceCows
 
         void ReceiveMessageAddRemoveSpaceCow(MessageAddRemoveSpaceCow msg)
         {
-            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            bool isServer = NetworkManager.Singleton?.IsServer ?? true;
+            Log("ReceiveMEssageAddRemoveSpaceCow: isServer = " + isServer);
+            if (!isServer)
             {
+                Log("ReceiveMessageAddRemoveSpaceCow: " + msg.ToString());
                 if (msg.added)
                 {
                     if (!cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
@@ -577,6 +580,7 @@ namespace FeatSpaceCows
 
                         void onInventory(Inventory inv)
                         {
+                            Log("Spacecow: Preparing inventory " + inv.GetId());
                             invAssoc.SetInventory(inv);
                             cow.inventory = inv;
 
@@ -586,15 +590,18 @@ namespace FeatSpaceCows
 
                             var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
                             aop.inventory = inv;
+
+                            
                         }
 
                         var invExist = InventoriesHandler.Instance.GetInventoryById(msg.inventoryId);
                         if (invExist == null)
                         {
-                            InventoriesHandler.Instance.CreateNewInventory(3, msg.inventoryId, 0, null, onInventory);
+                            InventoriesHandler.Instance.GetInventoryById(msg.inventoryId, onInventory);
                         }
                         else
                         {
+                            Log("Spacecow: Inventory Found: " + invExist.GetId());
                             onInventory(invExist);
                         }
 
@@ -605,12 +612,16 @@ namespace FeatSpaceCows
                     cow.SetPosition(msg.position, msg.rotation);
                     cow.SetColor(msg.color);
 
-                    var iws = cow.inventory.GetInsideWorldObjects();
-                    Log("          Products: " + iws.Count);
-                    foreach (WorldObject wo in iws)
+                    if (cow.inventory != null)
                     {
-                        Log("             " + DebugWorldObject(wo));
-                    }
+                        var iws = cow.inventory.GetInsideWorldObjects();
+                        Log("          Products: " + iws.Count);
+                        foreach (WorldObject wo in iws)
+                        {
+                            Log("             " + DebugWorldObject(wo));
+                        }
+                        // keep it up to date
+                        InventoriesHandler.Instance.GetInventoryById(msg.inventoryId, _ => { });                    }
                 }
                 else
                 {
@@ -622,6 +633,11 @@ namespace FeatSpaceCows
                     }
                 }
             }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
         }
     }
 }

@@ -50,7 +50,6 @@ namespace FeatSpaceCows
                 + "|" + MessageHelper.QuaternionToString(rotation)
                 + "|" + MessageHelper.ColorToString(color)
                 + "|" + (added ? 1 : 0)
-                + "\n"
             ;
         }
     }

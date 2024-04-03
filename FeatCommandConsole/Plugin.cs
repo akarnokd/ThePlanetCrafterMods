@@ -3910,7 +3910,49 @@ namespace FeatCommandConsole
             }
         }
 
-        [HarmonyPrefix]
+        [Command("/tpm", "Teleport to another player in multiplayer")]
+        public void TeleportMultiplayer(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Teleport to another player in multiplayer.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpm id</color> - teleport to a player, identified via by its number or name");
+                AddLine("<margin=1em>Clients:");
+                for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
+                {
+                    var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
+                    AddLine("<margin=2em>" + pd.id + " - " + pd.name);
+                }
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>();
+                var ac = pm.GetActivePlayerController();
+
+                foreach (var pc in pm.playersControllers)
+                {
+                    if (pc.OwnerClientId.ToString() == args[1] || pc.playerName.ToLowerInvariant().CompareTo(args[1].ToLowerInvariant()) == 0)
+                    {
+                        var pos = pc.transform.position;
+                        ac.SetPlayerPlacement(pos, ac.transform.rotation);
+
+
+                        AddLine("<margin=1em>Teleported to: ( "
+                            + pos.x.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                            + " )"
+                            + " - " + pc.OwnerClientId 
+                            + " - " + pc.playerName
+                        );
+                        break;
+                    }
+                }
+            }
+        }
+
+                [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
         static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
         {
