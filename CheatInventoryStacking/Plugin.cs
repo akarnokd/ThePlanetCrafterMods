@@ -547,30 +547,27 @@ namespace CheatInventoryStacking
             WorldObject wo, 
             UiWindowContainer windowContainer)
         {
-            var waiter = new CallbackWaiter();
-            var allSuccess = true;
             var n = 0;
+            var m = 0;
             foreach (var item in slot)
             {
-                waiter.Reset();
-
                 Log("  Move " + item.GetId() + " (" + item.GetGroup().GetId() + ")");
-                InventoriesHandler.Instance.TransferItem(____from, to, item, waiter.Done);
-
-                while (!waiter.IsDone)
+                InventoriesHandler.Instance.TransferItem(____from, to, item, success =>
                 {
-                    yield return null;
-                }
-                Log("  Move " + item.GetId() + " (" + item.GetGroup().GetId() + ") Done " + waiter.IsSuccess);
-
-                allSuccess &= waiter.IsSuccess;
-                if (waiter.IsSuccess)
-                {
-                    n++;
-                }
+                    if (success)
+                    {
+                        n++;
+                    }
+                    m++;
+                });
             }
 
-            if (!allSuccess && windowContainer.IsOpen)
+            while (m != slot.Count)
+            {
+                yield return null;
+            }
+
+            if (n != m && windowContainer.IsOpen)
             {
                 InventoriesHandler.Instance.CheckInventoryWatchAndDirty(____from);
                 InventoriesHandler.Instance.CheckInventoryWatchAndDirty(to);
