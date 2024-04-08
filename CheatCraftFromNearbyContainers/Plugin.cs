@@ -444,7 +444,7 @@ namespace CheatCraftFromNearbyContainers
                     }
                     fCraftManagerCrafting() = false;
                 });
-                ____totalCraft++;
+                CraftManager.AddOneToTotalCraft();
             }
 
             return false;
