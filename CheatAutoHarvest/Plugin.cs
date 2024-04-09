@@ -64,6 +64,7 @@ namespace CheatAutoHarvest
                 }
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
             LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoHarvest, _ => PlanetLoader_HandleDataAfterLoad());
@@ -127,7 +128,7 @@ namespace CheatAutoHarvest
         static void DoHarvest()
         {
             var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
-            foreach (var wo in pickables)
+            foreach (var wo in new List<WorldObject>(pickables))
             {
                 if (wo.GetIsPlaced())
                 {
@@ -234,7 +235,8 @@ namespace CheatAutoHarvest
                             logger?.Invoke("No suitable non-full inventory found for " + DebugWorldObject(worldObject));
                             break;
                         }
-                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, OnInventoryCallback);
+                        // FIXME grabbed: true ???
+                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, grabbed: false, OnInventoryCallback);
                     }
 
                     if (--wip == 0)

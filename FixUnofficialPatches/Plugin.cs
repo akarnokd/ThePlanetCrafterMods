@@ -14,6 +14,7 @@ using System.IO;
 using System;
 using TMPro;
 using System.Globalization;
+using Steamworks;
 
 namespace FixUnofficialPatches
 {
@@ -32,6 +33,7 @@ namespace FixUnofficialPatches
 
             logger = Logger;
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -154,6 +156,17 @@ namespace FixUnofficialPatches
         static bool Actionnable_HandleHoverMaterial()
         {
             return Managers.GetManager<VisualsResourcesHandler>() != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GamepadConfig), "OnDestroy")]
+        static void GamepadConfig_OnDestroy(ref Callback<GamepadTextInputDismissed_t> ____gamepadTextInputDismissed)
+        {
+            if (____gamepadTextInputDismissed == null)
+            {
+                ____gamepadTextInputDismissed = Callback<GamepadTextInputDismissed_t>.Create(
+                    new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
+            }
         }
     }
 }

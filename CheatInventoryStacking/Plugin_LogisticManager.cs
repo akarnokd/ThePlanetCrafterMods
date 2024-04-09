@@ -4,8 +4,8 @@
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 
 namespace CheatInventoryStacking
@@ -25,7 +25,31 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "SetLogisticTasks")]
         static bool Patch_LogisticManager_SetLogisticTasks(
-            NetworkVariable<bool> ____hasLogisticsEnabled,
+            LogisticManager __instance,
+            Dictionary<int, LogisticTask> ____allLogisticTasks,
+            List<MachineDroneStation> ____allDroneStations,
+            List<Drone> ____droneFleet,
+            List<Inventory> ____supplyInventories,
+            List<Inventory> ____demandInventories,
+            ref IEnumerator __result
+        )
+        {
+            __result = LogisticManager_SetLogisticTasks_Override(
+                __instance, 
+                ____allLogisticTasks, 
+                ____allDroneStations, 
+                ____droneFleet, 
+                ____supplyInventories, 
+                ____demandInventories
+            );
+
+            return false;
+        }
+
+        // FIXME time limit running this logic!!!
+
+        static IEnumerator LogisticManager_SetLogisticTasks_Override(
+            LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             List<MachineDroneStation> ____allDroneStations,
             List<Drone> ____droneFleet,
@@ -36,13 +60,10 @@ namespace CheatInventoryStacking
             var n = stackSize.Value;
             if (n <= 1)
             {
-                return true;
+                yield break;
             }
 
-            if (!____hasLogisticsEnabled.Value)
-            {
-                return false;
-            }
+            fLogisticManagerUpdatingLogisticTasks(__instance) = true;
 
             UpdateInventoryOwnerCache();
             inventoryGroupIsFull.Clear();
@@ -209,7 +230,7 @@ namespace CheatInventoryStacking
                 }
             }
 
-            return false;
+            fLogisticManagerUpdatingLogisticTasks(__instance) = false;
         }
 
         static void UpdateInventoryOwnerCache()

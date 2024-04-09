@@ -37,6 +37,7 @@ namespace UICustomInventorySortAll
             preference = Config.Bind("General", "Preference", defaultPreference, "List of comma-separated resource ids to look for in order.");
             ParsePreferences();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

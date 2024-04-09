@@ -91,6 +91,7 @@ namespace CheatMachineRemoteDeposit
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

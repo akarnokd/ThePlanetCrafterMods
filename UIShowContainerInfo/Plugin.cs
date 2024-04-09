@@ -54,6 +54,7 @@ namespace UIShowContainerInfo
             mActionableHandleHoverMaterial = AccessTools.Method(typeof(Actionnable), "HandleHoverMaterial", [typeof(bool)]);
             fActionableHovering = AccessTools.FieldRefAccess<Actionnable, bool>("_hovering");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

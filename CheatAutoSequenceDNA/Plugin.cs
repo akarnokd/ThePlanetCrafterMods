@@ -94,6 +94,7 @@ namespace CheatAutoSequenceDNA
 
             logger = Logger;
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.SaveModInfo.Patch(harmony);
 

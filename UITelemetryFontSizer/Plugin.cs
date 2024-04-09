@@ -27,6 +27,7 @@ namespace UITelemetryFontSizer
             leftTelemetryFontSize = Config.Bind("General", "LeftFontSize", -1, "The font size of the left side text block (coordinates). -1 to use the default.");
             rightTelemetryFontSize = Config.Bind("General", "RightFontSize", -1, "The font size of the right side text block (version + framerate). -1 to use the default.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -27,6 +27,7 @@ namespace CheatAutoConsume
 
             threshold = Config.Bind("General", "Threshold", 9, "The percentage for which below food/water/oxygen is consumed.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

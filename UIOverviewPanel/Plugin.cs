@@ -58,6 +58,7 @@ namespace UIOverviewPanel
             key = Config.Bind("General", "Key", "F1", "The keyboard key to toggle the panel (no modifiers)");
             updateFrequency = Config.Bind("General", "UpdateFrequency", 7, "How often to update the item statistics, in seconds");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiOverviewPanelGuid, _ => PlanetLoader_HandleDataAfterLoad());
 

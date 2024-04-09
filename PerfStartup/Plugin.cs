@@ -33,6 +33,7 @@ namespace PerfStartup
 
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -69,11 +70,15 @@ namespace PerfStartup
                 sw.Start();
                 logger.LogInfo("Loading metadata: " + fileName);
 
-                LoadMetadata(fileName, out var modeLabel, out var savedDataTerraformUnit, out var savedDataInfosCorrupted);
+                LoadMetadata(fileName, 
+                    out var modeLabel, 
+                    out var savedDataTerraformUnit, 
+                    out var savedDataInfosCorrupted,
+                    out var name);
 
                 var gameObject = Instantiate(___prefabSaveDisplayer);
 
-                gameObject.GetComponent<SaveFileDisplayer>().SetData(fileName, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel);
+                gameObject.GetComponent<SaveFileDisplayer>().SetData(fileName, name, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel);
                 gameObject.transform.SetParent(___displayersContainer.transform);
                 gameObject.transform.SetSiblingIndex(0);
                 gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
@@ -86,11 +91,12 @@ namespace PerfStartup
             return true;
         }
 
-        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, out bool corrupt)
+        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, out bool corrupt, out string name)
         {
             corrupt = false;
             ti = null;
             modeLabel = "";
+            name = "";
             try
             {
                 // Note: adding buffer size doesn't seem to help at all
@@ -130,6 +136,11 @@ namespace PerfStartup
                             var m = ScriptableObject.CreateInstance<JsonableGameState>();
                             JsonUtility.FromJsonOverwrite(line, m);
                             modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), m.mode));
+                            name = m.saveDisplayName;
+                            if (string.IsNullOrEmpty(name))
+                            {
+                                name = fileName;
+                            }
                             break;
                         }
                     }

@@ -80,6 +80,7 @@ namespace LibCommon
                 }
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(UITranslator));
             var h = Harmony.CreateAndPatchAll(typeof(UITranslator));
 
             parent.StartCoroutine(WaitForLocalizationLoad());

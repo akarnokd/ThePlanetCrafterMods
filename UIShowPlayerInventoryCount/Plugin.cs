@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using UnityEngine;
 
 namespace UIShowPlayerInventoryCount
 {
@@ -48,15 +49,27 @@ namespace UIShowPlayerInventoryCount
                 Logger.LogInfo("Mod " + modInventoryStackingGuid + " not found");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(BaseHudHandler), nameof(BaseHudHandler.UpdateHud))]
         static void BaseHudHandler_UpdateHud(
-            TextMeshProUGUI ___textPositionDecoration)
+            TextMeshProUGUI ___textPositionDecoration,
+            GameObject ___subjectPositionDecoration)
         {
-            Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
+            // In multiplayer, we may not have inventory yet
+            if (___subjectPositionDecoration == null)
+            {
+                return;
+            }
+
+            Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController()?.GetPlayerBackpack()?.GetInventory();
+            if (inventory == null)
+            {
+                return;
+            }
             var inv = inventory.GetInsideWorldObjects();
             int cnt = inv.Count;
             int max = inventory.GetSize();

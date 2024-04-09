@@ -48,6 +48,7 @@ namespace UIShowMultiToolMode
             bottom = Config.Bind("General", "Bottom", 30, "Position of the text from the bottom of the screen");
             right = Config.Bind("General", "Right", 10, "Position of the text from the right of the screen");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

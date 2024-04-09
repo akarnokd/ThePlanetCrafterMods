@@ -66,10 +66,12 @@ namespace FeatSpaceCows
 
                 fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, List<WorldObject>>("_itemsPickablesWorldObjects");
 
+                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
                 ModNetworking.Init(modFeatSpaceCowsGuid, logger);
                 ModNetworking.Patch(h);
+                ModNetworking._debugMode = debugMode.Value;
                 ModNetworking.RegisterFunction(funcAddRemoveSpaceCow, OnAddRemoveSpaceCow);
 
                 ModPlanetLoaded.Patch(h, modFeatSpaceCowsGuid, _ => PlanetLoader_HandleDataAfterLoad());
@@ -164,10 +166,12 @@ namespace FeatSpaceCows
                     }
                 }
             }
+            /*
             else
             {
                 Log("Multiplayer: we run on the client.");
             }
+            */
         }
 
         static Vector2 OnCircle(float radius, float angleRadians)
@@ -268,7 +272,7 @@ namespace FeatSpaceCows
                 }
             }
 
-            InventoriesHandler.Instance.CreateNewInventory(3, 0, null, inv => LinkInventory(inv, true));
+            InventoriesHandler.Instance.CreateNewInventory(3, 0, 0, null, inv => LinkInventory(inv, true));
 
             void LinkInventory(Inventory inv, bool save)
             {
@@ -560,8 +564,11 @@ namespace FeatSpaceCows
 
         void ReceiveMessageAddRemoveSpaceCow(MessageAddRemoveSpaceCow msg)
         {
-            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            bool isServer = NetworkManager.Singleton?.IsServer ?? true;
+            Log("ReceiveMEssageAddRemoveSpaceCow: isServer = " + isServer);
+            if (!isServer)
             {
+                Log("ReceiveMessageAddRemoveSpaceCow: " + msg.ToString());
                 if (msg.added)
                 {
                     if (!cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
@@ -573,6 +580,7 @@ namespace FeatSpaceCows
 
                         void onInventory(Inventory inv)
                         {
+                            Log("Spacecow: Preparing inventory " + inv.GetId());
                             invAssoc.SetInventory(inv);
                             cow.inventory = inv;
 
@@ -582,15 +590,18 @@ namespace FeatSpaceCows
 
                             var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
                             aop.inventory = inv;
+
+                            
                         }
 
                         var invExist = InventoriesHandler.Instance.GetInventoryById(msg.inventoryId);
                         if (invExist == null)
                         {
-                            InventoriesHandler.Instance.CreateNewInventory(3, msg.inventoryId, null, onInventory);
+                            InventoriesHandler.Instance.GetInventoryById(msg.inventoryId, onInventory);
                         }
                         else
                         {
+                            Log("Spacecow: Inventory Found: " + invExist.GetId());
                             onInventory(invExist);
                         }
 
@@ -601,12 +612,16 @@ namespace FeatSpaceCows
                     cow.SetPosition(msg.position, msg.rotation);
                     cow.SetColor(msg.color);
 
-                    var iws = cow.inventory.GetInsideWorldObjects();
-                    Log("          Products: " + iws.Count);
-                    foreach (WorldObject wo in iws)
+                    if (cow.inventory != null)
                     {
-                        Log("             " + DebugWorldObject(wo));
-                    }
+                        var iws = cow.inventory.GetInsideWorldObjects();
+                        Log("          Products: " + iws.Count);
+                        foreach (WorldObject wo in iws)
+                        {
+                            Log("             " + DebugWorldObject(wo));
+                        }
+                        // keep it up to date
+                        InventoriesHandler.Instance.GetInventoryById(msg.inventoryId, _ => { });                    }
                 }
                 else
                 {
@@ -618,6 +633,11 @@ namespace FeatSpaceCows
                     }
                 }
             }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
         }
     }
 }

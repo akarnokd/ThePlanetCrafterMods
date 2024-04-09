@@ -34,6 +34,7 @@ namespace CheatBirthday
             logger = Logger;
             me = this;
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modCheatBirthdayGuid, PlanetLoader_HandleDataAfterLoad);
         }

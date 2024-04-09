@@ -42,6 +42,7 @@ namespace UIShowPlayerTooltipItemCount
             }
 
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

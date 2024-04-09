@@ -94,6 +94,7 @@ namespace UIHotbar
                 Logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -445,6 +446,11 @@ namespace UIHotbar
 
         static void CountInventory(PlayerMainController player, Dictionary<string, int> inventoryCounts)
         {
+            // In multiplayer, these may be null for a few frames
+            if (player.GetPlayerBackpack() == null || player.GetPlayerBackpack().GetInventory() == null) 
+            {
+                return;    
+            }
             CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
             foreach (var inv in nearbyInventories)
             {
@@ -745,5 +751,12 @@ namespace UIHotbar
             }
         }
 
+        // Do not emote while the command console is open by pressing 1-9
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerThirdPersonView), "ShortcutEmote")]
+        static bool PlayerThirdPersonView_ShortcutEmote()
+        {
+            return Keyboard.current[Key.LeftAlt].isPressed;
+        }
     }
 }

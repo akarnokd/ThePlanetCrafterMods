@@ -21,23 +21,18 @@ namespace MiscDebug
 
             logger = Logger;
 
-            //Harmony.CreateAndPatchAll(typeof(Plugin));
+            // LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            // Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(ProceduralInstancesHandler), nameof(ProceduralInstancesHandler.DeserializeInstances))]
-        static void ProceduralInstancesHandler_DeserializeInstances_Pre(out Stopwatch __state)
+        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
+        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
         {
-            __state = new Stopwatch();
-            __state.Start();
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ProceduralInstancesHandler), nameof(ProceduralInstancesHandler.DeserializeInstances))]
-        static void ProceduralInstancesHandler_DeserializeInstances_Post(in Stopwatch __state)
-        {
-            var time = __state.ElapsedTicks / 10000;
-            logger.LogInfo("ProceduralInstancesHandler::DeserializeInstances: " + string.Format("{0:#,##0.00} ms", time));
+            if (__instance.environmentVolumeVariables == null)
+            {
+                logger.LogError(__instance.name);
+            }
         }
     }
 }

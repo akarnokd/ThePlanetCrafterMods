@@ -66,6 +66,7 @@ namespace MiscModEnabler
                             if (save)
                             {
                                 File.WriteAllLines(newdir, lines);
+                                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                                 Harmony.CreateAndPatchAll(typeof(Plugin));
                             }
                             else

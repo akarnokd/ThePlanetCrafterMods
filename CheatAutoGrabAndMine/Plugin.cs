@@ -91,6 +91,7 @@ namespace CheatAutoGrabAndMine
             toggleAction = new InputAction(name: "Toggle periodic scan & grab", binding: key.Value);
             toggleAction.Enable();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             OnModConfigChanged(null);
@@ -106,6 +107,15 @@ namespace CheatAutoGrabAndMine
 
         public void Update()
         {
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh == null)
+            {
+                return;
+            }
+            if (wh.GetHasUiOpen())
+            {
+                return;
+            }
             if (toggleAction.WasPressedThisFrame())
             {
                 if (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed)
@@ -320,7 +330,8 @@ namespace CheatAutoGrabAndMine
                     return;
                 }
 
-                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, success =>
+                // FIXME: grabbed: true  ????
+                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, grabbed: false, success =>
                 {
                     if (success)
                     {

@@ -28,8 +28,8 @@ namespace FeatTechniciansExile
         internal static Texture2D technicianFront;
         internal static Texture2D technicianBack;
 
-        // /tp 1990 76 1073
-        static Vector3 technicianDropLocation = new(1995, 75.7f, 1073);
+        // /tp 1990 70 1073
+        static Vector3 technicianDropLocation = new(1995, 68.8f, 1073);
 
         static TechnicianAvatar avatar;
 
@@ -139,7 +139,8 @@ namespace FeatTechniciansExile
                 logger.LogWarning("Failed to create custom font, using the game's default font.");
             }
 
-            var  h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modFeatTechniciansExileGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
@@ -171,8 +172,18 @@ namespace FeatTechniciansExile
             return tex;
         }
 
+        static bool IsHost()
+        {
+            return NetworkManager.Singleton?.IsServer ?? true;
+        }
+
         static void PlanetLoader_HandleDataAfterLoad()
         {
+            if (!IsHost())
+            {
+                return;
+            }
+
             logger.LogInfo("Start");
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
@@ -208,7 +219,7 @@ namespace FeatTechniciansExile
                 escapePod.SetDontSaveMe(false);
                 // make sure this pod's chest is not default-linked to the player's landing pod
                 // since the pod's chest is a scene object
-                InventoriesHandler.Instance.CreateNewInventory(12, 0, null, inv =>
+                InventoriesHandler.Instance.CreateNewInventory(12, 0, 0, null, inv =>
                 {
                     logger.LogInfo("      Inventory overridden: " + inv.GetId());
                     escapePod.SetLinkedInventoryId(inv.GetId());
@@ -222,6 +233,17 @@ namespace FeatTechniciansExile
 
                     SetVisibilityViaCurrentPhase();
                 });
+            } 
+            else
+            {
+                // make sure its position in case of surface changes
+                escapePod.SetPositionAndRotation(technicianDropLocation, Quaternion.identity * Quaternion.Euler(0, -90, 0));
+                var escapeGo = escapePod.GetGameObject();
+                if (escapeGo != null)
+                {
+                    escapeGo.transform.position = escapePod.GetPosition();
+                    escapeGo.transform.rotation = escapePod.GetRotation();
+                }
             }
 
             ingame = true;
@@ -393,7 +415,7 @@ namespace FeatTechniciansExile
                 // we need to "place" the seed because AddWorldObjectToInventory only adds an existing world object
                 // if it had position in the world. Weird I know.
                 seed.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
-                InventoriesHandler.Instance.AddWorldObjectToInventory(seed, growerInv, success =>
+                InventoriesHandler.Instance.AddWorldObjectToInventory(seed, growerInv, grabbed: false, success =>
                 {
                     logger.LogInfo("    Seed -> Grower " + (success ? "success" : "failure"));
                 });
@@ -879,7 +901,7 @@ namespace FeatTechniciansExile
                             asteroid = obj.GetComponent<Asteroid>();
                             var isr = 4 * Mathf.Max(asteroid.initialSpeedRange.x, asteroid.initialSpeedRange.y);
                             asteroid.initialSpeedRange = new Vector2(isr, isr);
-                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah));
+                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah), false);
                             asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
                             asteroid.debrisDestroyTime = 15;
                             asteroid.placeAsteroidBody = false;
@@ -1243,9 +1265,9 @@ namespace FeatTechniciansExile
         // made invisible?
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ConstraintAgainstPanel), "OnDestroy")]
-        static bool ConstraintAgainstPanel_OnDestroy(BuilderDisplayer ___builderDisplayer)
+        static bool ConstraintAgainstPanel_OnDestroy(BuilderDisplayer ____builderDisplayer)
         {
-            return ___builderDisplayer != null;
+            return ____builderDisplayer != null;
         }
 
         [HarmonyPrefix]
@@ -1329,7 +1351,7 @@ namespace FeatTechniciansExile
 
             internal int historyScrollOffset;
 
-            void Update()
+            public void Update()
             {
                 var wh = Managers.GetManager<WindowsHandler>();
                 if (conversationDialogCanvas != null && Keyboard.current[Key.Escape].wasPressedThisFrame)

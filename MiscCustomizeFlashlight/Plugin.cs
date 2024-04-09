@@ -47,6 +47,7 @@ namespace MiscCustomizeFlashlight
 
             fPlayerMultitoolMultiToolLight = AccessTools.FieldRefAccess<MultiToolLight>(typeof(PlayerMultitool), "multiToolLight");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -86,6 +87,7 @@ namespace MiscCustomizeFlashlight
         {
             ApplyLightConfig(___multiToolLight.toolLightT1.GetComponent<Light>());
             ApplyLightConfig(___multiToolLight.toolLightT2.GetComponent<Light>());
+            ApplyLightConfig(___multiToolLight.toolLightT3.GetComponent<Light>());
         }
 
         static void FindLights()
@@ -114,6 +116,7 @@ namespace MiscCustomizeFlashlight
             }
             ApplyLightConfig(pmtl.toolLightT1.GetComponent<Light>());
             ApplyLightConfig(pmtl.toolLightT2.GetComponent<Light>());
+            ApplyLightConfig(pmtl.toolLightT3.GetComponent<Light>());
         }
 
         public static void OnModConfigChanged(ConfigEntryBase _)

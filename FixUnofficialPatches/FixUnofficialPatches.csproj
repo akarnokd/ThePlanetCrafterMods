@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FixUnofficialPatches</AssemblyName>
     <Description>(Fix) Unofficial Patches</Description>
-    <Version>1.0.0.35</Version>
+    <Version>1.0.0.37</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -13,6 +13,12 @@
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
+        <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
+		<Reference Include="Steamworks">
+			<SpecificVersion>False</SpecificVersion>
+			<HintPath>$(GameManaged)com.rlabrecque.steamworks.net.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
 	</ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

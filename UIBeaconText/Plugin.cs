@@ -60,6 +60,7 @@ namespace UIBeaconText
 
             font = Resources.GetBuiltinResource<Font>(fontName.Value);
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

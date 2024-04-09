@@ -15,6 +15,10 @@ using System;
 using BepInEx.Logging;
 using System.Linq;
 using BepInEx.Bootstrap;
+using System.Text;
+using System.Collections;
+using LibCommon;
+using System.Data;
 
 namespace CheatInventoryStacking
 {
@@ -89,8 +93,14 @@ namespace CheatInventoryStacking
 
         static Func<bool> apiTryToCraftInInventoryHandled;
 
+        static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
+
+        static Plugin me;
+
         void Awake()
         {
+            me = this;
+
             LibCommon.BepInExLoggerFix.ApplyFix();
 
             // Plugin startup logic
@@ -144,6 +154,9 @@ namespace CheatInventoryStacking
                 apiTryToCraftInInventoryHandled = () => false;
             }
 
+            fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
         }
@@ -176,6 +189,30 @@ namespace CheatInventoryStacking
             groupCounts[gid] = count;
         }
 
+        static string GetStackId(WorldObject wo)
+        {
+            var grid = wo.GetGroup().GetId();
+            if (grid == "GeneticTrait")
+            {
+                grid += "_" + ((int)wo.GetGeneticTraitType()) + "_" + wo.GetGeneticTraitValue();
+            }
+            if (grid == "DNASequence")
+            {
+                var sb = new StringBuilder(48);
+                var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
+                if (inv != null)
+                {
+                    sb.Append(grid);
+                    foreach (var wo2 in inv.GetInsideWorldObjects())
+                    {
+                        sb.Append('_').Append((int)wo2.GetGeneticTraitType()).Append('_').Append(wo2.GetGeneticTraitValue());
+                    }
+                }
+                grid = sb.ToString();
+            }
+            return grid;
+        }
+
         static Action<EventTriggerCallbackData> CreateMouseCallback(MethodInfo mi, InventoryDisplayer __instance)
         {
             return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
@@ -195,7 +232,7 @@ namespace CheatInventoryStacking
             {
                 if (worldObject != null)
                 {
-                    string gid = worldObject.GetGroup().GetId();
+                    string gid = GetStackId(worldObject);
 
                     if (currentSlot.TryGetValue(gid, out var slot))
                     {
@@ -277,19 +314,23 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(Inventory), "AddItemInInventory")]
         static void Patch_Inventory_AddItemInInventory(WorldObject worldObject)
         {
-            expectedGroupIdToAdd = worldObject.GetGroup().GetId();
+            expectedGroupIdToAdd = GetStackId(worldObject);
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventoryDisplayer), nameof(InventoryDisplayer.TrueRefreshContent))]
-        static bool Patch_InventoryDisplayer_TrueRefreshContent(
+        [HarmonyPatch(typeof(InventoryDisplayer), "SetInventoryBlocks")]
+        static bool Patch_InventoryDisplayer_SetInventoryBlocks(
             InventoryDisplayer __instance,
             LogisticManager ____logisticManager,
             Inventory ____inventory, 
             GridLayoutGroup ____grid, 
             ref int ____selectionIndex,
-            ref Vector2 ____originalSizeDelta, 
-            ref Inventory ____inventoryInteracting
+            ref Inventory ____inventoryInteracting,
+            GroupInfosDisplayerBlocksSwitches infosDisplayerBlockSwitches, 
+            bool shouldCheckItemsLogisticsStatus, 
+            bool enabled,
+            VisualsResourcesHandler ____visualResourcesHandler,
+            WindowsGamepadHandler ____windowsHandlerControllers
         )
         {
             int n = stackSize.Value;
@@ -300,45 +341,18 @@ namespace CheatInventoryStacking
                 sw.Start();
                 */
 
-                // Since 0.9.020 (vanilla gamepad improvements)
-                GameObject currentSelectedGameObject = EventSystem.current.currentSelectedGameObject;
-                if (currentSelectedGameObject != null
-                    && currentSelectedGameObject.GetComponentInParent<InventoryDisplayer>() == __instance
-                    && currentSelectedGameObject.GetComponent<EventGamepadAction>() != null)
-                {
-                    ____selectionIndex = currentSelectedGameObject.GetComponent<EventGamepadAction>().GetReferenceInt();
-                    ____inventoryInteracting = ____inventory;
-                }
-
                 int fs = fontSize.Value;
 
                 GameObjects.DestroyAllChildren(____grid.gameObject, false);
 
-                WindowsGamepadHandler manager = Managers.GetManager<WindowsGamepadHandler>();
-
-                var groupInfosDisplayerBlocksSwitches = new GroupInfosDisplayerBlocksSwitches 
-                {
-                    showActions = true,
-                    showDescription = true,
-                    showMultipliers = true,
-                    showInfos = true
-                };
-
-                VisualsResourcesHandler manager2 = Managers.GetManager<VisualsResourcesHandler>();
-                GameObject inventoryBlock = manager2.GetInventoryBlock();
+                GameObject inventoryBlock = ____visualResourcesHandler.GetInventoryBlock();
 
                 bool showDropIconAtAll = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory() == ____inventory;
 
                 var authorizedGroups = ____inventory.GetAuthorizedGroups();
-                Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? manager2.GetGroupItemCategoriesSprite(authorizedGroups.First()) : null;
-
-                bool logisticFlag = ____logisticManager.GetGlobalLogisticsEnabled() && ____inventory.GetLogisticEntity().HasDemandOrSupplyGroups();
+                Sprite authorizedGroupIcon = (authorizedGroups.Count > 0) ? ____visualResourcesHandler.GetGroupItemCategoriesSprite(authorizedGroups.First()) : null;
 
                 __instance.groupSelector.gameObject.SetActive(Application.isEditor && Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft());
-
-                // Since 0.9.020 (vanilla gamepad improvements)
-                var selectableEnablerComponent = __instance.GetComponentInParent<SelectableEnabler>();
-                var selectablesEnabled = selectableEnablerComponent == null || selectableEnablerComponent.SelectablesEnabled;
 
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnImageClicked, __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnDropClicked, __instance);
@@ -368,7 +382,7 @@ namespace CheatInventoryStacking
                             showDropIcon = false;
                         }
 
-                        component.SetDisplay(worldObject, groupInfosDisplayerBlocksSwitches, showDropIcon);
+                        component.SetDisplay(worldObject, infosDisplayerBlockSwitches, showDropIcon);
 
                         RectTransform rectTransform;
 
@@ -421,7 +435,7 @@ namespace CheatInventoryStacking
                             );
                         }
 
-                        if (logisticFlag)
+                        if (shouldCheckItemsLogisticsStatus)
                         {
                             // Since any of the world objects in a slot could be part of a logistic task,
                             // we need to check all of them and mark the entire slot accordingly
@@ -439,7 +453,7 @@ namespace CheatInventoryStacking
                     }
                     else
                     {
-                        if (logisticFlag)
+                        if (shouldCheckItemsLogisticsStatus)
                         {
                             component.SetLogisticStatus(waitingSlots > 0);
                             waitingSlots -= n;
@@ -448,11 +462,11 @@ namespace CheatInventoryStacking
                             .SetEventGamepadAction(null, null, null, i, null, null, null);
                     }
                     gameObject.SetActive(true);
-                    if (selectablesEnabled)
+                    if (enabled)
                     {
                         if (i == ____selectionIndex && (____inventoryInteracting == null || ____inventoryInteracting == ____inventory))
                         {
-                            manager.SelectForController(gameObject, true, false, true, true, true);
+                            ____windowsHandlerControllers.SelectForController(gameObject, true, false, true, true, true);
                         }
                     }
                     else
@@ -460,28 +474,6 @@ namespace CheatInventoryStacking
                         gameObject.GetComponentInChildren<Selectable>().interactable = false;
                     }
                 }
-                if (____originalSizeDelta == Vector2.zero)
-                {
-                    ____originalSizeDelta = __instance.GetComponent<RectTransform>().sizeDelta;
-                }
-                if (____inventory.GetSize() > 35)
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(____originalSizeDelta.x + 70f, ____originalSizeDelta.y);
-                    GridLayoutGroup componentInChildren = __instance.GetComponentInChildren<GridLayoutGroup>();
-                    componentInChildren.cellSize = new Vector2(76f, 76f);
-                    componentInChildren.spacing = new Vector2(3f, 3f);
-                }
-                else if (____inventory.GetSize() > 28)
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = new Vector2(____originalSizeDelta.x + 50f, ____originalSizeDelta.y);
-                }
-                else
-                {
-                    __instance.GetComponent<RectTransform>().sizeDelta = ____originalSizeDelta;
-                }
-                __instance.SetIconsPositionRelativeToGrid();
-                ____selectionIndex = -1;
-
 
                 /*
                 invokeCount++;
@@ -490,7 +482,7 @@ namespace CheatInventoryStacking
                 {
                     invokeLast = t;
 
-                    logger.LogInfo("InventoryDisplayer_TrueRefreshContent. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
+                    logger.LogInfo("InventoryDisplayer_SetInventoryBlocks. Count " + invokeCount + ", Time " + invokeSumTime + "ms, Avg " + invokeSumTime / invokeCount + " ms/call");
 
                     invokeSumTime = 0;
                     invokeCount = 0;
@@ -507,7 +499,9 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventoryDisplayer), "OnImageClicked")]
-        static bool Patch_InventoryDisplayer_OnImageClicked(EventTriggerCallbackData eventTriggerCallbackData, Inventory ____inventory)
+        static bool Patch_InventoryDisplayer_OnImageClicked(
+            EventTriggerCallbackData eventTriggerCallbackData, 
+            Inventory ____inventory)
         {
             var n = stackSize.Value;
             if (n > 1 && CanStack(____inventory.GetId()))
@@ -516,31 +510,71 @@ namespace CheatInventoryStacking
                 {
                     if (Keyboard.current[Key.LeftShift].isPressed)
                     {
-                        WorldObject wo = eventTriggerCallbackData.worldObject;
-                        var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
-
-                        foreach (var slot in slots)
+                        DataConfig.UiType openedUi = Managers.GetManager<WindowsHandler>().GetOpenedUi();
+                        if (openedUi == DataConfig.UiType.Container || openedUi == DataConfig.UiType.Genetics || openedUi == DataConfig.UiType.DNAExtractor || openedUi == DataConfig.UiType.DNASynthetizer || openedUi == DataConfig.UiType.GroupSelector)
                         {
-                            if (slot.Contains(wo))
+                            UiWindowContainer windowContainer = (UiWindowContainer)Managers.GetManager<WindowsHandler>().GetWindowViaUiId(openedUi);
+                            Inventory otherInventory = windowContainer.GetOtherInventory(____inventory);
+                            if (____inventory != null && otherInventory != null)
                             {
-                                foreach (var toMove in slot)
+                                Log("Transfer from " + ____inventory.GetId() + " to " + otherInventory.GetId() + " start");
+                                WorldObject wo = eventTriggerCallbackData.worldObject;
+                                var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
+
+                                foreach (var slot in slots)
                                 {
-                                    // I know it is inefficient but since it does a lot of network stuff,
-                                    // I don't want to recreate all of those things.
-                                    InventoriesHandler.Instance.AnInventoryHasBeenClicked(____inventory, toMove);
+                                    if (slot.Contains(wo))
+                                    {
+
+                                        me.StartCoroutine(TransferItems(____inventory, otherInventory, slot, wo, windowContainer));
+
+                                        break;
+                                    }
                                 }
-
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, 
-                                    "Transfer " + Readable.GetGroupName(wo.GetGroup()) + " x " + slot.Count);
-
-                                break;
                             }
+                            return false;
                         }
-                        return false;
                     }
                 }
             }
             return true;
+        }
+
+        static IEnumerator TransferItems(
+            Inventory ____from, 
+            Inventory to, 
+            List<WorldObject> slot, 
+            WorldObject wo, 
+            UiWindowContainer windowContainer)
+        {
+            var n = 0;
+            var m = 0;
+            foreach (var item in slot)
+            {
+                Log("  Move " + item.GetId() + " (" + item.GetGroup().GetId() + ")");
+                InventoriesHandler.Instance.TransferItem(____from, to, item, success =>
+                {
+                    if (success)
+                    {
+                        n++;
+                    }
+                    m++;
+                });
+            }
+
+            while (m != slot.Count)
+            {
+                yield return null;
+            }
+
+            if (n != m && windowContainer.IsOpen)
+            {
+                InventoriesHandler.Instance.CheckInventoryWatchAndDirty(____from);
+                InventoriesHandler.Instance.CheckInventoryWatchAndDirty(to);
+            }
+
+            Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f,
+                            "Transfer " + Readable.GetGroupName(wo.GetGroup()) + " x " + n + " / " + slot.Count + " complete");
         }
 
         [HarmonyPostfix]

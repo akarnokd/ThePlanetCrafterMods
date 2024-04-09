@@ -35,6 +35,7 @@ namespace UIShowConsumableCount
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -52,7 +53,11 @@ namespace UIShowConsumableCount
                     {
                         Setup();
                     }
-                    UpdateText(player.GetPlayerBackpack().GetInventory().GetInsideWorldObjects());
+                    var items = player.GetPlayerBackpack()?.GetInventory()?.GetInsideWorldObjects();
+                    if (items != null)
+                    {
+                        UpdateText(items);
+                    }
                 }
             }
         }

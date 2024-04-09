@@ -7,6 +7,7 @@ using SpaceCraft;
 using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 namespace CheatAsteroidLandingPosition
 {
@@ -43,6 +44,7 @@ namespace CheatAsteroidLandingPosition
             deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
             absolute = Config.Bind("General", "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -50,18 +52,18 @@ namespace CheatAsteroidLandingPosition
         [HarmonyPatch(typeof(AsteroidsHandler), "SpawnAsteroid")]
         static bool AsteroidsHandler_SpawnAsteroid(
             AsteroidsHandler __instance,
-            AsteroidEventData _asteroidEvent, 
+            AsteroidEventData asteroidEvent, 
             List<Collider> ___authorizedPlaces,
             List<Collider> ___spawnBoxes,
             ref Unity.Mathematics.Random ____random)
         {
             // Unfortunately, I have to copy out the original sources and patch inbetween some instructions
 
-            if (_asteroidEvent.GetExistingAsteroidsCount() >= _asteroidEvent.GetMaxAsteroidsSimultaneous())
+            if (asteroidEvent.GetExistingAsteroidsCount() >= asteroidEvent.GetMaxAsteroidsSimultaneous())
             {
                 return false;
             }
-            if (_asteroidEvent.GetTotalAsteroidsCount() >= _asteroidEvent.GetMaxAsteroidsTotal())
+            if (asteroidEvent.GetTotalAsteroidsCount() >= asteroidEvent.GetMaxAsteroidsTotal())
             {
                 return false;
             }
@@ -99,13 +101,13 @@ namespace CheatAsteroidLandingPosition
             }
             if (AsteroidsHandler_IsInAuthorizedBounds(landingPosition, ___authorizedPlaces))
             {
-                GameObject gameObject = Instantiate(_asteroidEvent.asteroidGameObject, AsteroidsHandler_RandomPointInBounds(collider.bounds), Quaternion.identity, __instance.gameObject.transform);
+                GameObject gameObject = Instantiate(asteroidEvent.asteroidGameObject, AsteroidsHandler_RandomPointInBounds(collider.bounds), Quaternion.identity, __instance.gameObject.transform);
                 gameObject.transform.LookAt(landingPosition);
                 var asteroid = gameObject.GetComponent<Asteroid>();
-                asteroid.DefineVariables(____random);
-                asteroid.SetLinkedAsteroidEvent(_asteroidEvent);
-                _asteroidEvent.ChangeExistingAsteroidsCount(1);
-                _asteroidEvent.ChangeTotalAsteroidsCount(1);
+                gameObject.GetComponent<Asteroid>().DefineVariables(____random, NetworkManager.Singleton != null && (__instance.ReferenceClientId == NetworkManager.Singleton.LocalClientId || (NetworkManager.Singleton.IsServer && !NetworkManager.Singleton.ConnectedClients.ContainsKey(__instance.ReferenceClientId))));
+                asteroid.SetLinkedAsteroidEvent(asteroidEvent);
+                asteroidEvent.ChangeExistingAsteroidsCount(1);
+                asteroidEvent.ChangeTotalAsteroidsCount(1);
             }
             return false;
         }

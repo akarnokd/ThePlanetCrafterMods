@@ -52,7 +52,7 @@ namespace UIMenuShortcutKeys
 
         static bool modPinUnpinRecipePresent;
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -98,6 +98,7 @@ namespace UIMenuShortcutKeys
 
             modPinUnpinRecipePresent = Chainloader.PluginInfos.ContainsKey(modUiPinRecipeGuid);
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiMenuShortcutKeysGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }

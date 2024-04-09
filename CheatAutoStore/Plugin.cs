@@ -12,6 +12,7 @@ using System.Collections;
 using BepInEx.Logging;
 using System.Linq;
 using System;
+using Unity.Netcode;
 
 namespace CheatAutoStore
 {
@@ -60,6 +61,7 @@ namespace CheatAutoStore
             storeAction = new InputAction(name: "Store Items", binding: key.Value);
             storeAction.Enable();
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -100,6 +102,14 @@ namespace CheatAutoStore
             {
                 return;
             }
+            if (ac.GetPlayerBackpack() == null)
+            {
+                return;
+            }
+            if (ac.GetPlayerBackpack().GetInventory() == null)
+            {
+                return;
+            }
 
             if (inventoryStoringActive)
             {
@@ -110,23 +120,90 @@ namespace CheatAutoStore
             Log("Begin storing");
             inventoryStoringActive = true;
 
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                InventorySearch(ac);
+            }
+            else
+            {
+                StartCoroutine(PrefetchInventoriesClient(ac));
+            }
+        }
+
+        IEnumerator PrefetchInventoriesClient(PlayerMainController ac)
+        {
+            Log("  Prefetching Inventories on the client");
+            var counter = new int[1] { 1 };
+            var n = 0;
+            foreach (var invp in FindObjectsByType<InventoryAssociatedProxy>(FindObjectsSortMode.None))
+            {
+                if (invp.GetComponent<InventoryAssociated>() == null
+                    && invp.GetComponent<ActionOpenable>() != null
+                    && invp.GetComponent<WorldObjectFromScene>() == null)
+                {
+                    counter[0]++;
+                    n++;
+                    invp.GetInventory((inv, wo) => counter[0]--);
+                }
+            }
+            Log("    Waiting for " + n + " objects");
+            counter[0]--;
+            while (counter[0] > 0)
+            {
+                yield return null;
+            }
+            Log("    Continue with the inventory search");
+            InventorySearch(ac);
+        }
+
+        void InventorySearch(PlayerMainController ac)
+        {
             var ppos = ac.transform.position;
 
             List<int> candidateInventoryIds = [];
-            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            List<WorldObject> candidateGetInventoryOfWorldObject = [];
+
+            List<WorldObject> wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
+            Log("  Constructed WorldObjects: " + wos.Count);
+
+            foreach (var wo in wos)
             {
                 var grid = wo.GetGroup().GetId();
-
-                if (grid.StartsWith("Container")
-                    && wo.GetLinkedInventoryId() != 0
-                    && Vector3.Distance(ppos, wo.GetPosition()) <= range.Value
-                )
+                var pos = Vector3.zero;
+                if (wo.GetIsPlaced())
                 {
-                    candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                    pos = wo.GetPosition();
+                }
+                else
+                {
+                    pos = wo.GetGameObject()?.transform.position ?? Vector3.zero;
+                }
+                var dist = Vector3.Distance(ppos, pos);
+                Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
+                if (grid.StartsWith("Container"))
+                {
+                    if (wo.GetLinkedInventoryId() != 0)
+                    {
+                        if (dist <= range.Value)
+                        {
+                            candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                        }
+                        else
+                        {
+                            //Log("  WorldObject Container " + wo.GetId() + " out of range " + dist + " m");
+                        }
+                    }
+                    else
+                    {
+                        Log("  WorldObject Container " + wo.GetId() + " missing local inventory");
+                        candidateGetInventoryOfWorldObject.Add(wo);
+                    }
                 }
             }
-
-            Log("  Containers in range: " + candidateInventoryIds.Count);
+            Log("  Containers in range: "
+                + candidateInventoryIds.Count + " + "
+                + candidateGetInventoryOfWorldObject.Count
+                + " = " + (candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count));
 
             var backpackInv = ac.GetPlayerBackpack().GetInventory();
 
@@ -136,8 +213,13 @@ namespace CheatAutoStore
             {
                 InventoriesHandler.Instance.GetInventoryById(iid, candidateInv.Add);
             }
+            foreach (var wo in candidateGetInventoryOfWorldObject)
+            {
+                InventoriesHandler.Instance.GetWorldObjectInventory(wo, candidateInv.Add);
+            }
 
-            StartCoroutine(WaitForInventories(backpackInv, candidateInv, candidateInventoryIds.Count));
+            StartCoroutine(WaitForInventories(backpackInv, candidateInv, candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count));
+
         }
 
         static IEnumerator WaitForInventories(Inventory backpackInv, List<Inventory> candidateInventory, int n)

@@ -12,12 +12,9 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.028
+## Supported Game Version: 1.001
 
-Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
-
-:warning: I have not tested my mods with the developer/preview/demo releases. They might work just fine or suddenly break.
-I don't promise to fix my mods for these versions as they can get quite out-of-sync with the public release.
+This repo only supports the very latest Steam or GoG releases.
 
 ## Preparation
 
@@ -106,6 +103,10 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
 - [Polish Translation](#ui-polish-translation)
 - [Romanian Translation](#ui-romanian-translation)
+
+### Multiplayer
+
+- [Player Locator](#multi-player-locator)
 
 ### Other
 
@@ -2865,5 +2866,36 @@ FlashlightIntensity = 40
 # Setting type: Single
 # Default value: 40
 FlashlightRange = 40
+```
+</details>
+
+## (Multi) Player Locator
+
+- Displays the list of the players in the current world, above the health indicator.
+- Toggle a player position distance indicator overlay via <kbd>H</kbd>.
+
+In the player list, the current player's name is in yellow and the host is marked with `<Host>`.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.multiplayerlocator.cfg</summary>
+
+```
+[General]
+
+## Enable this mod
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## The input action shortcut to toggle the player locator overlay.
+# Setting type: String
+# Default value: H
+Key = <Keyboard>/H
+
+## The font size used
+# Setting type: Int32
+# Default value: 20
+FontSize = 20
 ```
 </details>

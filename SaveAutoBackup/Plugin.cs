@@ -43,6 +43,7 @@ namespace SaveAutoBackup
             keepAge = Config.Bind("General", "KeepAge", 0, "If zero, all previous backups are retained. If positive, backups older than this number of days will be deleted. Age is determined from the file name's timestamp part");
             doAsync = Config.Bind("General", "Async", true, "If true, the backup handling is done asynchronously so the game doesn't hang during the process.");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

@@ -13,6 +13,7 @@ namespace UITranslationRomanian
         void Awake()
         {
             var h = LibCommon.UITranslator.AddLanguage("romanian", "labels-ro.txt", this, Logger, Config);
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             h.PatchAll(typeof(Plugin));
         }
 

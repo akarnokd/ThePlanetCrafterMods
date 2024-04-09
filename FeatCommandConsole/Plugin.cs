@@ -206,6 +206,7 @@ namespace FeatCommandConsole
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
         }
@@ -2251,11 +2252,28 @@ namespace FeatCommandConsole
                                 pb.InputOnCancelAction();
                             }
 
-                            Logger.LogInfo("Activating ghost for " + gc.GetId());
-                            pb.SetNewGhost(gc);
+                            if (NetworkManager.Singleton.IsServer)
+                            {
+                                Logger.LogInfo("Activating ghost for " + gc.GetId());
+                                pb.SetNewGhost(gc);
+                            }
+                            else
+                            {
+                                Logger.LogInfo("Activating delayed ghost for " + gc.GetId());
+                                pb.StartCoroutine(SetNewGhostDelayed(pb, gc));
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        static IEnumerator SetNewGhostDelayed(PlayerBuilder pb, GroupConstructible gc)
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            if (pb != null)
+            {
+                pb.SetNewGhost(gc);
             }
         }
 
@@ -3725,8 +3743,216 @@ namespace FeatCommandConsole
                 );
         }
 
+        [Command("/spawn-gt", "Spawns genetic trait(s) with a specific type and value.")]
+        public void SpawnTrait(List<string> args)
+        {
+            if (args.Count < 3)
+            {
+                AddLine("<margin=1em>Spawns genetic trait(s) with a specific type and value.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-gt type value [count]</color> - spawn a genetic trait with the type(int), value(int) and optional count of times");
+                AddLine("<margin=3em>Type codes:");
+                AddLine("<margin=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
+                AddLine("<margin=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
+            }
+            else
+            {
+                int type = int.Parse(args[1]);
+                int value = int.Parse(args[2]);
+                int count = 1;
+                if (args.Count >= 4)
+                {
+                    count = int.Parse(args[3]);
+                }
 
-        [HarmonyPrefix]
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var inv = pm.GetPlayerBackpack().GetInventory();
+                var gr = GroupsHandler.GetGroupViaId("GeneticTrait");
+                var n = 0;
+                for (int i = 0; i < count; i++) {
+                    var gid = gr.id + "_" + type + "_" + value;
+                    if (InventoryCanAdd(inv, gid))
+                    {
+                        InventoriesHandler.Instance.AddItemToInventory(gr, inv, (success, id) =>
+                        {
+                            if (!success && id != 0)
+                            {
+                                WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                            }
+                            else
+                            {
+                                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                                wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
+                                wo.SetGeneticTraitValue(value);
+                            }
+                        });
+                        n++;
+                    }
+                }
+
+                if (n > 0)
+                {
+                    AddLine("<margin=1em>Genetic Trait: " + type + " - " + ((DataConfig.GeneticTraitType)type) + " (" + value + ") x " + n + " added.");
+                }
+                if (n != count)
+                {
+                    AddLine("<margin=1em>Inventory full.");
+                }
+            }
+        }
+
+        [Command("/spawn-dna", "Spawns a DNA sequence with a set of specific traits in slots 1-8.")]
+        public void SpawnDNA(List<string> args)
+        {
+            if (args.Count < 9)
+            {
+                AddLine("<margin=1em>Spawns a DNA sequence with a set of specific traits in slots 1-8.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-dna trait1 .. trait8 [count]</color> - spawn a DNA sequence with the set of traits");
+                AddLine("<margin=3em>Traits at slots:");
+                AddLine("<margin=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
+                AddLine("<margin=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
+                AddLine("<margin=4em>Specify an underscore _ to ignore a trait slot.");
+                AddLine("<margin=4em>/spawn-dna 1 1 1 _ _ _ _ _");
+            }
+            else
+            {
+                int[] traitSlots = new int[9];
+                var count = 1;
+                for (int i = 1; i < 9; i++)
+                {
+                    var s = args[i];
+                    if (s != "_")
+                    {
+                        traitSlots[i] = int.Parse(s);
+                    }
+                    else
+                    {
+                        traitSlots[i] = -1;
+                    }
+                }
+                if (args.Count >= 10)
+                {
+                    count = int.Parse(args[9]);
+                }
+
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var playerInventory = pm.GetPlayerBackpack().GetInventory();
+                var gr = GroupsHandler.GetGroupViaId("DNASequence");
+                var grTrait = GroupsHandler.GetGroupViaId("GeneticTrait");
+                var n = 0;
+
+                var gidSb = new StringBuilder(64);
+                gidSb.Append("DNASequence");
+                for (int k = 1; k < traitSlots.Length; k++)
+                {
+                    var s = traitSlots[k];
+                    gidSb.Append('_').Append(k).Append('_').Append(s);
+                }
+                var gid = gidSb.ToString();
+
+                for (int j = 0; j < count; j++)
+                {
+
+                    if (InventoryCanAdd(playerInventory, gid))
+                    {
+                        var woDna = WorldObjectsHandler.Instance.CreateNewWorldObject(gr, 0, null, true);
+                        // we need it to have a position, otherwise AddWorldObjectToInventory() will do nothing
+                        woDna.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
+                        
+                        InventoriesHandler.Instance.CreateNewInventory(8, 0, woDna.GetId(), null, woInv =>
+                        {
+                            for (int k = 1; k < traitSlots.Length; k++)
+                            {
+                                var type = k;
+                                var value = traitSlots[k];
+                                if (value >= 0)
+                                {
+                                    InventoriesHandler.Instance.AddItemToInventory(grTrait, woInv, (success, id) =>
+                                    {
+                                        if (!success && id != 0)
+                                        {
+                                            WorldObjectsHandler.Instance.DestroyWorldObject(id);
+                                        }
+                                        else
+                                        {
+                                            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                                            wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
+                                            wo.SetGeneticTraitValue(value);
+                                        }
+                                    });
+                                }
+                            }
+                        });
+
+                        InventoriesHandler.Instance.AddWorldObjectToInventory(woDna, playerInventory, false, success =>
+                        {
+                            logger.LogInfo("SpawnDNA - " + woDna.GetId() + " " + success);
+                            if (!success)
+                            {
+                                WorldObjectsHandler.Instance.DestroyWorldObject(woDna);
+                            }
+                        });
+
+                        n++;
+                    }
+                }
+
+
+                if (n > 0)
+                {
+                    AddLine("<margin=1em>" + n + " DNA Sequence(s) added.");
+                }
+                if (n != count)
+                {
+                    AddLine("<margin=1em>Inventory full.");
+                }
+            }
+        }
+
+        [Command("/tpm", "Teleport to another player in multiplayer")]
+        public void TeleportMultiplayer(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Teleport to another player in multiplayer.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpm id</color> - teleport to a player, identified via by its number or name");
+                AddLine("<margin=1em>Clients:");
+                for (int i = 0; i < PlayersDataManager.Instance.GetPlayerDataCount(); i++)
+                {
+                    var pd = PlayersDataManager.Instance.GetPlayerDataAtIndex(i);
+                    AddLine("<margin=2em>" + pd.id + " - " + pd.name);
+                }
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>();
+                var ac = pm.GetActivePlayerController();
+
+                foreach (var pc in pm.playersControllers)
+                {
+                    if (pc.OwnerClientId.ToString() == args[1] || pc.playerName.ToLowerInvariant().CompareTo(args[1].ToLowerInvariant()) == 0)
+                    {
+                        var pos = pc.transform.position;
+                        ac.SetPlayerPlacement(pos, ac.transform.rotation);
+
+
+                        AddLine("<margin=1em>Teleported to: ( "
+                            + pos.x.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                            + " )"
+                            + " - " + pc.OwnerClientId 
+                            + " - " + pc.playerName
+                        );
+                        break;
+                    }
+                }
+            }
+        }
+
+                [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
         static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
         {
@@ -3781,8 +4007,17 @@ namespace FeatCommandConsole
                 if (background != null)
                 {
                     __instance.gameObject.SetActive(false);
+                    me.CreateOutputLines();
                 }
             }
+        }
+
+        // Do not emote while the command console is open by pressing 1-9
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerThirdPersonView), "ShortcutEmote")]
+        static bool PlayerThirdPersonView_ShortcutEmote()
+        {
+            return background == null;
         }
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo

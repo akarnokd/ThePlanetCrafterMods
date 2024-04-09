@@ -12,6 +12,8 @@ using UnityEngine.InputSystem;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
 
 namespace UIShowCrash
 {
@@ -37,7 +39,7 @@ namespace UIShowCrash
 
         static bool oncePerFrame;
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -53,13 +55,13 @@ namespace UIShowCrash
             backgroundTask = Task.Factory.StartNew(o => ErrorChecker(), null, cancel.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        void OnDestroy()
+        public void OnDestroy()
         {
             cancel.Cancel();
             backgroundTask.Wait(2000);
         }
 
-        void OnGUI()
+        public void OnGUI()
         {
             oncePerFrame = !oncePerFrame;
 
@@ -134,7 +136,7 @@ namespace UIShowCrash
                 alignment = TextAnchor.MiddleLeft
             };
 
-            GUI.Label(new Rect(px + 50, py + fontSize.Value, pw - 100, 2 * fontSize.Value + 10), "Crash!!! [ESC] to close this panel", title);
+            GUI.Label(new Rect(px + 50, py + fontSize.Value, pw - 100, 2 * fontSize.Value + 10), "Crash!!! [ESC] - close, [F11] - toggle checks", title);
 
             var dy = px + 3 * (fontSize.Value + 10);
 
@@ -205,7 +207,11 @@ namespace UIShowCrash
                     if (line.Contains("Exception"))
                     {
                         //logger.LogInfo("  Found on line " + i + "(" + Path.GetFileName(file) + ")");
-                        List<string> errorLines = [Path.GetFileName(file) + " [" + (i + 1) + "]", "", line];
+                        List<string> errorLines = [
+                            "Game version: " + Application.version + FileCheck(),
+                            "",
+                            Path.GetFileName(file) + " [" + (i + 1) + "]", "", 
+                            line];
 
                         for (int j = i + 1; j < data.Count; j++)
                         {
@@ -257,8 +263,23 @@ namespace UIShowCrash
             _staticRectStyle.normal.background = _staticRectTexture;
 
             GUI.Box(position, GUIContent.none, _staticRectStyle);
+        }
 
-
+        static string FileCheck()
+        {
+            var loc = Assembly.GetExecutingAssembly().Location;
+            var dir = loc.LastIndexOf("BepInEx");
+            if (dir != -1)
+            {
+                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/" + LibCommon.BepInExLoggerFix.OfArchitecture() + "/" + LibCommon.BepInExLoggerFix.OfPlatform();
+                var fi = new FileInfo(target);
+                if (fi.Exists && fi.Length / 1024 < 300)
+                {
+                    return "!";
+                }
+                return "?";
+            }
+            return "×";
         }
     }
 }

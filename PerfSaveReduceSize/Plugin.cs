@@ -19,6 +19,7 @@ namespace PerfSaveReduceSize
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -26,7 +27,9 @@ namespace PerfSaveReduceSize
         [HarmonyPatch(typeof(JSONExport), "SaveStringsInFile")]
         static bool JSONExport_SaveStringsInFile(List<string> _saveStrings)
         {
-            _saveStrings[2] = _saveStrings[2].Replace(",\"liId\":0,\"liGrps\":\"\",\"pos\":\"0,0,0\",\"rot\":\"0,0,0,0\",\"wear\":0,\"pnls\":\"\",\"color\":\"\",\"text\":\"\",\"grwth\":0", ""); ;
+            _saveStrings[2] = _saveStrings[2]
+                .Replace(",\"liId\":0,\"liGrps\":\"\",\"pos\":\"0,0,0\",\"rot\":\"0,0,0,0\",\"wear\":0,\"pnls\":\"\",\"color\":\"\",\"text\":\"\",\"grwth\":0", "")
+                .Replace(",\"hunger\":0.0", "");
             return true;
         }
     }

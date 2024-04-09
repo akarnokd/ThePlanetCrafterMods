@@ -86,7 +86,7 @@ namespace CheatInventoryStacking
             int stacks = 0;
             foreach (WorldObject worldObject in items)
             {
-                AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
+                AddToStack(GetStackId(worldObject), groupCounts, n, ref stacks);
             }
 
             return stacks;
@@ -110,7 +110,7 @@ namespace CheatInventoryStacking
 
             foreach (WorldObject worldObject in worldObjectsInInventory)
             {
-                AddToStack(worldObject.GetGroup().GetId(), groupCounts, n, ref stacks);
+                AddToStack(GetStackId(worldObject), groupCounts, n, ref stacks);
             }
 
             if (gid != null)
