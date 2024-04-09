@@ -12,12 +12,9 @@ Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/file
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 0.9.028
+## Supported Game Version: 1.001
 
-Public releases are relatively infrequent (once in a few months). I'll do my best to keep my mods up-to-date in case something drastic changes inside the main game.
-
-:warning: I have not tested my mods with the developer/preview/demo releases. They might work just fine or suddenly break.
-I don't promise to fix my mods for these versions as they can get quite out-of-sync with the public release.
+This repo only supports the very latest Steam or GoG releases.
 
 ## Preparation
 
