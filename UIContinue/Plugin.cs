@@ -259,6 +259,10 @@ namespace UIContinue
                     {
                         go.SetActive(false);
                     }
+                    if (go.name == "GamepadButtons")
+                    {
+                        go.SetActive(false);
+                    }
                 }
             }
         }

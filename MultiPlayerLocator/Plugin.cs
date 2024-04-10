@@ -32,6 +32,10 @@ namespace MultiPlayerLocator
 
         static Font font;
 
+        const int sortingOrder = 1;
+
+        static bool introPlayedOnLoad;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -68,12 +72,23 @@ namespace MultiPlayerLocator
             {
                 return;
             }
+            /*
             var backpack = ac.GetPlayerBackpack();
             if (backpack == null)
             {
                 return;
             }
             if (backpack.GetInventory() == null)
+            {
+                return;
+            }
+            */
+
+            if (Managers.GetManager<SavedDataHandler>().GetSavedDataPlayedIntro())
+            {
+                introPlayedOnLoad = true;
+            }
+            if (!introPlayedOnLoad)
             {
                 return;
             }
@@ -101,10 +116,10 @@ namespace MultiPlayerLocator
         {
             if (playerLocatorOverlay == null)
             {
-                playerLocatorOverlay = new GameObject("FeatMultiplayer_PlayerLocatorOverlay");
+                playerLocatorOverlay = new GameObject("MultiPlayerLocator_PlayerLocatorOverlay");
                 var canvas = playerLocatorOverlay.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 100;
+                canvas.sortingOrder = sortingOrder;
                 playerLocatorOverlay.SetActive(false);
             }
 
@@ -261,7 +276,7 @@ namespace MultiPlayerLocator
                 playerListOverlay = new GameObject("MultiPlayerLocator_PlayerListOverlay");
                 var canvas = playerListOverlay.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 95;
+                canvas.sortingOrder = sortingOrder + 1;
                 playerListGameObjects.Clear();
             }
 
@@ -333,6 +348,24 @@ namespace MultiPlayerLocator
                 playerListGameObjects[i].SetActive(false);
                 i++;
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(IntroVideoPlayer), "EndReached")]
+        static void IntroVideoPlayer_EndReached()
+        {
+            introPlayedOnLoad = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            Destroy(playerListOverlay);
+            playerListOverlay = null;
+            Destroy(playerLocatorOverlay);
+            playerLocatorOverlay = null;
+            introPlayedOnLoad = false;
         }
     }
 }
