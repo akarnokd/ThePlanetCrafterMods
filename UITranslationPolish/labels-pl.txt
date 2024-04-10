@@ -1261,3 +1261,5 @@ Ending_Riley_Text_3=Chciałbym, żeby to było szczęśliwe zakończenie, ale w�
 Ending_Wardens_Text_1=Ci, którzy za nami podążają, wiedzą, że naszym przeznaczeniem jest zagłada.
 Ending_Wardens_Text_2=Nadzieja nie może być jedynym doradcą. <br>Czasami życie nie znajduje sposobu.
 Ending_Wardens_Text_3=Czasami przyszłość nie jest jasna. <br>Strażnik
+MENU_INVITEFRIEND=Zaproś przyjaciół
+MENU_INVITECODE=Wyświetl i skopiuj kod zaproszenia
