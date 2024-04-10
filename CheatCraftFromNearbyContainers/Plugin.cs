@@ -13,7 +13,6 @@ using System;
 using UnityEngine.InputSystem;
 using LibCommon;
 using System.Reflection;
-using UnityEngine.UIElements;
 using Unity.Netcode;
 
 namespace CheatCraftFromNearbyContainers
@@ -406,7 +405,6 @@ namespace CheatCraftFromNearbyContainers
             PlayerMainController playerController,
             GroupItem groupItem,
             ref bool ____crafting,
-            ref int ____totalCraft,
             ref bool __result)
         {
             if (candidateInventories == null)
@@ -553,7 +551,6 @@ namespace CheatCraftFromNearbyContainers
             PlayerMainController playerController,
             ActionCrafter sourceCrafter,
             ref bool ____crafting,
-            ref int ____totalCraft,
             int ____tempSpaceInInventory,
             ref bool __result
         )
@@ -609,7 +606,7 @@ namespace CheatCraftFromNearbyContainers
                     groupItem, discovery, useFromEquipment, 
                     backpackInv, equipmentInv, equipment, ____tempSpaceInInventory));
 
-                ____totalCraft++;
+                CraftManager.AddOneToTotalCraft();
             }
             return false;
         }

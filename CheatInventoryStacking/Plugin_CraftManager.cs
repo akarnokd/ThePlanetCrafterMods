@@ -22,7 +22,6 @@ namespace CheatInventoryStacking
             PlayerMainController playerController,
             ActionCrafter sourceCrafter,
             ref bool ____crafting,
-            ref int ____totalCraft,
             int ____tempSpaceInInventory,
             ref bool __result
         )
@@ -120,7 +119,7 @@ namespace CheatInventoryStacking
                         });
                     });
 
-                    ____totalCraft++;
+                    CraftManager.AddOneToTotalCraft();
                     __result = true;
                     return false;
                 }
