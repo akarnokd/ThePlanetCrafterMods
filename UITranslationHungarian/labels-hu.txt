@@ -1259,3 +1259,5 @@ Ending_Riley_Text_3=Szeretném, ha boldog vége lenne, de kétlem, hogy az lesz.
 Ending_Wardens_Text_1=Azoknak, akik követnek minket, tudjátok, hogy a végzetünk pusztulás.
 Ending_Wardens_Text_2=A remény nem lehet az egyetlen tanácsadó. <br>Néha az élet mégsem talál utat.
 Ending_Wardens_Text_3=Néha a jövő sem fényes. <br>Egy Őrző
+MENU_INVITEFRIEND=Barátok meghívása
+MENU_INVITECODE=Meghívókód mutatása és másolása

@@ -151,7 +151,7 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(23, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(25, "GoldenContainer"));
 
                 AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
@@ -160,6 +160,8 @@ namespace UIOverviewPanel
                 AddTextRow("Unique frog found", CreateFrogCount(14));
 
                 AddTextRow("Trade Tokens", CreateTradeTokens());
+
+                AddTextRow("Items crafted", CreateCraftedItems());
 
                 AddTextRow("Resources mined", CreateSceneCounter(0, 
                     "Cobalt",
@@ -469,6 +471,14 @@ namespace UIOverviewPanel
             {
                 int csum = uniqueFrog.Count;
                 return csum + " / " + max + " (" + string.Format("{0:##0.00}", 100f * csum / max) + " %)";
+            };
+        }
+
+        Func<string> CreateCraftedItems()
+        {
+            return () =>
+            {
+                return string.Format("{0:#,##0}", CraftManager.GetTotalCraftedObjects());
             };
         }
 
