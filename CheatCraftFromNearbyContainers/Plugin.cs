@@ -329,7 +329,11 @@ namespace CheatCraftFromNearbyContainers
                 }
                 else
                 {
-                    wpos = wo.GetGameObject()?.transform.position ?? Vector3.zero;
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        wpos = go.transform.position;
+                    }
                 }
                 var dist = Vector3.Distance(pos, wpos);
 

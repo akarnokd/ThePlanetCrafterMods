@@ -176,7 +176,11 @@ namespace CheatAutoStore
                 }
                 else
                 {
-                    pos = wo.GetGameObject()?.transform.position ?? Vector3.zero;
+                    var go = wo.GetGameObject();
+                    if (go != null)
+                    {
+                        pos = go.transform.position;
+                    }
                 }
                 var dist = Vector3.Distance(ppos, pos);
                 Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
