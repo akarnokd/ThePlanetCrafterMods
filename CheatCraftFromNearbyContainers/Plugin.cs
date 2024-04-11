@@ -235,13 +235,12 @@ namespace CheatCraftFromNearbyContainers
                         list =>
                         {
                             candidateInventories = list;
-                            Managers.GetManager<WindowsHandler>().OpenAndReturnUi(DataConfig.UiType.Construction);
+                            Managers.GetManager<WindowsHandler>().ToggleUi(DataConfig.UiType.Construction);
                             ____playerMultitool.SetState(DataConfig.MultiToolState.Null);
                             ____playerMultitool.SetState(DataConfig.MultiToolState.Build);
                         }
                     );
-                }
-                if (!Managers.GetManager<WindowsHandler>().GetHasUiOpen())
+                } else if (!Managers.GetManager<WindowsHandler>().GetHasUiOpen())
                 {
                     GetInventoriesInRange(__instance,
                         Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position,
