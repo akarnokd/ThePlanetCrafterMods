@@ -383,7 +383,7 @@ namespace CheatCraftFromNearbyContainers
 
             foreach (var inv in inventoryList)
             {
-                Log("    " + inv != null ? inv.GetId() : "null");
+                Log("    " + (inv != null ? inv.GetId() : "null"));
             }
 
             onComplete.Invoke(inventoryList);
