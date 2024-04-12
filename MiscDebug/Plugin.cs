@@ -5,7 +5,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
-using System.Diagnostics;
+using System;
 
 namespace MiscDebug
 {
@@ -22,17 +22,45 @@ namespace MiscDebug
             logger = Logger;
 
             // LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            // Harmony.CreateAndPatchAll(typeof(Plugin));
+            //Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WindowsHandler), nameof(WindowsHandler.OpenAndReturnUi))]
+        static void WindowsHandler_OpenAndReturnUi(DataConfig.UiType uiId)
+        {
+            logger.LogInfo("---> " + uiId);
+            logger.LogInfo(Environment.StackTrace);
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(EnvironmentVolume), "Start")]
-        static void EnvironmentVolue_Start(EnvironmentVolume __instance)
+        [HarmonyPatch(typeof(ActionGroupSelector), nameof(ActionGroupSelector.OnAction))]
+        static void ActionGroupSelector_OnAction()
         {
-            if (__instance.environmentVolumeVariables == null)
-            {
-                logger.LogError(__instance.name);
-            }
+            logger.LogInfo(Environment.StackTrace);
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionGroupSelector), "OpenInventories")]
+        static void ActionGroupSelector_OpenInventories()
+        {
+            logger.LogInfo(Environment.StackTrace);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowGroupSelector), "OnOpen")]
+        static void UiWindowGroupSelector_OnOpen()
+        {
+            logger.LogInfo(Environment.StackTrace);
+        }
+        
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowGroupSelector), "OnOpenAutoCrafter")]
+        static void UiWindowGroupSelector_OnOpenAutoCrafter()
+        {
+            logger.LogInfo(Environment.StackTrace);
+        }
+        */
     }
 }

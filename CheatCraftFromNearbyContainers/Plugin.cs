@@ -158,11 +158,16 @@ namespace CheatCraftFromNearbyContainers
                 return false;
             }
 
-            if (ac.GetMultitool().GetState() == DataConfig.MultiToolState.Deconstruct)
+            if (__instance is MachineAutoCrafter)
             {
                 return false;
             }
 
+            if (ac.GetMultitool().GetState() == DataConfig.MultiToolState.Deconstruct)
+            {
+                return false;
+            }
+            Log("ActionCrafter::OnAction");
             if (__instance.cantCraftIfSpawnContainsObject)
             {
                 WorldObjectsHandler.Instance.HasWorldObjectAtPosition(__instance.craftSpawn.transform.position, result =>
@@ -220,6 +225,9 @@ namespace CheatCraftFromNearbyContainers
             {
                 return true;
             }
+
+            Log("PlayerInputDispatcher::OnOpenConstructionDispatcher");
+
 
             if ((bool)mPlayerInputDispatcherIsTyping.Invoke(__instance, []))
             {
