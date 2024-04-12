@@ -2369,7 +2369,7 @@ namespace FeatCommandConsole
             {
                 var mh = Managers.GetManager<MeteoHandler>();
                 var list = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "_meteoEvents").GetValue(mh);
-                var queue = (List<MeteoEventData>)AccessTools.Field(typeof(MeteoHandler), "_meteoEventQueue").GetValue(mh);
+                var queue = (List<(MeteoEventData, Vector3?)>)AccessTools.Field(typeof(MeteoHandler), "_meteoEventQueue").GetValue(mh);
                 var currIndex = (NetworkVariable<int>)AccessTools.Field(typeof(MeteoHandler), "_selectedDataMeteoEventIndex").GetValue(mh);
                 if (args[1] == "list")
                 {
@@ -2392,7 +2392,7 @@ namespace FeatCommandConsole
                     {
                         for (int i = 0; i < queue.Count; i++)
                         {
-                            CreateMeteorEventLines(i, queue[i]);
+                            CreateMeteorEventLines(i, queue[i].Item1);
                         }
                     }
                     AddLine("<margin=1em>All meteor events:");
