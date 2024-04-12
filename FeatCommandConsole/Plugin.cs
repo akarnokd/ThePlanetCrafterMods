@@ -23,6 +23,7 @@ using System.Linq;
 using System.Collections;
 using Unity.Netcode;
 using BepInEx.Bootstrap;
+using LibCommon;
 
 namespace FeatCommandConsole
 {
@@ -759,6 +760,10 @@ namespace FeatCommandConsole
                     else if (g is not GroupItem)
                     {
                         AddLine("<margin=1em><color=#FF0000>This item can't be spawned.");
+                    }
+                    else if (g.id == "DNASequence")
+                    {
+                        AddLine("<margin=1em><color=#FF0000>Use /spawn-dna for this type of item.");
                     }
                     else
                     {
@@ -3754,11 +3759,20 @@ namespace FeatCommandConsole
                 AddLine("<margin=3em>Type codes:");
                 AddLine("<margin=4em>1 - Species, 2 - ColorA, 3 - ColorB, 4 - PatternColor");
                 AddLine("<margin=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
+                AddLine("<margin=3em>For the color types, use #RRGGBB hex to specify the value.");
             }
             else
             {
                 int type = int.Parse(args[1]);
-                int value = int.Parse(args[2]);
+                int value = 0;
+                if (args[2].StartsWith("#"))
+                {
+                    value = int.Parse(args[2][1..], NumberStyles.HexNumber);
+                }
+                else
+                {
+                    value = int.Parse(args[2]);
+                }
                 int count = 1;
                 if (args.Count >= 4)
                 {
@@ -3770,7 +3784,10 @@ namespace FeatCommandConsole
                 var gr = GroupsHandler.GetGroupViaId("GeneticTrait");
                 var n = 0;
                 for (int i = 0; i < count; i++) {
-                    var gid = gr.id + "_" + type + "_" + value;
+                    var sb = new StringBuilder(32);
+                    sb.Append(gr.id).Append('_');
+                    GeneticsGrouping.AppendTraitInfo(type, value, sb);
+                    var gid = sb.ToString();
                     if (InventoryCanAdd(inv, gid))
                     {
                         InventoriesHandler.Instance.AddItemToInventory(gr, inv, (success, id) =>
@@ -3782,8 +3799,7 @@ namespace FeatCommandConsole
                             else
                             {
                                 var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
-                                wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
-                                wo.SetGeneticTraitValue(value);
+                                SetGeneticTraitInfo(wo, type, value);
                             }
                         });
                         n++;
@@ -3814,6 +3830,7 @@ namespace FeatCommandConsole
                 AddLine("<margin=4em>5 - Pattern, 6 - Variant, 7 - Bioluminescence, 8 - Size");
                 AddLine("<margin=4em>Specify an underscore _ to ignore a trait slot.");
                 AddLine("<margin=4em>/spawn-dna 1 1 1 _ _ _ _ _");
+                AddLine("<margin=3em>For the color types, use #RRGGBB hex to specify the value.");
             }
             else
             {
@@ -3824,7 +3841,14 @@ namespace FeatCommandConsole
                     var s = args[i];
                     if (s != "_")
                     {
-                        traitSlots[i] = int.Parse(s);
+                        if (i >= 2 && i <= 4 && s.StartsWith("#"))
+                        {
+                            traitSlots[i] = int.Parse(s[1..], NumberStyles.HexNumber);
+                        }
+                        else
+                        {
+                            traitSlots[i] = int.Parse(s);
+                        }
                     }
                     else
                     {
@@ -3847,7 +3871,8 @@ namespace FeatCommandConsole
                 for (int k = 1; k < traitSlots.Length; k++)
                 {
                     var s = traitSlots[k];
-                    gidSb.Append('_').Append(k).Append('_').Append(s);
+                    gidSb.Append('_');
+                    GeneticsGrouping.AppendTraitInfo(k, s, gidSb);
                 }
                 var gid = gidSb.ToString();
 
@@ -3877,8 +3902,7 @@ namespace FeatCommandConsole
                                         else
                                         {
                                             var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
-                                            wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
-                                            wo.SetGeneticTraitValue(value);
+                                            SetGeneticTraitInfo(wo, type, value);
                                         }
                                     });
                                 }
@@ -3907,6 +3931,20 @@ namespace FeatCommandConsole
                 {
                     AddLine("<margin=1em>Inventory full.");
                 }
+            }
+        }
+
+        static void SetGeneticTraitInfo(WorldObject wo, int type, int value)
+        {
+            wo.SetGeneticTraitType((DataConfig.GeneticTraitType)type);
+            wo.SetGeneticTraitValue(value);
+
+            if (wo.GetGeneticTraitType() == DataConfig.GeneticTraitType.ColorA
+            || wo.GetGeneticTraitType() == DataConfig.GeneticTraitType.ColorB
+            || wo.GetGeneticTraitType() == DataConfig.GeneticTraitType.PatternColor)
+            {
+                wo.SetColor(new Color(((value >> 16) & 0xFF) / 255f, ((value >> 8) & 0xFF) / 255f, (value & 0xFF) / 255f, 1f));
+                wo.SetGeneticTraitValue(value % 6);
             }
         }
 

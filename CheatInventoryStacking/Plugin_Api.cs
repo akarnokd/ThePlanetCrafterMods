@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2022-2024, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
+using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
@@ -86,7 +87,7 @@ namespace CheatInventoryStacking
             int stacks = 0;
             foreach (WorldObject worldObject in items)
             {
-                AddToStack(GetStackId(worldObject), groupCounts, n, ref stacks);
+                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
             }
 
             return stacks;
@@ -110,7 +111,7 @@ namespace CheatInventoryStacking
 
             foreach (WorldObject worldObject in worldObjectsInInventory)
             {
-                AddToStack(GetStackId(worldObject), groupCounts, n, ref stacks);
+                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
             }
 
             if (gid != null)
