@@ -3990,7 +3990,50 @@ namespace FeatCommandConsole
             }
         }
 
-                [HarmonyPrefix]
+        [Command("/list-gt", "Lists all available genenetic traits, with optional type filtering.")]
+        public void ListGT(List<string> args)
+        {
+            int typefilter = -1;
+            if (args.Count > 1)
+            {
+                typefilter = int.Parse(args[1]);
+            }
+
+            var list = GeneticTraitHandler.Instance.GetAllAvailableTraits();
+            AddLine("<margin=1em>Listing all genetic traits: " + list.Count);
+            for (int i = 0; i < list.Count; i++)
+            {
+                GeneticTraitData gt = list[i];
+
+                if (typefilter != -1 && typefilter != (int)gt.traitType)
+                {
+                    continue;
+                }
+
+                AddLine("<margin=1em><color=#FFFF00>" + (i + 1));
+                AddLine("<margin=2em>Type: <color=#00FF00>" + gt.traitType);
+                AddLine("<margin=2em>Value: <color=#00FF00>" + gt.traitValue);
+
+                var colorStr = ((int)(gt.traitColor.r * 255)).ToString("X2")
+                    + ((int)(gt.traitColor.g * 255)).ToString("X2")
+                    + ((int)(gt.traitColor.b * 255)).ToString("X2");
+                AddLine("<margin=2em>Color: <color=#00FF00>#" + colorStr + "</color>   <color=#" + colorStr + "> \u25A0");
+                AddLine("<margin=2em>Loot Chance: <color=#00FF00>" + gt.lootChance);
+                AddLine("<margin=2em>Can be looted: <color=#00FF00>" + gt.canBeLooted);
+                if (gt.extractedFromGroup != null)
+                {
+                    AddLine("<margin=2em>Extracted from: <color=#00FF00>" + gt.extractedFromGroup.id +
+                        " (" + Localization.GetLocalizedString(GameConfig.localizationGroupNameId + gt.extractedFromGroup.id) + ")");
+                }
+                else
+                {
+                    AddLine("<margin=2em>Extracted from: <color=#00FF00>N/A");
+                }
+            }
+        }
+
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
         static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
         {
