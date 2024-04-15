@@ -718,18 +718,40 @@ namespace CheatCraftFromNearbyContainers
             {
                 return true;
             }
-            var ac = Managers.GetManager<PlayersManager>()
-                .GetActivePlayerController();
-            var backpackInv = ac
-                .GetPlayerBackpack()
-                .GetInventory();
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm == null)
+            {
+                return true;
+            }
+            var ac = pm.GetActivePlayerController();
+            if (ac == null)
+            {
+                return true;
+            }
+            var backpack = ac.GetPlayerBackpack();
+            if (backpack == null)
+            {
+                return true;
+            }
+            var backpackInv = backpack.GetInventory();
 
-            if (__instance != backpackInv)
+            if (__instance != backpackInv || backpackInv == null)
             {
                 return true;
             }
 
-            var equipmentInv = ac.GetPlayerEquipment().GetInventory();
+            var equipment = ac.GetPlayerEquipment();
+            if (equipment == null)
+            {
+                return true;
+            }
+
+            var equipmentInv = equipment.GetInventory();
+
+            if (equipmentInv == null)
+            {
+                return true;
+            }
 
             __result = [];
 
