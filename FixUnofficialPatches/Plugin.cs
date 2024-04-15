@@ -15,6 +15,7 @@ using System;
 using TMPro;
 using System.Globalization;
 using Steamworks;
+using Unity.Netcode;
 
 namespace FixUnofficialPatches
 {
@@ -167,6 +168,20 @@ namespace FixUnofficialPatches
                 ____gamepadTextInputDismissed = Callback<GamepadTextInputDismissed_t>.Create(
                     new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventorySpawnContent), "OnConstructibleDestroyed")]
+        static bool InventorySpawnContent_OnConstructibleDestroyed()
+        {
+            return NetworkManager.Singleton != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition")]
+        static bool MachineOutsideGrower_InstantiateAtRandomPosition()
+        {
+            return NetworkManager.Singleton != null;
         }
     }
 }

@@ -922,5 +922,30 @@ namespace CheatCraftFromNearbyContainers
             }
 
         }
+
+        // Workaround for the method as it may crash if the woId no longer exists.
+        // We temporarily restore an empty object for the duration of the method
+        // so it can see no inventory and respond accordingly.
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
+        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Pre(int woId, ref bool __state)
+        {
+            if (!WorldObjectsHandler.Instance.GetAllWorldObjects().ContainsKey(woId))
+            {
+                WorldObjectsHandler.Instance.GetAllWorldObjects()[woId] = new WorldObject(woId, null);
+                __state = true;
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
+        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Post(int woId, ref bool __state)
+        {
+            if (__state)
+            {
+                WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
+            }
+        }
+
     }
 }
