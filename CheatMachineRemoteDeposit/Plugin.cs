@@ -289,11 +289,13 @@ namespace CheatMachineRemoteDeposit
             if (depositAliases.TryGetValue(oreId, out var alias))
             {
                 containerNameFilter = alias;
+                Log("    Ore " + oreId + " -> Alias " + alias);
             }
 
             foreach (var constructs in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
-                if (constructs != null && constructs.HasLinkedInventory())
+                if (constructs != null && constructs.GetGroup().GetId().StartsWith("Container") 
+                    && constructs.HasLinkedInventory())
                 {
                     string txt = constructs.GetText();
                     if (txt != null && txt.ToLower().Contains(containerNameFilter))
@@ -308,6 +310,10 @@ namespace CheatMachineRemoteDeposit
                         {
                             Log("    This inventory is full: " + (candidateInventory?.GetId() ?? -1) + " \"" + txt + "\"");
                         }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(txt))
+                    {
+                        Log("    This inventory does not have the right name: " + txt);
                     }
                 }
             }
