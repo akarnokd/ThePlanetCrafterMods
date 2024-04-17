@@ -21,6 +21,7 @@ namespace CheatMinimap
     {
         Texture2D barren;
         Texture2D lush;
+        Texture2D endgame;
         Texture2D marker;
         Texture2D marker2;
         Texture2D chest;
@@ -60,6 +61,11 @@ namespace CheatMinimap
 
         static Plugin self;
 
+        const int mapMinX = -2000;
+        const int mapMinY = -2000;
+        const int mapMaxX = 3000;
+        const int mapMaxY = 3000;
+
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -72,6 +78,7 @@ namespace CheatMinimap
 
             barren = LoadPNG(Path.Combine(dir, "map_barren.png"));
             lush = LoadPNG(Path.Combine(dir, "map_lush.png"));
+            endgame = LoadPNG(Path.Combine(dir, "map_endgame.png"));
             marker = LoadPNG(Path.Combine(dir, "player_marker.png"));
             marker2 = LoadPNG(Path.Combine(dir, "player_marker_2.png"));
             chest = LoadPNG(Path.Combine(dir, "chest.png"));
@@ -341,7 +348,11 @@ namespace CheatMinimap
                     {
                         float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
                         float minT = achievementsHandler.stageMoss.GetStageStartValue();
-                        if (currT >= minT)
+                        if (currT >= 425000000000f)
+                        {
+                            theMap = endgame;
+                        }
+                        else if (currT >= minT)
                         {
                             theMap = lush;
                         }
@@ -351,10 +362,10 @@ namespace CheatMinimap
                     float mapImageHeight = theMap.height;
 
                     // calibrated to the given map
-                    float playerCenterX = 400;
-                    float playerCenterY = 800;
-                    float mapWidth = 4000;
-                    float mapHeight = 4000;
+                    float playerCenterX = (mapMaxX + mapMinX) / 2;
+                    float playerCenterY = (mapMaxY + mapMinY) / 2;
+                    float mapWidth = mapMaxX - mapMinX;
+                    float mapHeight = mapMaxY - mapMinY;
 
                     // ^
                     // | z+

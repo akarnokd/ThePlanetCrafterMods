@@ -120,16 +120,17 @@ namespace CheatMinimap
             var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
             var move = pm.GetPlayerMovable();
             move.flyMode = true;
-            int playerX = 400;
-            int playerZ = 800;
-
+            int playerX = (mapMaxX + mapMinX) / 2;
+            int playerZ = (mapMaxY + mapMinY) / 2;
+            int visualStep = (mapMaxX - mapMinX) / 2;
             pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
-            SetVisuals(4000 / 2, pm);
+            SetVisuals(visualStep, pm);
             foreach (ParticleSystem ps in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
             {
                 var em = ps.emission;
                 em.enabled = false;
             }
+            AccessTools.Field(typeof(PlayerCanAct), "_hasToBeBlocked").SetValue(pm.GetPlayerCanAct(), true);
 
             allowUnload = false;
             Time.timeScale = 1f;
@@ -171,11 +172,15 @@ namespace CheatMinimap
                     Logger.LogInfo(info);
                     //File.AppendAllLines(Application.persistentDataPath + "/larvae-dump.txt", new List<string>() { info });
                     loaded = false;
-                    SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive).completed += OnSceneLoaded;
+                    var scl = SceneManager.LoadSceneAsync(name, LoadSceneMode.Additive);
 
-                    while (!loaded)
+                    if (scl != null)
                     {
-                        yield return 0;
+                        scl.completed += OnSceneLoaded;
+                        while (!loaded)
+                        {
+                            yield return 0;
+                        }
                     }
 
                     Logger.LogInfo("        " + name + " hiding decoys");
@@ -200,7 +205,7 @@ namespace CheatMinimap
             foreach (int y in ys)
             {
                 pm.SetPlayerPlacement(new Vector3(playerX, y, playerZ), q);
-                SetVisuals(4000 / 2, pm);
+                SetVisuals(visualStep, pm);
                 yield return 0;
                 ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
                 yield return 0;

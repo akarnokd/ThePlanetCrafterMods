@@ -348,6 +348,7 @@ namespace MultiPlayerLocator
                 playerListGameObjects[i].SetActive(false);
                 i++;
             }
+
         }
 
         [HarmonyPrefix]
@@ -367,5 +368,15 @@ namespace MultiPlayerLocator
             playerLocatorOverlay = null;
             introPlayedOnLoad = false;
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
+        {
+            bool active = ___uisToHide[0].activeSelf;
+            playerListOverlay?.SetActive(active);
+            playerLocatorOverlay?.SetActive(active);
+        }
+
     }
 }
