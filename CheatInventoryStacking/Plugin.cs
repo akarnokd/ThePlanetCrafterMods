@@ -44,6 +44,7 @@ namespace CheatInventoryStacking
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
+        static ConfigEntry<int> logisticsTimeLimit;
 
         static string expectedGroupIdToAdd;
 
@@ -124,6 +125,7 @@ namespace CheatInventoryStacking
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
+            logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
 
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
@@ -255,7 +257,6 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.DropObjectsIfNotEnoughSpace))]
         static bool Patch_Inventory_DropObjectsIfNotEnoughSpace(
-            Inventory __instance,
             ref List<WorldObject> __result, 
             List<WorldObject> ____worldObjectsInInventory, 
             int ____inventorySize,
@@ -576,6 +577,7 @@ namespace CheatInventoryStacking
             stationDistancesCache.Clear();
             nonAttributedTasksCache.Clear();
             inventoryGroupIsFull.Clear();
+            allTasksFrameCache.Clear();
         }
     }
 }

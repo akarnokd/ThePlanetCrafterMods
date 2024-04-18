@@ -6,6 +6,7 @@ using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace CheatInventoryStacking
@@ -17,6 +18,7 @@ namespace CheatInventoryStacking
         static readonly List<int> taskKeysToRemove = [];
         static readonly List<LogisticStationDistanceToTask> stationDistancesCache = [];
         static readonly List<LogisticTask> nonAttributedTasksCache = [];
+        static readonly List<int> allTasksFrameCache = [];
         static readonly Dictionary<string, bool> inventoryGroupIsFull = [];
 
         static readonly Comparison<Inventory> CompareInventoryPriorityDesc =
@@ -65,14 +67,24 @@ namespace CheatInventoryStacking
 
             fLogisticManagerUpdatingLogisticTasks(__instance) = true;
 
+            Log("LogisticManager::SetLogisticTasks Running.");
+
+            var frametimeLimit = logisticsTimeLimit.Value / 1000d;
+            var timer = Stopwatch.StartNew();
+            var totalTimer = Stopwatch.StartNew();
+
             UpdateInventoryOwnerCache();
             inventoryGroupIsFull.Clear();
+
+            Log("  LogisticManager::SetLogisticTasks Owners cached. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
+
+            var frameSkipCount = 0;
             
             var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
-            ____demandInventories.Sort(CompareInventoryPriorityDesc);
 
-            foreach (var demandInventory in ____demandInventories)
+            for (int i = 0; i < ____demandInventories.Count; i++)
             {
+                Inventory demandInventory = ____demandInventories[i];
                 var demandInventorySize = demandInventory.GetSize();
                 if (CanStack(demandInventory.GetId()))
                 {
@@ -135,41 +147,69 @@ namespace CheatInventoryStacking
                         }
                     }
                 }
+                var elaps0 = timer.Elapsed.TotalMilliseconds;
+                if (elaps0 >= frametimeLimit)
+                {
+                    yield return null;
+                    timer.Restart();
+                    frameSkipCount++;
+                    Log("    LogisticManager::SetLogisticTasks Timeout on demand discovery. "
+                        + elaps0.ToString("0.000") + " ms, Curr: " + i + ", Count: " + ____demandInventories.Count);
+                }
             }
+
+            Log("  LogisticManager::SetLogisticTasks Demand-Supply matching done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             taskKeysToRemove.Clear();
             nonAttributedTasksCache.Clear();
-            foreach (var taskEntry in ____allLogisticTasks)
+            allTasksFrameCache.Clear();
+            allTasksFrameCache.AddRange(____allLogisticTasks.Keys);
+
+            foreach (var taskEntry in allTasksFrameCache)
             {
-                var key = taskEntry.Key;
-                var task = taskEntry.Value;
-                var inv = task.GetDemandInventory();
-                var gr = task.GetWorldObjectToMove().GetGroup().GetId();
-                var fullKey = inv.GetId() + " " + gr;
-                if (!inventoryGroupIsFull.TryGetValue(fullKey, out var isFull))
+                var key = taskEntry;
+                if (____allLogisticTasks.TryGetValue(key, out var task))
                 {
-                    isFull = IsFullStackedOfInventory(inv, gr);
-                    inventoryGroupIsFull[fullKey] = isFull;
+                    var inv = task.GetDemandInventory();
+                    var gr = task.GetWorldObjectToMove().GetGroup().GetId();
+                    var fullKey = inv.GetId() + " " + gr;
+                    if (!inventoryGroupIsFull.TryGetValue(fullKey, out var isFull))
+                    {
+                        isFull = IsFullStackedOfInventory(inv, gr);
+                        inventoryGroupIsFull[fullKey] = isFull;
+                    }
+                    if (isFull)
+                    {
+                        task.SetTaskState(LogisticData.TaskState.Done);
+                        taskKeysToRemove.Add(key);
+                    }
+                    else if (task.GetTaskState() == LogisticData.TaskState.Done)
+                    {
+                        taskKeysToRemove.Add(key);
+                    }
+                    else if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
+                    {
+                        nonAttributedTasksCache.Add(task);
+                    }
                 }
-                if (isFull)
+                if (timer.Elapsed.TotalMilliseconds >= frametimeLimit)
                 {
-                    task.SetTaskState(LogisticData.TaskState.Done);
-                    taskKeysToRemove.Add(key);
-                }
-                else if (task.GetTaskState() == LogisticData.TaskState.Done)
-                {
-                    taskKeysToRemove.Add(key);
-                } 
-                else if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
-                {
-                    nonAttributedTasksCache.Add(task);
+                    yield return null;
+                    timer.Restart();
+                    frameSkipCount++;
+                    Log("    LogisticManager::SetLogisticTasks timeout on chest fullness detection");
                 }
             }
+
+            Log("  LogisticManager::SetLogisticTasks Chest fullness detection done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             foreach (var key in taskKeysToRemove)
             {
                 ____allLogisticTasks.Remove(key);
             }
+
+            Log("  LogisticManager::SetLogisticTasks Task removals done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
+
 
             int nextNonAttributedTaskIndex = 0;
 
@@ -184,6 +224,8 @@ namespace CheatInventoryStacking
                     drone.SetLogisticTask(nonAttributedTasksCache[nextNonAttributedTaskIndex++]);
                 }
             }
+
+            Log("  LogisticManager::SetLogisticTasks Active drones task attribution done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             for (int i = nextNonAttributedTaskIndex; i < nonAttributedTasksCache.Count; i++)
             {
@@ -228,7 +270,25 @@ namespace CheatInventoryStacking
                         }
                     }
                 }
+                var elaps1 = timer.Elapsed.TotalMilliseconds;
+                if (elaps1 >= frametimeLimit)
+                {
+                    yield return null;
+                    timer.Restart();
+                    frameSkipCount++;
+                    Log("    LogisticManager::SetLogisticTasks timeout on new drone attribution: " 
+                        + elaps1.ToString("0.000") + " ms, Start: " + nextNonAttributedTaskIndex + ", Curr: " + i + ", Count: " + nonAttributedTasksCache.Count);
+                }
             }
+
+            Log("  LogisticManager::SetLogisticTasks New drone attribution done.");
+
+            if (frameSkipCount > 0)
+            {
+                Log("  LogisticManager::SetLogisticTasks frameSkips: " + frameSkipCount + " (~ " + (frametimeLimit * frameSkipCount).ToString("0.000") + " ms)");
+            }
+
+            Log("LogisticManager::SetLogisticTasks Done: " + totalTimer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             fLogisticManagerUpdatingLogisticTasks(__instance) = false;
         }
