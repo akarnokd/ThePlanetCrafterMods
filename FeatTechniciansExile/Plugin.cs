@@ -219,7 +219,7 @@ namespace FeatTechniciansExile
                 escapePod.SetDontSaveMe(false);
                 // make sure this pod's chest is not default-linked to the player's landing pod
                 // since the pod's chest is a scene object
-                InventoriesHandler.Instance.CreateNewInventory(12, 0, 0, null, inv =>
+                InventoriesHandler.Instance.CreateNewInventory(12, 0, 0, null, null, inv =>
                 {
                     logger.LogInfo("      Inventory overridden: " + inv.GetId());
                     escapePod.SetLinkedInventoryId(inv.GetId());

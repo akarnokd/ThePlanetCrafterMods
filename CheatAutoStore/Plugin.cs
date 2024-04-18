@@ -321,6 +321,7 @@ namespace CheatAutoStore
             Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + backpackWos.Count + " deposited. " + excluded + " excluded.");
         }
 
+        /* Fixed in 1.002
         // Workaround for the method as it may crash if the woId no longer exists.
         // We temporarily restore an empty object for the duration of the method
         // so it can see no inventory and respond accordingly.
@@ -344,6 +345,7 @@ namespace CheatAutoStore
                 WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
             }
         }
+        */
 
         internal class TransferCompletionHandler
         {

@@ -272,7 +272,7 @@ namespace FeatSpaceCows
                 }
             }
 
-            InventoriesHandler.Instance.CreateNewInventory(3, 0, 0, null, inv => LinkInventory(inv, true));
+            InventoriesHandler.Instance.CreateNewInventory(3, 0, 0, null, null, inv => LinkInventory(inv, true));
 
             void LinkInventory(Inventory inv, bool save)
             {
