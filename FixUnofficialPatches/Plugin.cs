@@ -183,5 +183,32 @@ namespace FixUnofficialPatches
         {
             return NetworkManager.Singleton != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WaterHandler), nameof(WaterHandler.IsUnderWater))]
+        static bool WaterHandler_IsUnderWater(
+            Vector3 position, 
+            List<Collider> ____waterColliders,
+            bool ___hasWaterStartedToRise,
+            ref bool __result)
+        {
+            if (___hasWaterStartedToRise)
+            {
+                foreach (Collider waterCollider in ____waterColliders)
+                {
+                    if (waterCollider != null
+                        && waterCollider.gameObject != null
+                        && waterCollider.gameObject.activeInHierarchy
+                        && (waterCollider.ClosestPoint(position) - position).sqrMagnitude < 1.1920929E-07f)
+                    {
+                        __result = true;
+                        return false;
+                    }
+                }
+            }
+
+            __result = false;
+            return false;
+        }
     }
 }

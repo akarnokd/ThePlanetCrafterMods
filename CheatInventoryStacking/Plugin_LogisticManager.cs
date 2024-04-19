@@ -81,6 +81,7 @@ namespace CheatInventoryStacking
             var frameSkipCount = 0;
             
             var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
+            Log("  LogisticManager::SetLogisticTasks pickables " + pickables.Count);
 
             for (int i = 0; i < ____demandInventories.Count; i++)
             {
@@ -133,12 +134,12 @@ namespace CheatInventoryStacking
                                 if (go != null)
                                 {
                                     var ag = go.GetComponentInChildren<ActionGrabable>();
-                                    if (ag != null && ag.GetCanGrab())
+                                    if (ag != null && !LibCommon.GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
                                     {
                                         if (demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < demandInventorySize)
                                         {
                                             CreateNewTaskForWorldObjectForSpawnedObject(
-                                                demandInventory, wo, 
+                                                demandInventory, wo,
                                                 ____allLogisticTasks, inventoryOwnerCache);
                                         }
                                     }
