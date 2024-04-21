@@ -267,6 +267,10 @@ namespace CheatAutoSequenceDNA
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "FrogEgg");
                             }
+                            if (gid.StartsWith("LarvaeBase"))
+                            {
+                                TryDeposit(incubatorInv, item, itemCategories, "Larvae");
+                            }
                         }
                     }
 
