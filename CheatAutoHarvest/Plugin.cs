@@ -143,7 +143,7 @@ namespace CheatAutoHarvest
                     {
                         var ag = wo.GetGameObject().AsNullable()?.GetComponentInChildren<ActionGrabable>();
 
-                        if (ag != null && ag.GetCanGrab())
+                        if (ag != null && !GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
                         {
                             var wo1 = wo;
                             new DeferredDepositor()
