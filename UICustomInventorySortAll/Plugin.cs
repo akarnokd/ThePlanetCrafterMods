@@ -79,7 +79,20 @@ namespace UICustomInventorySortAll
                     return 1;
                 }
 
-                return groupA.stableHashCode.CompareTo(groupB.stableHashCode);
+                var c = ga.CompareTo(gb);
+                if (c == 0 && a.GetGeneticTraitType() != 0)
+                {
+                    c = a.GetGeneticTraitType().CompareTo(b.GetGeneticTraitType());
+                    if (c == 0)
+                    {
+                        c = a.GetGeneticTraitValue().CompareTo(b.GetGeneticTraitValue());
+                        if (c == 0)
+                        {
+                            c = a.GetColor().ToString().CompareTo(b.GetColor().ToString());
+                        }
+                    }
+                }
+                return c;
             });
         }
 
