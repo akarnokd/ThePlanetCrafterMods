@@ -32,9 +32,12 @@ namespace UIBeaconText
 
         static ConfigEntry<string> fontName;
 
+        static ConfigEntry<bool> hideVanillaHexagon;
+
         static ManualLogSource logger;
         static Font font;
         static InputAction toggleAction;
+
 
         public void Awake()
         {
@@ -45,11 +48,12 @@ namespace UIBeaconText
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size.");
             displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.");
-            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode.");
+            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode. Shift+<toggle key> to swap top-down. Ctrl+Shift+<toggle key> to toggle hexagon.");
             showDistanceOnTop = Config.Bind("General", "ShowDistanceOnTop", true, "Show the distance above the beacon hexagon if true, below if false");
             hideVanillaLabel = Config.Bind("General", "HideVanillaLabel", true, "If true, the vanilla beacon text is hidden and replaced by this mod's label");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debug logging? Chatty!");
             fontName = Config.Bind("General", "Font", "Arial.ttf", "The built-in font name, including its extesion.");
+            hideVanillaHexagon = Config.Bind("General", "HideVanillaHexagon", false, "If true, the vanilla hexagon is hidde. Toggle via Ctrl+Shift+<toggle key>.");
 
             if (!displayModeToggle.Value.StartsWith("<Keyboard>/"))
             {
@@ -91,9 +95,19 @@ namespace UIBeaconText
                     ?.GetPlayerInputDispatcher()
                     ?.IsPressingAccessibilityKey() ?? false;
 
-                if (accessPressed)
+                var shiftPressed = Keyboard.current[Key.LeftShift].IsPressed() || Keyboard.current[Key.RightShift].IsPressed();
+
+                var hh = Managers.GetManager<BaseHudHandler>();
+
+                if (accessPressed && shiftPressed)
+                {
+                    hideVanillaHexagon.Value = !hideVanillaHexagon.Value;
+                    hh?.DisplayCursorText("", 3f, "BeaconText: Hexagon " + (hideVanillaHexagon.Value ? "Hidden" : "Visible"));
+                }
+                else if (accessPressed)
                 {
                     showDistanceOnTop.Value = !showDistanceOnTop.Value;
+                    hh?.DisplayCursorText("", 3f, "BeaconText: Distance " + (showDistanceOnTop.Value ? "On Top" : "On Bottom"));
                 }
                 else
                 {
@@ -103,6 +117,18 @@ namespace UIBeaconText
                         m = 0;
                     }
                     displayMode.Value = m;
+                    
+
+                    hh?.DisplayCursorText("", 3f, "BeaconText: Display Mode " + (
+                        m switch
+                        {
+                            0 => "Off",
+                            1 => "Distance only",
+                            2 => "Title only",
+                            3 => "Title + Distance",
+                            _ => "???"
+                        }
+                    ));
                 }
             }
         }
@@ -174,6 +200,8 @@ namespace UIBeaconText
             holder.distanceText = distanceText;
             holder.beaconWorldObject = wo;
             holder.vanillaLabel = vanillaLabel;
+            holder.vanillaHexagon1 = ___canvas.transform.Find("Image")?.gameObject;
+            holder.vanillaHexagon2 = ___canvas.transform.Find("Image (1)")?.gameObject;
         }
 
         [HarmonyPostfix]
@@ -209,6 +237,8 @@ namespace UIBeaconText
                 distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
             }
             holder.vanillaLabel?.gameObject.SetActive(!hideVanillaLabel.Value);
+            holder.vanillaHexagon1?.SetActive(!hideVanillaHexagon.Value);
+            holder.vanillaHexagon2?.SetActive(!hideVanillaHexagon.Value);
         }
 
         internal class BeaconTextHolder : MonoBehaviour
@@ -217,6 +247,8 @@ namespace UIBeaconText
             internal Text distanceText;
             internal WorldObject beaconWorldObject;
             internal TextMeshProUGUI vanillaLabel;
+            internal GameObject vanillaHexagon1;
+            internal GameObject vanillaHexagon2;
         }
     }
 }
