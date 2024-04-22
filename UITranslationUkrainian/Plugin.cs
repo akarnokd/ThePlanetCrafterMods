@@ -10,7 +10,7 @@ namespace UITranslationUkrainian
     {
         public void Awake()
         {
-            LibCommon.UITranslator.AddLanguage("korean", "labels-ua.txt", this, Logger, Config);
+            LibCommon.UITranslator.AddLanguage("ukrainian", "labels-ua.txt", this, Logger, Config);
         }
     }
 }
