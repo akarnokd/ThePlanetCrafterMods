@@ -5,6 +5,7 @@ using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CheatInventoryStacking
 {
@@ -39,6 +40,14 @@ namespace CheatInventoryStacking
         /// The inventory is checked if it does allows stacking or not.
         /// </summary>
         public static readonly Func<Inventory, string, bool> apiIsFullStackedInventory = IsFullStackedOfInventory;
+
+        /// <summary>
+        /// Given an Inventory, an list of world objects to be removed and an optional item group id, return true if
+        /// the number of stacks the contents would coalesce (including the item) would
+        /// be more than the maximum stack count for that inventory.
+        /// The inventory is checked if it does allows stacking or not.
+        /// </summary>
+        public static readonly Func<Inventory, HashSet<int>, string, bool> apiIsFullStackedWithRemoveInventory = IsFullStackedWithRemoveOfInventory;
 
         /// <summary>
         /// Given an Inventory, return the maximum number of homogeneous items it can hold,
@@ -153,6 +162,35 @@ namespace CheatInventoryStacking
                     count++;
                 }
                 return count > inventory.GetSize();
+            }
+
+            return IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), gid);
+        }
+
+        /// <summary>
+        /// Checks if the given inventory is full or not if one tries to first remove the list
+        /// of world objects and then add the optional item indicated by its group id.
+        /// </summary>
+        /// <param name="inventory">The target inventory.</param>
+        /// <param name="gid">The optional item group id to check if it can be added or not.</param>
+        /// <returns>True if the list is full.</returns>
+        static bool IsFullStackedWithRemoveOfInventory(Inventory inventory, HashSet<int> toremove, string gid = null)
+        {
+            if (!CanStack(inventory.GetId()))
+            {
+                int count = inventory.GetInsideWorldObjects().Count;
+                if (gid != null)
+                {
+                    count++;
+                }
+                return count - toremove.Count > inventory.GetSize();
+            }
+            if (toremove.Count != 0)
+            {
+                return IsFullStacked(
+                    inventory.GetInsideWorldObjects()
+                    .Where(wo => !toremove.Contains(wo.GetId())), 
+                    inventory.GetSize(), gid);
             }
 
             return IsFullStacked(inventory.GetInsideWorldObjects(), inventory.GetSize(), gid);

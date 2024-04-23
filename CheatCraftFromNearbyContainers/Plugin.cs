@@ -55,7 +55,8 @@ namespace CheatCraftFromNearbyContainers
         static AccessTools.FieldRef<object, bool> fCraftManagerCrafting;
 
         // Set from Inventory Stacking if present
-        public static Func<Inventory, string, bool> apiIsFullStackedInventory = (inv, grid) => inv.IsFull();
+        public static Func<Inventory, HashSet<int>, string, bool> apiIsFullStackedWithRemoveInventory = 
+            (inv, toremove, grid) => inv.GetInsideWorldObjects().Count - toremove.Count >= inv.GetSize();
 
         /// <summary>
         /// Call this method to make inventory preparations before setting a construction ghost.
@@ -429,7 +430,7 @@ namespace CheatCraftFromNearbyContainers
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, ingredients, backpackInv, null, null, null);
+            DiscoverAvailability(discovery, ingredients, backpackInv, null, null, null, null);
 
             bool available = discovery.Count == ingredients.Count;
 
@@ -465,7 +466,8 @@ namespace CheatCraftFromNearbyContainers
             Inventory backpackInv,
             Inventory equipmentInv,
             List<Group> useFromEquipment,
-            List<bool> isAvailableList
+            List<bool> isAvailableList,
+            HashSet<int> foundInBackpack
         )
         {
             foreach (var gr in ingredients)
@@ -479,6 +481,7 @@ namespace CheatCraftFromNearbyContainers
                         {
                             discovery[wo.GetId()] = (backpackInv, wo);
                             found = true;
+                            foundInBackpack?.Add(wo.GetId());
                             break;
                         }
                     }
@@ -581,8 +584,9 @@ namespace CheatCraftFromNearbyContainers
 
             var useFromEquipment = new List<Group>();
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
+            var foundInBackpack = new HashSet<int>();
 
-            DiscoverAvailability(discovery, ingredients, backpackInv, equipmentInv, useFromEquipment, null);
+            DiscoverAvailability(discovery, ingredients, backpackInv, equipmentInv, useFromEquipment, null, foundInBackpack);
 
             bool available = discovery.Count == ingredients.Count;
 
@@ -590,13 +594,7 @@ namespace CheatCraftFromNearbyContainers
 
             if (__result && !____crafting)
             {
-                if (ingredients.Count == 0 && apiIsFullStackedInventory(backpackInv, groupItem.id))
-                {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
-                    __result = false;
-                    return false;
-                }
-                if (freeCraft && apiIsFullStackedInventory(backpackInv, groupItem.id))
+                if (apiIsFullStackedWithRemoveInventory(backpackInv, foundInBackpack, groupItem.id))
                 {
                     Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
                     __result = false;
@@ -757,7 +755,7 @@ namespace CheatCraftFromNearbyContainers
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, groups, backpackInv, equipmentInv, [], __result);
+            DiscoverAvailability(discovery, groups, backpackInv, equipmentInv, [], __result, null);
 
             return false;
         }
@@ -819,7 +817,7 @@ namespace CheatCraftFromNearbyContainers
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, recipe, backpackInv, null, null, null);
+            DiscoverAvailability(discovery, recipe, backpackInv, null, null, null, null);
 
             yield return RemoveFromInventories(discovery, () =>
             {

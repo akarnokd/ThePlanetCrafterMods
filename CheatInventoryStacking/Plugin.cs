@@ -144,9 +144,18 @@ namespace CheatInventoryStacking
 
             if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out var pi))
             {
-                logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found, TryToCraftInInventory will be handled by it.");
-                apiTryToCraftInInventoryHandled = (Func<bool>)AccessTools.Field(pi.Instance.GetType(), "apiTryToCraftInInventoryHandled").GetValue(null);
-                AccessTools.Field(pi.Instance.GetType(), "apiIsFullStackedInventory").SetValue(null, apiIsFullStackedInventory);
+                var required = new Version(1, 0, 0, 13);
+                if (pi.Metadata.Version >= required)
+                {
+                    logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found, TryToCraftInInventory will be handled by it.");
+                    apiTryToCraftInInventoryHandled = (Func<bool>)AccessTools.Field(pi.Instance.GetType(), "apiTryToCraftInInventoryHandled").GetValue(null);
+                    AccessTools.Field(pi.Instance.GetType(), "apiIsFullStackedWithRemoveInventory").SetValue(null, apiIsFullStackedWithRemoveInventory);
+                }
+                else
+                {
+                    logger.LogError("Mod " + modCheatCraftFromNearbyContainersGuid + " found but incompatible with Stacking: Actual: " + pi.Metadata.Version + ", Expected >= " + required);
+                    return;
+                }
             }
             else
             {
