@@ -55,7 +55,8 @@ namespace CheatCraftFromNearbyContainers
         static AccessTools.FieldRef<object, bool> fCraftManagerCrafting;
 
         // Set from Inventory Stacking if present
-        public static Func<Inventory, string, bool> apiIsFullStackedInventory = (inv, grid) => inv.IsFull();
+        public static Func<Inventory, HashSet<int>, string, bool> apiIsFullStackedWithRemoveInventory = 
+            (inv, toremove, grid) => inv.GetInsideWorldObjects().Count - toremove.Count >= inv.GetSize();
 
         /// <summary>
         /// Call this method to make inventory preparations before setting a construction ghost.
@@ -66,6 +67,8 @@ namespace CheatCraftFromNearbyContainers
         static MethodInfo mPlayerInputDispatcherIsTyping;
 
         static Coroutine vanillaPinUpdaterCoroutine;
+
+        static bool placeLockout;
 
         public void Awake()
         {
@@ -134,6 +137,11 @@ namespace CheatCraftFromNearbyContainers
             Managers.GetManager<BaseHudHandler>()
                 ?.DisplayCursorText("", 3f, "Craft From Nearby Containers: " + (modEnabled.Value ? "Activated" : "Deactivated"));
 
+            // cancel building if the player has a ghost while toggling off of the mod and getting out of range
+            if (!modEnabled.Value)
+            {
+                ac.GetPlayerBuilder().InputOnCancelAction();
+            }
         }
 
         [HarmonyPrefix]
@@ -429,7 +437,7 @@ namespace CheatCraftFromNearbyContainers
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, ingredients, backpackInv, null, null, null);
+            DiscoverAvailability(discovery, ingredients, backpackInv, null, null, null, null);
 
             bool available = discovery.Count == ingredients.Count;
 
@@ -465,7 +473,8 @@ namespace CheatCraftFromNearbyContainers
             Inventory backpackInv,
             Inventory equipmentInv,
             List<Group> useFromEquipment,
-            List<bool> isAvailableList
+            List<bool> isAvailableList,
+            HashSet<int> foundInBackpack
         )
         {
             foreach (var gr in ingredients)
@@ -479,6 +488,7 @@ namespace CheatCraftFromNearbyContainers
                         {
                             discovery[wo.GetId()] = (backpackInv, wo);
                             found = true;
+                            foundInBackpack?.Add(wo.GetId());
                             break;
                         }
                     }
@@ -581,8 +591,9 @@ namespace CheatCraftFromNearbyContainers
 
             var useFromEquipment = new List<Group>();
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
+            var foundInBackpack = new HashSet<int>();
 
-            DiscoverAvailability(discovery, ingredients, backpackInv, equipmentInv, useFromEquipment, null);
+            DiscoverAvailability(discovery, ingredients, backpackInv, equipmentInv, useFromEquipment, null, foundInBackpack);
 
             bool available = discovery.Count == ingredients.Count;
 
@@ -590,13 +601,7 @@ namespace CheatCraftFromNearbyContainers
 
             if (__result && !____crafting)
             {
-                if (ingredients.Count == 0 && apiIsFullStackedInventory(backpackInv, groupItem.id))
-                {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
-                    __result = false;
-                    return false;
-                }
-                if (freeCraft && apiIsFullStackedInventory(backpackInv, groupItem.id))
+                if (apiIsFullStackedWithRemoveInventory(backpackInv, foundInBackpack, groupItem.id))
                 {
                     Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
                     __result = false;
@@ -740,6 +745,7 @@ namespace CheatCraftFromNearbyContainers
                 return true;
             }
 
+            /*
             var equipment = ac.GetPlayerEquipment();
             if (equipment == null)
             {
@@ -752,12 +758,66 @@ namespace CheatCraftFromNearbyContainers
             {
                 return true;
             }
-
+            */
             __result = [];
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, groups, backpackInv, equipmentInv, [], __result);
+            DiscoverAvailability(discovery, groups, backpackInv, null /*equipmentInv*/, [], __result, null);
+
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
+        static bool PlayerBuilder_InputOnAction(
+            PlayerBuilder __instance,
+            ConstructibleGhost ___ghost,
+            GroupConstructible ___ghostGroupConstructible,
+            float ___timeCreatedGhost,
+            float ___timeCantBuildInterval)
+        {
+            if (!modEnabled.Value)
+            {
+                return true;
+            }
+
+            if (___ghost != null)
+            {
+                if (Time.time < ___timeCreatedGhost + ___timeCantBuildInterval && !Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
+                {
+                    return false;
+                }
+
+                if (!placeLockout)
+                {
+                    placeLockout = true;
+                    GetInventoriesInRange(__instance,
+                            Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position,
+                            list =>
+                            {
+                                candidateInventories = list;
+                                placeLockout = false;
+
+                                // double check if we are still in range for building
+
+                                List<Group> ingredientsGroupInRecipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+                                bool available = __instance.GetComponent<PlayerMainController>().GetPlayerBackpack().GetInventory()
+                                    .ContainsItems(ingredientsGroupInRecipe);
+                                bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
+                                if (available || freeCraft)
+                                {
+                                    var onConstructed = AccessTools.MethodDelegate<Action<GameObject>>(AccessTools.Method(typeof(PlayerBuilder), "OnConstructed"), __instance);
+                                    ___ghost.Place(onConstructed);
+                                }
+                                else
+                                {
+                                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Craft From Nearby Containers: Ingredients no longer available!");
+                                }
+                            }
+                        );
+                }
+            }
 
             return false;
         }
@@ -819,7 +879,7 @@ namespace CheatCraftFromNearbyContainers
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, recipe, backpackInv, null, null, null);
+            DiscoverAvailability(discovery, recipe, backpackInv, null, null, null, null);
 
             yield return RemoveFromInventories(discovery, () =>
             {
@@ -945,6 +1005,7 @@ namespace CheatCraftFromNearbyContainers
 
         }
 
+        /* Fixed in 1.002
         // Workaround for the method as it may crash if the woId no longer exists.
         // We temporarily restore an empty object for the duration of the method
         // so it can see no inventory and respond accordingly.
@@ -968,6 +1029,14 @@ namespace CheatCraftFromNearbyContainers
                 WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
             }
         }
+        */
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void Patch_UiWindowPause_OnQuit()
+        {
+            placeLockout = false;
+            candidateInventories = null;
+        }
     }
 }

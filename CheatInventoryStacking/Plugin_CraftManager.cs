@@ -41,6 +41,30 @@ namespace CheatInventoryStacking
                 // Should allow Craft From Containers to work on its own by overriding ItemsContainsStatus.
                 var availableBackpack = backpackInventory.ItemsContainsStatus(ingredients);
 
+                // due to Craft From Containers tricking ItemsContainsStatus
+                // we need to double check which ingredient would be taken from the backpack
+                // so that the fullness check can work correctly.
+                var toRemoveFromBackpack = new HashSet<int>();
+                var ingredientsCopy = new List<Group>(ingredients);
+
+                foreach (var wo in backpackInventory.GetInsideWorldObjects())
+                {
+                    for (int i = 0; i < ingredientsCopy.Count; i++)
+                    {
+                        Group ingr = ingredientsCopy[i];
+                        if (wo.GetGroup() == ingr)
+                        {
+                            toRemoveFromBackpack.Add(wo.GetId());
+                            ingredientsCopy.RemoveAt(i);
+                            break;
+                        }
+                    }
+                    if (ingredientsCopy.Count == 0)
+                    {
+                        break;
+                    }
+                }
+
                 if (availableBackpack.Contains(item: false))
                 {
                     var availableEquipment = equipmentInventory.ItemsContainsStatus(ingredients);
@@ -57,13 +81,7 @@ namespace CheatInventoryStacking
                 if (!availableBackpack.Contains(item: false) || isFreeCraft)
                 {
 
-                    if (ingredients.Count == 0 && IsFullStackedOfInventory(backpackInventory, groupItem.id))
-                    {
-                        Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
-                        __result = false;
-                        return false;
-                    }
-                    if (isFreeCraft && IsFullStackedOfInventory(backpackInventory, groupItem.id))
+                    if (IsFullStackedWithRemoveOfInventory(backpackInventory, toRemoveFromBackpack, groupItem.id))
                     {
                         Managers.GetManager<BaseHudHandler>().DisplayCursorText("UI_InventoryFull", 2f);
                         __result = false;

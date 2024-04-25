@@ -3885,7 +3885,7 @@ namespace FeatCommandConsole
                         // we need it to have a position, otherwise AddWorldObjectToInventory() will do nothing
                         woDna.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
                         
-                        InventoriesHandler.Instance.CreateNewInventory(8, 0, woDna.GetId(), null, woInv =>
+                        InventoriesHandler.Instance.CreateNewInventory(8, 0, woDna.GetId(), null, null, woInv =>
                         {
                             for (int k = 1; k < traitSlots.Length; k++)
                             {

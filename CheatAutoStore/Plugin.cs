@@ -11,7 +11,6 @@ using UnityEngine;
 using System.Collections;
 using BepInEx.Logging;
 using System.Linq;
-using System;
 using Unity.Netcode;
 
 namespace CheatAutoStore
@@ -31,6 +30,14 @@ namespace CheatAutoStore
         static ConfigEntry<string> excludeList;
 
         static ConfigEntry<string> key;
+
+        static ConfigEntry<bool> storeBySame;
+
+        static ConfigEntry<bool> storeByName;
+
+        static ConfigEntry<string> storeByNameAliases;
+
+        static ConfigEntry<string> storeByNameMarker;
 
         static InputAction storeAction;
 
@@ -53,6 +60,10 @@ namespace CheatAutoStore
             includeList = Config.Bind("General", "IncludeList", "", "The comma separated list of case-sensitive item ids to include only. If empty, all items are considered except the those listed in ExcludeList.");
             excludeList = Config.Bind("General", "ExcludeList", "", "The comma separated list of case-sensitive item ids to exclude. Only considered if IncludeList is empty.");
             key = Config.Bind("General", "Key", "<Keyboard>/K", "The input action shortcut to trigger the storing of items.");
+            storeBySame = Config.Bind("General", "StoreBySame", true, "Original behavior, store next to the same already stored items.");
+            storeByName = Config.Bind("General", "StoreByName", false, "Store into containers whose naming matches the item id, such as !Iron for example. Use StoreByNameAliases to override individual items.");
+            storeByNameAliases = Config.Bind("General", "StoreByNameAliases", "", "A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C");
+            storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
 
             if (!key.Value.Contains("<"))
             {
@@ -158,10 +169,10 @@ namespace CheatAutoStore
 
         void InventorySearch(PlayerMainController ac)
         {
-            var ppos = ac.transform.position;
+            var playerPos = ac.transform.position;
 
-            List<int> candidateInventoryIds = [];
-            List<WorldObject> candidateGetInventoryOfWorldObject = [];
+            List<(int, string)> candidateInventoryIds = [];
+            List<(WorldObject, string)> candidateGetInventoryOfWorldObject = [];
 
             List<WorldObject> wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
             Log("  Constructed WorldObjects: " + wos.Count);
@@ -169,38 +180,44 @@ namespace CheatAutoStore
             foreach (var wo in wos)
             {
                 var grid = wo.GetGroup().GetId();
-                var pos = Vector3.zero;
+                var woPos = Vector3.zero;
+                var woTxt = wo.GetText();
                 if (wo.GetIsPlaced())
                 {
-                    pos = wo.GetPosition();
+                    woPos = wo.GetPosition();
                 }
                 else
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
                     {
-                        pos = go.transform.position;
+                        woPos = go.transform.position;
+
+                        if (go.TryGetComponent<TextProxy>(out var tp))
+                        {
+                            woTxt = tp.GetText();
+                        }
                     }
                 }
-                var dist = Vector3.Distance(ppos, pos);
-                Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
-                if (grid.StartsWith("Container"))
+
+                if (woPos != Vector3.zero)
                 {
-                    if (wo.GetLinkedInventoryId() != 0)
+                    var dist = Vector3.Distance(playerPos, woPos);
+                    Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
+                    if (grid.StartsWith("Container") && dist <= range.Value)
                     {
-                        if (dist <= range.Value)
+                        if (wo.GetLinkedInventoryId() != 0)
                         {
-                            candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                            candidateInventoryIds.Add((
+                                wo.GetLinkedInventoryId(),
+                                woTxt
+                            ));
                         }
                         else
                         {
-                            //Log("  WorldObject Container " + wo.GetId() + " out of range " + dist + " m");
+                            Log("  WorldObject Container " + wo.GetId() + " missing local inventory");
+                            candidateGetInventoryOfWorldObject.Add((wo, woTxt));
                         }
-                    }
-                    else
-                    {
-                        Log("  WorldObject Container " + wo.GetId() + " missing local inventory");
-                        candidateGetInventoryOfWorldObject.Add(wo);
                     }
                 }
             }
@@ -211,22 +228,27 @@ namespace CheatAutoStore
 
             var backpackInv = ac.GetPlayerBackpack().GetInventory();
 
-            var candidateInv = new List<Inventory>();
+            var candidateInv = new List<(Inventory, string)>();
 
             foreach (var iid in candidateInventoryIds)
             {
-                InventoriesHandler.Instance.GetInventoryById(iid, candidateInv.Add);
+                var fiid = iid;
+                InventoriesHandler.Instance.GetInventoryById(iid.Item1, 
+                    responseInv => candidateInv.Add((responseInv, fiid.Item2)));
             }
             foreach (var wo in candidateGetInventoryOfWorldObject)
             {
-                InventoriesHandler.Instance.GetWorldObjectInventory(wo, candidateInv.Add);
+                var fwo = wo;
+                InventoriesHandler.Instance.GetWorldObjectInventory(wo.Item1, 
+                    responseInv => candidateInv.Add((responseInv, fwo.Item2))
+                );
             }
 
             StartCoroutine(WaitForInventories(backpackInv, candidateInv, candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count));
 
         }
 
-        static IEnumerator WaitForInventories(Inventory backpackInv, List<Inventory> candidateInventory, int n)
+        static IEnumerator WaitForInventories(Inventory backpackInv, List<(Inventory, string)> candidateInventory, int n)
         {
             Log("  Waiting for GetInventoryById callbacks: " + candidateInventory.Count + " of " + n);
             while (candidateInventory.Count != n)
@@ -236,6 +258,23 @@ namespace CheatAutoStore
 
             var includeGroupIds = includeList.Value.Split(',').Select(v => v.Trim()).Where(v => v.Length != 0).ToHashSet();
             var excludeGroupIds = excludeList.Value.Split(',').Select(v => v.Trim()).Where(v => v.Length != 0).ToHashSet();
+
+            Log("  Processed include/exclude lists");
+
+            var modeStoreBySame = storeBySame.Value;
+            var modeStoreByName = storeByName.Value;
+            var marker = storeByNameMarker.Value;
+
+            var aliases = new Dictionary<string, string>();
+            foreach (var kv in storeByNameAliases.Value.Split(","))
+            {
+                var kvv = kv.Split(":");
+                if (kvv.Length == 2)
+                {
+                    aliases[kvv[0].Trim()] = kvv[1].Trim().ToLowerInvariant();
+                }
+            }
+            Log("  Processed aliases: " + aliases.Count);
 
             List<WorldObject> backpackWos = [..backpackInv.GetInsideWorldObjects()];
             Log("  Begin enumerating the backpack: " + backpackWos.Count);
@@ -269,15 +308,30 @@ namespace CheatAutoStore
 
                 foreach (var inv in candidateInventory)
                 {
-                    if (inv != null)
+                    if (inv.Item1 != null)
                     {
                         var foundCandidate = false;
-                        foreach (var wo2 in inv.GetInsideWorldObjects())
+                        if (modeStoreBySame)
                         {
-                            if (wo2.GetGroup().id == gid)
+                            foreach (var wo2 in inv.Item1.GetInsideWorldObjects())
+                            {
+                                if (wo2.GetGroup().id == gid)
+                                {
+                                    foundCandidate = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!foundCandidate && modeStoreByName)
+                        {
+                            var nameToFind = marker + gid;
+                            if (aliases.TryGetValue(gid, out var alias))
+                            {
+                                nameToFind = alias;
+                            }
+                            if (inv.Item2 != null && inv.Item2.Contains(nameToFind, System.StringComparison.InvariantCultureIgnoreCase))
                             {
                                 foundCandidate = true;
-                                break;
                             }
                         }
 
@@ -285,7 +339,7 @@ namespace CheatAutoStore
                         {
                             var tch = new TransferCompletionHandler();
 
-                            InventoriesHandler.Instance.TransferItem(backpackInv, inv, wo, success =>
+                            InventoriesHandler.Instance.TransferItem(backpackInv, inv.Item1, wo, success =>
                             {
                                 tch.success = success;
                                 tch.done = true;
@@ -298,7 +352,7 @@ namespace CheatAutoStore
 
                             if (tch.success)
                             {
-                                Log("    Deposited into " + inv.GetId());
+                                Log("    Deposited into " + inv.Item1.GetId() + " (" + inv.Item2 + ")");
                                 Managers.GetManager<DisplayersHandler>()
                                     ?.GetInformationsDisplayer()
                                     ?.AddInformation(2f, Readable.GetGroupName(group), DataConfig.UiInformationsType.OutInventory, group.GetImage());
@@ -321,6 +375,7 @@ namespace CheatAutoStore
             Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + backpackWos.Count + " deposited. " + excluded + " excluded.");
         }
 
+        /* Fixed in 1.002
         // Workaround for the method as it may crash if the woId no longer exists.
         // We temporarily restore an empty object for the duration of the method
         // so it can see no inventory and respond accordingly.
@@ -344,6 +399,7 @@ namespace CheatAutoStore
                 WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
             }
         }
+        */
 
         internal class TransferCompletionHandler
         {

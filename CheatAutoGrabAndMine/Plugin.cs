@@ -324,7 +324,7 @@ namespace CheatAutoGrabAndMine
                     Log("    Not a grab target");
                     return;
                 }
-                if (ag != null && IsOnDisplay(ag))
+                if (ag != null && GrabChecker.IsOnDisplay(ag))
                 {
                     Log("    Is being displayed");
                     return;
@@ -394,35 +394,6 @@ namespace CheatAutoGrabAndMine
             return IsLarvae(grid) || IsFishEggs(grid) || IsFrogEggs(grid)
                 || IsFood(grid) || IsAlgae(grid) || IsGrabableOre(grid)
                 || IsRod(grid);
-        }
-
-        static bool IsOnDisplay(Actionnable ag)
-        {
-            return ag.GetComponentInParent<InventoryShowContent>() != null
-                || ag.GetComponentInParent<ActionCrafter>() != null
-                || ag.GetComponentInParent<MachineAutoCrafter>() != null
-                || IsInsideBiolab(ag);
-        }
-
-        static bool IsInsideBiolab(Actionnable ag)
-        {
-            GameObject o = ag?.gameObject;
-            while (o != null)
-            {
-                if (o.name.Contains("VegetubeCrafter"))
-                {
-                    return true;
-                }
-                if (o.transform.parent != null)
-                {
-                    o = o.transform.parent.gameObject;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            return false;
         }
 
         static int CountInInventory(Inventory inv, Group gr)
