@@ -1241,7 +1241,14 @@ namespace FeatTechniciansExile
                             DataConfig.WorldUnitType unitType = worldUnit.GetUnitType();
                             if (((GroupItem)groupViaId).GetGroupUnitMultiplier(unitType) != 0f)
                             {
-                                logger.LogInfo("  unit " + unitType + " 1100 * ");
+                                var scaling = 1100f;
+                                if (unitType == DataConfig.WorldUnitType.Plants 
+                                    || unitType == DataConfig.WorldUnitType.Insects
+                                    || unitType == DataConfig.WorldUnitType.Animals)
+                                {
+                                    scaling = 1375f;
+                                }
+                                logger.LogInfo("  unit " + unitType + " " + scaling + " * ");
                                 var unitLabel = Readable.GetWorldUnitLabel(unitType);
 
                                 for (int j = 0; j < lines.Length; j++)
@@ -1250,7 +1257,7 @@ namespace FeatTechniciansExile
                                     if (ln.labelText.text.StartsWith(unitLabel))
                                     {
                                         ln.labelText.text = unitLabel
-                                            + " +" + (1100 * allWorldObjectsOfGroup).ToString() + "%";
+                                            + " +" + (scaling * allWorldObjectsOfGroup).ToString() + "%";
                                     }
                                 }
                                 break;
