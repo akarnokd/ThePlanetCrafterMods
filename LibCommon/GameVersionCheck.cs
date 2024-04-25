@@ -32,7 +32,7 @@ namespace LibCommon
                 ShowDialog("<b><color=#FFCC00>/!\\ Warning /!\\</color></b>\n\nYou are running the mod\n    <i><color=#FFFF00>"
                     + modName + "</color></i>\ndesigned for game version\n    <i><color=#FFFF00>v"
                     + TargetVersion + "</color></i>\nwith the game version\n    <i><color=#FFFF00>v" + Application.version
-                    + "</color></i>\n\nPlease check for mod updates and update your mod(s).");
+                    + "</color></i>\n\nPlease wait/check for mod updates and update your mod(s).");
             }
         }
 

@@ -96,7 +96,8 @@ namespace CheatCraftFromNearbyContainers
                 ?? throw new InvalidOperationException("PlayerInputDispatcher::IsTyping not found");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Craft From Nearby Containers - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         static void Log(object message)
