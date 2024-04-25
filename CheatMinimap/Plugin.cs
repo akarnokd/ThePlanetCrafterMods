@@ -43,6 +43,7 @@ namespace CheatMinimap
         ConfigEntry<int> zoomOutMouseButton;
         ConfigEntry<int> autoScanForChests;
         ConfigEntry<int> fixedRotation;
+        ConfigEntry<float> alphaBlend;
         
         static ConfigEntry<bool> showLadders;
         static ConfigEntry<bool> showServers;
@@ -107,7 +108,7 @@ namespace CheatMinimap
             showServers = Config.Bind("General", "ShowServers", true, "Show the server racks?");
             showSafes = Config.Bind("General", "ShowSafes", true, "Show the wreck safes?");
             outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
-
+            alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -407,9 +408,15 @@ namespace CheatMinimap
                     float rotateAround = fixRot >= 0 ? fixedAngle : -angle;
                     GUIUtility.RotateAroundPivot(rotateAround, mapCenter);
 
+                    var colorSaveTemp = GUI.color;
+                    GUI.color = new Color(1f, 1f, 1f, alphaBlend.Value);
+
                     GUI.DrawTexture(new Rect(0, 0, minimapRect.width, minimapRect.height), outOfBoundsTexture, ScaleMode.ScaleAndCrop, true);
 
                     GUI.DrawTexture(new Rect(zx, zy, zw, zh), theMap, ScaleMode.ScaleAndCrop, false);
+
+                    GUI.color = colorSaveTemp;
+
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
                     foreach (GameObject go in new List<GameObject>(chests))
