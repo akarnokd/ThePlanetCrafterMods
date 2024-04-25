@@ -745,6 +745,7 @@ namespace CheatCraftFromNearbyContainers
                 return true;
             }
 
+            /*
             var equipment = ac.GetPlayerEquipment();
             if (equipment == null)
             {
@@ -757,12 +758,12 @@ namespace CheatCraftFromNearbyContainers
             {
                 return true;
             }
-
+            */
             __result = [];
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
-            DiscoverAvailability(discovery, groups, backpackInv, equipmentInv, [], __result, null);
+            DiscoverAvailability(discovery, groups, backpackInv, null /*equipmentInv*/, [], __result, null);
 
             return false;
         }
