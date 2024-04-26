@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 using LibCommon;
 using System.Reflection;
 using Unity.Netcode;
+using System.Diagnostics;
 
 namespace CheatCraftFromNearbyContainers
 {
@@ -307,13 +308,16 @@ namespace CheatCraftFromNearbyContainers
         static IEnumerator PrefetchInventoriesInRangeClient(MonoBehaviour parent, Vector3 pos, Action<List<Inventory>> onComplete)
         {
             Log("  Prefetching Inventories on the client");
+            var sw = Stopwatch.StartNew();
             var counter = new int[1] { 1 };
             var n = 0;
             foreach (var invp in FindObjectsByType<InventoryAssociatedProxy>(FindObjectsSortMode.None))
             {
                 if (invp.GetComponent<InventoryAssociated>() == null
                     && invp.GetComponent<ActionOpenable>() != null
-                    && invp.GetComponent<WorldObjectFromScene>() == null)
+                    && invp.GetComponent<WorldObjectFromScene>() == null
+                    && Vector3.Distance(invp.transform.position, pos) <= range.Value
+                )
                 {
                     counter[0]++;
                     n++;
@@ -326,6 +330,7 @@ namespace CheatCraftFromNearbyContainers
             {
                 yield return null;
             }
+            Log("      Prefetch inventory time: " + sw.Elapsed.TotalMilliseconds + " ms");
             Log("    Continue with the inventory search");
             GetInventoriesInRangeSearch(parent, pos, onComplete);
         }
