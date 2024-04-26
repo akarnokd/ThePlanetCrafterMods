@@ -775,8 +775,8 @@ namespace CheatCraftFromNearbyContainers
             return false;
         }
 
-        // [HarmonyPrefix]
-        // [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
         static bool PlayerBuilder_InputOnAction(
             PlayerBuilder __instance,
             ConstructibleGhost ___ghost,
@@ -796,36 +796,58 @@ namespace CheatCraftFromNearbyContainers
                     return false;
                 }
 
-                if (!placeLockout)
+                // Get all currently known inventores, hopefully relatively up-to-date from the prefetch.
+                var pos = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position;
+                candidateInventories = [];
+                HashSet<int> seen = [];
+                foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
-                    placeLockout = true;
-                    Log("  Begin double checking inventories in range before building.");
-                    var sw = Stopwatch.StartNew();
-                    GetInventoriesInRange(__instance,
-                            Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position,
-                            list =>
+                    var grid = wo.GetGroup().GetId();
+                    var wpos = Vector3.zero;
+                    if (wo.GetIsPlaced())
+                    {
+                        wpos = wo.GetPosition();
+                    }
+                    else
+                    {
+                        var go = wo.GetGameObject();
+                        if (go != null)
+                        {
+                            wpos = go.transform.position;
+                        }
+                    }
+                    var dist = Vector3.Distance(pos, wpos);
+
+                    if (grid.StartsWith("Container")
+                        && dist <= range.Value
+                    )
+                    {
+                        if (seen.Add(wo.GetId()))
+                        {
+                            var iid = wo.GetLinkedInventoryId();
+                            Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m, IID: " + iid);
+                            if (iid != 0)
                             {
-                                candidateInventories = list;
-                                placeLockout = false;
-                                Log("    Inventories arrived: " + sw.Elapsed.TotalMilliseconds + " ms");
-
-                                // double check if we are still in range for building
-
-                                List<Group> ingredientsGroupInRecipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
-                                bool available = __instance.GetComponent<PlayerMainController>().GetPlayerBackpack().GetInventory()
-                                    .ContainsItems(ingredientsGroupInRecipe);
-                                bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
-                                if (available || freeCraft)
-                                {
-                                    var onConstructed = AccessTools.MethodDelegate<Action<GameObject>>(AccessTools.Method(typeof(PlayerBuilder), "OnConstructed"), __instance);
-                                    ___ghost.Place(onConstructed);
-                                }
-                                else
-                                {
-                                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Craft From Nearby Containers: Ingredients no longer available!");
-                                }
+                                candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid));
                             }
-                        );
+                        }
+                    }
+                }
+
+                // double check if we are still in range for building
+
+                List<Group> ingredientsGroupInRecipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+                bool available = __instance.GetComponent<PlayerMainController>().GetPlayerBackpack().GetInventory()
+                    .ContainsItems(ingredientsGroupInRecipe);
+                bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
+                if (available || freeCraft)
+                {
+                    var onConstructed = AccessTools.MethodDelegate<Action<GameObject>>(AccessTools.Method(typeof(PlayerBuilder), "OnConstructed"), __instance);
+                    ___ghost.Place(onConstructed);
+                }
+                else
+                {
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Craft From Nearby Containers: Ingredients no longer available!");
                 }
             }
 
