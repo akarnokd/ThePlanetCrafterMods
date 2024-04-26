@@ -402,11 +402,12 @@ namespace CheatCraftFromNearbyContainers
                 yield return null;
             }
             Log("  Containers in discovered: " + inventoryList.Count);
-
+            /*
             foreach (var inv in inventoryList)
             {
                 Log("    " + (inv != null ? inv.GetId() : "null"));
             }
+            */
 
             onComplete.Invoke(inventoryList);
             
@@ -774,8 +775,8 @@ namespace CheatCraftFromNearbyContainers
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
+        // [HarmonyPrefix]
+        // [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
         static bool PlayerBuilder_InputOnAction(
             PlayerBuilder __instance,
             ConstructibleGhost ___ghost,
@@ -798,12 +799,15 @@ namespace CheatCraftFromNearbyContainers
                 if (!placeLockout)
                 {
                     placeLockout = true;
+                    Log("  Begin double checking inventories in range before building.");
+                    var sw = Stopwatch.StartNew();
                     GetInventoriesInRange(__instance,
                             Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position,
                             list =>
                             {
                                 candidateInventories = list;
                                 placeLockout = false;
+                                Log("    Inventories arrived: " + sw.Elapsed.TotalMilliseconds + " ms");
 
                                 // double check if we are still in range for building
 
