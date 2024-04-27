@@ -103,6 +103,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Traduzione Italiana](#ui-italian-translation) (Italian translation)
 - [Polish Translation](#ui-polish-translation)
 - [Romanian Translation](#ui-romanian-translation)
+- [Ukrainian Translation](#ui-ukrainian-translation)
 
 ### Multiplayer
 
@@ -2899,3 +2900,15 @@ Key = <Keyboard>/H
 FontSize = 20
 ```
 </details>
+
+## (UI) Ukrainian Translation
+
+Patches in labels and enables switching to Ukrainian ("Українська") in the game's options screen. Note that some labels do not change when switching to Ukrainian the first time. This is a bug in the vanilla game's UI and can be resolved by restarting the game.
+
+The translation was kindly provided by +Dragon Kreig+ via Discord.
+
+:information_source: If you find a problem with the translation, please provide such feedback in **English** as I don't speak Ukrainian myself.
+
+### Configuration
+
+Only diagnostic options. Not relevant for the player.
