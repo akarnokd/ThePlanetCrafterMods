@@ -15,6 +15,9 @@ using System.Threading.Tasks;
 using BepInEx.Bootstrap;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using System.IO;
+using System.Net.Cache;
+using System.Net;
 
 [assembly: InternalsVisibleTo("XTestPlugins")]
 namespace MiscPluginUpdateChecker
@@ -26,7 +29,7 @@ namespace MiscPluginUpdateChecker
         static ManualLogSource _logger;
 
         static ConfigEntry<bool> isEnabled;
-        static ConfigEntry<string> versionInfoRepository;
+        static ConfigEntry<string> versionInfoRepositoryTxt;
         static ConfigEntry<bool> bypassCache;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> debugMode;
@@ -41,7 +44,7 @@ namespace MiscPluginUpdateChecker
             _logger = Logger;
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
-            versionInfoRepository = Config.Bind("General", "VersionInfoRepository", Helpers.defaultVersionInfoRepository, "The URL from where to download an XML describing various known plugins and their latest versions.");
+            versionInfoRepositoryTxt = Config.Bind("General", "VersionInfoRepositoryTxt", defaultVersionInfoRepositoryTxt, "The URL from where to download an text file describing various known plugins and their latest versions.");
             bypassCache = Config.Bind("General", "BypassCache", false, "If true, this mod will try to bypass caching on the targeted URLs by appending an arbitrary query parameter");
             fontSize = Config.Bind("General", "FontSize", 16, "The font size");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging of the mod (chatty!)");
@@ -83,7 +86,7 @@ namespace MiscPluginUpdateChecker
             {
                 pluginInfos = null;
 
-                var startUrl = versionInfoRepository.Value;
+                var startUrl = versionInfoRepositoryTxt.Value;
                 var bypass = bypassCache.Value;
 
                 var localPlugins = GetLocalPlugins();
@@ -132,7 +135,7 @@ namespace MiscPluginUpdateChecker
                         diff.gameObject.GetComponent<Text>().color = new Color(0.3f, 0.3f, 1f);
                         if (Mouse.current.leftButton.wasPressedThisFrame)
                         {
-                            Application.OpenURL(diff.remote.link);
+                            Application.OpenURL(versionInfoRepositoryTxt.Value.Replace("/version_info.txt",""));
                         }
                     }
                     else
@@ -344,7 +347,7 @@ namespace MiscPluginUpdateChecker
         {
             try
             {
-                var remotePluginInfos = Helpers.DownloadPluginInfos(
+                var remotePluginInfos = DownloadPluginInfos(
                     startUrl,
                     o => LogInfo(o),
                     o => LogWarning(o),
@@ -380,6 +383,115 @@ namespace MiscPluginUpdateChecker
                     LogError(ex);
                 }
             }
+        }
+
+        internal const string defaultVersionInfoRepositoryTxt = "https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/version_info.txt";
+
+        internal static Dictionary<string, PluginEntry> DownloadPluginInfos(
+            string startUrl,
+            Action<object> logInfo,
+            Action<object> logWarning,
+            Action<object> logError,
+            bool randomArgument)
+        {
+            logInfo("Download version_info.txt");
+
+            Dictionary<string, PluginEntry> plugins = [];
+
+            var request = WebRequest.Create(MaybeRandom(startUrl, randomArgument)).NoCache();
+
+            using var response = request.GetResponse();
+            using var stream = response.GetResponseStream();
+            using var reader = new StreamReader(stream);
+            string desc = "";
+
+            logInfo("Parsing version_info.txt");
+            for (; ; )
+            {
+                var line = reader.ReadLine();
+                if (line == null)
+                {
+                    break;
+                }
+                if (line.StartsWith("#"))
+                {
+                    desc = line[2..];
+                    continue;
+                }
+                var kv = line.Split('=');
+                if (kv.Length != 2)
+                {
+                    continue;
+                }
+
+                var pe = new PluginEntry();
+                pe.guid = kv[0];
+                pe.description = desc;
+                pe.discoverVersion = new Version(kv[1]);
+                logInfo("  -> " + pe.guid + " @ " + pe.discoverVersion);
+                plugins[pe.guid] = pe;
+            }
+
+            logInfo("Version discovery done");
+
+            return plugins;
+        }
+
+        static string MaybeRandom(string url, bool randomize)
+        {
+            if (randomize)
+            {
+                return url + "?v=" + DateTime.UtcNow.Ticks;
+            }
+            return url;
+        }
+    }
+
+    static class HelpersExt
+    {
+        internal static WebRequest NoCache(this WebRequest request)
+        {
+            request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+            request.Headers[HttpRequestHeader.CacheControl] = "no-cache";
+            return request;
+        }
+    }
+
+    internal class PluginEntry
+    {
+        internal string guid;
+        internal string description;
+        internal Version explicitVersion;
+        internal string discoverUrl;
+        internal Version discoverVersion;
+
+        internal Version Version
+        {
+            get
+            {
+                if (explicitVersion != null)
+                {
+                    return explicitVersion;
+                }
+                if (discoverVersion != null)
+                {
+                    return discoverVersion; ;
+                }
+                return null;
+            }
+        }
+
+        internal int CompareToVersion(Version other)
+        {
+            if (explicitVersion != null)
+            {
+                return explicitVersion.CompareTo(other);
+            }
+            if (discoverVersion != null)
+            {
+                return discoverVersion.CompareTo(other);
+            }
+            return 0;
         }
     }
 }

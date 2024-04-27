@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		README.md = README.md
 		solution_private.targets = solution_private.targets
+		version_info.txt = version_info.txt
 		version_info_repository.xml = version_info_repository.xml
 	EndProjectSection
 EndProject
