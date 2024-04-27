@@ -1,0 +1,134 @@
+# (Cheat) Asteroid Landing Position Override
+akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.13
+# (Cheat) Auto Consume Oxygen-Water-Food
+akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.14
+# (Cheat) Auto Grab and Mine
+akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.8
+# (Cheat) Automatically Harvest Food n Algae
+akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.26
+# (Cheat) Auto Launch Rockets
+akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.8
+# (Cheat) Auto Sequence DNA
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.18
+# (Cheat) Auto Store
+akarnokd.theplanetcraftermods.cheatautostore=1.0.0.6
+# (Cheat) Birthday
+akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.8
+# (Cheat) Craft From Nearby Containers
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.17
+# (Cheat) Inventory Stacking
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.7
+# (Cheat) Machines Deposit Into Remote Containers
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.23
+# (Cheat) Minimap
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.38
+# (Cheat) More Trade
+akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.8
+# (Cheat) Highlight Nearby Resources
+akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.23
+# (Cheat) Hide Water in Photomode
+akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.12
+# (Cheat) Recyclers Deposit Into Remote Containers
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.14
+# (Cheat) Wreck Map
+akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.2
+# (Feat) Command Console
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.66
+# (Feat) Multiplayer
+akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
+# (Feat) Space Cows
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.18
+# (Feat) Technicians Exile
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.22
+# (Fix) Unofficial Patches
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.40
+# (Lathrey) Auto Move
+akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.10
+# (Lathrey) Disable Build Constraints
+akarnokd.theplanetcraftermods.lathreydisablebuildconstraints=1.0.0.10
+# (Lib) Common tools for other mods
+akarnokd.theplanetcraftermods.libcommon=1.0.0.0
+# (Misc) Customize Flashlight
+akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.2
+# (Misc) Debug
+akarnokd.theplanetcraftermods.miscdebug=1.0.0.0
+# (Misc) Mod Enabler
+akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.9
+# (Misc) Plugin Update Checker
+akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.14
+# (Multi) Player Locator
+akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.3
+# (Perf) Reduce Save Size
+akarnokd.theplanetcraftermods.perfsavereducesize=1.0.0.13
+# (Perf) Startup
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.9
+# (Save) Auto Backup
+akarnokd.theplanetcraftermods.saveautobackup=1.0.0.11
+# (Save) Auto Save
+akarnokd.theplanetcraftermods.saveautosave=1.0.0.11
+# (Save) Quick Save
+akarnokd.theplanetcraftermods.savequicksave=1.0.0.11
+# (UI) Beacon Text
+akarnokd.theplanetcraftermods.uibeacontext=1.0.0.14
+# (UI) Continue
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.16
+# (UI) Customize Inventory Sort Order
+akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.12
+# (UI) Prevent Accidental Deconstruct
+akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.13
+# (UI) Hotbar
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.27
+# (UI) Inventory Move Multiple Items
+akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.9
+# (UI) Logistic Select All
+akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.8
+# (UI) Menu Shortcut Keys
+akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.12
+# (UI) Mod Config Menu
+akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.10
+# (UI) Overview Panel
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.24
+# (UI) Pin Recipe to Screen
+akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.24
+# (UI) Save When Quitting
+akarnokd.theplanetcraftermods.saveonquit=1.0.0.10
+# (UI) Show Consumable Counts
+akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.15
+# (UI) Show Container Content Info
+akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.17
+# (UI) Show Crash
+akarnokd.theplanetcraftermods.uishowcrash=1.0.0.9
+# (UI) Show ETA
+akarnokd.theplanetcraftermods.uishoweta=1.0.0.9
+# (UI) Show Grab N Mine Count
+akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.13
+# (UI) Show MultiTool Mode
+akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.11
+# (UI) Show Player Inventory Counts
+akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.14
+# (UI) Show Player Tooltip Item Count
+akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.10
+# (UI) Show Rocket Counts
+akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.13
+# (UI) Sort Saves On The Load Screen
+akarnokd.theplanetcraftermods.uisortsaves=1.0.0.11
+# (UI) Stack In-Range List
+akarnokd.theplanetcraftermods.uistackinrangelist=1.0.0.11
+# (UI) Telemetry Font Sizer
+akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.7
+# (UI) Czech Translation
+akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.18
+# (UI) Estonian Translation
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.12
+# (UI) Hungarian Translation
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.69
+# (UI) Italian Translation
+akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.23
+# (UI) Korean Translation
+akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.12
+# (UI) Polish Translation
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.29
+# (UI) Romanian Translation
+akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.17
+# (UI) Ukrainian Translation
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.1
