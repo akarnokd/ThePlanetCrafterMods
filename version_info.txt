@@ -29,7 +29,7 @@ akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.23
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.12
 # (Cheat) Recyclers Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.14
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.15
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.2
 # (Feat) Command Console
@@ -121,7 +121,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.18
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.12
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.69
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.70
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.23
 # (UI) Korean Translation
