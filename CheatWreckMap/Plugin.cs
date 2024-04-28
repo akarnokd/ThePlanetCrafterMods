@@ -495,6 +495,8 @@ namespace CheatWreckMap
             ParseColor(baseColor, ref colorBase);
             ParseColor(emptyColor, ref colorEmpty);
             ParseColor(ladderColor, ref colorLadder);
+            Destroy(canvas);
+            canvas = null;
         }
 
         /*
