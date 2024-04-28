@@ -11,6 +11,7 @@ using UnityEngine;
 using System.Collections;
 using Unity.Netcode;
 using LibCommon;
+using System;
 
 namespace CheatRecyclerRemoteDeposit
 {
@@ -117,19 +118,26 @@ namespace CheatRecyclerRemoteDeposit
             Collider ___craftSpawn,
             GameObject ___tempCage)
         {
-            if (modEnabled.Value)
+            if (modEnabled.Value && __instance.GetComponentInParent<GhostFx>() == null)
             {
                 Log("ActionRecycle.OnAction called");
                 if (!isRunning)
                 {
-                    isRunning = true;
-                    ___tempCage.SetActive(true);
+                    var iap = __instance.GetComponentInParent<InventoryAssociatedProxy>();
+                    if (iap.IsSpawned)
+                    {
+                        isRunning = true;
+                        ___tempCage.SetActive(true);
 
-                    var depositor = new Depositor(__instance, ___craftSpawn);
-
-                    __instance.GetComponentInParent<InventoryAssociatedProxy>()
-                        .GetInventory(depositor.OnMachineReceived);
-                } else
+                        var depositor = new Depositor(__instance, ___craftSpawn);
+                        iap.GetInventory(depositor.OnMachineReceived);
+                    }
+                    else
+                    {
+                        Log("  IsSpawned = false");
+                    }
+                }
+                else
                 {
                     Log("ActionRecycle.OnAction -> recycling is still going on");
                 }
@@ -159,7 +167,10 @@ namespace CheatRecyclerRemoteDeposit
                 yield return new WaitForSeconds(t);
                 if (NetworkManager.Singleton?.IsServer ?? true)
                 {
-                    __instance.OnAction();
+                    if (__instance.GetComponentInParent<GhostFx>() == null)
+                    {
+                        __instance.OnAction();
+                    }
                 }
             }
         }
@@ -196,6 +207,13 @@ namespace CheatRecyclerRemoteDeposit
                     Log("WorldObject not found on " + arguments);
                 }
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            isRunning = false;
         }
 
         static void Log(object message)
