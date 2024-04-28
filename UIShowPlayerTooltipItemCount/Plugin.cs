@@ -59,6 +59,10 @@ namespace UIShowPlayerTooltipItemCount
             if (blocksSwitches.showDescription)
             {
                 string gname = Readable.GetGroupName(group);
+                if (group is GroupItem  gi && gi.GetUnlocksGroup() != null)
+                {
+                    gname = Readable.GetGroupName(gi.GetUnlocksGroup());
+                }
                 Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
                 int cnt = 0;
 
