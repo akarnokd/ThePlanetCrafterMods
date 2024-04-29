@@ -39,6 +39,8 @@ namespace CheatAutoStore
 
         static ConfigEntry<string> storeByNameMarker;
 
+        static ConfigEntry<string> keepList;
+
         static InputAction storeAction;
 
         static bool inventoryStoringActive;
@@ -64,6 +66,7 @@ namespace CheatAutoStore
             storeByName = Config.Bind("General", "StoreByName", false, "Store into containers whose naming matches the item id, such as !Iron for example. Use StoreByNameAliases to override individual items.");
             storeByNameAliases = Config.Bind("General", "StoreByNameAliases", "", "A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C");
             storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
+            keepList = Config.Bind("General", "KeepList", "", "A comma separated list of itemId:amount elements to keep a minimum amount of that item. itemId is case sensitive. Example: WaterBottle1:5,OxygenCapsule1:5 to keep 5 water bottles and oxygen capsules in the backpack");
 
             if (!key.Value.Contains("<"))
             {
@@ -276,7 +279,48 @@ namespace CheatAutoStore
             }
             Log("  Processed aliases: " + aliases.Count);
 
+            var keepCounter = new Dictionary<string, int>();
+            var keepListItems = keepList.Value.Split(',');
+            foreach (var kl in keepListItems)
+            {
+                var idAmount = kl.Split(':');
+                if (idAmount.Length == 2)
+                {
+                    if (int.TryParse(idAmount[1], out var amount))
+                    {
+                        keepCounter[idAmount[0].Trim()] = amount;
+                    }
+                }
+            }
+            Log("  Processed keep list: " + aliases.Count);
+
             List<WorldObject> backpackWos = [..backpackInv.GetInsideWorldObjects()];
+            int kept = 0;
+
+            if (keepCounter.Count != 0)
+            {
+                Log("  Begin keep list pruning: " + backpackWos.Count);
+
+                backpackWos.Reverse();
+
+                for (int i = backpackWos.Count - 1; i >= 0; i--)
+                {
+                    var gid = backpackWos[i].GetGroup().GetId();
+
+                    if (keepCounter.TryGetValue(gid, out var amount))
+                    {
+                        if (amount > 0)
+                        {
+                            keepCounter[gid] = amount - 1;
+                            backpackWos.RemoveAt(i);
+                            kept++;
+                        }
+                    }
+                }
+
+                backpackWos.Reverse();
+            }
+
             Log("  Begin enumerating the backpack: " + backpackWos.Count);
 
             var deposited = 0;
@@ -372,7 +416,7 @@ namespace CheatAutoStore
             }
             Log("  Done.");
             inventoryStoringActive = false;
-            Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + backpackWos.Count + " deposited. " + excluded + " excluded.");
+            Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + (backpackWos.Count + kept) + " deposited. " + excluded + " excluded. " + kept + " kept.");
         }
 
         /* Fixed in 1.002

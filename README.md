@@ -1965,96 +1965,98 @@ CustomDepositAliases = Iron:*Common,Magnesium:*Common,Cobalt:*Common;Aluminium:*
 
 <details><summary>List of identifiers (case sensitive)</summary>
 
- - AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
- - Alloy, Aluminium, AmphibiansFarm1, Aquarium1, Aquarium2
- - astrofood, astrofood2, AutoCrafter1, Backpack1, Backpack2
- - Backpack3, Backpack4, Backpack5, Bacteria1, BalzarQuartz
- - Beacon, BedDouble, BedDoubleColored, BedSimple, Bee1Hatched
- - Bee1Larvae, Beehive1, Beehive2, biodome, Biodome2
- - Biolab, Bioplastic1, BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation
- - BlueprintDrone2, BlueprintFireplace, BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator
- - BlueprintLightBoxMedium, BlueprintPod9xA, BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric
- - BlueprintSofaColored, BlueprintSolarQuartz, BlueprintT1, BlueprintTreePlanter, BootsSpeed1
- - BootsSpeed2, BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched
- - Butterfly11Larvae, Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae
- - Butterfly14Hatched, Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched
- - Butterfly16Larvae, Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae
- - Butterfly19Hatched, Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched
- - Butterfly2Larvae, Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae
- - Butterfly5Hatched, Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched
- - Butterfly7Larvae, Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae
- - ButterflyDisplayer1, ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister
- - Chair1, CircuitBoard1, Cobalt, ComAntenna, Container1
- - Container2, Container3, CookCake1, CookChocolate, CookCocoaGrowable
- - CookCocoaSeed, CookCookie1, CookCroissant, CookFlour, CookingStation1
- - CookStew1, CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1
- - CraftStation2, DebrisContainer1, Desktop1, Destructor1, DisplayCase
- - door, Drill0, Drill1, Drill2, Drill3
- - Drill4, Drone1, Drone2, DroneStation1, EnergyGenerator1
- - EnergyGenerator2, EnergyGenerator3, EnergyGenerator4, EnergyGenerator5, EnergyGenerator6
- - EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3, EscapePod, Explosive
- - FabricBlue, Farm1, Fence, Fertilizer1, Fertilizer2
- - Firefly1Hatched, Fireplace, Fish10Eggs, Fish10Hatched, Fish11Eggs
- - Fish11Hatched, Fish12Eggs, Fish12Hatched, Fish13Eggs, Fish13Hatched
- - Fish1Eggs, Fish1Hatched, Fish2Eggs, Fish2Hatched, Fish3Eggs
- - Fish3Hatched, Fish4Eggs, Fish4Hatched, Fish5Eggs, Fish5Hatched
- - Fish6Eggs, Fish6Hatched, Fish7Eggs, Fish7Hatched, Fish8Eggs
- - Fish8Hatched, Fish9Eggs, Fish9Hatched, FishDisplayer1, FishFarm1
- - Flare, FloorGlass, FlowerPot1, Foundation, FountainBig
- - Frog10Eggs, Frog10Hatched, Frog11Eggs, Frog11Hatched, Frog12Eggs
- - Frog12Hatched, Frog13Eggs, Frog13Hatched, Frog1Eggs, Frog1Hatched
- - Frog2Eggs, Frog2Hatched, Frog3Eggs, Frog3Hatched, Frog4Eggs
- - Frog4Hatched, Frog5Eggs, Frog5Hatched, Frog6Eggs, Frog6Hatched
- - Frog7Eggs, Frog7Hatched, Frog8Eggs, Frog8Hatched, Frog9Eggs
- - Frog9Hatched, FrogDisplayer1, FrogGoldEggs, FrogGoldHatched, FuseEnergy1
- - FuseHeat1, FuseOxygen1, FusePlants1, FusePressure1, FuseProduction1
- - FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1, GasExtractor1, GasExtractor2
- - GeneticManipulator1, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
- - GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
- - GrassSpreader1, Heater1, Heater2, Heater3, Heater4
- - Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
- - ice, Incubator1, InsideLamp1, Iridium, Iron
- - Jetpack1, Jetpack2, Jetpack3, Keycard1, Ladder
- - LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform, LightBoxMedium
- - Magnesium, MagnetarQuartz, MapChip, MethanCapsule1, MultiBuild
- - MultiDeconstruct, MultiToolDeconstruct2, MultiToolLight, MultiToolLight2, MultiToolMineSpeed1
- - MultiToolMineSpeed2, MultiToolMineSpeed3, MultiToolMineSpeed4, Mutagen1, Mutagen2
- - Mutagen3, Mutagen4, NitrogenCapsule1, Obsidian, Optimizer1
- - Optimizer2, OreExtractor1, OreExtractor2, OreExtractor3, Osmium
- - OutsideLamp1, OxygenCapsule1, OxygenTank1, OxygenTank2, OxygenTank3
- - OxygenTank4, Phytoplankton1, Phytoplankton2, Phytoplankton3, Phytoplankton4
- - PinChip1, PinChip2, pod, Pod4x, Pod9xA
- - Pod9xB, Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1
- - ProceduralWreckContainer2, ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine
- - RedPowder1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
- - RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
- - RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
- - Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
- - ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
- - ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
- - Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
- - Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
- - SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
- - Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
- - Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
- - SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
- - SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
- - TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
- - TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
- - Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
- - Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
- - Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
- - Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
- - Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
- - TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
- - Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
- - Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
- - VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
- - WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter, WaterLifeCollector1
- - window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3, WreckEntryLocked4
- - WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe, WreckServer
- - Zeolite
-
+- AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
+- Alloy, Aluminium, AmphibiansFarm1, AnimalFeeder1, AnimalShelter1
+- Aquarium1, Aquarium2, astrofood, astrofood2, AutoCrafter1
+- Backpack1, Backpack2, Backpack3, Backpack4, Backpack5
+- Backpack6, Bacteria1, BalzarQuartz, Beacon, BedDouble
+- BedDoubleColored, BedSimple, Bee1Hatched, Bee1Larvae, Beehive1
+- Beehive2, biodome, Biodome2, Biolab, Bioplastic1
+- BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation, BlueprintDrone2, BlueprintFireplace
+- BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator, BlueprintLightBoxMedium, BlueprintPod9xA
+- BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric, BlueprintSofaColored, BlueprintSolarQuartz
+- BlueprintT1, BlueprintTreePlanter, BlueprintWardensChip, BootsSpeed1, BootsSpeed2
+- BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched, Butterfly11Larvae
+- Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae, Butterfly14Hatched
+- Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched, Butterfly16Larvae
+- Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae, Butterfly19Hatched
+- Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched, Butterfly2Larvae
+- Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae, Butterfly5Hatched
+- Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched, Butterfly7Larvae
+- Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae, ButterflyDisplayer1
+- ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister, Chair1
+- CircuitBoard1, Cobalt, ComAntenna, Container1, Container2
+- Container3, CookCake1, CookChocolate, CookCocoaGrowable, CookCocoaSeed
+- CookCookie1, CookCroissant, CookFlour, CookingStation1, CookStew1
+- CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1, CraftStation2
+- DebrisContainer1, DeparturePlatform, Desktop1, Destructor1, DisplayCase
+- DNASequence, door, Drill0, Drill1, Drill2
+- Drill3, Drill4, Drone1, Drone2, DroneStation1
+- EndingExplosives, EnergyGenerator1, EnergyGenerator2, EnergyGenerator3, EnergyGenerator4
+- EnergyGenerator5, EnergyGenerator6, EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3
+- EscapePod, Explosive, FabricBlue, Farm1, Fence
+- Fertilizer1, Fertilizer2, Firefly1Hatched, Fireplace, Fish10Eggs
+- Fish10Hatched, Fish11Eggs, Fish11Hatched, Fish12Eggs, Fish12Hatched
+- Fish13Eggs, Fish13Hatched, Fish1Eggs, Fish1Hatched, Fish2Eggs
+- Fish2Hatched, Fish3Eggs, Fish3Hatched, Fish4Eggs, Fish4Hatched
+- Fish5Eggs, Fish5Hatched, Fish6Eggs, Fish6Hatched, Fish7Eggs
+- Fish7Hatched, Fish8Eggs, Fish8Hatched, Fish9Eggs, Fish9Hatched
+- FishDisplayer1, FishFarm1, Flare, FloorGlass, FlowerPot1
+- Foundation, FountainBig, Frog10Eggs, Frog10Hatched, Frog11Eggs
+- Frog11Hatched, Frog12Eggs, Frog12Hatched, Frog13Eggs, Frog13Hatched
+- Frog1Eggs, Frog1Hatched, Frog2Eggs, Frog2Hatched, Frog3Eggs
+- Frog3Hatched, Frog4Eggs, Frog4Hatched, Frog5Eggs, Frog5Hatched
+- Frog6Eggs, Frog6Hatched, Frog7Eggs, Frog7Hatched, Frog8Eggs
+- Frog8Hatched, Frog9Eggs, Frog9Hatched, FrogDisplayer1, FrogGoldEggs
+- FrogGoldHatched, FuseEnergy1, FuseHeat1, FuseOxygen1, FusePlants1
+- FusePressure1, FuseProduction1, FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1
+- GasExtractor1, GasExtractor2, GeneticExtractor1, GeneticManipulator1, GeneticSynthetizer1
+- GeneticTrait, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
+- GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
+- GrassSpreader1, Heater1, Heater2, Heater3, Heater4
+- Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
+- ice, Incubator1, InsideLamp1, Iridium, Iron
+- Jetpack1, Jetpack2, Jetpack3, Jetpack4, Keycard1
+- Ladder, LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform
+- LightBoxMedium, Magnesium, MagnetarQuartz, MapChip, MethanCapsule1
+- MultiBuild, MultiDeconstruct, MultiToolDeconstruct2, MultiToolDeconstruct3, MultiToolLight
+- MultiToolLight2, MultiToolLight3, MultiToolMineSpeed1, MultiToolMineSpeed2, MultiToolMineSpeed3
+- MultiToolMineSpeed4, Mutagen1, Mutagen2, Mutagen3, Mutagen4
+- NitrogenCapsule1, Obsidian, Optimizer1, Optimizer2, OreExtractor1
+- OreExtractor2, OreExtractor3, Osmium, OutsideLamp1, OxygenCapsule1
+- OxygenTank1, OxygenTank2, OxygenTank3, OxygenTank4, Phytoplankton1
+- Phytoplankton2, Phytoplankton3, Phytoplankton4, PinChip1, PinChip2
+- PinChip3, pod, Pod4x, Pod9xA, Pod9xB
+- Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1, ProceduralWreckContainer2
+- ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine, RedPowder1
+- RocketAnimals1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
+- RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
+- RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
+- Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
+- ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
+- ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
+- Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
+- Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
+- SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
+- Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
+- Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
+- SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
+- SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
+- TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
+- TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
+- Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
+- Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
+- Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
+- Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
+- Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
+- TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
+- Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
+- Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
+- VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
+- WardensChip, WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter
+- WaterLifeCollector1, window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3
+- WreckEntryLocked4, WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe
+- WreckServer, Zeolite
 </details>
 
 
@@ -2111,95 +2113,98 @@ Custom = Vegetable3Seed=2000,BlueprintT1=3000
 
 <details><summary>List of item identifiers</summary>
 
- - AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
- - Alloy, Aluminium, AmphibiansFarm1, Aquarium1, Aquarium2
- - astrofood, astrofood2, AutoCrafter1, Backpack1, Backpack2
- - Backpack3, Backpack4, Backpack5, Bacteria1, BalzarQuartz
- - Beacon, BedDouble, BedDoubleColored, BedSimple, Bee1Hatched
- - Bee1Larvae, Beehive1, Beehive2, biodome, Biodome2
- - Biolab, Bioplastic1, BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation
- - BlueprintDrone2, BlueprintFireplace, BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator
- - BlueprintLightBoxMedium, BlueprintPod9xA, BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric
- - BlueprintSofaColored, BlueprintSolarQuartz, BlueprintT1, BlueprintTreePlanter, BootsSpeed1
- - BootsSpeed2, BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched
- - Butterfly11Larvae, Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae
- - Butterfly14Hatched, Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched
- - Butterfly16Larvae, Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae
- - Butterfly19Hatched, Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched
- - Butterfly2Larvae, Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae
- - Butterfly5Hatched, Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched
- - Butterfly7Larvae, Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae
- - ButterflyDisplayer1, ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister
- - Chair1, CircuitBoard1, Cobalt, ComAntenna, Container1
- - Container2, Container3, CookCake1, CookChocolate, CookCocoaGrowable
- - CookCocoaSeed, CookCookie1, CookCroissant, CookFlour, CookingStation1
- - CookStew1, CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1
- - CraftStation2, DebrisContainer1, Desktop1, Destructor1, DisplayCase
- - door, Drill0, Drill1, Drill2, Drill3
- - Drill4, Drone1, Drone2, DroneStation1, EnergyGenerator1
- - EnergyGenerator2, EnergyGenerator3, EnergyGenerator4, EnergyGenerator5, EnergyGenerator6
- - EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3, EscapePod, Explosive
- - FabricBlue, Farm1, Fence, Fertilizer1, Fertilizer2
- - Firefly1Hatched, Fireplace, Fish10Eggs, Fish10Hatched, Fish11Eggs
- - Fish11Hatched, Fish12Eggs, Fish12Hatched, Fish13Eggs, Fish13Hatched
- - Fish1Eggs, Fish1Hatched, Fish2Eggs, Fish2Hatched, Fish3Eggs
- - Fish3Hatched, Fish4Eggs, Fish4Hatched, Fish5Eggs, Fish5Hatched
- - Fish6Eggs, Fish6Hatched, Fish7Eggs, Fish7Hatched, Fish8Eggs
- - Fish8Hatched, Fish9Eggs, Fish9Hatched, FishDisplayer1, FishFarm1
- - Flare, FloorGlass, FlowerPot1, Foundation, FountainBig
- - Frog10Eggs, Frog10Hatched, Frog11Eggs, Frog11Hatched, Frog12Eggs
- - Frog12Hatched, Frog13Eggs, Frog13Hatched, Frog1Eggs, Frog1Hatched
- - Frog2Eggs, Frog2Hatched, Frog3Eggs, Frog3Hatched, Frog4Eggs
- - Frog4Hatched, Frog5Eggs, Frog5Hatched, Frog6Eggs, Frog6Hatched
- - Frog7Eggs, Frog7Hatched, Frog8Eggs, Frog8Hatched, Frog9Eggs
- - Frog9Hatched, FrogDisplayer1, FrogGoldEggs, FrogGoldHatched, FuseEnergy1
- - FuseHeat1, FuseOxygen1, FusePlants1, FusePressure1, FuseProduction1
- - FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1, GasExtractor1, GasExtractor2
- - GeneticManipulator1, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
- - GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
- - GrassSpreader1, Heater1, Heater2, Heater3, Heater4
- - Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
- - ice, Incubator1, InsideLamp1, Iridium, Iron
- - Jetpack1, Jetpack2, Jetpack3, Keycard1, Ladder
- - LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform, LightBoxMedium
- - Magnesium, MagnetarQuartz, MapChip, MethanCapsule1, MultiBuild
- - MultiDeconstruct, MultiToolDeconstruct2, MultiToolLight, MultiToolLight2, MultiToolMineSpeed1
- - MultiToolMineSpeed2, MultiToolMineSpeed3, MultiToolMineSpeed4, Mutagen1, Mutagen2
- - Mutagen3, Mutagen4, NitrogenCapsule1, Obsidian, Optimizer1
- - Optimizer2, OreExtractor1, OreExtractor2, OreExtractor3, Osmium
- - OutsideLamp1, OxygenCapsule1, OxygenTank1, OxygenTank2, OxygenTank3
- - OxygenTank4, Phytoplankton1, Phytoplankton2, Phytoplankton3, Phytoplankton4
- - PinChip1, PinChip2, pod, Pod4x, Pod9xA
- - Pod9xB, Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1
- - ProceduralWreckContainer2, ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine
- - RedPowder1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
- - RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
- - RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
- - Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
- - ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
- - ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
- - Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
- - Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
- - SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
- - Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
- - Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
- - SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
- - SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
- - TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
- - TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
- - Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
- - Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
- - Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
- - Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
- - Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
- - TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
- - Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
- - Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
- - VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
- - WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter, WaterLifeCollector1
- - window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3, WreckEntryLocked4
- - WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe, WreckServer
- - Zeolite
+- AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
+- Alloy, Aluminium, AmphibiansFarm1, AnimalFeeder1, AnimalShelter1
+- Aquarium1, Aquarium2, astrofood, astrofood2, AutoCrafter1
+- Backpack1, Backpack2, Backpack3, Backpack4, Backpack5
+- Backpack6, Bacteria1, BalzarQuartz, Beacon, BedDouble
+- BedDoubleColored, BedSimple, Bee1Hatched, Bee1Larvae, Beehive1
+- Beehive2, biodome, Biodome2, Biolab, Bioplastic1
+- BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation, BlueprintDrone2, BlueprintFireplace
+- BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator, BlueprintLightBoxMedium, BlueprintPod9xA
+- BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric, BlueprintSofaColored, BlueprintSolarQuartz
+- BlueprintT1, BlueprintTreePlanter, BlueprintWardensChip, BootsSpeed1, BootsSpeed2
+- BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched, Butterfly11Larvae
+- Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae, Butterfly14Hatched
+- Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched, Butterfly16Larvae
+- Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae, Butterfly19Hatched
+- Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched, Butterfly2Larvae
+- Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae, Butterfly5Hatched
+- Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched, Butterfly7Larvae
+- Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae, ButterflyDisplayer1
+- ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister, Chair1
+- CircuitBoard1, Cobalt, ComAntenna, Container1, Container2
+- Container3, CookCake1, CookChocolate, CookCocoaGrowable, CookCocoaSeed
+- CookCookie1, CookCroissant, CookFlour, CookingStation1, CookStew1
+- CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1, CraftStation2
+- DebrisContainer1, DeparturePlatform, Desktop1, Destructor1, DisplayCase
+- DNASequence, door, Drill0, Drill1, Drill2
+- Drill3, Drill4, Drone1, Drone2, DroneStation1
+- EndingExplosives, EnergyGenerator1, EnergyGenerator2, EnergyGenerator3, EnergyGenerator4
+- EnergyGenerator5, EnergyGenerator6, EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3
+- EscapePod, Explosive, FabricBlue, Farm1, Fence
+- Fertilizer1, Fertilizer2, Firefly1Hatched, Fireplace, Fish10Eggs
+- Fish10Hatched, Fish11Eggs, Fish11Hatched, Fish12Eggs, Fish12Hatched
+- Fish13Eggs, Fish13Hatched, Fish1Eggs, Fish1Hatched, Fish2Eggs
+- Fish2Hatched, Fish3Eggs, Fish3Hatched, Fish4Eggs, Fish4Hatched
+- Fish5Eggs, Fish5Hatched, Fish6Eggs, Fish6Hatched, Fish7Eggs
+- Fish7Hatched, Fish8Eggs, Fish8Hatched, Fish9Eggs, Fish9Hatched
+- FishDisplayer1, FishFarm1, Flare, FloorGlass, FlowerPot1
+- Foundation, FountainBig, Frog10Eggs, Frog10Hatched, Frog11Eggs
+- Frog11Hatched, Frog12Eggs, Frog12Hatched, Frog13Eggs, Frog13Hatched
+- Frog1Eggs, Frog1Hatched, Frog2Eggs, Frog2Hatched, Frog3Eggs
+- Frog3Hatched, Frog4Eggs, Frog4Hatched, Frog5Eggs, Frog5Hatched
+- Frog6Eggs, Frog6Hatched, Frog7Eggs, Frog7Hatched, Frog8Eggs
+- Frog8Hatched, Frog9Eggs, Frog9Hatched, FrogDisplayer1, FrogGoldEggs
+- FrogGoldHatched, FuseEnergy1, FuseHeat1, FuseOxygen1, FusePlants1
+- FusePressure1, FuseProduction1, FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1
+- GasExtractor1, GasExtractor2, GeneticExtractor1, GeneticManipulator1, GeneticSynthetizer1
+- GeneticTrait, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
+- GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
+- GrassSpreader1, Heater1, Heater2, Heater3, Heater4
+- Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
+- ice, Incubator1, InsideLamp1, Iridium, Iron
+- Jetpack1, Jetpack2, Jetpack3, Jetpack4, Keycard1
+- Ladder, LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform
+- LightBoxMedium, Magnesium, MagnetarQuartz, MapChip, MethanCapsule1
+- MultiBuild, MultiDeconstruct, MultiToolDeconstruct2, MultiToolDeconstruct3, MultiToolLight
+- MultiToolLight2, MultiToolLight3, MultiToolMineSpeed1, MultiToolMineSpeed2, MultiToolMineSpeed3
+- MultiToolMineSpeed4, Mutagen1, Mutagen2, Mutagen3, Mutagen4
+- NitrogenCapsule1, Obsidian, Optimizer1, Optimizer2, OreExtractor1
+- OreExtractor2, OreExtractor3, Osmium, OutsideLamp1, OxygenCapsule1
+- OxygenTank1, OxygenTank2, OxygenTank3, OxygenTank4, Phytoplankton1
+- Phytoplankton2, Phytoplankton3, Phytoplankton4, PinChip1, PinChip2
+- PinChip3, pod, Pod4x, Pod9xA, Pod9xB
+- Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1, ProceduralWreckContainer2
+- ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine, RedPowder1
+- RocketAnimals1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
+- RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
+- RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
+- Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
+- ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
+- ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
+- Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
+- Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
+- SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
+- Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
+- Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
+- SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
+- SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
+- TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
+- TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
+- Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
+- Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
+- Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
+- Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
+- Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
+- TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
+- Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
+- Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
+- VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
+- WardensChip, WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter
+- WaterLifeCollector1, window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3
+- WreckEntryLocked4, WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe
+- WreckServer, Zeolite
 </details>
 
 
@@ -2440,97 +2445,116 @@ case-sensitive item identifiers (see below).
 IncludeList=Uranim,ice
 ```
 
+The original aedenthorn mod stored items next to the same items already in the containers. However, if the container got emptied, this link got broken. You can now use the same method like with other remote deposit mods of mine to designate containers by naming them.
+
+You can toggle this behavior by setting `storeByName` true. You can turn the original behavior off via `storeBySame`. You can have both on.
+
+The proximity, include and exclude settings still apply to this mode.
+
+To designate a container for an item, name it by the item's identifier: `!Iron`. This mod uses the exclamation point by default to prefix the item identifier, to distinguish it from the other remote deposit mods which use star. You can change this prefix via `storeByNameMarker`.
+
+You can also apply aliases to either sorten the name required and/or to target the same container with multiple items. Set the `storeByNameAliases` to a comma separated list of itemId (case sensitive) - semicolon - name (case insensitive). Example:
+
+`Iron:junk,ice:junk,Uranim:precious`
+
+You can specify a comma separated list item ids (case sensitive) and counts to always keep in the backpack via `KeepList`:
+
+`KeepList = WaterBottle1:5,OxygenCapsule1:3`
+
 <details><summary>List of item identifiers</summary>
 
- - AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
- - Alloy, Aluminium, AmphibiansFarm1, Aquarium1, Aquarium2
- - astrofood, astrofood2, AutoCrafter1, Backpack1, Backpack2
- - Backpack3, Backpack4, Backpack5, Bacteria1, BalzarQuartz
- - Beacon, BedDouble, BedDoubleColored, BedSimple, Bee1Hatched
- - Bee1Larvae, Beehive1, Beehive2, biodome, Biodome2
- - Biolab, Bioplastic1, BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation
- - BlueprintDrone2, BlueprintFireplace, BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator
- - BlueprintLightBoxMedium, BlueprintPod9xA, BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric
- - BlueprintSofaColored, BlueprintSolarQuartz, BlueprintT1, BlueprintTreePlanter, BootsSpeed1
- - BootsSpeed2, BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched
- - Butterfly11Larvae, Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae
- - Butterfly14Hatched, Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched
- - Butterfly16Larvae, Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae
- - Butterfly19Hatched, Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched
- - Butterfly2Larvae, Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae
- - Butterfly5Hatched, Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched
- - Butterfly7Larvae, Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae
- - ButterflyDisplayer1, ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister
- - Chair1, CircuitBoard1, Cobalt, ComAntenna, Container1
- - Container2, Container3, CookCake1, CookChocolate, CookCocoaGrowable
- - CookCocoaSeed, CookCookie1, CookCroissant, CookFlour, CookingStation1
- - CookStew1, CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1
- - CraftStation2, DebrisContainer1, Desktop1, Destructor1, DisplayCase
- - door, Drill0, Drill1, Drill2, Drill3
- - Drill4, Drone1, Drone2, DroneStation1, EnergyGenerator1
- - EnergyGenerator2, EnergyGenerator3, EnergyGenerator4, EnergyGenerator5, EnergyGenerator6
- - EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3, EscapePod, Explosive
- - FabricBlue, Farm1, Fence, Fertilizer1, Fertilizer2
- - Firefly1Hatched, Fireplace, Fish10Eggs, Fish10Hatched, Fish11Eggs
- - Fish11Hatched, Fish12Eggs, Fish12Hatched, Fish13Eggs, Fish13Hatched
- - Fish1Eggs, Fish1Hatched, Fish2Eggs, Fish2Hatched, Fish3Eggs
- - Fish3Hatched, Fish4Eggs, Fish4Hatched, Fish5Eggs, Fish5Hatched
- - Fish6Eggs, Fish6Hatched, Fish7Eggs, Fish7Hatched, Fish8Eggs
- - Fish8Hatched, Fish9Eggs, Fish9Hatched, FishDisplayer1, FishFarm1
- - Flare, FloorGlass, FlowerPot1, Foundation, FountainBig
- - Frog10Eggs, Frog10Hatched, Frog11Eggs, Frog11Hatched, Frog12Eggs
- - Frog12Hatched, Frog13Eggs, Frog13Hatched, Frog1Eggs, Frog1Hatched
- - Frog2Eggs, Frog2Hatched, Frog3Eggs, Frog3Hatched, Frog4Eggs
- - Frog4Hatched, Frog5Eggs, Frog5Hatched, Frog6Eggs, Frog6Hatched
- - Frog7Eggs, Frog7Hatched, Frog8Eggs, Frog8Hatched, Frog9Eggs
- - Frog9Hatched, FrogDisplayer1, FrogGoldEggs, FrogGoldHatched, FuseEnergy1
- - FuseHeat1, FuseOxygen1, FusePlants1, FusePressure1, FuseProduction1
- - FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1, GasExtractor1, GasExtractor2
- - GeneticManipulator1, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
- - GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
- - GrassSpreader1, Heater1, Heater2, Heater3, Heater4
- - Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
- - ice, Incubator1, InsideLamp1, Iridium, Iron
- - Jetpack1, Jetpack2, Jetpack3, Keycard1, Ladder
- - LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform, LightBoxMedium
- - Magnesium, MagnetarQuartz, MapChip, MethanCapsule1, MultiBuild
- - MultiDeconstruct, MultiToolDeconstruct2, MultiToolLight, MultiToolLight2, MultiToolMineSpeed1
- - MultiToolMineSpeed2, MultiToolMineSpeed3, MultiToolMineSpeed4, Mutagen1, Mutagen2
- - Mutagen3, Mutagen4, NitrogenCapsule1, Obsidian, Optimizer1
- - Optimizer2, OreExtractor1, OreExtractor2, OreExtractor3, Osmium
- - OutsideLamp1, OxygenCapsule1, OxygenTank1, OxygenTank2, OxygenTank3
- - OxygenTank4, Phytoplankton1, Phytoplankton2, Phytoplankton3, Phytoplankton4
- - PinChip1, PinChip2, pod, Pod4x, Pod9xA
- - Pod9xB, Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1
- - ProceduralWreckContainer2, ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine
- - RedPowder1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
- - RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
- - RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
- - Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
- - ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
- - ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
- - Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
- - Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
- - SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
- - Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
- - Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
- - SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
- - SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
- - TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
- - TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
- - Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
- - Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
- - Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
- - Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
- - Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
- - TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
- - Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
- - Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
- - VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
- - WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter, WaterLifeCollector1
- - window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3, WreckEntryLocked4
- - WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe, WreckServer
- - Zeolite
+- AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
+- Alloy, Aluminium, AmphibiansFarm1, AnimalFeeder1, AnimalShelter1
+- Aquarium1, Aquarium2, astrofood, astrofood2, AutoCrafter1
+- Backpack1, Backpack2, Backpack3, Backpack4, Backpack5
+- Backpack6, Bacteria1, BalzarQuartz, Beacon, BedDouble
+- BedDoubleColored, BedSimple, Bee1Hatched, Bee1Larvae, Beehive1
+- Beehive2, biodome, Biodome2, Biolab, Bioplastic1
+- BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation, BlueprintDrone2, BlueprintFireplace
+- BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator, BlueprintLightBoxMedium, BlueprintPod9xA
+- BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric, BlueprintSofaColored, BlueprintSolarQuartz
+- BlueprintT1, BlueprintTreePlanter, BlueprintWardensChip, BootsSpeed1, BootsSpeed2
+- BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched, Butterfly11Larvae
+- Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae, Butterfly14Hatched
+- Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched, Butterfly16Larvae
+- Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae, Butterfly19Hatched
+- Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched, Butterfly2Larvae
+- Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae, Butterfly5Hatched
+- Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched, Butterfly7Larvae
+- Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae, ButterflyDisplayer1
+- ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister, Chair1
+- CircuitBoard1, Cobalt, ComAntenna, Container1, Container2
+- Container3, CookCake1, CookChocolate, CookCocoaGrowable, CookCocoaSeed
+- CookCookie1, CookCroissant, CookFlour, CookingStation1, CookStew1
+- CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1, CraftStation2
+- DebrisContainer1, DeparturePlatform, Desktop1, Destructor1, DisplayCase
+- DNASequence, door, Drill0, Drill1, Drill2
+- Drill3, Drill4, Drone1, Drone2, DroneStation1
+- EndingExplosives, EnergyGenerator1, EnergyGenerator2, EnergyGenerator3, EnergyGenerator4
+- EnergyGenerator5, EnergyGenerator6, EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3
+- EscapePod, Explosive, FabricBlue, Farm1, Fence
+- Fertilizer1, Fertilizer2, Firefly1Hatched, Fireplace, Fish10Eggs
+- Fish10Hatched, Fish11Eggs, Fish11Hatched, Fish12Eggs, Fish12Hatched
+- Fish13Eggs, Fish13Hatched, Fish1Eggs, Fish1Hatched, Fish2Eggs
+- Fish2Hatched, Fish3Eggs, Fish3Hatched, Fish4Eggs, Fish4Hatched
+- Fish5Eggs, Fish5Hatched, Fish6Eggs, Fish6Hatched, Fish7Eggs
+- Fish7Hatched, Fish8Eggs, Fish8Hatched, Fish9Eggs, Fish9Hatched
+- FishDisplayer1, FishFarm1, Flare, FloorGlass, FlowerPot1
+- Foundation, FountainBig, Frog10Eggs, Frog10Hatched, Frog11Eggs
+- Frog11Hatched, Frog12Eggs, Frog12Hatched, Frog13Eggs, Frog13Hatched
+- Frog1Eggs, Frog1Hatched, Frog2Eggs, Frog2Hatched, Frog3Eggs
+- Frog3Hatched, Frog4Eggs, Frog4Hatched, Frog5Eggs, Frog5Hatched
+- Frog6Eggs, Frog6Hatched, Frog7Eggs, Frog7Hatched, Frog8Eggs
+- Frog8Hatched, Frog9Eggs, Frog9Hatched, FrogDisplayer1, FrogGoldEggs
+- FrogGoldHatched, FuseEnergy1, FuseHeat1, FuseOxygen1, FusePlants1
+- FusePressure1, FuseProduction1, FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1
+- GasExtractor1, GasExtractor2, GeneticExtractor1, GeneticManipulator1, GeneticSynthetizer1
+- GeneticTrait, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
+- GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
+- GrassSpreader1, Heater1, Heater2, Heater3, Heater4
+- Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
+- ice, Incubator1, InsideLamp1, Iridium, Iron
+- Jetpack1, Jetpack2, Jetpack3, Jetpack4, Keycard1
+- Ladder, LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform
+- LightBoxMedium, Magnesium, MagnetarQuartz, MapChip, MethanCapsule1
+- MultiBuild, MultiDeconstruct, MultiToolDeconstruct2, MultiToolDeconstruct3, MultiToolLight
+- MultiToolLight2, MultiToolLight3, MultiToolMineSpeed1, MultiToolMineSpeed2, MultiToolMineSpeed3
+- MultiToolMineSpeed4, Mutagen1, Mutagen2, Mutagen3, Mutagen4
+- NitrogenCapsule1, Obsidian, Optimizer1, Optimizer2, OreExtractor1
+- OreExtractor2, OreExtractor3, Osmium, OutsideLamp1, OxygenCapsule1
+- OxygenTank1, OxygenTank2, OxygenTank3, OxygenTank4, Phytoplankton1
+- Phytoplankton2, Phytoplankton3, Phytoplankton4, PinChip1, PinChip2
+- PinChip3, pod, Pod4x, Pod9xA, Pod9xB
+- Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1, ProceduralWreckContainer2
+- ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine, RedPowder1
+- RocketAnimals1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
+- RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
+- RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
+- Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
+- ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
+- ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
+- Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
+- Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
+- SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
+- Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
+- Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
+- SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
+- SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
+- TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
+- TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
+- Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
+- Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
+- Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
+- Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
+- Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
+- TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
+- Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
+- Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
+- VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
+- WardensChip, WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter
+- WaterLifeCollector1, window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3
+- WreckEntryLocked4, WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe
+- WreckServer, Zeolite
 </details>
 
 ### Configuration
@@ -2548,7 +2572,7 @@ Enabled = true
 ## Enable detailed logging? Chatty!
 # Setting type: Boolean
 # Default value: false
-DebugMode = false
+DebugMode = true
 
 ## The range to look for containers within.
 # Setting type: Int32
@@ -2569,6 +2593,31 @@ ExcludeList =
 # Setting type: String
 # Default value: <Keyboard>/K
 Key = <Keyboard>/K
+
+## Original behavior, store next to the same already stored items.
+# Setting type: Boolean
+# Default value: true
+StoreBySame = true
+
+## Store into containers whose naming matches the item id, such as !Iron for example. Use StoreByNameAliases to override individual items.
+# Setting type: Boolean
+# Default value: false
+StoreByName = false
+
+## A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C
+# Setting type: String
+# Default value: 
+StoreByNameAliases = Iron:abc
+
+## The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.
+# Setting type: String
+# Default value: !
+StoreByNameMarker = !
+
+## A comma separated list of itemId:amount elements to keep a minimum amount of that item. itemId is case sensitive. Example: WaterBottle1:5,OxygenCapsule1:5 to keep 5 water bottles and oxygen capsules in the backpack
+# Setting type: String
+# Default value: 
+KeepList = 
 ```
 </details>
 
@@ -2594,95 +2643,98 @@ IncludeList=Uranim,ice
 
 <details><summary>List of item identifiers</summary>
 
- - AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
- - Alloy, Aluminium, AmphibiansFarm1, Aquarium1, Aquarium2
- - astrofood, astrofood2, AutoCrafter1, Backpack1, Backpack2
- - Backpack3, Backpack4, Backpack5, Bacteria1, BalzarQuartz
- - Beacon, BedDouble, BedDoubleColored, BedSimple, Bee1Hatched
- - Bee1Larvae, Beehive1, Beehive2, biodome, Biodome2
- - Biolab, Bioplastic1, BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation
- - BlueprintDrone2, BlueprintFireplace, BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator
- - BlueprintLightBoxMedium, BlueprintPod9xA, BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric
- - BlueprintSofaColored, BlueprintSolarQuartz, BlueprintT1, BlueprintTreePlanter, BootsSpeed1
- - BootsSpeed2, BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched
- - Butterfly11Larvae, Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae
- - Butterfly14Hatched, Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched
- - Butterfly16Larvae, Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae
- - Butterfly19Hatched, Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched
- - Butterfly2Larvae, Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae
- - Butterfly5Hatched, Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched
- - Butterfly7Larvae, Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae
- - ButterflyDisplayer1, ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister
- - Chair1, CircuitBoard1, Cobalt, ComAntenna, Container1
- - Container2, Container3, CookCake1, CookChocolate, CookCocoaGrowable
- - CookCocoaSeed, CookCookie1, CookCroissant, CookFlour, CookingStation1
- - CookStew1, CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1
- - CraftStation2, DebrisContainer1, Desktop1, Destructor1, DisplayCase
- - door, Drill0, Drill1, Drill2, Drill3
- - Drill4, Drone1, Drone2, DroneStation1, EnergyGenerator1
- - EnergyGenerator2, EnergyGenerator3, EnergyGenerator4, EnergyGenerator5, EnergyGenerator6
- - EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3, EscapePod, Explosive
- - FabricBlue, Farm1, Fence, Fertilizer1, Fertilizer2
- - Firefly1Hatched, Fireplace, Fish10Eggs, Fish10Hatched, Fish11Eggs
- - Fish11Hatched, Fish12Eggs, Fish12Hatched, Fish13Eggs, Fish13Hatched
- - Fish1Eggs, Fish1Hatched, Fish2Eggs, Fish2Hatched, Fish3Eggs
- - Fish3Hatched, Fish4Eggs, Fish4Hatched, Fish5Eggs, Fish5Hatched
- - Fish6Eggs, Fish6Hatched, Fish7Eggs, Fish7Hatched, Fish8Eggs
- - Fish8Hatched, Fish9Eggs, Fish9Hatched, FishDisplayer1, FishFarm1
- - Flare, FloorGlass, FlowerPot1, Foundation, FountainBig
- - Frog10Eggs, Frog10Hatched, Frog11Eggs, Frog11Hatched, Frog12Eggs
- - Frog12Hatched, Frog13Eggs, Frog13Hatched, Frog1Eggs, Frog1Hatched
- - Frog2Eggs, Frog2Hatched, Frog3Eggs, Frog3Hatched, Frog4Eggs
- - Frog4Hatched, Frog5Eggs, Frog5Hatched, Frog6Eggs, Frog6Hatched
- - Frog7Eggs, Frog7Hatched, Frog8Eggs, Frog8Hatched, Frog9Eggs
- - Frog9Hatched, FrogDisplayer1, FrogGoldEggs, FrogGoldHatched, FuseEnergy1
- - FuseHeat1, FuseOxygen1, FusePlants1, FusePressure1, FuseProduction1
- - FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1, GasExtractor1, GasExtractor2
- - GeneticManipulator1, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
- - GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
- - GrassSpreader1, Heater1, Heater2, Heater3, Heater4
- - Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
- - ice, Incubator1, InsideLamp1, Iridium, Iron
- - Jetpack1, Jetpack2, Jetpack3, Keycard1, Ladder
- - LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform, LightBoxMedium
- - Magnesium, MagnetarQuartz, MapChip, MethanCapsule1, MultiBuild
- - MultiDeconstruct, MultiToolDeconstruct2, MultiToolLight, MultiToolLight2, MultiToolMineSpeed1
- - MultiToolMineSpeed2, MultiToolMineSpeed3, MultiToolMineSpeed4, Mutagen1, Mutagen2
- - Mutagen3, Mutagen4, NitrogenCapsule1, Obsidian, Optimizer1
- - Optimizer2, OreExtractor1, OreExtractor2, OreExtractor3, Osmium
- - OutsideLamp1, OxygenCapsule1, OxygenTank1, OxygenTank2, OxygenTank3
- - OxygenTank4, Phytoplankton1, Phytoplankton2, Phytoplankton3, Phytoplankton4
- - PinChip1, PinChip2, pod, Pod4x, Pod9xA
- - Pod9xB, Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1
- - ProceduralWreckContainer2, ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine
- - RedPowder1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
- - RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
- - RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
- - Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
- - ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
- - ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
- - Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
- - Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
- - SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
- - Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
- - Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
- - SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
- - SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
- - TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
- - TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
- - Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
- - Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
- - Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
- - Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
- - Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
- - TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
- - Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
- - Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
- - VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
- - WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter, WaterLifeCollector1
- - window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3, WreckEntryLocked4
- - WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe, WreckServer
- - Zeolite
+- AirFilter1, Algae1Growable, Algae1Seed, AlgaeGenerator1, AlgaeGenerator2
+- Alloy, Aluminium, AmphibiansFarm1, AnimalFeeder1, AnimalShelter1
+- Aquarium1, Aquarium2, astrofood, astrofood2, AutoCrafter1
+- Backpack1, Backpack2, Backpack3, Backpack4, Backpack5
+- Backpack6, Bacteria1, BalzarQuartz, Beacon, BedDouble
+- BedDoubleColored, BedSimple, Bee1Hatched, Bee1Larvae, Beehive1
+- Beehive2, biodome, Biodome2, Biolab, Bioplastic1
+- BlueprintBedDoubleColored, BlueprintContainer3, BlueprintCookingStation, BlueprintDrone2, BlueprintFireplace
+- BlueprintFlare, BlueprintFountainBig, BlueprintHologramGenerator, BlueprintLightBoxMedium, BlueprintPod9xA
+- BlueprintPod9xB, BlueprintPod9xC, BlueprintSmartFabric, BlueprintSofaColored, BlueprintSolarQuartz
+- BlueprintT1, BlueprintTreePlanter, BlueprintWardensChip, BootsSpeed1, BootsSpeed2
+- BootsSpeed3, Butterfly10Hatched, Butterfly10Larvae, Butterfly11Hatched, Butterfly11Larvae
+- Butterfly12Hatched, Butterfly12Larvae, Butterfly13Hatched, Butterfly13Larvae, Butterfly14Hatched
+- Butterfly14Larvae, Butterfly15Hatched, Butterfly15Larvae, Butterfly16Hatched, Butterfly16Larvae
+- Butterfly17Hatched, Butterfly17Larvae, Butterfly18Hatched, Butterfly18Larvae, Butterfly19Hatched
+- Butterfly19Larvae, Butterfly1Hatched, Butterfly1Larvae, Butterfly2Hatched, Butterfly2Larvae
+- Butterfly3Hatched, Butterfly3Larvae, Butterfly4Hatched, Butterfly4Larvae, Butterfly5Hatched
+- Butterfly5Larvae, Butterfly6Hatched, Butterfly6Larvae, Butterfly7Hatched, Butterfly7Larvae
+- Butterfly8Hatched, Butterfly8Larvae, Butterfly9Hatched, Butterfly9Larvae, ButterflyDisplayer1
+- ButterflyDome1, ButterflyFarm1, ButterflyFarm2, canister, Chair1
+- CircuitBoard1, Cobalt, ComAntenna, Container1, Container2
+- Container3, CookCake1, CookChocolate, CookCocoaGrowable, CookCocoaSeed
+- CookCookie1, CookCroissant, CookFlour, CookingStation1, CookStew1
+- CookStewFish1, CookWheatGrowable, CookWheatSeed, CraftStation1, CraftStation2
+- DebrisContainer1, DeparturePlatform, Desktop1, Destructor1, DisplayCase
+- DNASequence, door, Drill0, Drill1, Drill2
+- Drill3, Drill4, Drone1, Drone2, DroneStation1
+- EndingExplosives, EnergyGenerator1, EnergyGenerator2, EnergyGenerator3, EnergyGenerator4
+- EnergyGenerator5, EnergyGenerator6, EquipmentIncrease1, EquipmentIncrease2, EquipmentIncrease3
+- EscapePod, Explosive, FabricBlue, Farm1, Fence
+- Fertilizer1, Fertilizer2, Firefly1Hatched, Fireplace, Fish10Eggs
+- Fish10Hatched, Fish11Eggs, Fish11Hatched, Fish12Eggs, Fish12Hatched
+- Fish13Eggs, Fish13Hatched, Fish1Eggs, Fish1Hatched, Fish2Eggs
+- Fish2Hatched, Fish3Eggs, Fish3Hatched, Fish4Eggs, Fish4Hatched
+- Fish5Eggs, Fish5Hatched, Fish6Eggs, Fish6Hatched, Fish7Eggs
+- Fish7Hatched, Fish8Eggs, Fish8Hatched, Fish9Eggs, Fish9Hatched
+- FishDisplayer1, FishFarm1, Flare, FloorGlass, FlowerPot1
+- Foundation, FountainBig, Frog10Eggs, Frog10Hatched, Frog11Eggs
+- Frog11Hatched, Frog12Eggs, Frog12Hatched, Frog13Eggs, Frog13Hatched
+- Frog1Eggs, Frog1Hatched, Frog2Eggs, Frog2Hatched, Frog3Eggs
+- Frog3Hatched, Frog4Eggs, Frog4Hatched, Frog5Eggs, Frog5Hatched
+- Frog6Eggs, Frog6Hatched, Frog7Eggs, Frog7Hatched, Frog8Eggs
+- Frog8Hatched, Frog9Eggs, Frog9Hatched, FrogDisplayer1, FrogGoldEggs
+- FrogGoldHatched, FuseEnergy1, FuseHeat1, FuseOxygen1, FusePlants1
+- FusePressure1, FuseProduction1, FuseTradeRocketsSpeed1, FusionEnergyCell, FusionGenerator1
+- GasExtractor1, GasExtractor2, GeneticExtractor1, GeneticManipulator1, GeneticSynthetizer1
+- GeneticTrait, GoldenContainer, GoldenEffigie1, GoldenEffigie2, GoldenEffigie3
+- GoldenEffigie4, GoldenEffigie5, GoldenEffigie6, GoldenEffigie7, GoldenEffigie8
+- GrassSpreader1, Heater1, Heater2, Heater3, Heater4
+- Heater5, HologramGenerator, honey, HudChipCleanConstruction, HudCompass
+- ice, Incubator1, InsideLamp1, Iridium, Iron
+- Jetpack1, Jetpack2, Jetpack3, Jetpack4, Keycard1
+- Ladder, LarvaeBase1, LarvaeBase2, LarvaeBase3, LaunchPlatform
+- LightBoxMedium, Magnesium, MagnetarQuartz, MapChip, MethanCapsule1
+- MultiBuild, MultiDeconstruct, MultiToolDeconstruct2, MultiToolDeconstruct3, MultiToolLight
+- MultiToolLight2, MultiToolLight3, MultiToolMineSpeed1, MultiToolMineSpeed2, MultiToolMineSpeed3
+- MultiToolMineSpeed4, Mutagen1, Mutagen2, Mutagen3, Mutagen4
+- NitrogenCapsule1, Obsidian, Optimizer1, Optimizer2, OreExtractor1
+- OreExtractor2, OreExtractor3, Osmium, OutsideLamp1, OxygenCapsule1
+- OxygenTank1, OxygenTank2, OxygenTank3, OxygenTank4, Phytoplankton1
+- Phytoplankton2, Phytoplankton3, Phytoplankton4, PinChip1, PinChip2
+- PinChip3, pod, Pod4x, Pod9xA, Pod9xB
+- Pod9xC, podAngle, PortalGenerator1, ProceduralWreckContainer1, ProceduralWreckContainer2
+- ProceduralWreckSafe, PulsarQuartz, QuasarQuartz, RecyclingMachine, RedPowder1
+- RocketAnimals1, RocketBiomass1, RocketDrones1, RocketHeat1, RocketInformations1
+- RocketInsects1, RocketMap1, RocketMap2, RocketMap3, RocketMap4
+- RocketOxygen1, RocketPressure1, RocketReactor, RockExplodable, Rod-alloy
+- Rod-iridium, Rod-osmium, Rod-uranium, ScreenBiomass, ScreenEnergy
+- ScreenMap1, ScreenMessage, ScreenRockets, ScreenTerraformation, ScreenTerraStage
+- ScreenUnlockables, Seed0, Seed0Growable, Seed1, Seed1Growable
+- Seed2, Seed2Growable, Seed3, Seed3Growable, Seed4
+- Seed4Growable, Seed5, Seed5Growable, Seed6, Seed6Growable
+- SeedGold, SeedGoldGrowable, SeedSpreader1, SeedSpreader2, Sign
+- Silicon, Silk, SilkGenerator, SilkWorm, SmartFabric
+- Sofa, SofaAngle, SofaColored, SolarQuartz, SpaceMultiplierAnimals
+- SpaceMultiplierBiomass, SpaceMultiplierHeat, SpaceMultiplierInsects, SpaceMultiplierOxygen, SpaceMultiplierPlants
+- SpaceMultiplierPressure, Stairs, Sulfur, TableSmall, Teleporter1
+- TerraTokens100, TerraTokens1000, TerraTokens500, TerraTokens5000, Titanium
+- TradePlatform1, Tree0Growable, Tree0Seed, Tree10Growable, Tree10Seed
+- Tree11Growable, Tree11Seed, Tree12Growable, Tree12Seed, Tree1Growable
+- Tree1Seed, Tree2Growable, Tree2Seed, Tree3Growable, Tree3Seed
+- Tree4Growable, Tree4Seed, Tree5Growable, Tree5Seed, Tree6Growable
+- Tree6Seed, Tree7Growable, Tree7Seed, Tree8Growable, Tree8Seed
+- Tree9Growable, Tree9Seed, TreePlanter, TreeRoot, TreeSpreader0
+- TreeSpreader1, TreeSpreader2, Uranim, Vegetable0Growable, Vegetable0Seed
+- Vegetable1Growable, Vegetable1Seed, Vegetable2Growable, Vegetable2Seed, Vegetable3Growable
+- Vegetable3Seed, VegetableGrower1, VegetableGrower2, Vegetube1, Vegetube2
+- VegetubeOutside1, WallInside, wallplain, WardenAustel, WardenKey
+- WardensChip, WaterBottle1, WaterCollector1, WaterCollector2, WaterFilter
+- WaterLifeCollector1, window, WreckEntryLocked1, WreckEntryLocked2, WreckEntryLocked3
+- WreckEntryLocked4, WreckEntryLocked5, wreckpilar, WreckRockExplodable, WreckSafe
+- WreckServer, Zeolite
 </details>
 
 ### Configuration
