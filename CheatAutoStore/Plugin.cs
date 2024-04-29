@@ -39,6 +39,8 @@ namespace CheatAutoStore
 
         static ConfigEntry<string> storeByNameMarker;
 
+        static ConfigEntry<string> keepList;
+
         static InputAction storeAction;
 
         static bool inventoryStoringActive;
@@ -64,6 +66,8 @@ namespace CheatAutoStore
             storeByName = Config.Bind("General", "StoreByName", false, "Store into containers whose naming matches the item id, such as !Iron for example. Use StoreByNameAliases to override individual items.");
             storeByNameAliases = Config.Bind("General", "StoreByNameAliases", "", "A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C");
             storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
+            keepList = Config.Bind("General", "KeepList", "", "The comma separated list of case-sensitive item ids to keep in the backpack.");
+
 
             if (!key.Value.Contains("<"))
             {
@@ -265,6 +269,22 @@ namespace CheatAutoStore
             var modeStoreByName = storeByName.Value;
             var marker = storeByNameMarker.Value;
 
+            var keepListItems = keepList.Value.Split(',').Select(v => v.Trim()).Where(v => v.Length != 0).ToHashSet();
+            var keepListDictionary = new Dictionary<string, int>();
+            foreach (var kv in keepListItems)
+            {
+                var kvv = kv.Split(":");
+                if (kvv.Length == 2)
+                {
+                    if (int.TryParse(kvv[1], out var count))
+                    {
+                        keepListDictionary[kvv[0].Trim()] = count;
+                    }
+                }
+            }
+            Log("  Processed Keep list");
+
+
             var aliases = new Dictionary<string, string>();
             foreach (var kv in storeByNameAliases.Value.Split(","))
             {
@@ -277,10 +297,48 @@ namespace CheatAutoStore
             Log("  Processed aliases: " + aliases.Count);
 
             List<WorldObject> backpackWos = [..backpackInv.GetInsideWorldObjects()];
+
+            var itemTypesToKeepInBackpack = new Dictionary<string, Dictionary<string, int>>();
+            if (!string.IsNullOrEmpty(keepList.Value))
+            {
+                Log(" Begin processing KeepList");
+                foreach (var wo in backpackWos)
+                {
+                    var group = wo.GetGroup();
+                    var gid = group.GetId();
+                    if (keepListDictionary.TryGetValue(gid, out var itemAmount))
+                    {
+                        if (!itemTypesToKeepInBackpack.ContainsKey(gid))
+                        {
+                            Log("GID: " + gid);
+                            itemTypesToKeepInBackpack[gid] = new Dictionary<string, int>();
+                        }
+                        itemTypesToKeepInBackpack[gid]["keepAmount"] = itemAmount;
+                        itemTypesToKeepInBackpack[gid]["currentAmount"] = itemTypesToKeepInBackpack[gid].GetValueOrDefault("currentAmount", 0) + 1;
+                    }
+                    if (aliases.TryGetValue(gid, out var alias))
+                    {
+                        if (keepListDictionary.TryGetValue(alias, out var aliasAmount))
+                        {
+                            if (!itemTypesToKeepInBackpack.ContainsKey(alias))
+                            {
+                                Log("Alias: " + alias);
+                                itemTypesToKeepInBackpack[alias] = new Dictionary<string, int>();
+                            }
+                            itemTypesToKeepInBackpack[alias]["keepAmount"] = aliasAmount;
+                            itemTypesToKeepInBackpack[alias]["currentAmount"] = itemTypesToKeepInBackpack[alias].GetValueOrDefault("currentAmount", 0) + 1;
+                        }
+                    }
+                }
+            }
+
+
+
             Log("  Begin enumerating the backpack: " + backpackWos.Count);
 
             var deposited = 0;
             var excluded = 0;
+            var kept = 0;
 
             foreach (var wo in backpackWos)
             {
@@ -288,6 +346,38 @@ namespace CheatAutoStore
 
                 var group = wo.GetGroup();
                 var gid = group.GetId();
+                var adjustKeepListAmountValues = false;
+                var hasAlias = aliases.ContainsKey(gid);
+                var currentAlias = hasAlias ? aliases[gid] : null;
+
+                if (itemTypesToKeepInBackpack.TryGetValue(gid, out var amountDictionary))
+                {
+                    if (amountDictionary.GetValueSafe("currentAmount") <= amountDictionary.GetValueSafe("keepAmount"))
+                    {
+                        Log("    Keeping in backpack because of GID in KeepList");
+                        kept++;
+                        continue;
+                    }
+                    else
+                    {
+                        adjustKeepListAmountValues = true;
+                    }
+                }
+                else if (hasAlias && itemTypesToKeepInBackpack.TryGetValue(currentAlias, out var aliasAmountDictionary))
+                {
+                    if (aliasAmountDictionary.GetValueSafe("currentAmount") <= aliasAmountDictionary.GetValueSafe("keepAmount"))
+                    {
+                        Log("    Keeping in backpack because of Alias in KeepList");
+                        kept++;
+                        continue;
+                    }
+                    else
+                    {
+                        adjustKeepListAmountValues = true;
+                    }
+                }
+
+
                 if (includeGroupIds.Count == 0)
                 {
                     if (excludeGroupIds.Contains(gid))
@@ -359,6 +449,17 @@ namespace CheatAutoStore
 
                                 foundInventoryForWo = true;
                                 deposited++;
+                                if (adjustKeepListAmountValues)
+                                {
+                                    if (itemTypesToKeepInBackpack.ContainsKey(gid))
+                                    {
+                                        itemTypesToKeepInBackpack[gid]["currentAmount"] = itemTypesToKeepInBackpack[gid]["currentAmount"] - 1;
+                                    }
+                                    if (hasAlias && itemTypesToKeepInBackpack.ContainsKey(currentAlias))
+                                    {
+                                        itemTypesToKeepInBackpack[currentAlias]["currentAmount"] = itemTypesToKeepInBackpack[currentAlias]["currentAmount"] - 1;
+                                    }
+                                }
                                 break;
                             }
                         }
@@ -372,7 +473,8 @@ namespace CheatAutoStore
             }
             Log("  Done.");
             inventoryStoringActive = false;
-            Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + backpackWos.Count + " deposited. " + excluded + " excluded.");
+            Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + backpackWos.Count + " deposited. " + excluded + " excluded. " + kept + "Kept.");
+
         }
 
         /* Fixed in 1.002
