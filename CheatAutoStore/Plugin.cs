@@ -292,7 +292,7 @@ namespace CheatAutoStore
                     }
                 }
             }
-            Log("  Processed keep list: " + aliases.Count);
+            Log("  Processed keep list: " + keepCounter.Count);
 
             List<WorldObject> backpackWos = [..backpackInv.GetInsideWorldObjects()];
             int kept = 0;
