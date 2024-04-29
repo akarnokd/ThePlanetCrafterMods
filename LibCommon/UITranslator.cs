@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using TMPro;
 using UnityEngine;
 
 namespace LibCommon
@@ -106,25 +107,35 @@ namespace LibCommon
                 logger.LogInfo("Waiting for loadSuccess...");
                 if (loadSuccess)
                 {
-                    foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                    {
-                        ltext.UpdateTranslation();
-
-                        if (ltext.textId == "Newsletter_Button")
-                        {
-                            var rt = ltext.GetComponent<RectTransform>();
-                            if (rt != null)
-                            {
-                                rt.sizeDelta = new Vector2(rt.sizeDelta.x + 20, rt.sizeDelta.y);
-                                rt.localScale = new Vector2(rt.localScale.x * 0.85f, rt.localScale.y * 0.85f);
-                            }
-                        }
-                    }
+                    AdjustNewsletterButton();
                     ExportLocalization();
                     yield break;
                 }
                 logger.LogInfo("Waiting for loadSuccess");
             }
+        }
+
+        static void AdjustNewsletterButton()
+        {
+            foreach (LocalizedText ltext in UnityEngine.Object.FindObjectsByType<LocalizedText>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                ltext.UpdateTranslation();
+
+                if (ltext.textId == "Newsletter_Button")
+                {
+                    var tmp = ltext.GetComponent<TextMeshProUGUI>();
+                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
+                    tmp.enableAutoSizing = true;
+                    tmp.margin = new Vector4(5, 5, 5, 5);
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void Intro_Start()
+        {
+            AdjustNewsletterButton();
         }
 
         // There is no GetLanguage, need to save current language for later checks
