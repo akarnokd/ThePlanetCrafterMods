@@ -96,6 +96,8 @@ namespace CheatInventoryStacking
 
         static Plugin me;
 
+        static readonly Version requiredCFNC = new(1, 0, 0, 14);
+
         void Awake()
         {
             me = this;
@@ -144,8 +146,7 @@ namespace CheatInventoryStacking
 
             if (Chainloader.PluginInfos.TryGetValue(modCheatCraftFromNearbyContainersGuid, out var pi))
             {
-                var required = new Version(1, 0, 0, 13);
-                if (pi.Metadata.Version >= required)
+                if (pi.Metadata.Version >= requiredCFNC)
                 {
                     logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " found, TryToCraftInInventory will be handled by it.");
                     apiTryToCraftInInventoryHandled = (Func<bool>)AccessTools.Field(pi.Instance.GetType(), "apiTryToCraftInInventoryHandled").GetValue(null);
@@ -153,7 +154,16 @@ namespace CheatInventoryStacking
                 }
                 else
                 {
-                    logger.LogError("Mod " + modCheatCraftFromNearbyContainersGuid + " found but incompatible with Stacking: Actual: " + pi.Metadata.Version + ", Expected >= " + required);
+                    logger.LogError("Mod " + modCheatCraftFromNearbyContainersGuid + " found but incompatible with Stacking: Actual: " + pi.Metadata.Version + ", Expected >= " + requiredCFNC);
+
+                    LibCommon.MainMenuMessage.Patch(new Harmony("akarnokd.theplanetcraftermods.cheatinventorystacking"),
+                        "!!! Error !!!\n\n"
+                        + "The mod <color=#FFCC00>Inventory Stacking</color> v" + PluginInfo.PLUGIN_VERSION
+                        + "\n\n        is incompatible with"
+                        + "\n\nthe mod <color=#FFCC00>Craft From Nearby Containers</color> v" + pi.Metadata.Version
+                        + "\n\nPlease make sure you have the latest version of both mods."
+                        );
+
                     return;
                 }
             }
