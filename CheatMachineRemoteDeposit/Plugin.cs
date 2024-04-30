@@ -269,7 +269,7 @@ namespace CheatMachineRemoteDeposit
             while (true)
             {
                 // Server side is responsible for the transfer.
-                if (InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
+                if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
                     Log("ClearMachineGeneratorInventory begin: " + _inventory.GetId());
                     var items = _inventory.GetInsideWorldObjects();
