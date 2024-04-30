@@ -45,6 +45,8 @@ namespace CheatMachineRemoteDeposit
         /// </summary>
         static ConfigEntry<int> stackSize;
 
+        static ConfigEntry<string> aliases;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -57,7 +59,9 @@ namespace CheatMachineRemoteDeposit
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
 
-            ProcessAliases(Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C"));
+            aliases = Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C");
+
+            ProcessAliases(aliases);
 
             InventoryCanAdd = (inv, gid) => !inv.IsFull();
 
@@ -95,8 +99,9 @@ namespace CheatMachineRemoteDeposit
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        void ProcessAliases(ConfigEntry<string> cfe)
+        static void ProcessAliases(ConfigEntry<string> cfe)
         {
+            depositAliases.Clear();
             var s = cfe.Value.Trim();
             if (s.Length != 0)
             {
@@ -106,7 +111,7 @@ namespace CheatMachineRemoteDeposit
                     var idalias = str.Split(':');
                     if (idalias.Length != 2)
                     {
-                        Logger.LogWarning("Wrong alias @ index " + i + " value " + str);
+                        logger.LogWarning("Wrong alias @ index " + i + " value " + str);
                     }
                     else
                     {
@@ -116,6 +121,11 @@ namespace CheatMachineRemoteDeposit
                     i++;
                 }
             }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ProcessAliases(aliases);
         }
 
         static void Log(string s)
