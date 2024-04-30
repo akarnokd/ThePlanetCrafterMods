@@ -131,4 +131,4 @@ akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.30
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.18
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.3
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.4
