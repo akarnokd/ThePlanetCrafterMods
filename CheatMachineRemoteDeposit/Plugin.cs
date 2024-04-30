@@ -115,7 +115,7 @@ namespace CheatMachineRemoteDeposit
                     }
                     else
                     {
-                        depositAliases[idalias[0]] = idalias[1].ToLower();
+                        depositAliases[idalias[0].Trim()] = idalias[1].ToLowerInvariant();
                         Log("Alias " + idalias[0] + " -> " + idalias[1]);
                     }
                     i++;
@@ -308,7 +308,7 @@ namespace CheatMachineRemoteDeposit
                     && constructs.HasLinkedInventory())
                 {
                     string txt = constructs.GetText();
-                    if (txt != null && txt.ToLower().Contains(containerNameFilter))
+                    if (txt != null && txt.Contains(containerNameFilter, StringComparison.InvariantCultureIgnoreCase))
                     {
                         Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
                         if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))
