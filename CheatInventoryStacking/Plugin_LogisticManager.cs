@@ -101,23 +101,17 @@ namespace CheatInventoryStacking
                     {
                         foreach (var supplyInventory in ____supplyInventories)
                         {
-                            if (demandInventory != supplyInventory)
+                            if (demandInventory != supplyInventory && supplyInventory.GetLogisticEntity().GetSupplyGroups().Contains(demandGroup))
                             {
-                                foreach (var supplyGroup in supplyInventory.GetLogisticEntity().GetSupplyGroups())
+                                foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
                                 {
-                                    if (demandGroup == supplyGroup)
+                                    if (supplyWo.GetGroup() == demandGroup)
                                     {
-                                        foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
+                                        if (demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < demandInventorySize)
                                         {
-                                            if (supplyWo.GetGroup() == supplyGroup)
-                                            {
-                                                if (demandInventory.GetInsideWorldObjects().Count + demandInventory.GetLogisticEntity().waitingDemandSlots < demandInventorySize)
-                                                {
-                                                    CreateNewTaskForWorldObject(
-                                                        supplyInventory, demandInventory, supplyWo, 
-                                                        ____allLogisticTasks, inventoryOwnerCache);
-                                                }
-                                            }
+                                            CreateNewTaskForWorldObject(
+                                                supplyInventory, demandInventory, supplyWo,
+                                                ____allLogisticTasks, inventoryOwnerCache);
                                         }
                                     }
                                 }
