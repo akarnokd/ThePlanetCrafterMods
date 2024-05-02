@@ -4032,6 +4032,48 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/list-tech-names", "Lists all technology identifiers, their ingame name and description. First argument to sort by id|name|desc, second argument to filter by contains")]
+        public void ListTechDetails(List<string> args)
+        {
+            var filter = "";
+            var sort = "name";
+            if (args.Count > 1)
+            {
+                sort = args[1];
+            }
+            if (args.Count > 2)
+            {
+                filter = args[2];
+            }
+            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups());
+            if (sort == "id")
+            {
+                gds.Sort((a, b) => a.id.CompareTo(b.id));
+            }
+            else if (sort == "desc")
+            {
+                gds.Sort((a, b) => Readable.GetGroupDescription(a).CompareTo(Readable.GetGroupDescription(b)));
+            }
+            else
+            {
+                gds.Sort((a, b) => Readable.GetGroupName(a).CompareTo(Readable.GetGroupName(b)));
+            }
+            foreach (var gd in gds)
+            {
+                var g = GroupsHandler.GetGroupViaId(gd.id);
+                var gid = g.id;
+                var nm = Readable.GetGroupName(g);
+                var dsc = Readable.GetGroupDescription(g);
+                if (
+                    gid.Contains(filter, StringComparison.InvariantCultureIgnoreCase)
+                    || nm.Contains(filter, StringComparison.InvariantCultureIgnoreCase)
+                    |  nm.Contains(filter, StringComparison.InvariantCultureIgnoreCase)
+                )
+                {
+                    AddLine("<color=#FFFF00>" + gid + "</color>\t<color=#00FF00>" + nm + "</color>\t" + dsc);
+                }
+            }
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
