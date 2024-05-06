@@ -398,6 +398,12 @@ namespace CheatInventoryStacking
                 return null;
             }
 
+            if (Api_1_AllowBufferLogisticsTaskEx != null 
+                && !Api_1_AllowBufferLogisticsTaskEx(supplyInventory, supplyWorldObject, demandInventory, demandWorldObject, worldObject))
+            {
+                return null;
+            }
+
             var task = new LogisticTask(worldObject, supplyInventory, demandInventory, supplyWorldObject, demandWorldObject);
             _allLogisticTasks[worldObject.GetId()] = task;
             return task;

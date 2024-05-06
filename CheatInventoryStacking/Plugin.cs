@@ -100,6 +100,9 @@ namespace CheatInventoryStacking
         static Plugin me;
 
         static readonly Version requiredCFNC = new(1, 0, 0, 14);
+        static readonly Version requiredStorageBuffer = new(1, 0, 1);
+
+        static Func<Inventory, WorldObject, Inventory, WorldObject, WorldObject, bool> Api_1_AllowBufferLogisticsTaskEx;
 
         void Awake()
         {
@@ -179,17 +182,24 @@ namespace CheatInventoryStacking
             }
             if (Chainloader.PluginInfos.TryGetValue(modStorageBuffer, out pi))
             {
-                logger.LogError("Mod " + modStorageBuffer + " found. Stacking is incompatible with this mod.");
-                LibCommon.MainMenuMessage.Patch(new Harmony("akarnokd.theplanetcraftermods.cheatinventorystacking"),
-                        "!!! Error !!!\n\n"
-                        + "The mod <color=#FFCC00>Inventory Stacking</color> v" + PluginInfo.PLUGIN_VERSION
-                        + "\n\n        is incompatible with"
-                        + "\n\nthe mod <color=#FFCC00>Storage Buffer</color> v" + pi.Metadata.Version
-                        + "\n\nI contacted the author of Storage Buffer to resolve the issue."
-                        + "\nNo ETA if and when the compatibility will be established."
-                        + "\nUntil then, Inventory Stacking will refuse to work."
-                        );
-                return;
+                if (pi.Metadata.Version >= requiredStorageBuffer) 
+                {
+                    logger.LogError("Mod " + modStorageBuffer + " found but incompatible with Stacking: Actual: " + pi.Metadata.Version + ", Expected >= " + requiredStorageBuffer);
+                    LibCommon.MainMenuMessage.Patch(new Harmony("akarnokd.theplanetcraftermods.cheatinventorystacking"),
+                            "!!! Error !!!\n\n"
+                            + "The mod <color=#FFCC00>Inventory Stacking</color> v" + PluginInfo.PLUGIN_VERSION
+                            + "\n\n        is incompatible with"
+                            + "\n\nthe mod <color=#FFCC00>Storage Buffer</color> v" + pi.Metadata.Version
+                            + "\n\nPlease make sure you have the latest version of both mods."
+                            + "\nUntil then, Inventory Stacking will refuse to work."
+                            );
+                    return;
+                }
+                else
+                {
+                    logger.LogError("Mod " + modStorageBuffer + " found, using its Api_1_AllowBufferLogisticsTaskEx method");
+                    Api_1_AllowBufferLogisticsTaskEx = (Func<Inventory, WorldObject, Inventory, WorldObject, WorldObject, bool>)AccessTools.Field(pi.Instance.GetType(), "Api_1_AllowBufferLogisticsTaskEx").GetValue(null);
+                }
             }
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
