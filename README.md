@@ -538,11 +538,11 @@ Typical identifiers are:
 -`Cobalt`,`Silicon`,`Iron`,`ice`,
 `Magnesium`,`Titanium`,`Aluminium`,`Uranim`,
 `Iridium`,`Alloy`,`Zeolite`,`Osmium`,
-`Sulfur`, `PulsarQuartz`
+`Sulfur`, `PulsarQuartz`, `Obsidian`
 
 You can also make the water and methane extractors deposit remotely by naming containers:
 
-- `*WaterBottle1`, `*OxygenCapsule1`, `*MethanCapsule1`
+- `*WaterBottle1`, `*OxygenCapsule1`, `*MethanCapsule1`, `NitrogenCapsule1`
 
 Biodome T2 generated tree barks can be deposited remotely too via `*TreeRoot`.
 
@@ -558,10 +558,7 @@ You can override the default naming convention via the `Aliases` configuration o
 The identifiers are case sensitive, the target names are case insensitive. You can have the same alias for multiple resources. With overrides, there is no need for the `*` prefix.
 
 You can have as many containers as you like, but they will be filled in non-deterministically.
-If there are no renamed containers or all renamed containers are full, the machines
-will deposit the resource into their own container, as would they without this mod.
-
-If the mod **Ore Extractor Tweaks** by *Lathrey* is present, its ore generator functionality is integrated with this mod. Specifically, if `configOnlyExtractDetectedOre` is true *and* a machine mines a common ore *and* there is no target inventory for it, the ore is not deposited anywhere.
+If there are no renamed containers or all renamed containers are full, the machines will stop producing items. They don't use their own inventory because they would seize up completely while using this mod.
 
 Note also that machines are slow to mine resources.
 

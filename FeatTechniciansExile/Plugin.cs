@@ -1239,15 +1239,11 @@ namespace FeatTechniciansExile
                         foreach (WorldUnit worldUnit in allWorldUnits)
                         {
                             DataConfig.WorldUnitType unitType = worldUnit.GetUnitType();
-                            if (((GroupItem)groupViaId).GetGroupUnitMultiplier(unitType) != 0f)
+                            var scaling = ((GroupItem)groupViaId).GetGroupUnitMultiplier(unitType);
+                            if (scaling != 0f)
                             {
-                                var scaling = 1100f;
-                                if (unitType == DataConfig.WorldUnitType.Plants 
-                                    || unitType == DataConfig.WorldUnitType.Insects
-                                    || unitType == DataConfig.WorldUnitType.Animals)
-                                {
-                                    scaling = 1375f;
-                                }
+                                scaling *= 11f;
+                                scaling /= 10f;
                                 logger.LogInfo("  unit " + unitType + " " + scaling + " * ");
                                 var unitLabel = Readable.GetWorldUnitLabel(unitType);
 

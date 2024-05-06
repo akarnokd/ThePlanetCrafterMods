@@ -45,6 +45,8 @@ namespace CheatMachineRemoteDeposit
         /// </summary>
         static ConfigEntry<int> stackSize;
 
+        static ConfigEntry<string> aliases;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -57,7 +59,9 @@ namespace CheatMachineRemoteDeposit
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
 
-            ProcessAliases(Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C"));
+            aliases = Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C");
+
+            ProcessAliases(aliases);
 
             InventoryCanAdd = (inv, gid) => !inv.IsFull();
 
@@ -95,8 +99,9 @@ namespace CheatMachineRemoteDeposit
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        void ProcessAliases(ConfigEntry<string> cfe)
+        static void ProcessAliases(ConfigEntry<string> cfe)
         {
+            depositAliases.Clear();
             var s = cfe.Value.Trim();
             if (s.Length != 0)
             {
@@ -106,16 +111,21 @@ namespace CheatMachineRemoteDeposit
                     var idalias = str.Split(':');
                     if (idalias.Length != 2)
                     {
-                        Logger.LogWarning("Wrong alias @ index " + i + " value " + str);
+                        logger.LogWarning("Wrong alias @ index " + i + " value " + str);
                     }
                     else
                     {
-                        depositAliases[idalias[0]] = idalias[1].ToLower();
+                        depositAliases[idalias[0].Trim()] = idalias[1].ToLowerInvariant();
                         Log("Alias " + idalias[0] + " -> " + idalias[1]);
                     }
                     i++;
                 }
             }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ProcessAliases(aliases);
         }
 
         static void Log(string s)
@@ -259,7 +269,7 @@ namespace CheatMachineRemoteDeposit
             while (true)
             {
                 // Server side is responsible for the transfer.
-                if (InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
+                if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
                     Log("ClearMachineGeneratorInventory begin: " + _inventory.GetId());
                     var items = _inventory.GetInsideWorldObjects();
@@ -298,7 +308,7 @@ namespace CheatMachineRemoteDeposit
                     && constructs.HasLinkedInventory())
                 {
                     string txt = constructs.GetText();
-                    if (txt != null && txt.ToLower().Contains(containerNameFilter))
+                    if (txt != null && txt.Contains(containerNameFilter, StringComparison.InvariantCultureIgnoreCase))
                     {
                         Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
                         if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))

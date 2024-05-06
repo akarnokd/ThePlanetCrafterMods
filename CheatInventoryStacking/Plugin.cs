@@ -22,9 +22,11 @@ namespace CheatInventoryStacking
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatinventorystacking", "(Cheat) Inventory Stacking", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modCheatCraftFromNearbyContainersGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(modStorageBuffer, BepInDependency.DependencyFlags.SoftDependency)]
     public partial class Plugin : BaseUnityPlugin
     {
         const string modCheatCraftFromNearbyContainersGuid = "akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers";
+        const string modStorageBuffer = "valriz.theplanetcrafter.storagebuffer";
 
         static ConfigEntry<int> stackSize;
         static ConfigEntry<int> fontSize;
@@ -39,6 +41,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackBiodomes;
         static ConfigEntry<bool> stackAutoCrafters;
         static ConfigEntry<bool> stackDroneStation;
+        static ConfigEntry<bool> stackAnimalFeeder;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -123,6 +126,7 @@ namespace CheatInventoryStacking
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
+            stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
@@ -162,6 +166,7 @@ namespace CheatInventoryStacking
                         + "\n\n        is incompatible with"
                         + "\n\nthe mod <color=#FFCC00>Craft From Nearby Containers</color> v" + pi.Metadata.Version
                         + "\n\nPlease make sure you have the latest version of both mods."
+                        + "\nUntil then, Inventory Stacking will refuse to work."
                         );
 
                     return;
@@ -171,6 +176,20 @@ namespace CheatInventoryStacking
             {
                 logger.LogInfo("Mod " + modCheatCraftFromNearbyContainersGuid + " not found.");
                 apiTryToCraftInInventoryHandled = () => false;
+            }
+            if (Chainloader.PluginInfos.TryGetValue(modStorageBuffer, out pi))
+            {
+                logger.LogError("Mod " + modStorageBuffer + " found. Stacking is incompatible with this mod.");
+                LibCommon.MainMenuMessage.Patch(new Harmony("akarnokd.theplanetcraftermods.cheatinventorystacking"),
+                        "!!! Error !!!\n\n"
+                        + "The mod <color=#FFCC00>Inventory Stacking</color> v" + PluginInfo.PLUGIN_VERSION
+                        + "\n\n        is incompatible with"
+                        + "\n\nthe mod <color=#FFCC00>Storage Buffer</color> v" + pi.Metadata.Version
+                        + "\n\nI contacted the author of Storage Buffer to resolve the issue."
+                        + "\nNo ETA if and when the compatibility will be established."
+                        + "\nUntil then, Inventory Stacking will refuse to work."
+                        );
+                return;
             }
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");

@@ -1263,3 +1263,6 @@ Ending_Wardens_Text_2=Nadzieja nie może być jedynym doradcą. <br>Czasami życ
 Ending_Wardens_Text_3=Czasami przyszłość nie jest jasna. <br>Strażnik
 MENU_INVITEFRIEND=Zaproś przyjaciół
 MENU_INVITECODE=Wyświetl i skopiuj kod zaproszenia
+Menu_Options_Disable_emotes=Wyłącz skróty klawiaturowe dla animacji postaci
+MENU_Network_Error=Błąd sieci
+MENU_Network_Error_version_mismatch=Zła wersja gry pomiędzy klientem a serwerem!
