@@ -7,12 +7,18 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using BepInEx.Bootstrap;
 
 namespace UILogisticSelectAll
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uilogisticselectall", "(UI) Logistic Select All", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modStorageBuffer, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+
+        const string modStorageBuffer = "valriz.theplanetcrafter.storagebuffer";
+
+        static bool modStorageBufferInstalled;
 
         public void Awake()
         {
@@ -20,6 +26,17 @@ namespace UILogisticSelectAll
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+
+            if (Chainloader.PluginInfos.TryGetValue(modStorageBuffer, out _))
+            {
+                Logger.LogError("Mod " + modStorageBuffer + " found");
+                modStorageBufferInstalled = true;
+
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modStorageBuffer + " not found.");
+            }
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -40,11 +57,14 @@ namespace UILogisticSelectAll
         [HarmonyPatch(typeof(LogisticEntity), "SanitizeGroups")]
         static bool LogisticEntity_SanitizeGroups(HashSet<Group> groupsToPrioritize, HashSet<Group> groupsToRemoveFrom)
         {
-            if (!suppressSanitizeAndUiUpdates)
+            if (!modStorageBufferInstalled)
             {
-                if (groupsToPrioritize != null && groupsToRemoveFrom != null)
+                if (!suppressSanitizeAndUiUpdates)
                 {
-                    groupsToRemoveFrom.RemoveWhere(groupsToPrioritize.Contains);
+                    if (groupsToPrioritize != null && groupsToRemoveFrom != null)
+                    {
+                        groupsToRemoveFrom.RemoveWhere(groupsToPrioritize.Contains);
+                    }
                 }
             }
             return false;

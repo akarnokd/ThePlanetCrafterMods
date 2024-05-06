@@ -197,9 +197,13 @@ namespace CheatInventoryStacking
                 }
                 else
                 {
-                    logger.LogError("Mod " + modStorageBuffer + " found, using its Api_1_AllowBufferLogisticsTaskEx method");
+                    logger.LogInfo("Mod " + modStorageBuffer + " found, using its Api_1_AllowBufferLogisticsTaskEx method");
                     Api_1_AllowBufferLogisticsTaskEx = (Func<Inventory, WorldObject, Inventory, WorldObject, WorldObject, bool>)AccessTools.Field(pi.Instance.GetType(), "Api_1_AllowBufferLogisticsTaskEx").GetValue(null);
                 }
+            }
+            else
+            {
+                logger.LogInfo("Mod " + modStorageBuffer + " not found.");
             }
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
