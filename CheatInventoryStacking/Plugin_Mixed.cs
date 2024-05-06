@@ -140,5 +140,26 @@ namespace CheatInventoryStacking
         {
             noStackingInventories.Add(inventory.GetId());
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ActionOpenable), "Start")]
+        static void Patch_ActionOpenable_Start(ActionOpenable __instance)
+        {
+            if (__instance.gameObject.name.StartsWith("AnimalFeeder", System.StringComparison.InvariantCulture)
+                && !stackAnimalFeeder.Value)
+            {
+                var ia = __instance.GetComponentInParent<InventoryAssociated>();
+                var iap = __instance.GetComponentInParent<InventoryAssociatedProxy>();
+
+                if (ia != null && (iap == null || NetworkManager.Singleton.IsServer))
+                {
+                    ia.GetInventory(inv => noStackingInventories.Add(inv.GetId()));
+                }
+                else if (iap != null)
+                {
+                    iap.GetInventory((inv, wo) => noStackingInventories.Add(inv.GetId()));
+                }
+            }
+        }
     }
 }

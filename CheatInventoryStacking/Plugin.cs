@@ -39,6 +39,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackBiodomes;
         static ConfigEntry<bool> stackAutoCrafters;
         static ConfigEntry<bool> stackDroneStation;
+        static ConfigEntry<bool> stackAnimalFeeder;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -123,6 +124,7 @@ namespace CheatInventoryStacking
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
+            stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
