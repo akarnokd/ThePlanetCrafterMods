@@ -182,7 +182,7 @@ namespace CheatInventoryStacking
             }
             if (Chainloader.PluginInfos.TryGetValue(modStorageBuffer, out pi))
             {
-                if (pi.Metadata.Version >= requiredStorageBuffer) 
+                if (pi.Metadata.Version < requiredStorageBuffer) 
                 {
                     logger.LogError("Mod " + modStorageBuffer + " found but incompatible with Stacking: Actual: " + pi.Metadata.Version + ", Expected >= " + requiredStorageBuffer);
                     LibCommon.MainMenuMessage.Patch(new Harmony("akarnokd.theplanetcraftermods.cheatinventorystacking"),
