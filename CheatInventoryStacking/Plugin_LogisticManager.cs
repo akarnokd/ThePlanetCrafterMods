@@ -333,17 +333,14 @@ namespace CheatInventoryStacking
 
             foreach (var inv in ____demandInventories)
             {
-                foreach (var dg in inv.GetLogisticEntity().GetDemandGroups())
+                if (inv.GetLogisticEntity().GetDemandGroups().Contains(gr) && !IsFullStackedOfInventory(inv, gid))
                 {
-                    if (dg == gr && !IsFullStackedOfInventory(inv, gid))
+                    var task = CreateNewTaskForWorldObject(droneInv, inv, wo, ____allLogisticTasks);
+                    if (task != null)
                     {
-                        var task = CreateNewTaskForWorldObject(droneInv, inv, wo, ____allLogisticTasks);
-                        if (task != null)
-                        {
-                            task.SetTaskState(LogisticData.TaskState.ToDemand);
-                            drone.SetLogisticTask(task);
-                            return false;
-                        }
+                        task.SetTaskState(LogisticData.TaskState.ToDemand);
+                        drone.SetLogisticTask(task);
+                        return false;
                     }
                 }
             }
