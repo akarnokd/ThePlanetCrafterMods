@@ -183,5 +183,17 @@ namespace FixUnofficialPatches
         {
             return NetworkManager.Singleton != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Drone), "OnDestroy")]
+        static void Drone_OnDestroy(ref LogisticTask ____logisticTask)
+        {
+            if (____logisticTask != null
+                && ____logisticTask.GetTaskState() != LogisticData.TaskState.Done)
+            {
+                ____logisticTask.SetTaskState(LogisticData.TaskState.Done);
+                ____logisticTask = null;
+            }
+        }
     }
 }
