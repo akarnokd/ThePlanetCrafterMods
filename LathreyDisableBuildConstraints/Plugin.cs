@@ -102,7 +102,7 @@ namespace LathreyDisableBuildConstraints
             return false;
         }
 
-        private void Update()
+        public void Update()
         {
             if (Keyboard.current[configToggleBuildConstraintsModifierKey.Value].isPressed && Keyboard.current[configToggleBuildConstraintsKey.Value].wasPressedThisFrame)
             {

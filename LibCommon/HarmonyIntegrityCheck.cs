@@ -1,12 +1,9 @@
 ﻿// Copyright (c) 2022-2024, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
-using BepInEx.Logging;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace LibCommon
 {

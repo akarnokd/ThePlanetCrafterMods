@@ -163,11 +163,8 @@ namespace FixUnofficialPatches
         [HarmonyPatch(typeof(GamepadConfig), "OnDestroy")]
         static void GamepadConfig_OnDestroy(ref Callback<GamepadTextInputDismissed_t> ____gamepadTextInputDismissed)
         {
-            if (____gamepadTextInputDismissed == null)
-            {
-                ____gamepadTextInputDismissed = Callback<GamepadTextInputDismissed_t>.Create(
+            ____gamepadTextInputDismissed ??= Callback<GamepadTextInputDismissed_t>.Create(
                     new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
-            }
         }
 
         [HarmonyPrefix]

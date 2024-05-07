@@ -61,7 +61,7 @@ namespace CheatAutoSequenceDNA
 
         static ManualLogSource logger;
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -619,76 +619,6 @@ namespace CheatAutoSequenceDNA
                 }
             }
             return candidates;
-        }
-
-        GroupItem PickRecipe(DataConfig.CraftableIn craftableIn)
-        {
-            return PickRandomCandidate(GetCandidates(craftableIn));
-        }
-
-        GroupItem Analyze(List<WorldObject> currentItems, DataConfig.CraftableIn craftableIn)
-        {
-            List<Group> inputGroups = [];
-            foreach (var wo in currentItems)
-            {
-                inputGroups.Add(wo.GetGroup());
-            }
-
-            List<GroupItem> candidates = [];
-
-            foreach (var gi in GroupsHandler.GetGroupsItem())
-            {
-                if (gi.CanBeCraftedIn(craftableIn) && gi.GetUnlockingInfos().GetIsUnlocked())
-                {
-                    var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
-                    
-                    if (inputGroups.Count == recipe.Count && !recipe.Except(inputGroups).Any())
-                    {
-                        candidates.Add(gi);
-                    }
-                }
-            }
-
-            return PickRandomCandidate(candidates);
-        }
-
-        GroupItem PickRandomCandidate(List<GroupItem> candidates)
-        {
-            Log("    Candidate pool:");
-            foreach (var gi in candidates)
-            {
-                Log("      " + gi.id + " (\"" + Readable.GetGroupName(gi) + "\") @ Chance = " + gi.GetChanceToSpawn() + " %");
-            }
-
-
-            if (candidates.Count == 1)
-            {
-                return candidates[0];
-            }
-            if (candidates.Count > 1)
-            {
-                var set = new List<GroupItem>(candidates);
-
-                var max = 200;
-                while (max-- > 0)
-                {
-                    int index = UnityEngine.Random.Range(0, set.Count);
-                    var candidate = set[index];
-
-                    if (candidate.GetChanceToSpawn() == 0f
-                        || candidate.GetChanceToSpawn() >= UnityEngine.Random.Range(0, 100))
-                    {
-                        return candidate;
-                    }
-
-                    set.RemoveAt(index);
-                    if (set.Count == 0)
-                    {
-                        set = new List<GroupItem>(candidates);
-                    }
-                }
-            }
-            return null;
         }
 
         void TryDeposit(

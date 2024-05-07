@@ -72,7 +72,7 @@ namespace CheatNearbyResourcesHighlight
 
         static readonly List<GameObjectTTL> scannerImageList = [];
 
-        private void Awake()
+        public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -93,7 +93,7 @@ namespace CheatNearbyResourcesHighlight
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        void Update()
+        public void Update()
         {
             PlayersManager p = Managers.GetManager<PlayersManager>();
             if (p != null)
