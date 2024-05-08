@@ -46,6 +46,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
         static ConfigEntry<int> logisticsTimeLimit;
+        static ConfigEntry<bool> debugOverrideLogisticsAnyway;
 
         static string expectedGroupIdToAdd;
 
@@ -115,6 +116,7 @@ namespace CheatInventoryStacking
             logger = Logger;
 
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
+            debugOverrideLogisticsAnyway = Config.Bind("General", "DebugOverrideLogisticsAnyway", false, "If true, the custom logistics code still runs on StackSize <= 1");
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
