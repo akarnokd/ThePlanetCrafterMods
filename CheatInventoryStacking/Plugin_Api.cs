@@ -238,17 +238,25 @@ namespace CheatInventoryStacking
                 {
                     foreach (var player in playersManager.playersControllers)
                     {
-                        if (player != null && player.GetPlayerBackpack().GetInventory().GetId() == inventoryId)
+                        if (player != null)
                         {
-                            return false;
+                            var pinv = player.GetPlayerBackpack().GetInventory();
+                            if (pinv != null && pinv.GetId() == inventoryId)
+                            {
+                                return false;
+                            }
                         }
                     }
 
                     // FIXME I don't know if playersControllers does include the active controller or not
                     var apc = playersManager.GetActivePlayerController();
-                    if (apc != null && apc.GetPlayerBackpack().GetInventory().GetId() == inventoryId)
+                    if (apc != null)
                     {
-                        return false;
+                        var pinv = apc.GetPlayerBackpack().GetInventory();
+                        if (pinv != null && pinv.GetId() == inventoryId)
+                        {
+                            return false;
+                        }
                     }
                 }
                 // FIXME So if the playersManager is not available, does it mean stacking is not really relevant
