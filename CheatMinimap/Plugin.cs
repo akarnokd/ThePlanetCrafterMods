@@ -32,6 +32,7 @@ namespace CheatMinimap
         Texture2D above;
         Texture2D safe;
         Texture2D outOfBoundsTexture;
+        Texture2D portal;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -89,6 +90,7 @@ namespace CheatMinimap
             above = LoadPNG(Path.Combine(dir, "above.png"));
             below = LoadPNG(Path.Combine(dir, "below.png"));
             safe = LoadPNG(Path.Combine(dir, "safe.png"));
+            portal = LoadPNG(Path.Combine(dir, "portal.png"));
             outOfBoundsTexture = new Texture2D(1, 1);
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
@@ -315,6 +317,10 @@ namespace CheatMinimap
                     }
                 }
             }
+            foreach (var p in FindObjectsByType<MachinePortal>(FindObjectsSortMode.None))
+            {
+                chests.Add(p.gameObject);
+            }
 
             if (autoScanEnabled == 0)
             {
@@ -456,6 +462,12 @@ namespace CheatMinimap
                                     img = safe;
                                     chestW = 16;
                                     chestH = 16;
+                                }
+                                else if (nm.Contains("Portal"))
+                                {
+                                    img = portal;
+                                    chestW = 10;
+                                    chestH = 12;
                                 }
                                 else
                                 {
