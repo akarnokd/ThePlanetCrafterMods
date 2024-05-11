@@ -961,6 +961,10 @@ namespace FeatTechniciansExile
         void CheckOperating()
         {
             var mgr = Managers.GetManager<EnvironmentDayNightCycle>();
+            if (mgr == null)
+            {
+                return;
+            }
             var time = mgr.GetDayNightLerpValue();
 
             if (time >= 0.8)

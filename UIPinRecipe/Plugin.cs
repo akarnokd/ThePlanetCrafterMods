@@ -167,8 +167,27 @@ namespace UIPinRecipe
 
             public void UpdateState()
             {
-                PlayerMainController player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                Inventory inventory = player.GetPlayerBackpack().GetInventory();
+                var pm = Managers.GetManager<PlayersManager>();
+                if (pm == null)
+                {
+                    return;
+                }
+                var player = pm.GetActivePlayerController();
+                if (player == null)
+                {
+                    return;
+                }
+                var backpack = player.GetPlayerBackpack();
+                if (backpack == null)
+                {
+                    return;
+                }
+                Inventory inventory = backpack.GetInventory();
+                if (inventory == null)
+                {
+                    return;
+                }
+
                 Dictionary<string, int> inventoryCounts = [];
                 foreach (WorldObject wo in inventory.GetInsideWorldObjects())
                 {
