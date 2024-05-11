@@ -38,6 +38,7 @@ namespace CheatWreckMap
         static Color colorFloor = Color.gray;
         static Color colorCurrent = Color.white;
         static Color colorLadder = Color.green;
+        static Color colorLadderBottom = new(1f, 0.8f, 0f, 1f);
         static Color colorEmpty = new(0.1f, 0.1f, 0.1f, 0.1f);
         static Color colorBase = Color.yellow;
 
@@ -47,6 +48,7 @@ namespace CheatWreckMap
         static ConfigEntry<string> baseColor;
         static ConfigEntry<string> emptyColor;
         static ConfigEntry<string> ladderColor;
+        static ConfigEntry<string> ladderBottomColor;
         static ConfigEntry<int> renderWidth;
         static ConfigEntry<int> renderHeight;
         static ConfigEntry<int> fontSize;
@@ -67,6 +69,7 @@ namespace CheatWreckMap
             baseColor = Config.Bind("General", "BaseColor", "255,255,255,0", "The basic color of a cell in ARGB values in range 0..255");
             emptyColor = Config.Bind("General", "EmptyColor", "127,25,25,25", "The basic color of emptyness in ARGB values in range 0..255");
             ladderColor = Config.Bind("General", "LadderColor", "255,0,255,0", "The basic color of ladders in ARGB values in range 0..255");
+            ladderBottomColor = Config.Bind("General", "LadderBottomColor", "255,255,204,0", "The basic color of ladders in ARGB values in range 0..255");
             renderWidth = Config.Bind("General", "MapWidth", 750, "The map width in pixels");
             renderHeight = Config.Bind("General", "MapHeight", 750, "The map height in pixels");
             fontSize = Config.Bind("General", "FontSize", 30, "The font size");
@@ -100,11 +103,16 @@ namespace CheatWreckMap
                     if (ih != null && ih.IsReady && ih.IsInsideAnInstance(p.transform.position)) 
                     {
                         EnsureCanvas();
-                        if (Keyboard.current[Key.L].wasPressedThisFrame && !Keyboard.current[Key.RightCtrl].isPressed)
+                        if (Keyboard.current[Key.L].wasPressedThisFrame 
+                            && !Keyboard.current[Key.RightCtrl].isPressed
+                            && !Keyboard.current[Key.LeftCtrl].isPressed)
                         {
                             mapVisible.Value = !mapVisible.Value;
                         }
-                        if (Keyboard.current[Key.L].wasPressedThisFrame && Keyboard.current[Key.RightCtrl].isPressed)
+                        if (Keyboard.current[Key.L].wasPressedThisFrame 
+                            && (Keyboard.current[Key.RightCtrl].isPressed
+                            || Keyboard.current[Key.LeftCtrl].isPressed)
+                            )
                         {
                             cellGrid.Clear();
                         }
@@ -230,7 +238,14 @@ namespace CheatWreckMap
                 var ct = CellType.Corridor;
                 if (tess.name.Contains("TileLadder"))
                 {
-                    ct = CellType.Ladder;
+                    if (offset.y == 0)
+                    {
+                        ct = CellType.Ladder;
+                    }
+                    else
+                    {
+                        ct = CellType.Ladder_Bottom;
+                    }
                 }
 
                 var key = (cx + offset.x, cz + offset.z);
@@ -283,7 +298,18 @@ namespace CheatWreckMap
                             }
                             else
                             {
-                                map.SetPixel(x, y, ct == CellType.Ladder ? colorLadder : colorFloor);
+                                if (ct == CellType.Ladder)
+                                {
+                                    map.SetPixel(x, y, colorLadder);
+                                }
+                                else if (ct == CellType.Ladder_Bottom)
+                                {
+                                    map.SetPixel(x, y, colorLadderBottom);
+                                }
+                                else
+                                {
+                                    map.SetPixel(x, y, colorFloor);
+                                }
                             }
                         }
                         else
@@ -494,6 +520,7 @@ namespace CheatWreckMap
             ParseColor(baseColor, ref colorBase);
             ParseColor(emptyColor, ref colorEmpty);
             ParseColor(ladderColor, ref colorLadder);
+            ParseColor(ladderBottomColor, ref colorLadderBottom);
             Destroy(canvas);
             canvas = null;
         }
@@ -534,6 +561,7 @@ namespace CheatWreckMap
             Empty,
             Corridor,
             Ladder,
+            Ladder_Bottom
         }
     }
 }

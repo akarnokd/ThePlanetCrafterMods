@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.12
 # (Cheat) Recyclers Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.15
 # (Cheat) Wreck Map
-akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.3
+akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.4
 # (Feat) Command Console
 akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.72
 # (Feat) Multiplayer

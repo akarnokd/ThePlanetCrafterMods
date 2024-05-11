@@ -6,6 +6,8 @@ using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections.Generic;
+using Unity.Netcode;
 
 namespace MiscDebug
 {
@@ -114,6 +116,27 @@ namespace MiscDebug
                     + "\n  at\n"
                     + Environment.StackTrace
                 );
+            }
+        }
+
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void InventoriesHandler_RetrieveInventoryClientRpc(
+            Queue<Action<Inventory>> ____callbackQueue, 
+            InventoriesHandler __instance,
+            int inventoryId,
+            Exception __exception
+        )
+        {
+            if (____callbackQueue.Count == 0 && __exception != null)
+            {
+                var stg = AccessTools.Field(typeof(InventoriesHandler), "__rpc_exec_stage").GetValue(__instance);
+
+                logger.LogError("IllegalState: Queue is empty for RetrieveInventoryClientRpc: " + inventoryId + " on " 
+                    + (__instance.IsServer ? "Server - " : "Client - ")
+                    + stg
+                    + "\n" + Environment.StackTrace
+                    );
             }
         }
     }
