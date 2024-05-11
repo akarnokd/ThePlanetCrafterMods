@@ -10,6 +10,8 @@ using BepInEx.Configuration;
 using UnityEngine.InputSystem;
 using BepInEx.Logging;
 using TMPro;
+using Unity.Netcode;
+using System.Collections;
 
 namespace UIBeaconText
 {
@@ -168,7 +170,7 @@ namespace UIBeaconText
             distance.transform.localScale = new Vector3(s, s, s);
             distance.transform.localEulerAngles = rot;
 
-            var distanceText = distance.AddComponent<Text>();
+            var distanceText = distance.AddComponent<Text>(); 
             distanceText.font = font;
             distanceText.text = "...";
             distanceText.color = Color.white;
@@ -192,6 +194,7 @@ namespace UIBeaconText
                     }
                 }
             }
+            var tp = wo == null ? __instance.GetComponent<TextProxy>() : null;
 
             Log("Starting updater");
 
@@ -199,6 +202,7 @@ namespace UIBeaconText
             holder.titleText = titleText;
             holder.distanceText = distanceText;
             holder.beaconWorldObject = wo;
+            holder.textProxy = tp;
             holder.vanillaLabel = vanillaLabel;
             holder.vanillaHexagon1 = ___canvas.transform.Find("Image")?.gameObject;
             holder.vanillaHexagon2 = ___canvas.transform.Find("Image (1)")?.gameObject;
@@ -211,19 +215,42 @@ namespace UIBeaconText
             GameObject ___canvas
         )
         {
+            PlayersManager pm = Managers.GetManager<PlayersManager>();
+            if (pm == null)
+            {
+                return;
+            }
+            var player = pm.GetActivePlayerController();
+            if (player == null)
+            {
+                return;
+            }
+            if (__instance == null)
+            {
+                return;
+            }
             var holder = ___canvas.GetComponent<BeaconTextHolder>();
-            var player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
 
             var beaconPos = __instance.transform.position;
-            var dist = (int)Vector3.Distance(beaconPos, player?.transform.position ?? beaconPos);
+            var dist = (int)Vector3.Distance(beaconPos, player.transform.position);
 
             var titleText = holder.titleText;
             var distanceText = holder.distanceText;
 
+            var textValue = "";
+            if (holder.beaconWorldObject != null)
+            {
+                textValue = holder.beaconWorldObject.GetText();
+            }
+            else if (holder.textProxy != null)
+            {
+                textValue = holder.textProxy.GetText();
+            }
+
             if (showDistanceOnTop.Value)
             {
                 titleText.text = dist + "m";
-                distanceText.text = holder.beaconWorldObject?.GetText() ?? "";
+                distanceText.text = textValue;
 
                 titleText.gameObject.SetActive((displayMode.Value & 1) != 0);
                 distanceText.gameObject.SetActive((displayMode.Value & 2) != 0);
@@ -231,7 +258,7 @@ namespace UIBeaconText
             else
             {
                 distanceText.text = dist + "m";
-                titleText.text = holder.beaconWorldObject?.GetText() ?? "";
+                titleText.text = textValue;
 
                 titleText.gameObject.SetActive((displayMode.Value & 2) != 0);
                 distanceText.gameObject.SetActive((displayMode.Value & 1) != 0);
@@ -246,6 +273,7 @@ namespace UIBeaconText
             internal Text titleText;
             internal Text distanceText;
             internal WorldObject beaconWorldObject;
+            internal TextProxy textProxy;
             internal TextMeshProUGUI vanillaLabel;
             internal GameObject vanillaHexagon1;
             internal GameObject vanillaHexagon2;
