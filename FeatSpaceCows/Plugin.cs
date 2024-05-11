@@ -478,6 +478,14 @@ namespace FeatSpaceCows
             Log("                Done");
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
+
         static WorldObject EnsureHiddenContainer()
         {
             var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(shadowContainerId);

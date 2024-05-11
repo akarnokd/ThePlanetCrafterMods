@@ -631,5 +631,13 @@ namespace CheatInventoryStacking
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
+        }
+
     }
 }

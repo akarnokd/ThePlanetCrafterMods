@@ -1067,5 +1067,13 @@ namespace CheatCraftFromNearbyContainers
         {
             candidateInventories = null;
         }
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
+        }
     }
 }

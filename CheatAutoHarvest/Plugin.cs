@@ -108,6 +108,13 @@ namespace CheatAutoHarvest
             WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects().Clear();
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
         static IEnumerator HarvestLoop()
         {
             var wait = new WaitForSeconds(2.5f);

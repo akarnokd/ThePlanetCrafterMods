@@ -100,6 +100,13 @@ namespace CheatAutoLaunchRocket
             rockets.Clear();
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
         /// <summary>
         /// Marker class so the same rocket is not launched twice.
         /// </summary>

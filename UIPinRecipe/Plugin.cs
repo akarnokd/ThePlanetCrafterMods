@@ -433,6 +433,12 @@ namespace UIPinRecipe
             ClearPinnedRecipes();
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
         static void PlanetLoader_HandleDataAfterLoad()
         {
             PlayersManager playersManager = Managers.GetManager<PlayersManager>();

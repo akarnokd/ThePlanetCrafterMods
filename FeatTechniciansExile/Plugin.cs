@@ -1159,6 +1159,13 @@ namespace FeatTechniciansExile
             questPhase = QuestPhase.Not_Started;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         static void Localization_LoadLocalization(

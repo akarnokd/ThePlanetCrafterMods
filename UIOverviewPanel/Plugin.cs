@@ -569,6 +569,14 @@ namespace UIOverviewPanel
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
+
         class OverviewEntry
         {
             internal Text headingText;

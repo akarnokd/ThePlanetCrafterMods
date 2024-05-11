@@ -369,6 +369,14 @@ namespace MultiPlayerLocator
             introPlayedOnLoad = false;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
         static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)

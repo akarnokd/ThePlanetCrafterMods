@@ -402,6 +402,14 @@ namespace CheatWreckMap
             levelOffset = 0;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
+        }
+
+
         static void SaveMap()
         {
             if (NetworkManager.Singleton.IsServer)

@@ -199,5 +199,13 @@ namespace UIShowRocketCount
             rocketCountsByGroupId.Clear();
             rocketCountsByUnitType.Clear();
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
     }
 }

@@ -215,6 +215,14 @@ namespace CheatRecyclerRemoteDeposit
             isRunning = false;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
+
         static void Log(object message)
         {
             if (debugMode.Value)
