@@ -270,6 +270,11 @@ namespace CheatMinimap
                                     chests.Add(go);
                                 }
                             }
+                            else if (go.GetComponentInParent<InventoryFromScene>() != null 
+                                && id < 0 && (go.name.Contains("Warden") && showAltars.Value))
+                            {
+                                chests.Add(go);
+                            }
                         }
                         else if (invAssocProxy != null)
                         {
