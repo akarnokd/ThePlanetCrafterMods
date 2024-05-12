@@ -33,6 +33,7 @@ namespace CheatMinimap
         Texture2D safe;
         Texture2D outOfBoundsTexture;
         Texture2D portal;
+        Texture2D altar;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -49,6 +50,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showLadders;
         static ConfigEntry<bool> showServers;
         static ConfigEntry<bool> showSafes;
+        static ConfigEntry<bool> showAltars;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -92,6 +94,7 @@ namespace CheatMinimap
             safe = LoadPNG(Path.Combine(dir, "safe.png"));
             portal = LoadPNG(Path.Combine(dir, "portal.png"));
             outOfBoundsTexture = new Texture2D(1, 1);
+            altar = LoadPNG(Path.Combine(dir, "altar.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -111,6 +114,7 @@ namespace CheatMinimap
             showSafes = Config.Bind("General", "ShowSafes", true, "Show the wreck safes?");
             outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
             alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
+            showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -247,7 +251,10 @@ namespace CheatMinimap
                     {
                         chests.Add(go);
                     }
-                    else if (go.name.Contains("WreckSafe") && showSafes.Value)
+                    else if (
+                        (go.name.Contains("WreckSafe") && showSafes.Value)
+                        || (go.name.Contains("Warden") && showAltars.Value)
+                    )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
                         var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
@@ -468,6 +475,12 @@ namespace CheatMinimap
                                     img = portal;
                                     chestW = 10;
                                     chestH = 12;
+                                }
+                                else if (nm.Contains("Warden"))
+                                {
+                                    img = altar;
+                                    chestW = 12;
+                                    chestH = 14;
                                 }
                                 else
                                 {
