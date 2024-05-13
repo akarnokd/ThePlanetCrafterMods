@@ -196,12 +196,16 @@ namespace UIPinRecipe
                     inventoryCounts[gid] = c + 1;
                 }
 
-                foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
                 {
-                    string gid = wo.GetGroup().GetId();
-                    inventoryCounts.TryGetValue(gid, out int c);
-                    inventoryCounts[gid] = c + 1;
+                    foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                    {
+                        string gid = wo.GetGroup().GetId();
+                        inventoryCounts.TryGetValue(gid, out int c);
+                        inventoryCounts[gid] = c + 1;
+                    }
                 }
+
                 foreach (var inv in nearbyInventories)
                 {
                     if (inv != null)
