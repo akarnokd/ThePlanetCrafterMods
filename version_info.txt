@@ -17,7 +17,7 @@ akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.8
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.22
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.18
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.19
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.24
 # (Cheat) Minimap
@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.20
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.24
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.41
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.42
 # (Lathrey) Auto Move
 akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.10
 # (Lathrey) Disable Build Constraints

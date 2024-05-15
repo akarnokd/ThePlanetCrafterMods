@@ -117,6 +117,20 @@ namespace CheatInventoryStacking
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "DirtyInventoryClientRpc")]
+        static void Patch_InventoriesHandler_DirtyInventoryClientRpc_Pre()
+        {
+            overrideBufferSizeInRpc = stackSize.Value > 1;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), "DirtyInventoryClientRpc")]
+        static void Patch_InventoriesHandler_DirtyInventoryClientRpc_Post()
+        {
+            overrideBufferSizeInRpc = false;
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(NetworkBehaviour), "__beginSendClientRpc")]
         static bool Patch_NetworkBehaviour___beginSendClientRpc(ref FastBufferWriter __result)
         {

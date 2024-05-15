@@ -192,5 +192,12 @@ namespace FixUnofficialPatches
                 ____logisticTask = null;
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), "OnVegetableGrabed")]
+        static bool MachineGrower_OnVegetableGrabed()
+        {
+            return InventoriesHandler.Instance != null;
+        }
     }
 }
