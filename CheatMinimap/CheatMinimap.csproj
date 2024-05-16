@@ -33,6 +33,7 @@
     <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Commom_Larva.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
@@ -49,6 +50,7 @@
     <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Commom_Larva.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -65,6 +67,7 @@
 	<Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)Commom_Larva.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />

@@ -34,6 +34,7 @@ namespace CheatMinimap
         Texture2D outOfBoundsTexture;
         Texture2D portal;
         Texture2D altar;
+        Texture2D larvae;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -51,6 +52,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showServers;
         static ConfigEntry<bool> showSafes;
         static ConfigEntry<bool> showAltars;
+        static ConfigEntry<bool> showLarvae;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -95,6 +97,7 @@ namespace CheatMinimap
             portal = LoadPNG(Path.Combine(dir, "portal.png"));
             outOfBoundsTexture = new Texture2D(1, 1);
             altar = LoadPNG(Path.Combine(dir, "altar.png"));
+            larvae = LoadPNG(Path.Combine(dir, "Commom_Larva.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -115,6 +118,7 @@ namespace CheatMinimap
             outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
             alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
             showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
+            showLarvae = Config.Bind("General", "showLarvae", true, "Show the Warden larvaes?");
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -329,10 +333,21 @@ namespace CheatMinimap
                     }
                 }
             }
+            if (showLarvae.Value)
+            {
+                foreach (ActionGrabable id in FindObjectsByType<ActionGrabable>(FindObjectsSortMode.None))
+                {
+                    if (id.name.Contains("Larvae"))
+                    {
+                        chests.Add(id.gameObject);
+                    }
+                }
+            }
             foreach (var p in FindObjectsByType<MachinePortal>(FindObjectsSortMode.None))
             {
                 chests.Add(p.gameObject);
             }
+
 
             if (autoScanEnabled == 0)
             {
@@ -486,6 +501,12 @@ namespace CheatMinimap
                                     img = altar;
                                     chestW = 12;
                                     chestH = 14;
+                                }
+                                else if (nm.Contains("Larvae"))
+                                {
+                                    img = larvae;
+                                    chestW = 12;
+                                    chestH = 10;
                                 }
                                 else
                                 {
