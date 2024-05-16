@@ -315,6 +315,7 @@ namespace CheatCraftFromNearbyContainers
                     && invp.GetComponent<ActionOpenable>() != null
                     && invp.GetComponent<WorldObjectFromScene>() == null
                     && Vector3.Distance(invp.transform.position, pos) <= range.Value
+                    && invp.IsSpawned
                 )
                 {
                     counter[0]++;

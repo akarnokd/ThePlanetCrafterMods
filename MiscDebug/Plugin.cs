@@ -7,6 +7,7 @@ using HarmonyLib;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Netcode;
 
 namespace MiscDebug
@@ -101,6 +102,7 @@ namespace MiscDebug
             }
         }
         */
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "OnDestroy")]
         static void Drone_OnDestroy(LogisticTask ____logisticTask)
@@ -118,14 +120,70 @@ namespace MiscDebug
                 );
             }
         }
+        */
 
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void InventoriesHandler_RetrieveInventoryClientRpc(
+            Queue<Action<Inventory>> ____callbackQueue,
+            InventoriesHandler __instance,
+            int inventoryId,
+            ref ClientRpcParams clientRpcParams
+        )
+        {
+            var stg = (int)AccessTools.Field(typeof(InventoriesHandler), "__rpc_exec_stage").GetValue(__instance);
+
+            if (!(stg != 1 || (!__instance.NetworkManager.IsClient && !__instance.NetworkManager.IsHost)) && ____callbackQueue.Count == 0)
+            {
+                ____callbackQueue.Enqueue(null);
+            }
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static bool InventoriesHandler_RetrieveInventoryClientRpc(
+            InventoriesHandler __instance,
+            ref ClientRpcParams clientRpcParams,
+            Queue<Action<Inventory>> ____callbackQueue
+        )
+        {
+            NetworkManager networkManager = __instance.NetworkManager;
+            if (networkManager != null && networkManager.IsListening && networkManager.IsHost)
+            {
+                if (clientRpcParams.Send.TargetClientIds?.ContainsByEquals(networkManager.LocalClientId) ?? false)
+                {
+                    return false;
+                }
+                var na = clientRpcParams.Send.TargetClientIdsNativeArray;
+                if (na != null && na.Value.ContainsByEquals(networkManager.LocalClientId))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        */
+
+        static string clientIdStr(NativeArray<ulong>? param)
+        {
+            if (param == null)
+            {
+                return "";
+            }
+            return string.Join(",", param.Value);
+        }
+
+        /*
         [HarmonyFinalizer]
         [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
         static void InventoriesHandler_RetrieveInventoryClientRpc(
             Queue<Action<Inventory>> ____callbackQueue, 
             InventoriesHandler __instance,
             int inventoryId,
-            Exception __exception
+            Exception __exception,
+            ref ClientRpcParams clientRpcParams
         )
         {
             if (____callbackQueue.Count == 0 && __exception != null)
@@ -133,11 +191,37 @@ namespace MiscDebug
                 var stg = AccessTools.Field(typeof(InventoriesHandler), "__rpc_exec_stage").GetValue(__instance);
 
                 logger.LogError("IllegalState: Queue is empty for RetrieveInventoryClientRpc: " + inventoryId + " on " 
-                    + (__instance.IsServer ? "Server - " : "Client - ")
-                    + stg
+                    + ("- IsSpawned: " + __instance.IsSpawned)
+                    + ("- IsServer: " + __instance.NetworkManager.IsServer)
+                    + ("- IsHost: " + __instance.NetworkManager.IsHost)
+                    + ("- IsIsClient: " + __instance.NetworkManager.IsClient)
+                    + "- Stg: " + stg
+                    + " - ClientIds " + clientIdStr(clientRpcParams.Send.TargetClientIdsNativeArray)
                     + "\n" + Environment.StackTrace
                     );
             }
         }
+        */
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static Exception InventoriesHandler_RetrieveInventoryClientRpc(
+            Exception __exception
+        )
+        {
+            if (__exception is InvalidOperationException && __exception.Message.Contains("Queue empty"))
+            {
+                return null;
+            }
+            return __exception;
+        }
+        /*
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NetworkUtils), nameof(NetworkUtils.GetSenderClientParams), [typeof(ServerRpcParams)])]
+        static void NetworkUtils_GetSenderClientParams(ref ServerRpcParams serverRpcParams)
+        {
+            logger.LogInfo("NetworkUtils::GetSenderClientParams " + serverRpcParams.Receive.SenderClientId);
+        }
+        */
     }
 }
