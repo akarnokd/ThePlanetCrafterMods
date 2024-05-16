@@ -182,18 +182,6 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Drone), "OnDestroy")]
-        static void Drone_OnDestroy(ref LogisticTask ____logisticTask)
-        {
-            if (____logisticTask != null
-                && ____logisticTask.GetTaskState() != LogisticData.TaskState.Done)
-            {
-                ____logisticTask.SetTaskState(LogisticData.TaskState.Done);
-                ____logisticTask = null;
-            }
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGrower), "OnVegetableGrabed")]
         static bool MachineGrower_OnVegetableGrabed()
         {
