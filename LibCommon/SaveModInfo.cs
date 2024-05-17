@@ -14,7 +14,8 @@ namespace LibCommon
     /// </summary>
     internal class SaveModInfo
     {
-        const int storeInWorldObjectId = 90_000_000;
+        const int storeInWorldObjectId = 900_000_000;
+        const int storeInWorldObjectIdOld = 90_000_000;
 
         internal static void Patch(Harmony harmony)
         {
@@ -50,6 +51,9 @@ namespace LibCommon
                     wo.SetDontSaveMe(false);
                 }
                 wo.SetText(sb.ToString().Replace("@", " ").Replace("|", " "));
+
+                // remove the old entry
+                WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(storeInWorldObjectIdOld);
             }
         }
     }

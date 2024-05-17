@@ -151,7 +151,7 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(25, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(26, "GoldenContainer"));
 
                 AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
