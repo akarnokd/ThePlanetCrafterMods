@@ -127,7 +127,7 @@ akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.24
 # (UI) Korean Translation
 akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.13
 # (UI) Polish Translation
-akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.33
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.34
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.18
 # (UI) Ukrainian Translation
