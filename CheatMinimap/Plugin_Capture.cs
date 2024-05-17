@@ -10,6 +10,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using LibCommon;
+using System;
 
 namespace CheatMinimap
 {
@@ -76,6 +77,7 @@ namespace CheatMinimap
 
         void SetVisuals(int step, PlayerMainController pm)
         {
+            Logger.LogInfo("    Camera");
             Camera.main.orthographic = true;
             Camera.main.orthographicSize = step;
             Camera.main.aspect = 1;
@@ -83,6 +85,7 @@ namespace CheatMinimap
             Camera.main.nearClipPlane = -400;
             Camera.main.layerCullDistances = new float[32];
 
+            Logger.LogInfo("    RenderSettings");
             RenderSettings.fog = false;
             RenderSettings.ambientSkyColor = Color.white;
             RenderSettings.ambientGroundColor = Color.white;
@@ -91,6 +94,7 @@ namespace CheatMinimap
             RenderSettings.sun.color = Color.white;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
 
+            Logger.LogInfo("    Shadows");
             QualitySettings.shadows = ShadowQuality.Disable;
 
             var pw = pm.GetComponentInChildren<PlayerView>();
@@ -98,12 +102,16 @@ namespace CheatMinimap
             pw.damageViewVolume.weight = 0;
             pw.damageViewVolume.enabled = false;
 
+            /*
+             * The following either crashes Unity 2023.4.19f or hangs while doing a screenshot.
+            Logger.LogInfo("    Lights");
             foreach (Light lg in FindObjectsByType<Light>(FindObjectsSortMode.None))
             {
                 lg.shadows = LightShadows.None;
                 lg.color = Color.white;
                 lg.range = 1000;
             }
+            */
             /*
             foreach (var ps in FindObjectsOfType<ParticleSystem>())
             {
@@ -204,10 +212,27 @@ namespace CheatMinimap
 
             foreach (int y in ys)
             {
+                Logger.LogInfo("  Place");
                 pm.SetPlayerPlacement(new Vector3(playerX, y, playerZ), q);
+                yield return 0;
+                Logger.LogInfo("  Visuals");
                 SetVisuals(visualStep, pm);
                 yield return 0;
-                ScreenCapture.CaptureScreenshot(dir + "\\map_" + y + ".png");
+                yield return 0;
+                yield return 0;
+                yield return 0;
+                var fn = dir + "\\map_" + y + ".png";
+                // var fn = "c:\\temp\\map_" + y + ".png";
+                Logger.LogInfo("  Capture @ " + y + " -> " + fn);
+                try
+                {
+                    ScreenCapture.CaptureScreenshot(fn);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex);
+                }
+                Logger.LogInfo("  Capture Done " + y);
                 yield return 0;
             }
 

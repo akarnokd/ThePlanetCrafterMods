@@ -723,8 +723,8 @@ namespace FeatCommandConsole
                 {
                     string[] resources =
                     [
-                        "MultiToolLight2", "MultiToolDeconstruct2", "Backpack5", 
-                        "Jetpack3", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
+                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack6", 
+                        "Jetpack4", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
                         "EquipmentIncrease3", "OxygenTank4", "HudCompass"
                     ];
                     int amount = 1;
