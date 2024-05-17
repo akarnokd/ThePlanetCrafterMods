@@ -5,11 +5,11 @@ akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.14
 # (Cheat) Auto Grab and Mine
 akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.8
 # (Cheat) Automatically Harvest Food n Algae
-akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.27
+akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.28
 # (Cheat) Auto Launch Rockets
 akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.9
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.18
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.19
 # (Cheat) Auto Store
 akarnokd.theplanetcraftermods.cheatautostore=1.0.0.7
 # (Cheat) Birthday
