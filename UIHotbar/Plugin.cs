@@ -18,6 +18,8 @@ using Unity.Netcode;
 using BepInEx.Bootstrap;
 using System.Collections;
 using LibCommon;
+using HarmonyLib.Tools;
+using System.Text;
 
 namespace UIHotbar
 {
@@ -39,6 +41,7 @@ namespace UIHotbar
         static ManualLogSource _logger;
 
         static readonly int shadowContainerId = 4000;
+        static readonly int shadowContainerIdMulti = 4001;
 
         static Action<Group> pinUnpinRecipe;
 
@@ -51,6 +54,10 @@ namespace UIHotbar
         static List<Inventory> nearbyInventories = [];
 
         static Coroutine nearbyInventoriesChecker;
+
+        const string funcGetLoadout = "GetLoadout";
+        const string funcSetLoadout = "SetLoadout";
+        const string funcReceiveLoadout = "ReceiveLoadout";
 
         void Awake()
         {
@@ -95,7 +102,15 @@ namespace UIHotbar
             }
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            ModNetworking.Init(modUiHotbarGuid, Logger);
+            ModNetworking.Patch(h);
+            ModNetworking._debugMode = debugMode.Value;
+            ModNetworking.RegisterFunction(funcGetLoadout, OnGetLoadout);
+            ModNetworking.RegisterFunction(funcSetLoadout, OnSetLoadout);
+            ModNetworking.RegisterFunction(funcReceiveLoadout, OnReceiveLoadout);
+            ModNetworking.RegisterFunction(ModNetworking.FunctionClientConnected, OnClientConnected);
         }
 
         static void Log(object message)
@@ -651,20 +666,23 @@ namespace UIHotbar
 
         static void SaveHotbar()
         {
-            // FIXME Multiplayer
+            var str = string.Join(",", slots.Select(slot =>
+            {
+                var g = slot.currentGroup;
+                if (g == null)
+                {
+                    return "";
+                }
+                return g.id;
+            }));
+
             if (NetworkManager.Singleton?.IsServer ?? true)
             {
                 var wo = EnsureHiddenContainer();
-                var str = string.Join(",", slots.Select(slot =>
-                {
-                    var g = slot.currentGroup;
-                    if (g == null)
-                    {
-                        return "";
-                    }
-                    return g.id;
-                }));
                 wo.SetText(str);
+            } else
+            {
+                SaveHotbarClient(str);
             }
         }
 
@@ -673,12 +691,14 @@ namespace UIHotbar
             // FIXME Multiplayer
             if (NetworkManager.Singleton?.IsServer ?? true)
             {
+                Log("RestoreHotbar Server");
                 var wo = EnsureHiddenContainer();
                 RestoreHotbarFromString(wo.GetText());
             }
             else
             {
-                RestoreHotbarFromString("");
+                Log("RestoreHotbar Client");
+                CallGetLoadout();
             }
         }
 
@@ -757,6 +777,149 @@ namespace UIHotbar
         static bool PlayerThirdPersonView_ShortcutEmote()
         {
             return Keyboard.current[Key.LeftAlt].isPressed;
+        }
+
+        static WorldObject EnsureHiddenContainerMultiplayer()
+        {
+            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(shadowContainerIdMulti);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerIdMulti);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static Dictionary<string, string> ParseLoadoutMulti(string str)
+        {
+            Dictionary<string, string> result = [];
+            foreach (var entry in str.Split(';'))
+            {
+                var idStr = entry.Split("=");
+                if (idStr.Length == 2) 
+                {
+                    result[idStr[0]] = idStr[1];
+                }
+            }
+            return result;
+        }
+
+        static string SerializeLoadoutMulti(Dictionary<string, string> result)
+        {
+            var sb = new StringBuilder(256);
+            foreach (var kv in result)
+            {
+                if (sb.Length != 0)
+                {
+                    sb.Append(';');
+                }
+                sb.Append(kv.Key.Replace('|', ' ').Replace('@', ' ')).Append("=").Append(kv.Value);
+            }
+            return sb.ToString();
+        }
+
+        static void OnGetLoadout(ulong sender, string parameters)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var wo = EnsureHiddenContainerMultiplayer();
+                var dict = ParseLoadoutMulti(wo.GetText() ?? "");
+
+                var idName = parameters.Split(',');
+                if (idName.Length == 2)
+                {
+                    Log("OnGetLoadout via parameters: " + parameters);
+                    var nm = idName[1].Replace('|', ' ').Replace('@', ' ');
+                    if (dict.TryGetValue(nm, out var str))
+                    {
+                        Log("OnGetLoadout via parameters: " + sender + " ~ " + parameters + " -> " + str);
+                        ModNetworking.SendClient(sender, funcReceiveLoadout, str);
+                        return;
+                    }
+                }
+                Log("OnGetLoadout - Client info not found: " + sender + " ~ " + parameters);
+            }
+            else
+            {
+                Log("OnGetLoadout: No PlayersManager");
+            }
+        }
+
+        static void OnSetLoadout(ulong sender, string parameters)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var wo = EnsureHiddenContainerMultiplayer();
+                var dict = ParseLoadoutMulti(wo.GetText() ?? "");
+                var idName = parameters.Split('=');
+                if (idName.Length == 2)
+                {
+                    Log("OnSetLoadout via parameters: " + sender + " ~ " + parameters);
+                    var nm = idName[0].Replace('|', ' ').Replace('@', ' ');
+                    dict[nm] = idName[1];
+
+                    wo.SetText(SerializeLoadoutMulti(dict));
+                    return;
+                }
+                Log("OnSetLoadout - Client info not found: " + sender);
+            }
+            else
+            {
+                Log("OnSetLoadout: No PlayersManager");
+            }
+        }
+
+        static void OnReceiveLoadout(ulong sender, string parameters)
+        {
+            RestoreHotbarFromString(parameters);
+        }
+
+        static void OnClientConnected(ulong sender, string parameters)
+        {
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                Log("OnClientConnected Client -> Call GetLoadout");
+                CallGetLoadout();
+            }
+        }
+
+        static void CallGetLoadout()
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var pc = pm.GetActivePlayerController();
+                if (pc != null)
+                {
+                    var msg = pc.id + "," + pc.playerName;
+                    Log("CallGetLoadout: " + msg);
+                    ModNetworking.SendHost(funcGetLoadout, msg);
+                }
+            }
+        }
+
+        static void SaveHotbarClient(string str)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var ac = pm.GetActivePlayerController().playerName;
+                str = ac + "=" + str;
+                Log("SaveHotbar: Call SetLoadout " + str);
+                ModNetworking.SendHost(funcSetLoadout, str);
+            }
+            else
+            {
+                Log("SaveHotbar: PlayersManager is null");
+            }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
         }
     }
 }

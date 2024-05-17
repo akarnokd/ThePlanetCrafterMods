@@ -380,7 +380,7 @@ namespace FeatCommandConsole
                 return;
             }
 
-            logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null? " + (background == null));
+            Log("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null? " + (background == null));
 
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
@@ -2253,18 +2253,18 @@ namespace FeatCommandConsole
 
                             if (pb.GetIsGhostExisting())
                             {
-                                Logger.LogInfo("Cancelling previous ghost");
+                                Log("Cancelling previous ghost");
                                 pb.InputOnCancelAction();
                             }
 
                             if (NetworkManager.Singleton.IsServer)
                             {
-                                Logger.LogInfo("Activating ghost for " + gc.GetId());
+                                Log("Activating ghost for " + gc.GetId());
                                 pb.SetNewGhost(gc);
                             }
                             else
                             {
-                                Logger.LogInfo("Activating delayed ghost for " + gc.GetId());
+                                Log("Activating delayed ghost for " + gc.GetId());
                                 pb.StartCoroutine(SetNewGhostDelayed(pb, gc));
                             }
                         }
@@ -3924,7 +3924,7 @@ namespace FeatCommandConsole
 
                         InventoriesHandler.Instance.AddWorldObjectToInventory(woDna, playerInventory, false, success =>
                         {
-                            logger.LogInfo("SpawnDNA - " + woDna.GetId() + " " + success);
+                            Log("SpawnDNA - " + woDna.GetId() + " " + success);
                             if (!success)
                             {
                                 WorldObjectsHandler.Instance.DestroyWorldObject(woDna);

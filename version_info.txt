@@ -29,15 +29,15 @@ akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.23
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.12
 # (Cheat) Recyclers Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.16
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.17
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.6
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.75
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.76
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.20
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.21
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.24
 # (Fix) Unofficial Patches
@@ -77,7 +77,7 @@ akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.12
 # (UI) Prevent Accidental Deconstruct
 akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.13
 # (UI) Hotbar
-akarnokd.theplanetcraftermods.uihotbar=1.0.0.27
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.28
 # (UI) Inventory Move Multiple Items
 akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.9
 # (UI) Logistic Select All
@@ -97,7 +97,7 @@ akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.15
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.17
 # (UI) Show Crash
-akarnokd.theplanetcraftermods.uishowcrash=1.0.0.9
+akarnokd.theplanetcraftermods.uishowcrash=1.0.0.10
 # (UI) Show ETA
 akarnokd.theplanetcraftermods.uishoweta=1.0.0.9
 # (UI) Show Grab N Mine Count
