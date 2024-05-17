@@ -202,6 +202,7 @@ namespace MiscDebug
             }
         }
         */
+        /*
         [HarmonyFinalizer]
         [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
         static Exception InventoriesHandler_RetrieveInventoryClientRpc(
@@ -210,10 +211,12 @@ namespace MiscDebug
         {
             if (__exception is InvalidOperationException && __exception.Message.Contains("Queue empty"))
             {
+                logger.LogInfo("InventoriesHandler::RetrieveInventoryClientRpc crashed with Queue empty. Suppressed.");
                 return null;
             }
             return __exception;
         }
+        */
         /*
 
         [HarmonyPrefix]
