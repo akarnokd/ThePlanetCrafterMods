@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Collections;
 using UnityEngine.InputSystem.Controls;
 using Unity.Netcode;
+using Tessera;
 
 namespace CheatMinimap
 {
@@ -34,6 +35,7 @@ namespace CheatMinimap
         Texture2D outOfBoundsTexture;
         Texture2D portal;
         Texture2D altar;
+        Texture2D stair;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -51,6 +53,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showServers;
         static ConfigEntry<bool> showSafes;
         static ConfigEntry<bool> showAltars;
+        static ConfigEntry<bool> showStairs;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -95,6 +98,7 @@ namespace CheatMinimap
             portal = LoadPNG(Path.Combine(dir, "portal.png"));
             outOfBoundsTexture = new Texture2D(1, 1);
             altar = LoadPNG(Path.Combine(dir, "altar.png"));
+            stair = LoadPNG(Path.Combine(dir, "stair.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -115,6 +119,7 @@ namespace CheatMinimap
             outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
             alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
             showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
+            showStairs = Config.Bind("General", "ShowStairs", true, "Show the stairs in procedural wrecks?");
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -334,6 +339,17 @@ namespace CheatMinimap
                 chests.Add(p.gameObject);
             }
 
+            if (showStairs.Value)
+            {
+                foreach (var id in FindObjectsByType<TesseraTile>(FindObjectsSortMode.None))
+                {
+                    if (id.name.Contains("Stair"))
+                    {
+                        chests.Add(id.transform.gameObject);
+                    }
+                }
+            }
+
             if (autoScanEnabled == 0)
             {
                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
@@ -485,6 +501,12 @@ namespace CheatMinimap
                                 {
                                     img = altar;
                                     chestW = 12;
+                                    chestH = 14;
+                                }
+                                else if (nm.Contains("Stair"))
+                                {
+                                    img = stair;
+                                    chestW = 14;
                                     chestH = 14;
                                 }
                                 else

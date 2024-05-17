@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 using System;
 using Unity.Netcode;
 using System.Text;
+using LibCommon;
 
 namespace CheatWreckMap
 {
@@ -39,6 +40,8 @@ namespace CheatWreckMap
         static Color colorCurrent = Color.white;
         static Color colorLadder = Color.green;
         static Color colorLadderBottom = new(1f, 0.8f, 0f, 1f);
+        static Color colorStair = new(1f, 0f, 0.5f, 1f);
+        static Color colorStairBottom = new(0.5f, 0.4f, 0f, 1f);
         static Color colorEmpty = new(0.1f, 0.1f, 0.1f, 0.1f);
         static Color colorBase = Color.yellow;
 
@@ -49,6 +52,8 @@ namespace CheatWreckMap
         static ConfigEntry<string> emptyColor;
         static ConfigEntry<string> ladderColor;
         static ConfigEntry<string> ladderBottomColor;
+        static ConfigEntry<string> stairColor;
+        static ConfigEntry<string> stairBottomColor;
         static ConfigEntry<int> renderWidth;
         static ConfigEntry<int> renderHeight;
         static ConfigEntry<int> fontSize;
@@ -70,6 +75,11 @@ namespace CheatWreckMap
             emptyColor = Config.Bind("General", "EmptyColor", "127,25,25,25", "The basic color of emptyness in ARGB values in range 0..255");
             ladderColor = Config.Bind("General", "LadderColor", "255,0,255,0", "The basic color of ladders in ARGB values in range 0..255");
             ladderBottomColor = Config.Bind("General", "LadderBottomColor", "255,255,204,0", "The basic color of ladders in ARGB values in range 0..255");
+
+            stairColor = Config.Bind("General", "StairColor", "255,0,128,0", "The basic color of stairs in ARGB values in range 0..255");
+            stairBottomColor = Config.Bind("General", "StairBottomColor", "255,102,128,0", "The basic color of stairs in ARGB values in range 0..255");
+
+
             renderWidth = Config.Bind("General", "MapWidth", 750, "The map width in pixels");
             renderHeight = Config.Bind("General", "MapHeight", 750, "The map height in pixels");
             fontSize = Config.Bind("General", "FontSize", 30, "The font size");
@@ -84,7 +94,8 @@ namespace CheatWreckMap
             OnModConfigChanged(baseColor);
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            ModPlanetLoaded.Patch(h, modWreckMapGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
         public void Update()
@@ -100,7 +111,7 @@ namespace CheatWreckMap
                 if (p != null)
                 {
                     var ih = ProceduralInstancesHandler.Instance;
-                    if (ih != null && ih.IsReady && ih.IsInsideAnInstance(p.transform.position)) 
+                    if (ih != null && ih.IsReady && ih.IsInsideAnInstance(p.transform.position, false)) 
                     {
                         EnsureCanvas();
                         if (Keyboard.current[Key.L].wasPressedThisFrame 
@@ -140,7 +151,7 @@ namespace CheatWreckMap
                             if (tess != null)
                             {
                                 insideWreck = true;
-                                Log(tess);
+                                // Log(tess);
 
                                 var nm = tess.name;
                                 var i1 = nm.IndexOf('(');
@@ -225,7 +236,7 @@ namespace CheatWreckMap
 
         void ApplyOffsets(int cx, int cy, int cz, TesseraTile tess)
         {
-            bool changed = false;
+            var rot = tess.GetComponent<Transform>()?.localEulerAngles.y ?? 0f;
             foreach (var offset in tess.sylvesOffsets)
             {
                 var iy = cy + offset.y;
@@ -247,27 +258,43 @@ namespace CheatWreckMap
                         ct = CellType.Ladder_Bottom;
                     }
                 }
+                else if (tess.name.Contains("Stair"))
+                {
+                    if (offset.y == 0)
+                    {
+                        ct = CellType.Stair;
+                    }
+                    else
+                    {
+                        ct = CellType.Stair_Bottom;
+                    }
+                }
 
                 var key = (cx + offset.x, cz + offset.z);
+                if (rot > 89f && rot < 91f)
+                {
+                    key = (cx + offset.z, cz - offset.x);
+                }
+                else if (rot > 179f && rot < 181f)
+                {
+                    key = (cx - offset.x, cz - offset.z);
+                }
+                else if (rot > 269f && rot < 271f)
+                {
+                    key = (cx - offset.z, cz + offset.x);
+                }
 
                 if (cgr.TryGetValue(key, out var gt))
                 {
                     if (gt != ct)
                     {
                         cgr[key] = ct;
-                        changed = true;
                     }
                 }
                 else
                 {
                     cgr[key] = ct;
-                    changed = true;
                 }
-            }
-
-            if (changed)
-            {
-                SaveMap();
             }
         }
 
@@ -305,6 +332,14 @@ namespace CheatWreckMap
                                 else if (ct == CellType.Ladder_Bottom)
                                 {
                                     map.SetPixel(x, y, colorLadderBottom);
+                                }
+                                else if (ct == CellType.Stair)
+                                {
+                                    map.SetPixel(x, y, colorStair);
+                                }
+                                else if (ct == CellType.Stair_Bottom)
+                                {
+                                    map.SetPixel(x, y, colorStairBottom);
                                 }
                                 else
                                 {
@@ -409,7 +444,8 @@ namespace CheatWreckMap
             Patch_UiWindowPause_OnQuit();
         }
 
-
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SavedDataHandler), nameof(SavedDataHandler.SaveWorldData))]
         static void SaveMap()
         {
             if (NetworkManager.Singleton.IsServer)
@@ -419,69 +455,66 @@ namespace CheatWreckMap
                 WorldInstanceHandler wih = Managers.GetManager<WorldInstanceHandler>();
 
                 var ow = wih?.GetOpenedWorldInstanceData();
-                if (ow != null)
-                {
-                    var sb = new StringBuilder(1024);
-                    sb.Append(ow.GetSeed());
+                var sb = new StringBuilder(1024);
+                sb.Append(ow?.GetSeed() ?? 0);
 
-                    foreach (var kv in cellGrid)
+                foreach (var kv in cellGrid)
+                {
+                    foreach (var e in kv.Value)
                     {
-                        foreach (var e in kv.Value)
-                        {
-                            sb.Append(';');
-                            sb.Append(kv.Key).Append(',')
-                                .Append(e.Key.Item1).Append(',')
-                                .Append(e.Key.Item2).Append(',')
-                                .Append((int)e.Value)
-                            ;
-                        }
+                        sb.Append(';');
+                        sb.Append(kv.Key).Append(',')
+                            .Append(e.Key.Item1).Append(',')
+                            .Append(e.Key.Item2).Append(',')
+                            .Append((int)e.Value)
+                        ;
                     }
-                    wo.SetText(sb.ToString());
                 }
+                var str = sb.ToString();
+                wo.SetText(str);
+                Log("Map saved: " + str);
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(WorldInstanceHandler), "HandleDataAfterLoad")]
-        static void WorldInstanceHandler_HandleDataAfterLoad()
+        static void PlanetLoader_HandleDataAfterLoad()
         {
             if (NetworkManager.Singleton.IsServer)
             {
                 var wo = EnsureStorage();
 
                 var txt = wo.GetText() ?? "";
+                Log("Found procedural wreck map: " + txt);
+                var sections = txt.Split(';');
 
                 WorldInstanceHandler wih = Managers.GetManager<WorldInstanceHandler>();
 
                 var ow = wih?.GetOpenedWorldInstanceData();
-                if (ow != null && txt.Length != 0)
+                if ((ow != null && txt.Length != 0 && ow.GetSeed().ToString() == sections[0])
+                    || (txt.Length != 0 && sections[0] == "0")
+                )
                 {
-                    var sections = txt.Split(';');
+                    Log("Loading procedural wreck map: " + txt);
+                    cellGrid.Clear();
 
-                    if (ow.GetSeed().ToString() == sections[0])
+                    for (int i = 1; i < sections.Length; i++)
                     {
-                        cellGrid.Clear();
-
-                        for (int i = 1; i < sections.Length; i++)
+                        string sec = sections[i];
+                        var parts = sec.Split(',');
+                        var cy = int.Parse(parts[0]);
+                        var cx = int.Parse(parts[1]);
+                        var cz = int.Parse(parts[2]);
+                        var ct = CellType.Corridor;
+                        if (parts.Length > 3)
                         {
-                            string sec = sections[i];
-                            var parts = sec.Split(',');
-                            var cy = int.Parse(parts[0]);
-                            var cx = int.Parse(parts[1]);
-                            var cz = int.Parse(parts[2]);
-                            var ct = CellType.Corridor;
-                            if (parts.Length > 3)
-                            {
-                                ct = (CellType)int.Parse(parts[3]);
-                            }
-
-                            if (!cellGrid.TryGetValue(cy, out var cgr))
-                            {
-                                cgr = [];
-                                cellGrid[cy] = cgr;
-                            }
-                            cgr[(cx, cz)] = ct;
+                            ct = (CellType)int.Parse(parts[3]);
                         }
+
+                        if (!cellGrid.TryGetValue(cy, out var cgr))
+                        {
+                            cgr = [];
+                            cellGrid[cy] = cgr;
+                        }
+                        cgr[(cx, cz)] = ct;
                     }
                 }
             }
@@ -491,7 +524,7 @@ namespace CheatWreckMap
         [HarmonyPatch(typeof(WorldInstanceHandler), nameof(WorldInstanceHandler.UnloadInstance))]
         static void WorldInstanceHandler_UnloadInstance()
         {
-            cellGrid.Clear();
+            // cellGrid.Clear();
         }
 
         static void Log(object message)
@@ -529,6 +562,8 @@ namespace CheatWreckMap
             ParseColor(emptyColor, ref colorEmpty);
             ParseColor(ladderColor, ref colorLadder);
             ParseColor(ladderBottomColor, ref colorLadderBottom);
+            ParseColor(stairColor, ref colorStair);
+            ParseColor(stairBottomColor, ref colorStairBottom);
             Destroy(canvas);
             canvas = null;
         }
@@ -569,7 +604,9 @@ namespace CheatWreckMap
             Empty,
             Corridor,
             Ladder,
-            Ladder_Bottom
+            Ladder_Bottom,
+            Stair,
+            Stair_Bottom
         }
     }
 }
