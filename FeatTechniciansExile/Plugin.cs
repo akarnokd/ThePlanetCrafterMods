@@ -1235,15 +1235,9 @@ namespace FeatTechniciansExile
                 foreach (var gd in ___rocketsGenerationGroups)
                 {
                     logger.LogInfo("  group " + gd.id);
+
                     var groupViaId = GroupsHandler.GetGroupViaId(gd.id);
-                    var allWorldObjectsOfGroup = 0;
-                    foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
-                    {
-                        if (wo.GetGroup() == groupViaId)
-                        {
-                            allWorldObjectsOfGroup++;
-                        }
-                    }
+                    var allWorldObjectsOfGroup = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(gd, false);
                     logger.LogInfo("  wo count " + allWorldObjectsOfGroup);
                     if (allWorldObjectsOfGroup != 0)
                     {
