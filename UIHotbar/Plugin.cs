@@ -908,12 +908,12 @@ namespace UIHotbar
             {
                 var ac = pm.GetActivePlayerController().playerName;
                 str = ac + "=" + str;
-                Log("SaveHotbar: Call SetLoadout " + str);
+                Log("SaveHotbarClient: Call SetLoadout " + str);
                 ModNetworking.SendHost(funcSetLoadout, str);
             }
             else
             {
-                Log("SaveHotbar: PlayersManager is null");
+                Log("SaveHotbarClient: PlayersManager is null");
             }
         }
 
