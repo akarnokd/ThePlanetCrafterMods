@@ -1291,4 +1291,4 @@ GROUP_NAME_Skin-14=Abyso Űrruha
 GROUP_NAME_Skin-15=Ettio Űrruha
 GROUP_NAME_Skin-16=Plesao Űrruha
 GROUP_NAME_Skin-17=Rorao Űrruha
-UI_ClickEquipable=Jobb kattintás a felszereléshez
+UI_ClickEquipable=Bal kattintás a felszereléshez

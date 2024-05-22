@@ -15,9 +15,9 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.7
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.8
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.24
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.25
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.21
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.22
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.24
 # (Cheat) Minimap
@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.17
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.6
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.76
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.77
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -121,7 +121,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.19
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.15
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.75
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.76
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.24
 # (UI) Korean Translation
