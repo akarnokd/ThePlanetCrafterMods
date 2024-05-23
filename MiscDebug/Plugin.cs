@@ -7,6 +7,7 @@ using HarmonyLib;
 using SpaceCraft;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Netcode;
 
@@ -166,6 +167,7 @@ namespace MiscDebug
         }
         */
 
+        /*
         static string clientIdStr(NativeArray<ulong>? param)
         {
             if (param == null)
@@ -174,6 +176,7 @@ namespace MiscDebug
             }
             return string.Join(",", param.Value);
         }
+        */
 
         /*
         [HarmonyFinalizer]
@@ -224,6 +227,24 @@ namespace MiscDebug
         static void NetworkUtils_GetSenderClientParams(ref ServerRpcParams serverRpcParams)
         {
             logger.LogInfo("NetworkUtils::GetSenderClientParams " + serverRpcParams.Receive.SenderClientId);
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "UpdateOrCreateInventoryFromMessage")]
+        static void InventoriesHandler_UpdateOrCreateInventoryFromMessage_Pre(ref Stopwatch __state)
+        {
+            __state = Stopwatch.StartNew();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), "UpdateOrCreateInventoryFromMessage")]
+        static void InventoriesHandler_UpdateOrCreateInventoryFromMessage_Post(ref Stopwatch __state)
+        {
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                logger.LogInfo(string.Format("UpdateOrCreateInventoryFromMessage: {0:0.000} ms", __state.Elapsed.TotalMilliseconds));
+            }
         }
         */
     }

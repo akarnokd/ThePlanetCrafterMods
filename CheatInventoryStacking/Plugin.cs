@@ -17,6 +17,8 @@ using System.Linq;
 using BepInEx.Bootstrap;
 using System.Collections;
 using LibCommon;
+using Unity.Netcode;
+using System.Diagnostics;
 
 namespace CheatInventoryStacking
 {
@@ -97,6 +99,7 @@ namespace CheatInventoryStacking
         static Func<bool> apiTryToCraftInInventoryHandled;
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
+        static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
 
         static Plugin me;
 
@@ -209,6 +212,7 @@ namespace CheatInventoryStacking
             }
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
+            fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -639,5 +643,51 @@ namespace CheatInventoryStacking
             Patch_UiWindowPause_OnQuit();
         }
 
+        // Bypass the vanilla AddItem in the method to avoid restacking for thousands of items.
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "UpdateOrCreateInventoryFromMessage")]
+        static bool Patch_InventoriesHandler_UpdateOrCreateInventoryFromMessage(
+            int size, 
+            int inventoryId, 
+            int[] content, 
+            int[] contentIds, 
+            Inventory newInventory,
+            ref Inventory __result
+        )
+        {
+            if (stackSize.Value <= 1)
+            {
+                return true;
+            }
+
+            var timer = Stopwatch.StartNew();
+
+            Inventory inventoryResult;
+            if (newInventory == null)
+            {
+                inventoryResult = new Inventory(inventoryId, size, null, null, null, 0);
+            }
+            else
+            {
+                inventoryResult = newInventory;
+                inventoryResult.ClearContent(size);
+            }
+            var list = fInventoryWorldObjectsInInventory(inventoryResult);
+            for (int i = 0; i < content.Length; i++)
+            {
+                WorldObject worldObjectViaId = WorldObjectsHandler.Instance.GetWorldObjectViaId(contentIds[i]) 
+                    ?? WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupFromHash(content[i]), contentIds[i], null, true);
+
+                list.Add(worldObjectViaId);
+            }
+            __result = inventoryResult;
+
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                Log(string.Format("UpdateOrCreateInventoryFromMessage: {0:0.000} ms", timer.Elapsed.TotalMilliseconds));
+            }
+
+            return false;
+        }
     }
 }

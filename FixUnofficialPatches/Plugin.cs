@@ -187,5 +187,16 @@ namespace FixUnofficialPatches
         {
             return InventoriesHandler.Instance != null;
         }
+
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(MachineTradePlatform), "OnDestroy")]
+        static Exception MachineTradePlatform_OnDestroy(Exception __exception)
+        {
+            if (InventoriesHandler.Instance == null && __exception is NullReferenceException)
+            {
+                return null;
+            }
+            return __exception;
+        }
     }
 }
