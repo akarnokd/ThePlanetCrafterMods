@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace MiscDebug
 {
@@ -244,6 +245,32 @@ namespace MiscDebug
             if (!(NetworkManager.Singleton?.IsServer ?? true))
             {
                 logger.LogInfo(string.Format("UpdateOrCreateInventoryFromMessage: {0:0.000} ms", __state.Elapsed.TotalMilliseconds));
+            }
+        }
+        */
+
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
+        static void MachineGrower_SetGrowerInventory(MachineGrower __instance)
+        {
+            __instance.gameObject.AddComponent<MachineGrowerTracker>();
+        }
+
+        public class MachineGrowerTracker : MonoBehaviour
+        {
+            public void OnDisable()
+            {
+                // If object will destroy in the end of current frame..
+                if (gameObject.activeInHierarchy)
+                {
+                    logger.LogInfo("Grower Destroyed:\n" + Environment.StackTrace);
+                }
+                // If object just deactivated..
+                else
+                {
+
+                }
             }
         }
         */
