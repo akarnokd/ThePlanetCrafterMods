@@ -198,5 +198,21 @@ namespace FixUnofficialPatches
             }
             return __exception;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "CreateNewTaskForWorldObjectForSpawnedObject")]
+        static bool LogisticManager_CreateNewTaskForWorldObjectForSpawnedObject(WorldObject worldObject)
+        {
+            var go = worldObject.GetGameObject();
+            if (go != null)
+            {
+                var ag = go.GetComponentInChildren<ActionGrabable>();
+                if (ag != null)
+                {
+                    return !LibCommon.GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab();
+                }
+            }
+            return true;
+        }
     }
 }
