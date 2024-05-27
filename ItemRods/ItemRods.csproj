@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>ItemRods</AssemblyName>
+    <Description>(Item) Rods</Description>
+    <Version>1.0.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+	<Import Project="$(SolutionDir)\solution_private.targets" />
+
+    <ItemGroup>
+        <Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
+        <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
+    </ItemGroup>
+
+  <Target Name="CopyDLLs" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+
+	  <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Cobalt.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Emission.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Iron.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Magnesium.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Rod.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Silicon.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Sulfur.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(Destination1)" />
+
+	  <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Cobalt.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Emission.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Iron.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Magnesium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Rod.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Silicon.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Sulfur.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+
+	  <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Cobalt.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Emission.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Iron.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Magnesium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Rod.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Silicon.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Sulfur.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+
+	  <ZipDirectory
+            SourceDirectory="$(TargetDir)\$(AssemblyName)"
+            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
+            Overwrite="true" />
+  </Target>
+</Project>

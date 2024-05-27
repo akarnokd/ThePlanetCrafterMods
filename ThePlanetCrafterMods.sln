@@ -216,10 +216,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPlayerLocator", "Multi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UITranslationUkrainian", "UITranslationUkrainian\UITranslationUkrainian.csproj", "{65F104D5-F1D1-4A05-B454-FFBB57C97356}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZapModVersions", "ZapModVersions\ZapModVersions.csproj", "{E75C0305-9A80-4AF1-A59E-1C395B065D92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZapModVersions", "ZapModVersions\ZapModVersions.csproj", "{E75C0305-9A80-4AF1-A59E-1C395B065D92}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2252A7D3-9E04-4C43-9512-1BD40AB594BC} = {2252A7D3-9E04-4C43-9512-1BD40AB594BC}
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ItemRods", "ItemRods\ItemRods.csproj", "{36B73A70-C01B-4FD2-BFB0-FAB30C9979BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -503,6 +505,10 @@ Global
 		{E75C0305-9A80-4AF1-A59E-1C395B065D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E75C0305-9A80-4AF1-A59E-1C395B065D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E75C0305-9A80-4AF1-A59E-1C395B065D92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36B73A70-C01B-4FD2-BFB0-FAB30C9979BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36B73A70-C01B-4FD2-BFB0-FAB30C9979BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36B73A70-C01B-4FD2-BFB0-FAB30C9979BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36B73A70-C01B-4FD2-BFB0-FAB30C9979BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
