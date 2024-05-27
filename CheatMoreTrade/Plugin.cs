@@ -12,6 +12,7 @@ using System.Linq;
 namespace CheatMoreTrade
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatmoretrade", "(Cheat) More Trade", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("akarnokd.theplanetcraftermods.itemrods", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         // just some defaults

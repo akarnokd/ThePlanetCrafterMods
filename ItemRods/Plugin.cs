@@ -96,6 +96,7 @@ namespace ItemRods
             emissionTexture.LoadImage(array2);
             emissionTexture.name = "EmissionTexture";
 
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             Logger.LogInfo("Plugin is loaded!");
