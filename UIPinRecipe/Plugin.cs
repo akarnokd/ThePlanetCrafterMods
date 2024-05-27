@@ -17,6 +17,8 @@ using BepInEx.Logging;
 using Unity.Netcode;
 using BepInEx.Bootstrap;
 using LibCommon;
+using System.Text;
+using HarmonyLib.Tools;
 
 namespace UIPinRecipe
 {
@@ -31,16 +33,22 @@ namespace UIPinRecipe
         static ConfigEntry<int> panelWidth;
         static ConfigEntry<string> clearKey;
         static ConfigEntry<int> panelTop;
+        static ConfigEntry<bool> debugMode;
 
         static readonly int shadowContainerId = 6000;
+        static readonly int shadowContainerIdMulti = 6001;
 
-        static ManualLogSource logger;
+        static ManualLogSource _logger;
 
         static Font font;
 
         static Action<MonoBehaviour, Vector3, Action<List<Inventory>>> apiGetInventoriesInRange;
 
         static List<Inventory> nearbyInventories = [];
+
+        const string funcGetLoadout = "GetLoadout";
+        const string funcSetLoadout = "SetLoadout";
+        const string funcReceiveLoadout = "ReceiveLoadout";
 
         private void Awake()
         {
@@ -53,8 +61,9 @@ namespace UIPinRecipe
             panelWidth = Config.Bind("General", "PanelWidth", 850, "The width of the recipe panel");
             panelTop = Config.Bind("General", "PanelTop", 150, "Panel position from the top of the screen.");
             clearKey = Config.Bind("General", "ClearKey", "C", "The key to press to clear all pinned recipes");
+            debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging, chatty!");
 
-            logger = Logger;
+            _logger = Logger;
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -71,6 +80,16 @@ namespace UIPinRecipe
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            ModNetworking.Init(modUiPinRecipeGuid, Logger);
+            ModNetworking.Patch(h);
+            ModNetworking._debugMode = debugMode.Value;
+            ModNetworking.RegisterFunction(funcGetLoadout, OnGetLoadout);
+            ModNetworking.RegisterFunction(funcSetLoadout, OnSetLoadout);
+            ModNetworking.RegisterFunction(funcReceiveLoadout, OnReceiveLoadout);
+            ModNetworking.RegisterFunction(ModNetworking.FunctionClientConnected, OnClientConnected);
+
+
             LibCommon.ModPlanetLoaded.Patch(h, modUiPinRecipeGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
@@ -167,8 +186,27 @@ namespace UIPinRecipe
 
             public void UpdateState()
             {
-                PlayerMainController player = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                Inventory inventory = player.GetPlayerBackpack().GetInventory();
+                var pm = Managers.GetManager<PlayersManager>();
+                if (pm == null)
+                {
+                    return;
+                }
+                var player = pm.GetActivePlayerController();
+                if (player == null)
+                {
+                    return;
+                }
+                var backpack = player.GetPlayerBackpack();
+                if (backpack == null)
+                {
+                    return;
+                }
+                Inventory inventory = backpack.GetInventory();
+                if (inventory == null)
+                {
+                    return;
+                }
+
                 Dictionary<string, int> inventoryCounts = [];
                 foreach (WorldObject wo in inventory.GetInsideWorldObjects())
                 {
@@ -177,12 +215,16 @@ namespace UIPinRecipe
                     inventoryCounts[gid] = c + 1;
                 }
 
-                foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
                 {
-                    string gid = wo.GetGroup().GetId();
-                    inventoryCounts.TryGetValue(gid, out int c);
-                    inventoryCounts[gid] = c + 1;
+                    foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                    {
+                        string gid = wo.GetGroup().GetId();
+                        inventoryCounts.TryGetValue(gid, out int c);
+                        inventoryCounts[gid] = c + 1;
+                    }
                 }
+
                 foreach (var inv in nearbyInventories)
                 {
                     if (inv != null)
@@ -414,6 +456,12 @@ namespace UIPinRecipe
             ClearPinnedRecipes();
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
         static void PlanetLoader_HandleDataAfterLoad()
         {
             PlayersManager playersManager = Managers.GetManager<PlayersManager>();
@@ -449,19 +497,24 @@ namespace UIPinRecipe
 
         static void SavePinnedRecipes()
         {
+            var str = string.Join(",", pinnedRecipes.Select(slot =>
+            {
+                var g = slot.group;
+                if (g == null)
+                {
+                    return "";
+                }
+                return g.id;
+            }));
+
             if (NetworkManager.Singleton?.IsServer ?? true)
             {
                 var wo = EnsureHiddenContainer();
-                var str = string.Join(",", pinnedRecipes.Select(slot =>
-                {
-                    var g = slot.group;
-                    if (g == null)
-                    {
-                        return "";
-                    }
-                    return g.id;
-                }));
                 wo.SetText(str);
+            }
+            else
+            {
+                SavePinnedRecipesClient(str);
             }
         }
 
@@ -472,13 +525,18 @@ namespace UIPinRecipe
                 var wo = EnsureHiddenContainer();
                 ClearPinnedRecipes();
 
-                ResorePinnedRecipesFromString(wo.GetText());
+                RestorePinnedRecipesFromString(wo.GetText());
 
-                logger.LogInfo("Restoring pinned recipes: " + wo.GetText());
+                Log("Restoring pinned recipes: " + wo.GetText());
+            }
+            else
+            {
+                Log("RestorePinnedRecipes Client");
+                CallGetLoadout();
             }
         }
 
-        static void ResorePinnedRecipesFromString(string s)
+        static void RestorePinnedRecipesFromString(string s)
         {
             if (s == null || s.Length == 0)
             {
@@ -498,6 +556,8 @@ namespace UIPinRecipe
 
         static void OnModConfigChanged(ConfigEntryBase _)
         {
+            ModNetworking._debugMode = debugMode.Value;
+
             var copy = new List<Group>();
             foreach (var pin in pinnedRecipes)
             {
@@ -510,6 +570,154 @@ namespace UIPinRecipe
                 {
                     PinUnpinInternal(gr);
                 }
+            }
+        }
+
+        static WorldObject EnsureHiddenContainerMultiplayer()
+        {
+            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(shadowContainerIdMulti);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Container2"), shadowContainerIdMulti);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static void Log(object message)
+        {
+            if (debugMode.Value)
+            {
+                _logger.LogInfo(message);
+            }
+        }
+
+        static Dictionary<string, string> ParseLoadoutMulti(string str)
+        {
+            Dictionary<string, string> result = [];
+            foreach (var entry in str.Split(';'))
+            {
+                var idStr = entry.Split("=");
+                if (idStr.Length == 2)
+                {
+                    result[idStr[0]] = idStr[1];
+                }
+            }
+            return result;
+        }
+
+        static string SerializeLoadoutMulti(Dictionary<string, string> result)
+        {
+            var sb = new StringBuilder(256);
+            foreach (var kv in result)
+            {
+                if (sb.Length != 0)
+                {
+                    sb.Append(';');
+                }
+                sb.Append(kv.Key.Replace('|', ' ').Replace('@', ' ')).Append("=").Append(kv.Value);
+            }
+            return sb.ToString();
+        }
+
+        static void OnGetLoadout(ulong sender, string parameters)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var wo = EnsureHiddenContainerMultiplayer();
+                var dict = ParseLoadoutMulti(wo.GetText() ?? "");
+
+                var idName = parameters.Split(',');
+                if (idName.Length == 2)
+                {
+                    Log("OnGetLoadout via parameters: " + parameters);
+                    var nm = idName[1].Replace('|', ' ').Replace('@', ' ');
+                    if (dict.TryGetValue(nm, out var str))
+                    {
+                        Log("OnGetLoadout via parameters: " + sender + " ~ " + parameters + " -> " + str);
+                        ModNetworking.SendClient(sender, funcReceiveLoadout, str);
+                        return;
+                    }
+                }
+                Log("OnGetLoadout - Client info not found: " + sender + " ~ " + parameters);
+            }
+            else
+            {
+                Log("OnGetLoadout: No PlayersManager");
+            }
+        }
+
+        static void OnSetLoadout(ulong sender, string parameters)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var wo = EnsureHiddenContainerMultiplayer();
+                var dict = ParseLoadoutMulti(wo.GetText() ?? "");
+                var idName = parameters.Split('=');
+                if (idName.Length == 2)
+                {
+                    Log("OnSetLoadout via parameters: " + sender + " ~ " + parameters);
+                    var nm = idName[0].Replace('|', ' ').Replace('@', ' ');
+                    dict[nm] = idName[1];
+
+                    wo.SetText(SerializeLoadoutMulti(dict));
+                    return;
+                }
+                Log("OnSetLoadout - Client info not found: " + sender);
+            }
+            else
+            {
+                Log("OnSetLoadout: No PlayersManager");
+            }
+        }
+
+        static void OnReceiveLoadout(ulong sender, string parameters)
+        {
+            Log("OnReceiveLoadout: " + parameters);
+            ClearPinnedRecipes();
+            RestorePinnedRecipesFromString(parameters);
+        }
+
+        static void OnClientConnected(ulong sender, string parameters)
+        {
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                Log("OnClientConnected Client -> Call GetLoadout");
+                CallGetLoadout();
+            }
+        }
+
+        static void CallGetLoadout()
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var pc = pm.GetActivePlayerController();
+                if (pc != null)
+                {
+                    var msg = pc.id + "," + pc.playerName;
+                    Log("CallGetLoadout: " + msg);
+                    ModNetworking.SendHost(funcGetLoadout, msg);
+                }
+            }
+        }
+
+        static void SavePinnedRecipesClient(string str)
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                var ac = pm.GetActivePlayerController().playerName;
+                str = ac + "=" + str;
+                Log("SavePinnedRecipesClient: Call SetLoadout " + str);
+                ModNetworking.SendHost(funcSetLoadout, str);
+            }
+            else
+            {
+                Log("SavePinnedRecipesClient: PlayersManager is null");
             }
         }
     }

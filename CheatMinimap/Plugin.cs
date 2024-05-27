@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Collections;
 using UnityEngine.InputSystem.Controls;
 using Unity.Netcode;
+using Tessera;
 
 namespace CheatMinimap
 {
@@ -32,6 +33,9 @@ namespace CheatMinimap
         Texture2D above;
         Texture2D safe;
         Texture2D outOfBoundsTexture;
+        Texture2D portal;
+        Texture2D altar;
+        Texture2D stair;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -48,6 +52,8 @@ namespace CheatMinimap
         static ConfigEntry<bool> showLadders;
         static ConfigEntry<bool> showServers;
         static ConfigEntry<bool> showSafes;
+        static ConfigEntry<bool> showAltars;
+        static ConfigEntry<bool> showStairs;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -89,7 +95,10 @@ namespace CheatMinimap
             above = LoadPNG(Path.Combine(dir, "above.png"));
             below = LoadPNG(Path.Combine(dir, "below.png"));
             safe = LoadPNG(Path.Combine(dir, "safe.png"));
+            portal = LoadPNG(Path.Combine(dir, "portal.png"));
             outOfBoundsTexture = new Texture2D(1, 1);
+            altar = LoadPNG(Path.Combine(dir, "altar.png"));
+            stair = LoadPNG(Path.Combine(dir, "stair.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -109,6 +118,8 @@ namespace CheatMinimap
             showSafes = Config.Bind("General", "ShowSafes", true, "Show the wreck safes?");
             outOfBoundsColor = Config.Bind("General", "OutOfBoundsColor", "255,127,106,0", "The color of the out-of-bounds area as ARGB ints of range 0-255");
             alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
+            showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
+            showStairs = Config.Bind("General", "ShowStairs", true, "Show the stairs in procedural wrecks?");
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -245,7 +256,10 @@ namespace CheatMinimap
                     {
                         chests.Add(go);
                     }
-                    else if (go.name.Contains("WreckSafe") && showSafes.Value)
+                    else if (
+                        (go.name.Contains("WreckSafe") && showSafes.Value)
+                        || (go.name.Contains("Warden") && showAltars.Value)
+                    )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
                         var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
@@ -260,6 +274,11 @@ namespace CheatMinimap
                                 {
                                     chests.Add(go);
                                 }
+                            }
+                            else if (go.GetComponentInParent<InventoryFromScene>() != null 
+                                && id < 0 && (go.name.Contains("Warden") && showAltars.Value))
+                            {
+                                chests.Add(go);
                             }
                         }
                         else if (invAssocProxy != null)
@@ -312,6 +331,21 @@ namespace CheatMinimap
                     if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
                     {
                         chests.Add(id.transform.parent.gameObject);
+                    }
+                }
+            }
+            foreach (var p in FindObjectsByType<MachinePortal>(FindObjectsSortMode.None))
+            {
+                chests.Add(p.gameObject);
+            }
+
+            if (showStairs.Value)
+            {
+                foreach (var id in FindObjectsByType<TesseraTile>(FindObjectsSortMode.None))
+                {
+                    if (id.name.Contains("Stair"))
+                    {
+                        chests.Add(id.transform.gameObject);
                     }
                 }
             }
@@ -456,6 +490,24 @@ namespace CheatMinimap
                                     img = safe;
                                     chestW = 16;
                                     chestH = 16;
+                                }
+                                else if (nm.Contains("Portal"))
+                                {
+                                    img = portal;
+                                    chestW = 10;
+                                    chestH = 12;
+                                }
+                                else if (nm.Contains("Warden"))
+                                {
+                                    img = altar;
+                                    chestW = 12;
+                                    chestH = 14;
+                                }
+                                else if (nm.Contains("Stair"))
+                                {
+                                    img = stair;
+                                    chestW = 14;
+                                    chestH = 14;
                                 }
                                 else
                                 {
@@ -610,5 +662,13 @@ namespace CheatMinimap
             coroutineRunning = false;
             chests.Clear();
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
     }
 }

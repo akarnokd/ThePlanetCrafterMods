@@ -36,19 +36,21 @@ namespace CheatInventoryStacking
             ref IEnumerator __result
         )
         {
-            __result = LogisticManager_SetLogisticTasks_Override(
-                __instance, 
-                ____allLogisticTasks, 
-                ____allDroneStations, 
-                ____droneFleet, 
-                ____supplyInventories, 
-                ____demandInventories
-            );
+            if (stackSize.Value > 1 || debugOverrideLogisticsAnyway.Value)
+            {
+                __result = LogisticManager_SetLogisticTasks_Override(
+                    __instance,
+                    ____allLogisticTasks,
+                    ____allDroneStations,
+                    ____droneFleet,
+                    ____supplyInventories,
+                    ____demandInventories
+                );
 
-            return false;
+                return false;
+            }
+            return true;
         }
-
-        // FIXME time limit running this logic!!!
 
         static IEnumerator LogisticManager_SetLogisticTasks_Override(
             LogisticManager __instance,
@@ -60,7 +62,7 @@ namespace CheatInventoryStacking
         )
         {
             var n = stackSize.Value;
-            if (n <= 1)
+            if (n <= 1 && !debugOverrideLogisticsAnyway.Value)
             {
                 yield break;
             }

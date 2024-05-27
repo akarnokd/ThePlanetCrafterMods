@@ -235,10 +235,12 @@ namespace LibCommon
             });
             pm.RegisterToPlayerStopped(pmc =>
             {
+                /*
                 if (_debugMode)
                 {
                     _logger.LogInfo(Environment.StackTrace);
                 }
+                */
                 DoCallback(pmc.OwnerClientId, FunctionClientDisconnected, pmc.playerName);
             });
 
@@ -253,7 +255,7 @@ namespace LibCommon
             {
                 if (_debugMode)
                 {
-                    _logger.LogInfo("ModNetworking.OnClientConnectedCallback [" + nm.LocalClientId + "] : " + id);
+                    _logger.LogInfo("ModNetworking.OnClientDisconnectedCallback [" + nm.LocalClientId + "] : " + id);
                 }
             };
         }
@@ -290,7 +292,7 @@ namespace LibCommon
         {
             var nm = NetworkManager.Singleton ?? throw new InvalidOperationException("Unable to call function " + function + ". NetworkManager is not running.");
 
-            if (!nm.IsServer)
+            if (nm.IsServer)
             {
                 throw new InvalidOperationException("Unable to call function " + function + ". You are not on the client.");
             }
@@ -350,7 +352,7 @@ namespace LibCommon
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Crash while handling message from "
+                    _logger.LogError("[" + NetworkManager.Singleton.LocalClientId + "] Crash while handling message from "
                         + senderClientId + " with function " + function + " (argument.Length = " + arguments.Length + ")"
                         + Environment.NewLine + ex
                         );
@@ -360,7 +362,7 @@ namespace LibCommon
             {
                 if (_debugMode)
                 {
-                    _logger.LogWarning("No callback for received message from " + senderClientId + " with function " + function + " (argument.Length = " + arguments.Length + ")");
+                    _logger.LogWarning("[" + NetworkManager.Singleton.LocalClientId + "] No callback for received message from " + senderClientId + " with function " + function + " (argument.Length = " + arguments.Length + ")");
                 }
             }
         }

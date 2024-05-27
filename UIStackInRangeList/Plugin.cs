@@ -112,10 +112,7 @@ namespace UIStackInRangeList
             int count, bool _showBacklines, List<GroupDisplayer> ___groupsDisplayer,
             GroupInfosDisplayerBlocksSwitches _infosDisplayerGroup)
         {
-            if (_infosDisplayerGroup == null)
-            {
-                _infosDisplayerGroup = new GroupInfosDisplayerBlocksSwitches();
-            }
+            _infosDisplayerGroup ??= new GroupInfosDisplayerBlocksSwitches();
 
             GameObject gameObject = Instantiate(__instance.groupDisplayerGameObject, __instance.grid.transform);
             gameObject.GetComponent<RectTransform>().localScale = new Vector3(1f, 1f, 1f);

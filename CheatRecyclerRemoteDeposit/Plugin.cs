@@ -11,7 +11,6 @@ using UnityEngine;
 using System.Collections;
 using Unity.Netcode;
 using LibCommon;
-using System;
 
 namespace CheatRecyclerRemoteDeposit
 {
@@ -215,6 +214,14 @@ namespace CheatRecyclerRemoteDeposit
         {
             isRunning = false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
 
         static void Log(object message)
         {

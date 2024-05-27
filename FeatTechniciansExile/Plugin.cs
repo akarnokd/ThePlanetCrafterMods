@@ -961,6 +961,10 @@ namespace FeatTechniciansExile
         void CheckOperating()
         {
             var mgr = Managers.GetManager<EnvironmentDayNightCycle>();
+            if (mgr == null)
+            {
+                return;
+            }
             var time = mgr.GetDayNightLerpValue();
 
             if (time >= 0.8)
@@ -1155,6 +1159,13 @@ namespace FeatTechniciansExile
             questPhase = QuestPhase.Not_Started;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         static void Localization_LoadLocalization(
@@ -1224,15 +1235,9 @@ namespace FeatTechniciansExile
                 foreach (var gd in ___rocketsGenerationGroups)
                 {
                     logger.LogInfo("  group " + gd.id);
+
                     var groupViaId = GroupsHandler.GetGroupViaId(gd.id);
-                    var allWorldObjectsOfGroup = 0;
-                    foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
-                    {
-                        if (wo.GetGroup() == groupViaId)
-                        {
-                            allWorldObjectsOfGroup++;
-                        }
-                    }
+                    var allWorldObjectsOfGroup = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(gd, false);
                     logger.LogInfo("  wo count " + allWorldObjectsOfGroup);
                     if (allWorldObjectsOfGroup != 0)
                     {

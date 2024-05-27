@@ -471,12 +471,23 @@ namespace FeatSpaceCows
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
-            me.StopCoroutine(cowChecker);
-            cowChecker = null;
+            if (cowChecker != null)
+            {
+                me.StopCoroutine(cowChecker);
+                cowChecker = null;
+            }
             Log("Clearing Cows = " + cowAroundSpreader.Count);
             cowAroundSpreader.Clear();
             Log("                Done");
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
 
         static WorldObject EnsureHiddenContainer()
         {

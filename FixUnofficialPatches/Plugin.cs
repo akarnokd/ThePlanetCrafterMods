@@ -163,11 +163,8 @@ namespace FixUnofficialPatches
         [HarmonyPatch(typeof(GamepadConfig), "OnDestroy")]
         static void GamepadConfig_OnDestroy(ref Callback<GamepadTextInputDismissed_t> ____gamepadTextInputDismissed)
         {
-            if (____gamepadTextInputDismissed == null)
-            {
-                ____gamepadTextInputDismissed = Callback<GamepadTextInputDismissed_t>.Create(
+            ____gamepadTextInputDismissed ??= Callback<GamepadTextInputDismissed_t>.Create(
                     new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
-            }
         }
 
         [HarmonyPrefix]
@@ -185,15 +182,26 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Drone), "OnDestroy")]
-        static void Drone_OnDestroy(ref LogisticTask ____logisticTask)
+        [HarmonyPatch(typeof(MachineGrower), "OnVegetableGrabed")]
+        static bool MachineGrower_OnVegetableGrabed()
         {
-            if (____logisticTask != null
-                && ____logisticTask.GetTaskState() != LogisticData.TaskState.Done)
+            return InventoriesHandler.Instance != null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "CreateNewTaskForWorldObjectForSpawnedObject")]
+        static bool LogisticManager_CreateNewTaskForWorldObjectForSpawnedObject(WorldObject worldObject)
+        {
+            var go = worldObject.GetGameObject();
+            if (go != null)
             {
-                ____logisticTask.SetTaskState(LogisticData.TaskState.Done);
-                ____logisticTask = null;
+                var ag = go.GetComponentInChildren<ActionGrabable>();
+                if (ag != null)
+                {
+                    return !LibCommon.GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab();
+                }
             }
+            return true;
         }
     }
 }

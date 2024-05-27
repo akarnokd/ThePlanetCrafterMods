@@ -63,13 +63,7 @@ namespace MiscPluginUpdateChecker
                 _logger.LogInfo(message);
             }
         }
-        static void LogWarning(object message)
-        {
-            if (debugMode.Value)
-            {
-                _logger.LogWarning(message);
-            }
-        }
+
         static void LogError(object message)
         {
             if (debugMode.Value)
@@ -349,9 +343,7 @@ namespace MiscPluginUpdateChecker
             {
                 var remotePluginInfos = DownloadPluginInfos(
                     startUrl,
-                    o => LogInfo(o),
-                    o => LogWarning(o),
-                    o => LogError(o),
+                    LogInfo,
                     bypassCache
                 );
                 LogInfo("Comparing local and remote plugins");
@@ -390,8 +382,6 @@ namespace MiscPluginUpdateChecker
         internal static Dictionary<string, PluginEntry> DownloadPluginInfos(
             string startUrl,
             Action<object> logInfo,
-            Action<object> logWarning,
-            Action<object> logError,
             bool randomArgument)
         {
             logInfo("Download version_info.txt");
@@ -424,10 +414,12 @@ namespace MiscPluginUpdateChecker
                     continue;
                 }
 
-                var pe = new PluginEntry();
-                pe.guid = kv[0];
-                pe.description = desc;
-                pe.discoverVersion = new Version(kv[1]);
+                var pe = new PluginEntry
+                {
+                    guid = kv[0],
+                    description = desc,
+                    discoverVersion = new Version(kv[1])
+                };
                 logInfo("  -> " + pe.guid + " @ " + pe.discoverVersion);
                 plugins[pe.guid] = pe;
             }

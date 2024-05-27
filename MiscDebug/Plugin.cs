@@ -6,6 +6,11 @@ using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Unity.Collections;
+using Unity.Netcode;
+using UnityEngine;
 
 namespace MiscDebug
 {
@@ -99,6 +104,7 @@ namespace MiscDebug
             }
         }
         */
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "OnDestroy")]
         static void Drone_OnDestroy(LogisticTask ____logisticTask)
@@ -116,5 +122,157 @@ namespace MiscDebug
                 );
             }
         }
+        */
+
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void InventoriesHandler_RetrieveInventoryClientRpc(
+            Queue<Action<Inventory>> ____callbackQueue,
+            InventoriesHandler __instance,
+            int inventoryId,
+            ref ClientRpcParams clientRpcParams
+        )
+        {
+            var stg = (int)AccessTools.Field(typeof(InventoriesHandler), "__rpc_exec_stage").GetValue(__instance);
+
+            if (!(stg != 1 || (!__instance.NetworkManager.IsClient && !__instance.NetworkManager.IsHost)) && ____callbackQueue.Count == 0)
+            {
+                ____callbackQueue.Enqueue(null);
+            }
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static bool InventoriesHandler_RetrieveInventoryClientRpc(
+            InventoriesHandler __instance,
+            ref ClientRpcParams clientRpcParams,
+            Queue<Action<Inventory>> ____callbackQueue
+        )
+        {
+            NetworkManager networkManager = __instance.NetworkManager;
+            if (networkManager != null && networkManager.IsListening && networkManager.IsHost)
+            {
+                if (clientRpcParams.Send.TargetClientIds?.ContainsByEquals(networkManager.LocalClientId) ?? false)
+                {
+                    return false;
+                }
+                var na = clientRpcParams.Send.TargetClientIdsNativeArray;
+                if (na != null && na.Value.ContainsByEquals(networkManager.LocalClientId))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        */
+
+        /*
+        static string clientIdStr(NativeArray<ulong>? param)
+        {
+            if (param == null)
+            {
+                return "";
+            }
+            return string.Join(",", param.Value);
+        }
+        */
+
+        /*
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static void InventoriesHandler_RetrieveInventoryClientRpc(
+            Queue<Action<Inventory>> ____callbackQueue, 
+            InventoriesHandler __instance,
+            int inventoryId,
+            Exception __exception,
+            ref ClientRpcParams clientRpcParams
+        )
+        {
+            if (____callbackQueue.Count == 0 && __exception != null)
+            {
+                var stg = AccessTools.Field(typeof(InventoriesHandler), "__rpc_exec_stage").GetValue(__instance);
+
+                logger.LogError("IllegalState: Queue is empty for RetrieveInventoryClientRpc: " + inventoryId + " on " 
+                    + ("- IsSpawned: " + __instance.IsSpawned)
+                    + ("- IsServer: " + __instance.NetworkManager.IsServer)
+                    + ("- IsHost: " + __instance.NetworkManager.IsHost)
+                    + ("- IsIsClient: " + __instance.NetworkManager.IsClient)
+                    + "- Stg: " + stg
+                    + " - ClientIds " + clientIdStr(clientRpcParams.Send.TargetClientIdsNativeArray)
+                    + "\n" + Environment.StackTrace
+                    );
+            }
+        }
+        */
+        /*
+        [HarmonyFinalizer]
+        [HarmonyPatch(typeof(InventoriesHandler), "RetrieveInventoryClientRpc")]
+        static Exception InventoriesHandler_RetrieveInventoryClientRpc(
+            Exception __exception
+        )
+        {
+            if (__exception is InvalidOperationException && __exception.Message.Contains("Queue empty"))
+            {
+                logger.LogInfo("InventoriesHandler::RetrieveInventoryClientRpc crashed with Queue empty. Suppressed.");
+                return null;
+            }
+            return __exception;
+        }
+        */
+        /*
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NetworkUtils), nameof(NetworkUtils.GetSenderClientParams), [typeof(ServerRpcParams)])]
+        static void NetworkUtils_GetSenderClientParams(ref ServerRpcParams serverRpcParams)
+        {
+            logger.LogInfo("NetworkUtils::GetSenderClientParams " + serverRpcParams.Receive.SenderClientId);
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoriesHandler), "UpdateOrCreateInventoryFromMessage")]
+        static void InventoriesHandler_UpdateOrCreateInventoryFromMessage_Pre(ref Stopwatch __state)
+        {
+            __state = Stopwatch.StartNew();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoriesHandler), "UpdateOrCreateInventoryFromMessage")]
+        static void InventoriesHandler_UpdateOrCreateInventoryFromMessage_Post(ref Stopwatch __state)
+        {
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                logger.LogInfo(string.Format("UpdateOrCreateInventoryFromMessage: {0:0.000} ms", __state.Elapsed.TotalMilliseconds));
+            }
+        }
+        */
+
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
+        static void MachineGrower_SetGrowerInventory(MachineGrower __instance)
+        {
+            __instance.gameObject.AddComponent<MachineGrowerTracker>();
+        }
+
+        public class MachineGrowerTracker : MonoBehaviour
+        {
+            public void OnDisable()
+            {
+                // If object will destroy in the end of current frame..
+                if (gameObject.activeInHierarchy)
+                {
+                    logger.LogInfo("Grower Destroyed:\n" + Environment.StackTrace);
+                }
+                // If object just deactivated..
+                else
+                {
+
+                }
+            }
+        }
+        */
     }
 }

@@ -45,6 +45,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Technician's Exile](#feat-technicians-exile)
 - [Space Cows](#feat-space-cows)
 - [Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Misc%29-Plugin-Update-Checker)
+- [Rods](#item-rods)
 
 ### Cheats
 
@@ -2961,3 +2962,61 @@ The translation was kindly provided by +Dragon Kreig+ via Discord.
 ### Configuration
 
 Only diagnostic options. Not relevant for the player.
+
+## (Item) Rods
+
+Adds **Aluminium**, **Cobalt**, **Iron**, **Magnesium**, **Silicon**, **Sulfur**, **Titanium** and **Zeolite** rods.
+
+You can enable/disable individual rods in the configuration.
+
+Remake of [Cisox Rods mod](https://www.nexusmods.com/planetcrafter/mods/75), now supporting game version 1.005+ and multiplayer.
+Based on the original assets and code from Cisox.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.itemrods.cfg</summary>
+
+```
+[General]
+
+## Enable rod for Iron
+# Setting type: Boolean
+# Default value: true
+Iron = true
+
+## Enable rod for Sulfur
+# Setting type: Boolean
+# Default value: true
+Sulfur = true
+
+## Enable rod for Titanium
+# Setting type: Boolean
+# Default value: true
+Titanium = true
+
+## Enable rod for Silicon
+# Setting type: Boolean
+# Default value: true
+Silicon = true
+
+## Enable rod for Cobalt
+# Setting type: Boolean
+# Default value: true
+Cobalt = true
+
+## Enable rod for Magnesium
+# Setting type: Boolean
+# Default value: true
+Magnesium = true
+
+## Enable rod for Aluminium
+# Setting type: Boolean
+# Default value: true
+Aluminium = true
+
+## Enable rod for Zeolite
+# Setting type: Boolean
+# Default value: true
+Zeolite = true
+```
+</details>

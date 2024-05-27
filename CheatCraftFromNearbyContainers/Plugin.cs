@@ -69,8 +69,6 @@ namespace CheatCraftFromNearbyContainers
 
         static Coroutine vanillaPinUpdaterCoroutine;
 
-        static bool placeLockout;
-
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -317,6 +315,7 @@ namespace CheatCraftFromNearbyContainers
                     && invp.GetComponent<ActionOpenable>() != null
                     && invp.GetComponent<WorldObjectFromScene>() == null
                     && Vector3.Distance(invp.transform.position, pos) <= range.Value
+                    && invp.IsSpawned
                 )
                 {
                     counter[0]++;
@@ -1067,8 +1066,15 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void Patch_UiWindowPause_OnQuit()
         {
-            placeLockout = false;
             candidateInventories = null;
+        }
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
         }
     }
 }

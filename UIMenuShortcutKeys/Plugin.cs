@@ -10,7 +10,6 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Reflection;
-using BepInEx.Logging;
 using BepInEx.Bootstrap;
 
 namespace UIMenuShortcutKeys
@@ -22,8 +21,6 @@ namespace UIMenuShortcutKeys
         const string modUiMenuShortcutKeysGuid = "akarnokd.theplanetcraftermods.uimenushortcutkeys";
 
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
-
-        static ManualLogSource logger;
 
         ConfigEntry<int> fontSize;
         ConfigEntry<string> configBuildToggleFilter;
@@ -58,7 +55,6 @@ namespace UIMenuShortcutKeys
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
-            logger = Logger;
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
 
@@ -103,7 +99,7 @@ namespace UIMenuShortcutKeys
             LibCommon.ModPlanetLoaded.Patch(h, modUiMenuShortcutKeysGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }
 
-        void Update()
+        public void Update()
         {
             var wh = Managers.GetManager<WindowsHandler>();
             if (wh == null)

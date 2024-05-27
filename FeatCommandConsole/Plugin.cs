@@ -380,7 +380,7 @@ namespace FeatCommandConsole
                 return;
             }
 
-            logger.LogInfo("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null? " + (background == null));
+            Log("GetHasUiOpen: " + wh.GetHasUiOpen() + ", Background null? " + (background == null));
 
             canvas = new GameObject("CommandConsoleCanvas");
             var c = canvas.AddComponent<Canvas>();
@@ -723,8 +723,8 @@ namespace FeatCommandConsole
                 {
                     string[] resources =
                     [
-                        "MultiToolLight2", "MultiToolDeconstruct2", "Backpack5", 
-                        "Jetpack3", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
+                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack6", 
+                        "Jetpack4", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
                         "EquipmentIncrease3", "OxygenTank4", "HudCompass"
                     ];
                     int amount = 1;
@@ -2253,18 +2253,18 @@ namespace FeatCommandConsole
 
                             if (pb.GetIsGhostExisting())
                             {
-                                Logger.LogInfo("Cancelling previous ghost");
+                                Log("Cancelling previous ghost");
                                 pb.InputOnCancelAction();
                             }
 
                             if (NetworkManager.Singleton.IsServer)
                             {
-                                Logger.LogInfo("Activating ghost for " + gc.GetId());
+                                Log("Activating ghost for " + gc.GetId());
                                 pb.SetNewGhost(gc);
                             }
                             else
                             {
-                                Logger.LogInfo("Activating delayed ghost for " + gc.GetId());
+                                Log("Activating delayed ghost for " + gc.GetId());
                                 pb.StartCoroutine(SetNewGhostDelayed(pb, gc));
                             }
                         }
@@ -2867,6 +2867,7 @@ namespace FeatCommandConsole
             int supplyInventoryCount = 0;
             int demandInventoryCount = 0;
             int logisticsInventoryCount = 0;
+            int reservedDemandSlots = 0;
 
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
             {
@@ -2950,6 +2951,7 @@ namespace FeatCommandConsole
                     if (logisticsRelated)
                     {
                         logisticsInventoryCount++;
+                        reservedDemandSlots += le.waitingDemandSlots;
                     }
                 }
             }
@@ -3035,6 +3037,7 @@ namespace FeatCommandConsole
             {
                 AddLine(string.Format("<margin=1em>      Utilization: <color=#00FF00>N/A</color>"));
             }
+            AddLine(string.Format("<margin=1em>      Reserved: <color=#00FF00>{0:#,##0}</color>", reservedDemandSlots));
             AddLine(string.Format("<margin=1em>   Drones: <color=#00FF00>{0:#,##0}</color>", drones));
             AddLine(string.Format("<margin=1em>      Active: <color=#00FF00>{0:#,##0}</color>", dronesActive));
             if (drones > 0)
@@ -3143,18 +3146,21 @@ namespace FeatCommandConsole
                     var demandItemCount = 0;
                     var demandCapacity = 0;
                     var demandFree = 0;
+                    var demandReserved = 0;
 
                     foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
                     {
                         var le = inv.GetLogisticEntity();
                         if (le != null)
                         {
+                            bool isRelated = false;
                             {
                                 var sup = le.GetSupplyGroups();
                                 if (sup != null 
                                     && sup.Any(g => g == gr))
                                 {
                                     supplyInventoryCount++;
+                                    isRelated = true;
 
                                     supplyItemCount += inv.GetInsideWorldObjects()
                                         .Where(g => g.GetGroup() == gr).Count();
@@ -3177,6 +3183,7 @@ namespace FeatCommandConsole
                                 if (dem != null 
                                     && dem.Any(g => g == gr))
                                 {
+                                    isRelated = true;
                                     demandInventoryCount++;
                                     demandItemCount += inv.GetInsideWorldObjects()
                                         .Where(g => g.GetGroup() == gr).Count();
@@ -3193,6 +3200,11 @@ namespace FeatCommandConsole
                                     demandFree += Math.Max(0, cap - inv.GetInsideWorldObjects().Count);
                                     demandCapacity += cap;
                                 }
+                            }
+
+                            if (isRelated)
+                            {
+                                demandReserved += le.waitingDemandSlots;
                             }
                         }
                     }
@@ -3256,6 +3268,7 @@ namespace FeatCommandConsole
                     {
                         AddLine(string.Format("<margin=1em>         Utilization: {0:#,##0.##} %", demandItemCount * 100d / demandCapacity));
                     }
+                    AddLine(string.Format("<margin=1em>      Reserved: {0:#,##0}", demandReserved));
                     AddLine(string.Format("<margin=1em>   Tasks: {0:#,##0} total", tasks));
                     AddLine(string.Format("<margin=1em>      Items: {0:#,##0}", grtask));
                     if (tasks > 0)
@@ -3911,7 +3924,7 @@ namespace FeatCommandConsole
 
                         InventoriesHandler.Instance.AddWorldObjectToInventory(woDna, playerInventory, false, success =>
                         {
-                            logger.LogInfo("SpawnDNA - " + woDna.GetId() + " " + success);
+                            Log("SpawnDNA - " + woDna.GetId() + " " + success);
                             if (!success)
                             {
                                 WorldObjectsHandler.Instance.DestroyWorldObject(woDna);

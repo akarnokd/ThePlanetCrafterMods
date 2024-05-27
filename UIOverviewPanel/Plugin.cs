@@ -151,7 +151,7 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(25, "GoldenContainer"));
+                AddTextRow("Golden chests found", CreateSceneCounter(26, "GoldenContainer"));
 
                 AddTextRow("Unique larvae found", CreateButterflyCount(19));
 
@@ -568,6 +568,14 @@ namespace UIOverviewPanel
                 statisticsUpdater = null;
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
 
         class OverviewEntry
         {

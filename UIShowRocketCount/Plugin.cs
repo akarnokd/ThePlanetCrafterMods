@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using static UnityEngine.UIElements.TreeViewReorderableDragAndDropController;
 
 namespace UIShowRocketCount
 {
@@ -22,9 +23,6 @@ namespace UIShowRocketCount
         static AccessTools.FieldRef<EventHoverShowGroup, Group> fEventHoverShowGroupAssociatedGroup;
         static ConfigEntry<int> fontSize;
         static ManualLogSource logger;
-
-        static readonly Dictionary<string, int> rocketCountsByGroupId = [];
-        static readonly Dictionary<DataConfig.WorldUnitType, int> rocketCountsByUnitType = [];
 
         static Font font;
 
@@ -45,18 +43,24 @@ namespace UIShowRocketCount
 
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
-            LibCommon.ModPlanetLoaded.Patch(h, modUiShowRocketCountGuid, _ => PlanetLoader_HandleDataAfterLoad());
+            Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         static bool TryGetCountByGroupId(string groupId, out int c)
         {
-            return rocketCountsByGroupId.TryGetValue(groupId, out c);
+            var gd = GroupsHandler.GetGroupViaId(groupId);
+            c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(gd.GetGroupData(), false);
+            return c != 0;
         }
 
         static bool TryGetCountByUnitType(DataConfig.WorldUnitType unitType, out int c)
         {
-            return rocketCountsByUnitType.TryGetValue(unitType, out c);
+            if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(unitType, out var gr))
+            {
+                return TryGetCountByGroupId(gr, out c);
+            }
+            c = 0;
+            return false;
         }
 
         [HarmonyPrefix]
@@ -148,56 +152,5 @@ namespace UIShowRocketCount
             }
         }
 
-        static void PlanetLoader_HandleDataAfterLoad()
-        {
-            rocketCountsByGroupId.Clear();
-            rocketCountsByUnitType.Clear();
-
-            logger.LogInfo("Counting rockets");
-            foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
-            {
-                if (wo.GetGroup() is GroupItem gi)
-                {
-                    string gid = gi.GetId();
-                    if (gid.StartsWith("Rocket") && gid != "RocketReactor")
-                    {
-                        UpdateCount(gid, gi);
-                    }
-                }
-            }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionSendInSpace), "HandleRocketMultiplier")]
-        static void ActionSendInSpace_HandleRocketMultiplier(WorldObject worldObjectToSend)
-        {
-            if (worldObjectToSend.GetGroup() is GroupItem gi)
-            {
-                UpdateCount(gi.GetId(), gi);
-            }
-        }
-
-        static void UpdateCount(string gid, GroupItem gi)
-        {
-            rocketCountsByGroupId.TryGetValue(gid, out var c);
-            rocketCountsByGroupId[gid] = c + 1;
-
-            foreach (var ids in GameConfig.spaceGlobalMultipliersGroupIds)
-            {
-                if (gi.GetGroupUnitMultiplier(ids.Key) != 0f)
-                {
-                    rocketCountsByUnitType.TryGetValue(ids.Key, out c);
-                    rocketCountsByUnitType[ids.Key] = c + 1;
-                }
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit()
-        {
-            rocketCountsByGroupId.Clear();
-            rocketCountsByUnitType.Clear();
-        }
     }
 }

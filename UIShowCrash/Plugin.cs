@@ -12,7 +12,6 @@ using UnityEngine.InputSystem;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using System.Reflection;
 
 namespace UIShowCrash
@@ -65,6 +64,12 @@ namespace UIShowCrash
         {
             oncePerFrame = !oncePerFrame;
 
+            if (oncePerFrame && modEnabled.Value && !testMode.Value
+                && Keyboard.current[Key.F11].wasPressedThisFrame && Keyboard.current[Key.LeftCtrl].isPressed)
+            {
+                errorQueue.Clear();
+                return;
+            }
             if (oncePerFrame && modEnabled.Value && !testMode.Value && Keyboard.current[Key.F11].wasPressedThisFrame)
             {
                 logger.LogInfo("Turning off error log display.");
@@ -77,7 +82,6 @@ namespace UIShowCrash
                 modEnabled.Value = true;
                 return;
             }
-
             if (!modEnabled.Value)
             {
                 return;
