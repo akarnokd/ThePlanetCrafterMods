@@ -689,5 +689,35 @@ namespace CheatInventoryStacking
 
             return false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JsonablesHelper), nameof(JsonablesHelper.JsonableToInventory))]
+        static bool Patch_JsonablesHelper_JsonableToInventory(JsonableInventory _jsonableInventory,
+            Dictionary<int, WorldObject> _objectMap,
+            ref Inventory __result)
+        {
+            if (stackSize.Value <= 1)
+            {
+                return true;
+            }
+            List<WorldObject> list = [];
+            // Vanilla started limiting this list to 8000 entries, we need to free it
+            foreach (string text in _jsonableInventory.woIds.Split(',', StringSplitOptions.None))
+            {
+                if (!(text == ""))
+                {
+                    int num;
+                    int.TryParse(text, out num);
+                    if (_objectMap.ContainsKey(num))
+                    {
+                        WorldObject worldObject = _objectMap[num];
+                        list.Add(worldObject);
+                    }
+                }
+            }
+            __result = new Inventory(_jsonableInventory.id, _jsonableInventory.size, list, GroupsHandler.GetGroupsViaString(_jsonableInventory.supplyGrps, new HashSet<Group>()) as HashSet<Group>, GroupsHandler.GetGroupsViaString(_jsonableInventory.demandGrps, new HashSet<Group>()) as HashSet<Group>, _jsonableInventory.priority);
+
+            return false;
+        }
     }
 }
