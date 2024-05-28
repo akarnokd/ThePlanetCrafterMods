@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using static UnityEngine.UIElements.TreeViewReorderableDragAndDropController;
 
 namespace UIShowRocketCount
 {
@@ -44,23 +43,6 @@ namespace UIShowRocketCount
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
-        }
-
-        static bool TryGetCountByGroupId(string groupId, out int c)
-        {
-            var gd = GroupsHandler.GetGroupViaId(groupId);
-            c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(gd.GetGroupData(), false);
-            return c != 0;
-        }
-
-        static bool TryGetCountByUnitType(DataConfig.WorldUnitType unitType, out int c)
-        {
-            if (GameConfig.spaceGlobalMultipliersGroupIds.TryGetValue(unitType, out var gr))
-            {
-                return TryGetCountByGroupId(gr, out c);
-            }
-            c = 0;
-            return false;
         }
 
         [HarmonyPrefix]
@@ -98,7 +80,24 @@ namespace UIShowRocketCount
                         if (unit != null)
                         {
                             string s = unit.GetDisplayStringForValue(unit.GetCurrentValuePersSec(), false, 0) + "/s";
-                            TryGetCountByUnitType(unit.GetUnitType(), out int c);
+
+                            var gid = unit.GetUnitType() switch
+                            {
+                                DataConfig.WorldUnitType.Oxygen => "RocketOxygen1",
+                                DataConfig.WorldUnitType.Heat => "RocketHeat1",
+                                DataConfig.WorldUnitType.Pressure => "RocketPressure1",
+                                DataConfig.WorldUnitType.Plants => "RocketBiomass1",
+                                DataConfig.WorldUnitType.Animals => "RocketAnimals1",
+                                DataConfig.WorldUnitType.Insects => "RocketInsects1",
+                                _ => ""
+                            };
+
+                            var gr = GroupsHandler.GetGroupViaId(gid);
+                            var c = 0;
+                            if (gr != null)
+                            {
+                                c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(gr.GetGroupData(), false);
+                            }
                             if (c > 0)
                             {
                                 s = c + " x -----    " + s;
@@ -124,7 +123,7 @@ namespace UIShowRocketCount
                 {
                     if (fEventHoverShowGroupAssociatedGroup(ehg) is Group g)
                     {
-                        TryGetCountByGroupId(g.GetId(), out int c);
+                        var c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(g.GetGroupData(), false);
                         if (c > 0)
                         {
                             var go = new GameObject();
