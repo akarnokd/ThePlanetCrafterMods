@@ -175,5 +175,15 @@ namespace CheatInventoryStacking
                 }
             }
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowContainer), nameof(UiWindowContainer.SetInventories))]
+        static void Patch_UiWindowContainer_OnOpen(UiWindowContainer __instance, Inventory inventoryRight)
+        {
+            if (__instance is UiWindowDNAExtractor)
+            {
+                noStackingInventories.Add(inventoryRight.GetId());
+            }
+        }
     }
 }
