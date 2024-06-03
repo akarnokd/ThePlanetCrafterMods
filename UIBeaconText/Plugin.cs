@@ -268,6 +268,21 @@ namespace UIBeaconText
             holder.vanillaHexagon2?.SetActive(!hideVanillaHexagon.Value);
         }
 
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            foreach (var go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (go.name == "BeaconTitle" || go.name == "BeaconDistance")
+                {
+                    var txt = go.GetComponent<Text>();
+                    if (txt != null)
+                    {
+                        txt.fontSize = fontSize.Value;
+                    }
+                }
+            }
+        }
+
         internal class BeaconTextHolder : MonoBehaviour
         {
             internal Text titleText;
