@@ -43,7 +43,7 @@ akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.26
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.46
 # (Item) Rods
-akarnokd.theplanetcraftermods.itemrods=1.0.0.1
+akarnokd.theplanetcraftermods.itemrods=1.0.0.2
 # (Lathrey) Auto Move
 akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.11
 # (Lathrey) Disable Build Constraints
@@ -119,7 +119,7 @@ akarnokd.theplanetcraftermods.uistackinrangelist=1.0.0.12
 # (UI) Telemetry Font Sizer
 akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.8
 # (UI) Czech Translation
-akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.20
+akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.21
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.17
 # (UI) Hungarian Translation

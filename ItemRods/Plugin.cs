@@ -11,6 +11,7 @@ using System.IO;
 using System.Reflection;
 using Unity.Netcode;
 using BepInEx.Logging;
+using System.Linq;
 
 // Remake of cisox Rods mod: https://www.nexusmods.com/planetcrafter/mods/75
 
@@ -181,14 +182,28 @@ namespace ItemRods
         [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
         private static void StaticDataHandler_LoadStaticData(List<GroupData> ___groupsData)
         {
+            for (var i = ___groupsData.Count - 1; i >= 0; i--)
+            {
+                var groupData = ___groupsData[i];
+                if (groupData == null || (groupData.associatedGameObject == null && groupData.id.StartsWith("Rod-")))
+                {
+                    ___groupsData.RemoveAt(i);
+                }
+            }
+            
+            var existingGroups = ___groupsData.Select(gd => gd.id).ToHashSet();
+
             foreach (string text in ores)
             {
                 bool flag = !oreConfigs.ContainsKey(text) || !oreConfigs[text].Value;
                 if (!flag)
                 {
                     var oreRodGroupDataItem = GetOreRodGroupDataItem(___groupsData, text, 9, oreColors[text]);
-                    ___groupsData.Add(oreRodGroupDataItem);
-                    logger.LogInfo("Added " + text);
+                    if (!existingGroups.Contains(oreRodGroupDataItem.id))
+                    {
+                        ___groupsData.Add(oreRodGroupDataItem);
+                        logger.LogInfo("Added " + text);
+                    }
                 }
             }
         }
