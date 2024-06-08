@@ -44,11 +44,15 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackAutoCrafters;
         static ConfigEntry<bool> stackDroneStation;
         static ConfigEntry<bool> stackAnimalFeeder;
+        static ConfigEntry<bool> stackOnlyBackpack;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
         static ConfigEntry<int> logisticsTimeLimit;
         static ConfigEntry<bool> debugOverrideLogisticsAnyway;
+
+        static ConfigEntry<float> offsetX;
+        static ConfigEntry<float> offsetY;
 
         static string expectedGroupIdToAdd;
 
@@ -135,9 +139,13 @@ namespace CheatInventoryStacking
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
             stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");
+            stackOnlyBackpack = Config.Bind("General", "StackOnlyBackpack", false, "If true, only the backpack will stack, nothing else no matter the other settings.");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
+
+            offsetX = Config.Bind("General", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right)");
+            offsetY = Config.Bind("General", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up)");
 
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
@@ -428,7 +436,7 @@ namespace CheatInventoryStacking
                             image.color = new Color(0.25f, 0.25f, 0.25f, 0.8f);
 
                             rectTransform = image.GetComponent<RectTransform>();
-                            rectTransform.localPosition = new Vector3(0, 0, 0);
+                            rectTransform.localPosition = new Vector3(offsetX.Value, offsetY.Value, 0);
                             rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
 
                             var count = new GameObject();
@@ -444,7 +452,7 @@ namespace CheatInventoryStacking
                             text.alignment = TextAnchor.MiddleCenter;
 
                             rectTransform = text.GetComponent<RectTransform>();
-                            rectTransform.localPosition = new Vector3(0, 0, 0);
+                            rectTransform.localPosition = new Vector3(offsetX.Value, offsetY.Value, 0);
                             rectTransform.sizeDelta = new Vector2(2 * fs, fs + 5);
                         }
 

@@ -227,43 +227,55 @@ namespace CheatInventoryStacking
             // Not as snappy as checking the hashset from before, but we do this only if
             // backpack stacking was explicitly disabled. Usually it won't be for most players.
 
-            if (!stackBackpack.Value)
-            {
-                // We cache the PlayersManager here.
-                if (playersManager == null)
-                {
-                    playersManager = Managers.GetManager<PlayersManager>();
-                }
-                if (playersManager != null)
-                {
-                    foreach (var player in playersManager.playersControllers)
-                    {
-                        if (player != null)
-                        {
-                            var pinv = player.GetPlayerBackpack().GetInventory();
-                            if (pinv != null && pinv.GetId() == inventoryId)
-                            {
-                                return false;
-                            }
-                        }
-                    }
+            bool isBackpack = IsPlayerBackpack(inventoryId);
 
-                    // FIXME I don't know if playersControllers does include the active controller or not
-                    var apc = playersManager.GetActivePlayerController();
-                    if (apc != null)
-                    {
-                        var pinv = apc.GetPlayerBackpack().GetInventory();
-                        if (pinv != null && pinv.GetId() == inventoryId)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                // FIXME So if the playersManager is not available, does it mean stacking is not really relevant
-                // because we are outside a world?
+            if (!stackBackpack.Value && isBackpack)
+            {
+                return false;
+            }
+            if (stackOnlyBackpack.Value && !isBackpack)
+            {
+                return false;
             }
             return true;
         }
 
+        static bool IsPlayerBackpack(int inventoryId)
+        {
+            // FIXME So if the playersManager is not available, does it mean stacking is not really relevant
+            // because we are outside a world?
+
+            // We cache the PlayersManager here.
+            if (playersManager == null)
+            {
+                playersManager = Managers.GetManager<PlayersManager>();
+            }
+            if (playersManager != null)
+            {
+                foreach (var player in playersManager.playersControllers)
+                {
+                    if (player != null)
+                    {
+                        var pinv = player.GetPlayerBackpack().GetInventory();
+                        if (pinv != null && pinv.GetId() == inventoryId)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                // FIXME I don't know if playersControllers does include the active controller or not
+                var apc = playersManager.GetActivePlayerController();
+                if (apc != null)
+                {
+                    var pinv = apc.GetPlayerBackpack().GetInventory();
+                    if (pinv != null && pinv.GetId() == inventoryId)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 }
