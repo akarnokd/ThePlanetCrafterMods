@@ -14,6 +14,7 @@ using BepInEx.Configuration;
 using System;
 using Unity.Netcode;
 using System.Collections;
+using static SpaceCraft.DataConfig;
 
 namespace UIOverviewPanel
 {
@@ -222,14 +223,15 @@ namespace UIOverviewPanel
             {
                 if (NetworkManager.Singleton != null)
                 {
-                    if ((Managers.GetManager<PlayersManager>()?.GetAllTimeListOfPlayers().Count ?? 1) > 1)
+                    if (NetworkManager.Singleton.IsServer)
                     {
-                        if (NetworkManager.Singleton.IsHost)
+                        if ((Managers.GetManager<PlayersManager>()?.GetAllTimeListOfPlayers().Count ?? 1) > 1)
                         {
                             return "Host";
                         }
-                        return "Client";
+                        return "Singleplayer";
                     }
+                    return "Client";
                 }
                 return "Singleplayer";
             };
@@ -343,6 +345,11 @@ namespace UIOverviewPanel
                     var wut = wu.GetUnit(unitType);
                     var remaining = Mathf.InverseLerp(prevValue, value, wut.GetValue()) * 100;
                     var speed = wut.GetCurrentValuePersSec();
+                    var gameSettings = Managers.GetManager<GameSettingsHandler>();
+                    if (gameSettings != null)
+                    {
+                        speed *= gameSettings.GetComputedTerraformationMultiplayerFactor(unitType);
+                    }
 
                     var eta = "\u221E";
                     if (speed > 0)
@@ -410,6 +417,13 @@ namespace UIOverviewPanel
 
                 var value = nstart;
                 var speed = wut.GetCurrentValuePersSec();
+                var gameSettings = Managers.GetManager<GameSettingsHandler>();
+                if (gameSettings != null)
+                {
+                    speed *= gameSettings.GetComputedTerraformationMultiplayerFactor(DataConfig.WorldUnitType.Terraformation);
+                }
+
+
                 var eta = "\u221E";
                 if (speed > 0)
                 {

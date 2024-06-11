@@ -42,6 +42,12 @@ namespace UIShowETA
                 var speed = wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetCurrentValuePersSec();
                 var remaining = nextGlobalStage.GetStageStartValue() - wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetValue();
 
+                var gameSettings = Managers.GetManager<GameSettingsHandler>();
+                if (gameSettings != null)
+                {
+                    speed *= gameSettings.GetComputedTerraformationMultiplayerFactor(nextGlobalStage.GetWorldUnitType());
+                }
+
                 if (speed <= 0)
                 {
                     ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Infinite";
@@ -51,13 +57,18 @@ namespace UIShowETA
                     var time = (long)(remaining / speed);
                     if (time > 0)
                     {
-                        if (time < 366 * 24 * 60 * 60)
+                        if (time < 366L * 24 * 60 * 60)
                         {
                             var ts = TimeSpan.FromSeconds(time);
 
-                            if (ts.Days > 0)
+                            if (ts.Days > 1)
                             {
                                 ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} days<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                            }
+                            else
+                            if (ts.Days > 0)
+                            {
+                                ___percentageProcess.text += string.Format("<br><color=#FFFF00>ETA</color><br>{0:#} day<br>{1}:{2:00}:{3:00}", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
                             }
                             else
                             {
@@ -71,7 +82,7 @@ namespace UIShowETA
                     }
                     else
                     {
-                        ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Done";
+                        ___percentageProcess.text += "<br><color=#FFFF00>ETA</color><br>Now";
                     }
                 }
             }
