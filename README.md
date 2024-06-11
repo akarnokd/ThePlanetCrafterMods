@@ -20,7 +20,7 @@ This repo only supports the very latest Steam or GoG releases.
 
 In order to use my or anyone other's mods, you need to install BepInEx first. The wiki has a guide for this:
 
-https://planet-crafter.fandom.com/wiki/Modding#Using_Mods
+https://planet-crafter.fandom.com/wiki/Modding#Installation
 
 When installing my mods, unzip the mod into the `BepInEx\Plugins` directory, including the folder inside the zip file.
 
