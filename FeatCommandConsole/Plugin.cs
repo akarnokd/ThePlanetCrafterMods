@@ -4088,6 +4088,38 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/clear-all-supply", "Clears all supply settings.")]
+        public void ClearAllSupply(List<string> args)
+        {
+            var i = 0;
+            foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
+            {
+                LogisticEntity logisticEntity = inv.Value.GetLogisticEntity();
+                if (logisticEntity.HasSupplyGroups())
+                {
+                    logisticEntity.ClearSupplyGroups();
+                    i++;
+                }
+            }
+            AddLine("<margin=1em><color=#FFFF00>" + i + " inventories updated");
+        }
+
+        [Command("/clear-all-demand", "Clears all demand settings.")]
+        public void ClearAllDemand(List<string> args)
+        {
+            var i = 0;
+            foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
+            {
+                LogisticEntity logisticEntity = inv.Value.GetLogisticEntity();
+                if (logisticEntity.HasDemandGroups())
+                {
+                    logisticEntity.ClearDemandGroups();
+                    i++;
+                }
+            }
+            AddLine("<margin=1em><color=#FFFF00>" + i + " inventories updated");
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
         static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
