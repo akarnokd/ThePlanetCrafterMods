@@ -687,6 +687,22 @@ namespace UIModConfigMenu
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnOpenConstructionDispatcher))]
+        static bool PlayerInputDispatcher_OnOpenConstructionDispatcher()
+        {
+            var wh = Managers.GetManager<WindowsHandler>();
+            return wh == null || wh.GetOpenedUi() != DataConfig.UiType.Options;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnOpenInventoryDispatcher))]
+        static bool PlayerInputDispatcher_OnOpenInventoryDispatcher()
+        {
+            var wh = Managers.GetManager<WindowsHandler>();
+            return wh == null || wh.GetOpenedUi() != DataConfig.UiType.Options;
+        }
+
         class ModConfigEntryHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
 

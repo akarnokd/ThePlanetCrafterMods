@@ -234,6 +234,13 @@ namespace CheatCraftFromNearbyContainers
                 return true;
             }
 
+            // Workaround for opening the construction menu from the pause menu.
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh != null && wh.GetOpenedUi() == DataConfig.UiType.Options)
+            {
+                return false;
+            }
+
             Log("PlayerInputDispatcher::OnOpenConstructionDispatcher");
 
 
