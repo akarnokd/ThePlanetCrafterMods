@@ -203,5 +203,21 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GroupNetworkBase), "DeconstructServerRpc")]
+        static void GroupNetworkBase_DeconstructServerRpc(GroupNetworkBase __instance, 
+            ref ActionDeconstructible ____actionDeconstruct)
+        {
+            NetworkManager networkManager = __instance.NetworkManager;
+            if (networkManager == null || !networkManager.IsListening || !networkManager.IsServer)
+            {
+                return;
+            }
+            if (____actionDeconstruct == null)
+            {
+                ____actionDeconstruct = __instance.GetComponentInChildren<ActionDeconstructible>(true);
+            }
+        }
     }
 }
