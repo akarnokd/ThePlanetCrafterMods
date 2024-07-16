@@ -4,8 +4,6 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 - Steam: https://store.steampowered.com/app/1284190/The_Planet_Crafter/
 - GoG: https://www.gog.com/en/game/the_planet_crafter
 
-Guide on dnSpy-based manual patches: https://steamcommunity.com/sharedfiles/filedetails/?id=2784319459
-
 ## Version <a href='https://github.com/akarnokd/ThePlanetCrafterMods/releases'><img src='https://img.shields.io/github/v/release/akarnokd/ThePlanetCrafterMods' alt='Latest GitHub Release Version'/></a>
 
 [![Github All Releases](https://img.shields.io/github/downloads/akarnokd/ThePlanetCrafterMods/total.svg)](https://github.com/akarnokd/ThePlanetCrafterMods/releases)
