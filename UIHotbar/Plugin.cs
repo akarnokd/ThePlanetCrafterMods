@@ -505,10 +505,10 @@ namespace UIHotbar
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.SetNewGhost))]
-        static bool PlayerBuilder_SetNewGhost(GroupConstructible groupConstructible, ConstructibleGhost ___ghost)
+        static bool PlayerBuilder_SetNewGhost(Group groupConstructible, ConstructibleGhost ____ghost)
         {
             Log("New Ghost Set: " + groupConstructible?.GetId() ?? "null");
-            Log("Previous Ghost: " + (___ghost != null ? "Exists" : "Doesn't Exist"));
+            Log("Previous Ghost: " + (____ghost != null ? "Exists" : "Doesn't Exist"));
             if (groupConstructible != null) {
                 for (int i = 0; i < slots.Count; i++)
                 {
@@ -544,10 +544,10 @@ namespace UIHotbar
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnCancelAction))]
-        static void PlayerBuilder_InputOnCancelAction_Post(ref ConstructibleGhost ___ghost)
+        static void PlayerBuilder_InputOnCancelAction_Post(ref ConstructibleGhost ____ghost)
         {
             // workaround for Unity's fake null problem
-            ___ghost = null;
+            ____ghost = null;
         }
 
         [HarmonyPrefix]

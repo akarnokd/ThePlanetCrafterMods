@@ -15,9 +15,9 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.8
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.9
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.33
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.34
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.32
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.33
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.25
 # (Cheat) Minimap
@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.18
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.7
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.84
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.85
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -79,7 +79,7 @@ akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.13
 # (UI) Prevent Accidental Deconstruct
 akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.14
 # (UI) Hotbar
-akarnokd.theplanetcraftermods.uihotbar=1.0.0.29
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.30
 # (UI) Inventory Move Multiple Items
 akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.10
 # (UI) Logistic Select All
