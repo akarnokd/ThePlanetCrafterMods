@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.22
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.26
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.47
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.48
 # (Item) Rods
 akarnokd.theplanetcraftermods.itemrods=1.0.0.2
 # (Lathrey) Auto Move

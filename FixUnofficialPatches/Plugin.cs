@@ -97,6 +97,7 @@ namespace FixUnofficialPatches
             return true;
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Localization), nameof(Localization.GetLocalizedString))]
         static bool Localization_GetLocalizedString(string stringCode, ref string __result)
@@ -108,6 +109,7 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+        */
 
         static readonly Color colorTransparent = new(0, 0, 0, 0);
 
