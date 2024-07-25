@@ -418,7 +418,12 @@ namespace CheatInventoryStacking
                         var worldObject = slot[^1];
 
                         var showDropIcon = showDropIconAtAll;
-                        if (worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed())
+                        if (showDropIcon && !(worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed()))
+                        {
+                            var gi1 = worldObject.GetGroup() as GroupItem;
+                            showDropIcon = gi1 == null || gi1.GetUsableType() != DataConfig.UsableType.Buildable;
+                        }
+                        else
                         {
                             showDropIcon = false;
                         }
