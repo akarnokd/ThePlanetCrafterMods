@@ -159,8 +159,12 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(ActionOpenable), "Start")]
         static void Patch_ActionOpenable_Start(ActionOpenable __instance)
         {
-            if (__instance.gameObject.name.StartsWith("AnimalFeeder", System.StringComparison.InvariantCulture)
+            if ((__instance.gameObject.name.StartsWith("AnimalFeeder", System.StringComparison.InvariantCulture)
                 && !stackAnimalFeeder.Value)
+                || 
+                (__instance.transform.parent != null
+                && __instance.transform.parent.gameObject.name.Contains("Vehicle", System.StringComparison.InvariantCulture)
+                && !stackVehicle.Value))
             {
                 var ia = __instance.GetComponentInParent<InventoryAssociated>();
                 var iap = __instance.GetComponentInParent<InventoryAssociatedProxy>();

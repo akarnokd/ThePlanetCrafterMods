@@ -1340,4 +1340,10 @@ Message_Toxic_Person2_2=<br><br>Nem tudom megmondani, hogy 3 nap vagy 3 hét tel
 MessageSender_ToxicCompany=CyanExplo 
 MessageSender_Toxic1=Evren
 MessageSender_Toxic2=Ozgur
+GROUP_NAME_FoundationAngle=Alapozás – Szögben
+GROUP_DESC_FoundationAngle=
+Message_LushDesertCache1=Szinte biztos vagyok benne, hogy a küldetésem miatt vált a hajóm működésképtelenné ennek a bolygónak a közelében. Némi vándorlás után megtaláltam ezt a helyet, ahol letelepedhetek. Van elég készletem, hogy hónapokig túléljek. Csak ki kell találnom, hogyan javítsam meg a hajómat.
+Message_LushDesertCache2=Fura maradványokat találtam errefelé. Mintha már éltek volna itt emberek. De ez a bolygó olyan messze van a lakható világoktól. Hogy lehetséges ez? A maradványok ősi roncsoknak tűnnek, de azok, akik túlélték, igen fejlettek voltak. A táblák olvashatatlanok, mert majdnem mindent elkoptatott az erózió és viharok… Én nem értem… 
+MessageSender_PrivateScavenger=Jermyi
+Message_LushDesertCache3=Teljesen biztos vagyok benne, hogy egy másik civilizáció maradványaira bukkantam. Nem hiszem el. Lehet, hogy az a faj volt, akikkel korábban már találkoztunk, de egyszer csak teljesen eltűntek? Minden áron továbbítanom kell ezt az információt. Még nem sikerült kommunikációs módot felállítanom. Odakint a vihar napról napra egyre nagyobb lesz…
 
