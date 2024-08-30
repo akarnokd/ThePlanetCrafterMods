@@ -123,28 +123,31 @@ namespace UIShowRocketCount
                 {
                     if (fEventHoverShowGroupAssociatedGroup(ehg) is Group g)
                     {
-                        var c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(g.GetGroupData(), false);
-                        if (c > 0)
+                        if (g.id.StartsWith("Rocket") && g.id != "RocketReactor")
                         {
-                            var go = new GameObject();
-                            Transform parent = tr.gameObject.transform;
-                            go.transform.SetParent(parent, false);
+                            var c = WorldObjectsHandler.Instance.GetObjectInWorldObjectsCount(g.GetGroupData(), false);
+                            if (c > 0)
+                            {
+                                var go = new GameObject();
+                                Transform parent = tr.gameObject.transform;
+                                go.transform.SetParent(parent, false);
 
-                            var text = go.AddComponent<Text>();
-                            text.font = font;
-                            text.text = c + " x";
-                            text.color = new Color(1f, 1f, 1f, 1f);
-                            text.fontSize = fs;
-                            text.resizeTextForBestFit = false;
-                            text.verticalOverflow = VerticalWrapMode.Truncate;
-                            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-                            text.alignment = TextAnchor.MiddleCenter;
+                                var text = go.AddComponent<Text>();
+                                text.font = font;
+                                text.text = c + " x";
+                                text.color = new Color(1f, 1f, 1f, 1f);
+                                text.fontSize = fs;
+                                text.resizeTextForBestFit = false;
+                                text.verticalOverflow = VerticalWrapMode.Truncate;
+                                text.horizontalOverflow = HorizontalWrapMode.Overflow;
+                                text.alignment = TextAnchor.MiddleCenter;
 
-                            Vector2 v = tr.gameObject.GetComponent<Image>().GetComponent<RectTransform>().sizeDelta;
+                                Vector2 v = tr.gameObject.GetComponent<Image>().GetComponent<RectTransform>().sizeDelta;
 
-                            var rectTransform = text.GetComponent<RectTransform>();
-                            rectTransform.localPosition = new Vector3(0, v.y / 2 + 10, 0);
-                            rectTransform.sizeDelta = new Vector2(fs * 3, fs + 5);
+                                var rectTransform = text.GetComponent<RectTransform>();
+                                rectTransform.localPosition = new Vector3(0, v.y / 2 + 10, 0);
+                                rectTransform.sizeDelta = new Vector2(fs * 3, fs + 5);
+                            }
                         }
                     }
                 }

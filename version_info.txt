@@ -111,7 +111,7 @@ akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.15
 # (UI) Show Player Tooltip Item Count
 akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.12
 # (UI) Show Rocket Counts
-akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.17
+akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.18
 # (UI) Sort Saves On The Load Screen
 akarnokd.theplanetcraftermods.uisortsaves=1.0.0.12
 # (UI) Stack In-Range List
