@@ -1346,4 +1346,9 @@ Message_LushDesertCache1=Szinte biztos vagyok benne, hogy a küldetésem miatt v
 Message_LushDesertCache2=Fura maradványokat találtam errefelé. Mintha már éltek volna itt emberek. De ez a bolygó olyan messze van a lakható világoktól. Hogy lehetséges ez? A maradványok ősi roncsoknak tűnnek, de azok, akik túlélték, igen fejlettek voltak. A táblák olvashatatlanok, mert majdnem mindent elkoptatott az erózió és viharok… Én nem értem… 
 MessageSender_PrivateScavenger=Jermyi
 Message_LushDesertCache3=Teljesen biztos vagyok benne, hogy egy másik civilizáció maradványaira bukkantam. Nem hiszem el. Lehet, hogy az a faj volt, akikkel korábban már találkoztunk, de egyszer csak teljesen eltűntek? Minden áron továbbítanom kell ezt az információt. Még nem sikerült kommunikációs módot felállítanom. Odakint a vihar napról napra egyre nagyobb lesz…
+GROUP_NAME_GoldenEffigie9=Aranyfigura
+VehicleBackToGarage_use=Használ
+VehicleBackToGarage_screen_title=Vissza a garázsba
+VehicleBackToGarage_select_vehicle=Melyik járművet hozzuk vissza:
+VehicleBackToGarage_cooldown=Újratölt... Elkészül:
 
