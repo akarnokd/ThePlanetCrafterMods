@@ -460,8 +460,8 @@ namespace CheatCraftFromNearbyContainers
             {
                 ____crafting = true;
 
-                WorldObjectsHandler.Instance.CreateAndInstantiateWorldObject(groupItem, sourceCrafter.GetSpawnPosition(), 
-                    Quaternion.identity, true, true, true, newSpawnedObject =>
+                WorldObjectsHandler.Instance.CreateAndInstantiateWorldObject(groupItem, sourceCrafter.GetSpawnPosition(),
+                    sourceCrafter.GetSpawnRotation(), true, true, true, newSpawnedObject =>
                 {
                     if (newSpawnedObject != null)
                     {
@@ -785,19 +785,19 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPatch(typeof(PlayerBuilder), nameof(PlayerBuilder.InputOnAction))]
         static bool PlayerBuilder_InputOnAction(
             PlayerBuilder __instance,
-            ConstructibleGhost ___ghost,
-            GroupConstructible ___ghostGroupConstructible,
-            float ___timeCreatedGhost,
-            float ___timeCantBuildInterval)
+            ConstructibleGhost ____ghost,
+            GroupConstructible ____ghostGroupConstructible,
+            float ____timeCreatedGhost,
+            float ____timeCantBuildInterval)
         {
             if (!modEnabled.Value)
             {
                 return true;
             }
 
-            if (___ghost != null)
+            if (____ghost != null)
             {
-                if (Time.time < ___timeCreatedGhost + ___timeCantBuildInterval && !Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
+                if (Time.time < ____timeCreatedGhost + ____timeCantBuildInterval && !Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
                 {
                     return false;
                 }
@@ -842,14 +842,14 @@ namespace CheatCraftFromNearbyContainers
 
                 // double check if we are still in range for building
 
-                List<Group> ingredientsGroupInRecipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+                List<Group> ingredientsGroupInRecipe = ____ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
                 bool available = __instance.GetComponent<PlayerMainController>().GetPlayerBackpack().GetInventory()
                     .ContainsItems(ingredientsGroupInRecipe);
                 bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
                 if (available || freeCraft)
                 {
                     var onConstructed = AccessTools.MethodDelegate<Action<GameObject>>(AccessTools.Method(typeof(PlayerBuilder), "OnConstructed"), __instance);
-                    ___ghost.Place(onConstructed);
+                    ____ghost.Place(onConstructed);
                 }
                 else
                 {
@@ -863,25 +863,26 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerBuilder), "OnConstructed")]
         static bool PlayerBuilder_OnConstructed(PlayerBuilder __instance, 
-            ref ConstructibleGhost ___ghost,
-            GroupConstructible ___ghostGroupConstructible)
+            ref ConstructibleGhost ____ghost,
+            GroupConstructible ____ghostGroupConstructible)
         {
             if (!modEnabled.Value)
             {
                 return true;
             }
 
-            ___ghost = null;
+            ____ghost = null;
             __instance.GetComponent<PlayerAudio>().PlayBuildGhost();
             __instance.GetComponent<PlayerAnimations>().AnimateConstruct(true, -1f);
             __instance.GetComponent<PlayerShareState>().StartConstructing();
             __instance.Invoke("StopAnimation", 0.5f);
-            __instance.StartCoroutine(Build_Deduce(__instance, ___ghostGroupConstructible));
+            __instance.StartCoroutine(Build_Deduce(__instance, ____ghostGroupConstructible));
 
             return false;
         }
 
-        static IEnumerator Build_Deduce(PlayerBuilder __instance, GroupConstructible ___ghostGroupConstructible)
+        static IEnumerator Build_Deduce(PlayerBuilder __instance, 
+            GroupConstructible ____ghostGroupConstructible)
         {
             var cw = new CallbackWaiter();
             GetInventoriesInRange(__instance, __instance.transform.position, list =>
@@ -897,7 +898,7 @@ namespace CheatCraftFromNearbyContainers
 
             var backpackInv = __instance.GetComponent<PlayerBackpack>().GetInventory();
 
-            if (CheckInventoryForDirectBuild(backpackInv, __instance, ___ghostGroupConstructible))
+            if (CheckInventoryForDirectBuild(backpackInv, __instance, ____ghostGroupConstructible))
             {
                 yield break;
             }
@@ -906,14 +907,14 @@ namespace CheatCraftFromNearbyContainers
             {
                 if (inv != null)
                 {
-                    if (CheckInventoryForDirectBuild(inv, __instance, ___ghostGroupConstructible))
+                    if (CheckInventoryForDirectBuild(inv, __instance, ____ghostGroupConstructible))
                     {
                         yield break;
                     }
                 }
             }
 
-            var recipe = ___ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
+            var recipe = ____ghostGroupConstructible.GetRecipe().GetIngredientsGroupInRecipe();
 
             var discovery = new Dictionary<int, (Inventory, WorldObject)>();
 
@@ -921,11 +922,13 @@ namespace CheatCraftFromNearbyContainers
 
             yield return RemoveFromInventories(discovery, () =>
             {
-                Build_CheckChain(__instance, true, ___ghostGroupConstructible);
+                Build_CheckChain(__instance, true, ____ghostGroupConstructible);
             });
         }
 
-        static bool CheckInventoryForDirectBuild(Inventory inv, PlayerBuilder __instance, GroupConstructible ___ghostGroupConstructible)
+        static bool CheckInventoryForDirectBuild(Inventory inv, 
+            PlayerBuilder __instance, 
+            GroupConstructible ___ghostGroupConstructible)
         {
             foreach (var wo in inv.GetInsideWorldObjects())
             {
