@@ -788,7 +788,9 @@ namespace CheatCraftFromNearbyContainers
             ConstructibleGhost ____ghost,
             GroupConstructible ____ghostGroupConstructible,
             float ____timeCreatedGhost,
-            float ____timeCantBuildInterval)
+            float ____timeCantBuildInterval,
+            WorldObject ____sourceWorldObject
+        )
         {
             if (!modEnabled.Value)
             {
@@ -846,7 +848,7 @@ namespace CheatCraftFromNearbyContainers
                 bool available = __instance.GetComponent<PlayerMainController>().GetPlayerBackpack().GetInventory()
                     .ContainsItems(ingredientsGroupInRecipe);
                 bool freeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
-                if (available || freeCraft)
+                if (available || freeCraft || ____sourceWorldObject != null)
                 {
                     var onConstructed = AccessTools.MethodDelegate<Action<GameObject>>(AccessTools.Method(typeof(PlayerBuilder), "OnConstructed"), __instance);
                     ____ghost.Place(onConstructed);
@@ -864,7 +866,8 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPatch(typeof(PlayerBuilder), "OnConstructed")]
         static bool PlayerBuilder_OnConstructed(PlayerBuilder __instance, 
             ref ConstructibleGhost ____ghost,
-            GroupConstructible ____ghostGroupConstructible)
+            GroupConstructible ____ghostGroupConstructible,
+            WorldObject ____sourceWorldObject)
         {
             if (!modEnabled.Value)
             {
@@ -876,8 +879,15 @@ namespace CheatCraftFromNearbyContainers
             __instance.GetComponent<PlayerAnimations>().AnimateConstruct(true, -1f);
             __instance.GetComponent<PlayerShareState>().StartConstructing();
             __instance.Invoke("StopAnimation", 0.5f);
-            __instance.StartCoroutine(Build_Deduce(__instance, ____ghostGroupConstructible));
 
+            if (____sourceWorldObject != null)
+            {
+                InventoriesHandler.Instance.RemoveItemFromInventory(____sourceWorldObject, __instance.GetComponent<PlayerBackpack>().GetInventory(), false, null);
+            }
+            else
+            {
+                __instance.StartCoroutine(Build_Deduce(__instance, ____ghostGroupConstructible));
+            }
             return false;
         }
 
