@@ -15,7 +15,7 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.8
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.9
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.45
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.46
 # (Cheat) Inventory Stacking
 akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.45
 # (Cheat) Machines Deposit Into Remote Containers
