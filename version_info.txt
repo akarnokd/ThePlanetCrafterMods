@@ -79,7 +79,7 @@ akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.13
 # (UI) Prevent Accidental Deconstruct
 akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.14
 # (UI) Hotbar
-akarnokd.theplanetcraftermods.uihotbar=1.0.0.30
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.31
 # (UI) Inventory Move Multiple Items
 akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.10
 # (UI) Logistic Select All
@@ -133,4 +133,4 @@ akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.39
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.19
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.7
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.8
