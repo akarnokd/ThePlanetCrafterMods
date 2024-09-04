@@ -1351,4 +1351,6 @@ VehicleBackToGarage_use=Használ
 VehicleBackToGarage_screen_title=Vissza a garázsba
 VehicleBackToGarage_select_vehicle=Melyik járművet hozzuk vissza:
 VehicleBackToGarage_cooldown=Újratölt... Elkészül:
+Intro_Dlc_title=Az első DLC-nk bejelentve!
+Intro_Dlc_action=Vedd a kívánságlistádra a Steamen!
 
