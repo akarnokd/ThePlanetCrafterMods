@@ -1364,3 +1364,6 @@ VehicleBackToGarage_use=Użyj
 VehicleBackToGarage_screen_title=Powrót do garażu
 VehicleBackToGarage_select_vehicle=Wybierz pojazd, który chcesz zawrócić:
 VehicleBackToGarage_cooldown=Przeładowywanie... Gotowy ponownie za:
+Intro_Dlc_title=Przedstawiamy nasz pierwszy dodatek do gry!
+Intro_Dlc_action=Dodaj tę grę do listy życzeń TERAZ na Steamie
+
