@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.18
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.7
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.97
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.0.98
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
