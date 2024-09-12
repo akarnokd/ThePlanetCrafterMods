@@ -1353,4 +1353,7 @@ VehicleBackToGarage_select_vehicle=Melyik járművet hozzuk vissza:
 VehicleBackToGarage_cooldown=Újratölt... Elkészül:
 Intro_Dlc_title=Az első DLC-nk bejelentve!
 Intro_Dlc_action=Vedd a kívánságlistádra a Steamen!
+Menu_Options_Keys_VehicleSwitchView=Jármű: Nézetváltás
+Menu_Options_Keys_VehicleForward=Jármű: Előre
+Menu_Options_Keys_VehicleBackward=Jármű: Hátra
 
