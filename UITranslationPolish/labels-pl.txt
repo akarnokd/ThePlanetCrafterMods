@@ -1366,4 +1366,7 @@ VehicleBackToGarage_select_vehicle=Wybierz pojazd, który chcesz zawrócić:
 VehicleBackToGarage_cooldown=Przeładowywanie... Gotowy ponownie za:
 Intro_Dlc_title=Przedstawiamy nasz pierwszy dodatek do gry!
 Intro_Dlc_action=Dodaj tę grę do listy życzeń TERAZ na Steamie
+Menu_Options_Keys_VehicleSwitchView=Pojazd: Zmień widok
+Menu_Options_Keys_VehicleForward=Pojazd: Naprzód
+Menu_Options_Keys_VehicleBackward=Pojazd: Cofaj
 
