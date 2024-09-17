@@ -31,7 +31,10 @@ namespace LibCommon
             "SolarQuartz",
             "MagnetarQuartz",
             "BalzarQuartz", // it is misspelled in the game
-            "QuasarQuartz"
+            "QuasarQuartz",
+            "Dolom" + "ite",
+            "Uran" + "ite",
+            "Baux" + "ite"
         ];
 
         internal static readonly string defaultOres = string.Join(",", defaultOreSet);
