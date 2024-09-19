@@ -15,6 +15,7 @@ using System.Reflection;
 using UnityEngine.UI;
 using TMPro;
 using Unity.Netcode;
+using System.Linq;
 
 namespace FeatTechniciansExile
 {
@@ -29,7 +30,11 @@ namespace FeatTechniciansExile
         internal static Texture2D technicianBack;
 
         // /tp 1990 70 1073
-        static Vector3 technicianDropLocation = new(1995, 68.8f, 1073);
+        static Dictionary<string, Vector3> technicianDropLocationPerPlanet = new() {
+            { "",  new Vector3(1995, 68.8f, 1073) },
+            { "Prime",  new Vector3(1995, 68.8f, 1073) },
+            { "Humble", new Vector3(1327, 370.5f, -333) }
+        };
 
         static TechnicianAvatar avatar;
 
@@ -68,7 +73,7 @@ namespace FeatTechniciansExile
 
         static readonly Dictionary<string, Dictionary<string, string>> labels = [];
 
-        static MessageData technicianMessage;
+        static readonly Dictionary<string, MessageData> technicianMessageDict = [];
         static MessageData technicianMessage2;
 
         static TMP_FontAsset fontAsset;
@@ -98,20 +103,31 @@ namespace FeatTechniciansExile
 
             PrepareDialogChoices();
 
-            technicianMessage = ScriptableObject.CreateInstance<MessageData>();
+            var msg1 = ScriptableObject.CreateInstance<MessageData>();
             {
-                technicianMessage.stringId = "TechniciansExile_Message";
-                technicianMessage.senderStringId = "TechniciansExile_Name";
-                technicianMessage.yearSent = "Today";
-                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
+                msg1.stringId = "TechniciansExile_Message_Prime";
+                msg1.senderStringId = "TechniciansExile_Name";
+                msg1.yearSent = "Today";
+                msg1.messageType = DataConfig.MessageType.FromWorld;
             };
+            var msg2 = ScriptableObject.CreateInstance<MessageData>();
+            {
+                msg2.stringId = "TechniciansExile_Message_Humble";
+                msg2.senderStringId = "TechniciansExile_Name";
+                msg2.yearSent = "Today";
+                msg2.messageType = DataConfig.MessageType.FromWorld;
+            };
+
+            technicianMessageDict[""] = msg1;
+            technicianMessageDict["Prime"] = msg1;
+            technicianMessageDict["Humble"] = msg2;
 
             technicianMessage2 = ScriptableObject.CreateInstance<MessageData>();
             {
                 technicianMessage2.stringId = "TechniciansExile_Message2";
                 technicianMessage2.senderStringId = "TechniciansExile_Name";
                 technicianMessage2.yearSent = "Today";
-                technicianMessage.messageType = DataConfig.MessageType.FromWorld;
+                technicianMessage2.messageType = DataConfig.MessageType.FromWorld;
             };
 
             fMeteoHandlerMeteoEvents = AccessTools.FieldRefAccess<MeteoHandler, List<MeteoEventData>>("_meteoEvents");
@@ -141,7 +157,7 @@ namespace FeatTechniciansExile
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
-            LibCommon.ModPlanetLoaded.Patch(h, modFeatTechniciansExileGuid, _ => PlanetLoader_HandleDataAfterLoad());
+            LibCommon.ModPlanetLoaded.Patch(h, modFeatTechniciansExileGuid, PlanetLoader_HandleDataAfterLoad);
         }
 
         static void AddTranslation(string dir, string language)
@@ -177,7 +193,7 @@ namespace FeatTechniciansExile
             return NetworkManager.Singleton?.IsServer ?? true;
         }
 
-        static void PlanetLoader_HandleDataAfterLoad()
+        static void PlanetLoader_HandleDataAfterLoad(PlanetLoader pl)
         {
             if (!IsHost())
             {
@@ -185,6 +201,10 @@ namespace FeatTechniciansExile
             }
 
             logger.LogInfo("Start");
+
+            var pid = pl.GetPlanetData().id;
+
+            var technicianDropLocation = technicianDropLocationPerPlanet[pid];
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
             technicianRotation1 = Quaternion.identity * Quaternion.Euler(0, -90, 0);
@@ -260,6 +280,10 @@ namespace FeatTechniciansExile
         static void CreatePod()
         {
             bool dontSaveMe = false;
+
+            var pid = Managers.GetManager<PlanetLoader>().GetPlanetData().id;
+
+            var technicianDropLocation = technicianDropLocationPerPlanet[pid];
 
             var livingPodBase = technicianDropLocation + new Vector3(0, 0, 15);
 
@@ -870,6 +894,8 @@ namespace FeatTechniciansExile
             var mh = Managers.GetManager<MeteoHandler>();
             if (mh != null)
             {
+                var pid = Managers.GetManager<PlanetLoader>().GetPlanetData().id;
+
                 if (asteroid == null)
                 {
                     /*
@@ -880,33 +906,62 @@ namespace FeatTechniciansExile
                     var mes = fMeteoHandlerMeteoEvents(mh);
                     if (mes != null)
                     {
-                        var meteoEvent = mes[9];
-                        logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
+                        MeteoEventData meteoEvent = default;
 
-                        mh.meteoSound.StartMeteoAudio(meteoEvent);
-                        if (meteoEvent.asteroidEventData != null)
+                        foreach (var me in mes)
                         {
-                            var selectedAsteroidEventData = Instantiate(meteoEvent.asteroidEventData);
+                            var list = me.asteroidEventData?.asteroidGameObject?.GetComponent<Asteroid>()?.groupsSelected;
 
-                            var ah = Managers.GetManager<AsteroidsHandler>();
+                            if (list != null && list.Count != 0 && list.Any(e => e.id == "PulsarQuartz"))
+                            {
+                                meteoEvent = me;
+                                break;
+                            }
+                        }
 
-                            var obj = Instantiate(
-                                selectedAsteroidEventData.asteroidGameObject,
-                                technicianDropLocation + new Vector3(0, 1000, 0),
-                                Quaternion.identity,
-                                ah.gameObject.transform
-                            );
-                            obj.transform.LookAt(technicianDropLocation);
+                        if (meteoEvent != null)
+                        {
 
-                            asteroid = obj.GetComponent<Asteroid>();
-                            var isr = 4 * Mathf.Max(asteroid.initialSpeedRange.x, asteroid.initialSpeedRange.y);
-                            asteroid.initialSpeedRange = new Vector2(isr, isr);
-                            asteroid.DefineVariables(fAsteroidsHandlerRandom(ah), false);
-                            asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
-                            asteroid.debrisDestroyTime = 15;
-                            asteroid.placeAsteroidBody = false;
-                            selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
-                            selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                            logger.LogInfo("Launching arrival meteor: " + meteoEvent.environmentVolume.name);
+
+                            mh.meteoSound.StartMeteoAudio(meteoEvent);
+                            if (meteoEvent.asteroidEventData != null)
+                            {
+                                var selectedAsteroidEventData = Instantiate(meteoEvent.asteroidEventData);
+
+                                var ah = Managers.GetManager<AsteroidsHandler>();
+
+                                var technicianDropLocation = technicianDropLocationPerPlanet[pid];
+
+                                var obj = Instantiate(
+                                    selectedAsteroidEventData.asteroidGameObject,
+                                    technicianDropLocation + new Vector3(0, 1000, 0),
+                                    Quaternion.identity,
+                                    ah.gameObject.transform
+                                );
+                                obj.transform.LookAt(technicianDropLocation);
+
+                                asteroid = obj.GetComponent<Asteroid>();
+                                var isr = 4 * Mathf.Max(asteroid.initialSpeedRange.x, asteroid.initialSpeedRange.y);
+                                asteroid.initialSpeedRange = new Vector2(isr, isr);
+                                asteroid.DefineVariables(fAsteroidsHandlerRandom(ah), false);
+                                asteroid.SetLinkedAsteroidEvent(selectedAsteroidEventData);
+                                asteroid.debrisDestroyTime = 15;
+                                asteroid.placeAsteroidBody = false;
+                                selectedAsteroidEventData.ChangeExistingAsteroidsCount(1);
+                                selectedAsteroidEventData.ChangeTotalAsteroidsCount(1);
+                            }
+                        } 
+                        else
+                        {
+                            questPhase = QuestPhase.Initial_Help;
+
+                            var msh = Managers.GetManager<MessagesHandler>();
+                            msh.AddNewReceivedMessage(technicianMessageDict[pid], true);
+
+                            ShowChoice(dialogChoices["WhoAreYou"]);
+                            SaveState();
+                            SetVisibilityViaCurrentPhase();
                         }
                     }
                 }
@@ -918,7 +973,7 @@ namespace FeatTechniciansExile
                         questPhase = QuestPhase.Initial_Help;
 
                         var msh = Managers.GetManager<MessagesHandler>();
-                        msh.AddNewReceivedMessage(technicianMessage, true);
+                        msh.AddNewReceivedMessage(technicianMessageDict[pid], true);
 
                         ShowChoice(dialogChoices["WhoAreYou"]);
                         SaveState();
@@ -936,6 +991,7 @@ namespace FeatTechniciansExile
         void CheckBaseSetup()
         {
             var pm = GetPlayerMainController();
+            var technicianDropLocation = technicianDropLocationPerPlanet[Managers.GetManager<PlanetLoader>().GetPlanetData().id];
 
             if (Vector3.Distance(pm.transform.position, technicianDropLocation) >= 300)
             {
@@ -1187,7 +1243,10 @@ namespace FeatTechniciansExile
         [HarmonyPatch(typeof(MessagesHandler), "Init")]
         static void MessagesHandler_Init(Dictionary<int, MessageData> ____allAvailableMessages)
         {
-            ____allAvailableMessages.TryAdd(technicianMessage.GetMessageHashCode(), technicianMessage);
+            foreach (var msg in technicianMessageDict.Values)
+            {
+                ____allAvailableMessages.TryAdd(msg.GetMessageHashCode(), msg);
+            }
             ____allAvailableMessages.TryAdd(technicianMessage2.GetMessageHashCode(), technicianMessage2);
         }
 
