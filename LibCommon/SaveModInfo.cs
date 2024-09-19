@@ -17,14 +17,7 @@ namespace LibCommon
         const int storeInWorldObjectId = 900_000_000;
         const int storeInWorldObjectIdOld = 90_000_000;
 
-        internal static void Patch(Harmony harmony)
-        {
-            harmony.PatchAll(typeof(SaveModInfo));
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SessionController), "Start")]
-        static void SessionController_Start()
+        internal static void Save()
         {
             if (NetworkManager.Singleton.IsServer)
             {
