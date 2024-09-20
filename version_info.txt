@@ -21,7 +21,7 @@ akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.47
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.25
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.45
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.46
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.9
 # (Cheat) Highlight Nearby Resources
@@ -39,7 +39,7 @@ akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
 akarnokd.theplanetcraftermods.featspacecows=1.0.0.22
 # (Feat) Technicians Exile
-akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.27
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.28
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.48
 # (Item) Rods

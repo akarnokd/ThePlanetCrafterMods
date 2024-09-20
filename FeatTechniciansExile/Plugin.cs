@@ -33,7 +33,7 @@ namespace FeatTechniciansExile
         static Dictionary<string, Vector3> technicianDropLocationPerPlanet = new() {
             { "",  new Vector3(1995, 68.8f, 1073) },
             { "Prime",  new Vector3(1995, 68.8f, 1073) },
-            { "Humble", new Vector3(1327, 370.5f, -333) }
+            { "Humble", new Vector3(1327, 347.6f, -333) }
         };
 
         static TechnicianAvatar avatar;
