@@ -1119,6 +1119,20 @@ namespace CheatCraftFromNearbyContainers
         }
         */
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWorldInstanceSelector), nameof(UiWorldInstanceSelector.SetValues))]
+        static void UiWorldInstanceSelector_SetValue(
+            List<Group> groups, 
+            ref List<bool> groupsAvailabilty)
+        {
+            candidateInventories = null;
+            groupsAvailabilty = Managers.GetManager<PlayersManager>()
+                .GetActivePlayerController()
+                .GetPlayerBackpack()
+                .GetInventory()
+                .ItemsContainsStatus(groups);
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void Patch_UiWindowPause_OnQuit()
