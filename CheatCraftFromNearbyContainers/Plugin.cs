@@ -1126,11 +1126,27 @@ namespace CheatCraftFromNearbyContainers
             ref List<bool> groupsAvailabilty)
         {
             candidateInventories = null;
-            groupsAvailabilty = Managers.GetManager<PlayersManager>()
-                .GetActivePlayerController()
-                .GetPlayerBackpack()
-                .GetInventory()
-                .ItemsContainsStatus(groups);
+            var inv = Managers.GetManager<PlayersManager>()
+                ?.GetActivePlayerController()
+                ?.GetPlayerBackpack()
+                ?.GetInventory();
+            if (inv != null) 
+            {
+                if (groups != null)
+                {
+                    groupsAvailabilty = inv.ItemsContainsStatus(groups);
+                }
+            }
+            else
+            {
+                if (groupsAvailabilty != null)
+                {
+                    for (int i = 0; i < groupsAvailabilty.Count; i++)
+                    {
+                        groupsAvailabilty[i] = false;
+                    }
+                }
+            }
         }
 
         [HarmonyPostfix]
