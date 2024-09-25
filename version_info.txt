@@ -121,7 +121,7 @@ akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.8
 # (UI) Czech Translation
 akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.22
 # (UI) Estonian Translation
-akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.17
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.18
 # (UI) Hungarian Translation
 akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.83
 # (UI) Italian Translation
