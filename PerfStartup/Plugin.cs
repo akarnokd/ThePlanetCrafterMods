@@ -97,7 +97,7 @@ namespace PerfStartup
             corrupt = false;
             ti = null;
             modeLabel = "";
-            state = null;
+            state = ScriptableObject.CreateInstance<JsonableGameState>();
             try
             {
                 // Note: adding buffer size doesn't seem to help at all
@@ -134,10 +134,8 @@ namespace PerfStartup
                             {
                                 throw new IOException("File ends just before the mode section: " + fileName);
                             }
-                            var m = ScriptableObject.CreateInstance<JsonableGameState>();
-                            JsonUtility.FromJsonOverwrite(line, m);
-                            modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), m.mode));
-                            state = m;
+                            JsonUtility.FromJsonOverwrite(line, state);
+                            modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), state.mode));
                             break;
                         }
                     }
