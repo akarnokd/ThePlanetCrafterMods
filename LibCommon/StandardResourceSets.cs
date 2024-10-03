@@ -34,7 +34,8 @@ namespace LibCommon
             "QuasarQuartz",
             "Dolom" + "ite",
             "Uranin" + "ite",
-            "Baux" + "ite"
+            "Baux" + "ite",
+            "CosmicQuartz"
         ];
 
         internal static readonly string defaultOres = string.Join(",", defaultOreSet);
