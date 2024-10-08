@@ -84,7 +84,7 @@ namespace CheatCraftFromNearbyContainers
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging? Chatty!");
             range = Config.Bind("General", "Range", 20, "The range to look for containers within.");
             key = Config.Bind("General", "Key", "<Keyboard>/Home", "The input action shortcut toggle this mod on or off.");
-            includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: VehicleTruck,OreExtractor");
+            includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
 
             if (!key.Value.Contains("<"))
             {
