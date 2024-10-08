@@ -78,7 +78,9 @@ namespace PerfStartup
 
                 var gameObject = Instantiate(___prefabSaveDisplayer);
 
-                gameObject.GetComponent<SaveFileDisplayer>().SetData(fileName, state, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel);
+                gameObject.GetComponent<SaveFileDisplayer>().SetData(
+                    fileName, state, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel, 
+                    state?.planetId ?? "Prime");
                 gameObject.transform.SetParent(___displayersContainer.transform);
                 gameObject.transform.SetSiblingIndex(0);
                 gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
