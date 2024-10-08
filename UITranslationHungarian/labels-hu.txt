@@ -1417,4 +1417,3 @@ Message_humble_PlanetInfoCourt=Automata üzenet a Humble-IP168 lakóinak.<br><br
 Message_humble_StarformThreat=Tudjuk, mit tett a robotjainkkal ! <br><br>Az autonóm terraformálási technológiánk a legkorszerűbb. Miért állítaná le ezt a nemes törekvést a profit érdekében ?<br><br>Ez teljesen illegális és lépéseket teszünk az ön további hitvány cselekedeteinek megakadályozásáért !
 MessageSender_GalacticTribunal=Galaktikus Akkreditációs Bíróság
 MessageSender_StarformRobotics=Starform Robotics
-
