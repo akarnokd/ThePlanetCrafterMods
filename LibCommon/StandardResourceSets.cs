@@ -32,9 +32,9 @@ namespace LibCommon
             "MagnetarQuartz",
             "BalzarQuartz", // it is misspelled in the game
             "QuasarQuartz",
-            "Dolom" + "ite",
-            "Uranin" + "ite",
-            "Baux" + "ite",
+            "Dolomite",
+            "Uraninite",
+            "Bauxite",
             "CosmicQuartz"
         ];
 

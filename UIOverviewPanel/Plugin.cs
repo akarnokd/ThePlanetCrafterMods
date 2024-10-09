@@ -15,6 +15,8 @@ using System;
 using Unity.Netcode;
 using System.Collections;
 using static SpaceCraft.DataConfig;
+using LibCommon;
+using System.Linq;
 
 namespace UIOverviewPanel
 {
@@ -154,31 +156,18 @@ namespace UIOverviewPanel
 
                 AddTextRow("Golden chests found", CreateSceneCounter(26, "GoldenContainer"));
 
-                AddTextRow("Unique larvae found", CreateButterflyCount(19));
+                AddTextRow("Unique larvae found", CreateButterflyCount());
 
-                AddTextRow("Unique fish found", CreateFishCount(13));
+                AddTextRow("Unique fish found", CreateFishCount());
 
-                AddTextRow("Unique frog found", CreateFrogCount(14));
+                AddTextRow("Unique frog found", CreateFrogCount());
 
                 AddTextRow("Trade Tokens", CreateTradeTokens());
 
                 AddTextRow("Items crafted", CreateCraftedItems());
 
-                AddTextRow("Resources mined", CreateSceneCounter(0, 
-                    "Cobalt",
-                    "Silicon",
-                    "Iron",
-                    "ice", // it is not capitalized in the game
-                    "Magnesium",
-                    "Titanium",
-                    "Aluminium",
-                    "Uranim", // it is misspelled in the game
-                    "Iridium",
-                    "Alloy",
-                    "Zeolite",
-                    "Osmium",
-                    "Sulfur",
-                    "PulsarQuartz"
+                AddTextRow("Resources mined", CreateSceneCounter(0,
+                    [.. StandardResourceSets.defaultOreSet]
                 ));
 
                 backgroundRectTransform.sizeDelta = new Vector2(Screen.width / 4, Screen.height / 4); // we'll resize this later
@@ -462,16 +451,18 @@ namespace UIOverviewPanel
             };
         }
 
-        Func<string> CreateButterflyCount(int max)
+        Func<string> CreateButterflyCount()
         {
+            int max = CountGroups("Butterfly", "Larvae");
             return () =>
             {
                 int csum = uniqueButterflies.Count;
                 return csum + " / " + max + " (" + string.Format("{0:##0.00}", 100f * csum / max) + " %)";
             };
         }
-        Func<string> CreateFishCount(int max)
+        Func<string> CreateFishCount()
         {
+            int max = CountGroups("Fish", "Eggs");
             return () =>
             {
                 int csum = uniqueFish.Count;
@@ -479,8 +470,9 @@ namespace UIOverviewPanel
             };
         }
 
-        Func<string> CreateFrogCount(int max)
+        Func<string> CreateFrogCount()
         {
+            int max = CountGroups("Frog", "Eggs");
             return () =>
             {
                 int csum = uniqueFrog.Count;
@@ -691,6 +683,22 @@ namespace UIOverviewPanel
 
                 backgroundRectTransform.sizeDelta = new Vector2(w, h);
             }
+        }
+
+        int CountGroups(string prefix, string suffix)
+        {
+            var grps = GroupsHandler.GetAllGroups();
+            int count = 0;
+
+            foreach (var g in grps)
+            {
+                if (g.id.StartsWith(prefix) && g.id.EndsWith(suffix))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }
