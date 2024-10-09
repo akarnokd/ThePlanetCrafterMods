@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using BepInEx.Logging;
 
 namespace UIContinue
 {
@@ -28,12 +29,16 @@ namespace UIContinue
         static string lastSaveInfoText;
         static string lastSaveDateText;
 
+        static ManualLogSource logger;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
+
+            logger = Logger;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -85,59 +90,65 @@ namespace UIContinue
                     lastSave = files[i];
                     if (!lastSave.ToLower().EndsWith("backup.json"))
                     {
-                        lastSaveInfoText = Path.GetFileNameWithoutExtension(lastSave);
-                        lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
-
-                        var tis = File.ReadLines(lastSave).Skip(1).Take(4).ToList();
-                        if (tis.Count != 0)
+                        try
                         {
-                            JsonableWorldState ws = new();
-                            JsonUtility.FromJsonOverwrite(tis[0].Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
+                            lastSaveInfoText = "";
+                            lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
+                            var isSingle = false;
 
-                            var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
+                            var sf = File.ReadAllLines(lastSave);
 
-                            var tiAndUnit = "";
-                            if (ti >= 1E24)
+                            if (sf.Length > 2)
                             {
-                                tiAndUnit = string.Format("{0:#,##0.0} YTi", ti / 1E24);
-                            }
-                            if (ti >= 1E21)
-                            {
-                                tiAndUnit = string.Format("{0:#,##0.0} ZTi", ti / 1E21);
-                            }
-                            if (ti >= 1E18)
-                            {
-                                tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E18);
-                            }
-                            else if (ti >= 1E15)
-                            {
-                                tiAndUnit = string.Format("{0:#,##0.0} PTi", ti / 1E15);
-                            }
-                            else if (ti >= 1E12)
-                            {
-                                tiAndUnit = string.Format("{0:0.0} TTi", ti / 1E12);
-                            }
-                            else if (ti >= 1E9)
-                            {
-                                tiAndUnit = string.Format("{0:0.0} GTi", ti / 1E9);
-                            }
-                            else if (ti >= 1E6)
-                            {
-                                tiAndUnit = string.Format("{0:0.0} MTi", ti / 1E6);
-                            }
-                            else if (ti >= 1E3)
-                            {
-                                tiAndUnit = string.Format("{0:0.0} kTi", ti / 1E3);
-                            }
-                            else
-                            {
-                                tiAndUnit = string.Format("{0:0.0} Ti", ti);
-                            }
+                                JsonableWorldState ws = new();
+                                JsonUtility.FromJsonOverwrite(sf[1].Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
 
+                                if (sf.Length > 4)
+                                {
+                                    if (sf[4].StartsWith("@"))
+                                    {
+                                        isSingle = true;
+                                    }
+                                    else
+                                    {
+                                        isSingle = false;
+                                    }
+                                }
 
-                            if (tis.Count >= 4)
-                            {
-                                if (tis[3].StartsWith("@"))
+                                int section = 1;
+                                for (int j = 4; j < sf.Length; j++)
+                                {
+                                    if (sf[j].StartsWith("@"))
+                                    {
+                                        section++;
+                                    }
+                                    else
+                                    {
+                                        if (section == 7)
+                                        {
+                                            var state = ScriptableObject.CreateInstance<JsonableGameState>();
+                                            JsonUtility.FromJsonOverwrite(sf[j], state);
+
+                                            if (!string.IsNullOrWhiteSpace(state.saveDisplayName))
+                                            {
+                                                lastSaveInfoText += "\"" + state.saveDisplayName + "\"";
+                                                lastSaveDateText = Path.GetFileNameWithoutExtension(lastSave) + "     " + lastSaveDateText;
+                                            }
+                                            else
+                                            {
+                                                lastSaveInfoText += Path.GetFileNameWithoutExtension(lastSave);
+                                            }
+
+                                            if (!string.IsNullOrWhiteSpace(state.planetId) && state.planetId != "Prime")
+                                            {
+                                                lastSaveInfoText += " (<color=#FFCC00>" + state.planetId + "</color>)";
+                                            }
+                                        }
+                                    }
+                                }
+
+                                lastSaveInfoText += "  @  " + CreateTiAndUnit(ws);
+                                if (isSingle)
                                 {
                                     lastSaveInfoText += "     <i><color=#FFFF00>[Single]</color></i>";
                                 }
@@ -145,13 +156,19 @@ namespace UIContinue
                                 {
                                     lastSaveInfoText += "     <i><color=#00FF00>[Multi]</color></i>";
                                 }
+
+                                imgIn.color = imgColorSaved;
+                                txtIn.color = txtColorSaved;
+                                bc.AddListener(OnContinueClick);
+
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex);
 
-                            lastSaveInfoText += "    " + tiAndUnit;
-
-                            imgIn.color = imgColorSaved;
-                            txtIn.color = txtColorSaved;
-                            bc.AddListener(OnContinueClick);
+                            lastSaveInfoText = Path.GetFileNameWithoutExtension(lastSave) + "    (error reading details)";
+                            lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
                         }
                         break;
                     }
@@ -223,6 +240,50 @@ namespace UIContinue
             }
         }
 
+        static string CreateTiAndUnit(JsonableWorldState ws)
+        {
+            var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
+
+            var tiAndUnit = "";
+            if (ti >= 1E24)
+            {
+                tiAndUnit = string.Format("{0:#,##0.0} YTi", ti / 1E24);
+            }
+            if (ti >= 1E21)
+            {
+                tiAndUnit = string.Format("{0:#,##0.0} ZTi", ti / 1E21);
+            }
+            if (ti >= 1E18)
+            {
+                tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E18);
+            }
+            else if (ti >= 1E15)
+            {
+                tiAndUnit = string.Format("{0:#,##0.0} PTi", ti / 1E15);
+            }
+            else if (ti >= 1E12)
+            {
+                tiAndUnit = string.Format("{0:0.0} TTi", ti / 1E12);
+            }
+            else if (ti >= 1E9)
+            {
+                tiAndUnit = string.Format("{0:0.0} GTi", ti / 1E9);
+            }
+            else if (ti >= 1E6)
+            {
+                tiAndUnit = string.Format("{0:0.0} MTi", ti / 1E6);
+            }
+            else if (ti >= 1E3)
+            {
+                tiAndUnit = string.Format("{0:0.0} kTi", ti / 1E3);
+            }
+            else
+            {
+                tiAndUnit = string.Format("{0:0.0} Ti", ti);
+            }
+            return tiAndUnit;
+        }
+
         static void RepositionInfoAndDate()
         {
             var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
@@ -231,8 +292,8 @@ namespace UIContinue
             var lastSaveInfoRect = lastSaveInfo.GetComponent<RectTransform>();
             var lastSaveDateRect = lastSaveDate.GetComponent<RectTransform>();
 
-            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(buttonsRect.sizeDelta.x - 0 * txtInfo.preferredWidth / 2, 0, 0);
-            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(buttonsRect.sizeDelta.x - 0 * txtDate.preferredWidth / 2, -50, 0);
+            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(Mathf.Abs(buttonsRect.sizeDelta.x) - 0 * txtInfo.preferredWidth / 2, 0, 0);
+            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(Mathf.Abs(buttonsRect.sizeDelta.x) - 0 * txtDate.preferredWidth / 2, -50, 0);
 
             var i = 100;
             do
@@ -241,6 +302,8 @@ namespace UIContinue
             }
             while (lastSaveInfoRect.Overlaps(buttonsRect) && (--i) > 0)
             ;
+            lastSaveInfoRect.localPosition += new Vector3(40f, 0, 0);
+            lastSaveDateRect.localPosition = new Vector3(lastSaveInfoRect.localPosition.x - txtInfo.preferredWidth / 2 + txtDate.preferredWidth / 2, lastSaveDateRect.localPosition.y, 0);
         }
 
         [HarmonyPostfix]
@@ -307,12 +370,30 @@ namespace UIContinue
 
         public static Rect WorldRect(this RectTransform rectTransform)
         {
+            Vector3[] v = new Vector3[4];
+            rectTransform.GetWorldCorners(v);
+
+            float x0 = Mathf.Min(v[0].x, v[1].x, v[2].x, v[3].x);
+            float y0 = Mathf.Min(v[0].y, v[1].y, v[2].y, v[3].y);
+
+            float x1 = Mathf.Max(v[0].x, v[1].x, v[2].x, v[3].x);
+            float y1 = Mathf.Max(v[0].y, v[1].y, v[2].y, v[3].y);
+
+            return new Rect(x0, y0, x1 - x0, y1 - y0);
+
+            /*
             Vector2 sizeDelta = rectTransform.sizeDelta;
+
             float rectTransformWidth = sizeDelta.x * rectTransform.lossyScale.x;
             float rectTransformHeight = sizeDelta.y * rectTransform.lossyScale.y;
 
-            Vector3 position = rectTransform.position;
-            return new Rect(position.x - rectTransformWidth / 2f, position.y - rectTransformHeight / 2f, rectTransformWidth, rectTransformHeight);
+            //With this it works even if the pivot is not at the center
+            Vector3 position = rectTransform.TransformPoint(rectTransform.rect.center);
+            float x = position.x - rectTransformWidth * 0.5f;
+            float y = position.y - rectTransformHeight * 0.5f;
+
+            return new Rect(x, y, rectTransformWidth, rectTransformHeight);
+            */
         }
     }
 }
