@@ -274,5 +274,14 @@ namespace MiscDebug
             }
         }
         */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlanetList), nameof(PlanetList.GetIsPlanetPurchased))]
+        static bool PlanetList_GetIsPlanetPurchased(ref bool __result)
+        {
+            __result = true;
+            return false;
+        }
+        */
     }
 }
