@@ -29,7 +29,7 @@ namespace UIContinue
         static string lastSaveInfoText;
         static string lastSaveDateText;
 
-        static ManualLogSource logger;
+        internal static ManualLogSource logger;
 
         public void Awake()
         {
@@ -292,17 +292,18 @@ namespace UIContinue
             var lastSaveInfoRect = lastSaveInfo.GetComponent<RectTransform>();
             var lastSaveDateRect = lastSaveDate.GetComponent<RectTransform>();
 
-            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(Mathf.Abs(buttonsRect.sizeDelta.x) - 0 * txtInfo.preferredWidth / 2, 0, 0);
-            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(Mathf.Abs(buttonsRect.sizeDelta.x) - 0 * txtDate.preferredWidth / 2, -50, 0);
-
+            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(0 * Mathf.Abs(buttonsRect.sizeDelta.x) + 1 * txtInfo.preferredWidth / 2 + 40, 0, 0);
+            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(0 * Mathf.Abs(buttonsRect.sizeDelta.x) + 1 * txtDate.preferredWidth / 2 + 40, -50, 0);
+            /*
             var i = 100;
             do
             {
                 lastSaveInfoRect.localPosition += new Vector3(20f, 0, 0);
             }
-            while (lastSaveInfoRect.Overlaps(buttonsRect) && (--i) > 0)
+            while (lastSaveInfoRect.Overlaps(buttonsRect, true) && (--i) > 0)
             ;
             lastSaveInfoRect.localPosition += new Vector3(40f, 0, 0);
+            */
             lastSaveDateRect.localPosition = new Vector3(lastSaveInfoRect.localPosition.x - txtInfo.preferredWidth / 2 + txtDate.preferredWidth / 2, lastSaveDateRect.localPosition.y, 0);
         }
 
@@ -379,7 +380,9 @@ namespace UIContinue
             float x1 = Mathf.Max(v[0].x, v[1].x, v[2].x, v[3].x);
             float y1 = Mathf.Max(v[0].y, v[1].y, v[2].y, v[3].y);
 
-            return new Rect(x0, y0, x1 - x0, y1 - y0);
+            var r = new Rect(x0, y0, x1 - x0, y1 - y0);
+            Plugin.logger.LogInfo(r);
+            return r;
 
             /*
             Vector2 sizeDelta = rectTransform.sizeDelta;
