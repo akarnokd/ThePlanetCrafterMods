@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatAutoSequenceDNA</AssemblyName>
     <Description>(Cheat) Auto Sequence DNA</Description>
-    <Version>1.0.0.20</Version>
+    <Version>1.0.0.23</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -15,7 +15,8 @@
 		<Compile Include="..\LibCommon\SaveModInfo.cs" Link="SaveModInfo.cs" />
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
-    </ItemGroup>
+		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
+	</ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

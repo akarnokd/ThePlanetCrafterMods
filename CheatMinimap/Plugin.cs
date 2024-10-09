@@ -20,6 +20,7 @@ namespace CheatMinimap
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatminimap", "(Cheat) Minimap", PluginInfo.PLUGIN_VERSION)]
     public partial class Plugin : BaseUnityPlugin
     {
+        Texture2D grid;
         Texture2D barren;
         Texture2D lush;
         Texture2D endgame;
@@ -83,6 +84,7 @@ namespace CheatMinimap
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
 
+            grid = LoadPNG(Path.Combine(dir, "map_grid.png"));
             barren = LoadPNG(Path.Combine(dir, "map_barren.png"));
             lush = LoadPNG(Path.Combine(dir, "map_lush.png"));
             endgame = LoadPNG(Path.Combine(dir, "map_endgame.png"));
@@ -376,20 +378,28 @@ namespace CheatMinimap
 
                     var playerY = player.transform.position.y;
 
-                    Texture2D theMap = barren;
+                    Texture2D theMap = grid;
 
-                    
-                    if (achievementsHandler != null && worldUnitsHandler != null)
+                    var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
+
+                    if (pd != null && (pd.id == "" || pd.id == "Prime"))
                     {
-                        float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                        float minT = achievementsHandler.stageMoss.GetStageStartValue();
-                        if (currT >= 425000000000f)
+                        if (achievementsHandler != null && worldUnitsHandler != null)
                         {
-                            theMap = endgame;
+                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            if (currT >= 425000000000f)
+                            {
+                                theMap = endgame;
+                            }
+                            else if (currT >= minT)
+                            {
+                                theMap = lush;
+                            }
                         }
-                        else if (currT >= minT)
+                        else
                         {
-                            theMap = lush;
+                            theMap = barren;
                         }
                     }
 
@@ -624,7 +634,7 @@ namespace CheatMinimap
 
         static Texture2D LoadPNG(string filename)
         {
-            var tex = new Texture2D(750, 1000);
+            var tex = new Texture2D(1000, 1000);
             tex.LoadImage(File.ReadAllBytes(filename));
 
             return tex;

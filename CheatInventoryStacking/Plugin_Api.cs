@@ -42,10 +42,10 @@ namespace CheatInventoryStacking
         public static readonly Func<Inventory, string, bool> apiIsFullStackedInventory = IsFullStackedOfInventory;
 
         /// <summary>
-        /// Given an Inventory, an list of world objects to be removed and an optional item group id, return true if
+        /// Given an Inventory, a list of world objects to be removed and an optional item group id, return true if
         /// the number of stacks the contents would coalesce (including the item) would
         /// be more than the maximum stack count for that inventory.
-        /// The inventory is checked if it does allows stacking or not.
+        /// The inventory is checked if it does allow stacking or not.
         /// </summary>
         public static readonly Func<Inventory, HashSet<int>, string, bool> apiIsFullStackedWithRemoveInventory = IsFullStackedWithRemoveOfInventory;
 

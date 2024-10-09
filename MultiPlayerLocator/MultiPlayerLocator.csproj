@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>MultiPlayerLocator</AssemblyName>
     <Description>(Multi) Player Locator</Description>
-    <Version>1.0.0.5</Version>
+    <Version>1.0.0.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

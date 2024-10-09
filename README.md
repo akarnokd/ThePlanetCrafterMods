@@ -10,7 +10,9 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 1.105
+## Supported Game Version: 1.310
+
+With or without the DLC.
 
 This repo only supports the very latest Steam or GoG releases.
 

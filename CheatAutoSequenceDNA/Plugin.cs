@@ -16,9 +16,11 @@ using Unity.Netcode;
 
 namespace CheatAutoSequenceDNA
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautosequencedna", "(Cheat) Auto Sequence DNA", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modCheatAutoSequenceDNAGuid, "(Cheat) Auto Sequence DNA", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatAutoSequenceDNAGuid = "akarnokd.theplanetcraftermods.cheatautosequencedna";
+
         static ConfigEntry<bool> incubatorEnabled;
 
         static ConfigEntry<string> incubatorFertilizerId;
@@ -96,7 +98,7 @@ namespace CheatAutoSequenceDNA
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            LibCommon.SaveModInfo.Patch(harmony);
+            LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoSequenceDNAGuid, _ => PlanetLoader_HandleDataAfterLoad());
 
             StartCoroutine(SequencerCheckLoop(2.5f));
         }
@@ -108,6 +110,11 @@ namespace CheatAutoSequenceDNA
                 logger.LogInfo(s);
             }
         }
+        static void PlanetLoader_HandleDataAfterLoad()
+        {
+            LibCommon.SaveModInfo.Save();
+        }
+
         IEnumerator SequencerCheckLoop(float delay)
         {
             for (; ; )

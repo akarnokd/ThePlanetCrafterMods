@@ -65,7 +65,20 @@ namespace LibCommon
             {
                 yield return null;
             }
-            _onPlanetLoaded?.Invoke(__instance);
+            while ((Managers.GetManager<PlayersManager>()?.GetActivePlayerController() ?? null) == null)
+            {
+                yield return null;
+            }
+
+            try
+            {
+                _onPlanetLoaded?.Invoke(__instance);
+            }
+            catch (Exception e)
+            {
+                UnityLogWriter.WriteStringToUnityLog("ModPlanetLoaded (1.5): " + _debugInfo + "\n" + e + "\n");
+
+            }
 
             UnityLogWriter.WriteStringToUnityLog("ModPlanetLoaded (2): " + _debugInfo + "\n");
         }

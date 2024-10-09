@@ -63,89 +63,146 @@ namespace UIShowContainerInfo
             ActionOpenable __instance, 
             BaseHudHandler ____hudHandler)
         {
-            InventoryAssociated inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
-            if (inventoryAssoc == null)
-            {
-                inventoryAssoc = __instance.GetComponentInChildren<InventoryAssociated>();
-            }
+            var inventoryAssoc = __instance.GetComponent<InventoryAssociated>();
             if (inventoryAssoc != null)
             {
-                inventoryAssoc.GetInventory(inventory =>
-                {
-                    string custom = "";
-                    WorldObjectText woText = __instance.GetComponent<WorldObjectText>();
-                    if (woText != null && woText.GetTextIsSet())
-                    {
-                        custom = " \"" + woText.GetText() + "\" ";
-                    }
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
 
-                    var containerGroup = default(Group);
+            var inventoryAssocProxy = __instance.GetComponent<InventoryAssociatedProxy>();
+            if (inventoryAssocProxy != null)
+            {
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
 
-                    var woa = __instance.GetComponentInParent<WorldObjectAssociated>()
-                                ?? __instance.GetComponentInChildren<WorldObjectAssociated>();
-                    if (woa != null && woa.GetWorldObject() != null)
-                    {
-                        containerGroup = woa.GetWorldObject().GetGroup();
-                    }
-                    else if (__instance.TryGetComponent<ConstructibleProxy>(out var cp))
-                    {
-                        containerGroup = cp.GetGroup();
-                    }
+            inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
+            if (inventoryAssoc != null)
+            {
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
 
-                    string text = containerGroup != null ? Readable.GetGroupName(containerGroup) : "";
-
-                    var inv = inventory.GetInsideWorldObjects();
-                    int count = inv.Count;
-                    int size = inventory.GetSize();
-
-                    if (getStackCount != null && apiCanStack(inventory.GetId()))
-                    {
-                        int stacks = getStackCount(inv);
-                        int slotSize = stackSizeConfig.Value;
-                        text += custom + "  [  " + stacks + "  /  " + size + "  --  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
-                        if (count >= size * slotSize)
-                        {
-                            text += "  --- FULL ---  ";
-                        }
-                    }
-                    else
-                    {
-                        text += custom + "  [  " + count + "  /  " + size + "  ]  ";
-                        if (count >= size)
-                        {
-                            text += "  --- FULL ---  ";
-                        }
-                    }
-
-                    if (count > 0)
-                    {
-                        text += Readable.GetGroupName(inv[0].GetGroup());
-                    }
-
-
-                    GamepadConfig.Instance.SetGamepadHintButtonVisible("Open", visible: true);
-                    if (!GamepadConfig.Instance.GetIsUsingController())
-                    {
-                        ____hudHandler.DisplayCursorText("UI_Open", 0f, text);
-                    }
-
-
-                    // base.OnHover() => Actionable.OnHover()
-                    if (__instance.TryGetComponent<ActionnableInteractive>(out var ai))
-                    {
-                        ai.OnHoverInteractive();
-                    }
-                    // this.HandleHoverMaterial(true, null);
-                    
-                    mActionableHandleHoverMaterial.Invoke(__instance, [true]);
-
-                    // this._hovering = true;
-                    fActionableHovering.Invoke(__instance) = true;
-                });
+            inventoryAssocProxy = __instance.GetComponentInParent<InventoryAssociatedProxy>();
+            if (inventoryAssocProxy != null)
+            {
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
                 return false;
             }
 
             return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ActionGroupSelector), nameof(ActionOpenable.OnHover))]
+        static bool ActionGroupSelector_OnHover(
+            ActionOpenable __instance,
+            BaseHudHandler ____hudHandler)
+        {
+            var inventoryAssoc = __instance.GetComponent<InventoryAssociated>();
+            if (inventoryAssoc != null)
+            {
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
+
+            var inventoryAssocProxy = __instance.GetComponent<InventoryAssociatedProxy>();
+            if (inventoryAssocProxy != null)
+            {
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
+
+            inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
+            if (inventoryAssoc != null)
+            {
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
+
+            inventoryAssocProxy = __instance.GetComponentInParent<InventoryAssociatedProxy>();
+            if (inventoryAssocProxy != null)
+            {
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                return false;
+            }
+
+            return true;
+        }
+
+        static void OnInventory(Inventory inventory, Actionnable __instance,
+            BaseHudHandler ____hudHandler)
+        {
+            string custom = "";
+            WorldObjectText woText = __instance.GetComponent<WorldObjectText>();
+            if (woText != null && woText.GetTextIsSet())
+            {
+                custom = " \"" + woText.GetText() + "\" ";
+            }
+
+            var containerGroup = default(Group);
+
+            var woa = __instance.GetComponentInParent<WorldObjectAssociated>()
+                        ?? __instance.GetComponentInChildren<WorldObjectAssociated>();
+            if (woa != null && woa.GetWorldObject() != null)
+            {
+                containerGroup = woa.GetWorldObject().GetGroup();
+            }
+            else if (__instance.TryGetComponent<ConstructibleProxy>(out var cp))
+            {
+                containerGroup = cp.GetGroup();
+            }
+
+            string text = containerGroup != null ? Readable.GetGroupName(containerGroup) : "";
+
+            var inv = inventory.GetInsideWorldObjects();
+            int count = inv.Count;
+            int size = inventory.GetSize();
+
+            if (getStackCount != null && apiCanStack(inventory.GetId()))
+            {
+                int stacks = getStackCount(inv);
+                int slotSize = stackSizeConfig.Value;
+                text += custom + "  [  " + stacks + "  /  " + size + "  --  (  " + count + "  /  " + (size * slotSize) + "  )]  ";
+                if (count >= size * slotSize)
+                {
+                    text += "  --- FULL ---  ";
+                }
+            }
+            else
+            {
+                text += custom + "  [  " + count + "  /  " + size + "  ]  ";
+                if (count >= size)
+                {
+                    text += "  --- FULL ---  ";
+                }
+            }
+
+            if (count > 0)
+            {
+                text += Readable.GetGroupName(inv[0].GetGroup());
+            }
+
+
+            GamepadConfig.Instance.SetGamepadHintButtonVisible("Open", visible: true);
+            if (!GamepadConfig.Instance.GetIsUsingController())
+            {
+                ____hudHandler.DisplayCursorText("UI_Open", 0f, text);
+            }
+
+
+            // base.OnHover() => Actionable.OnHover()
+            if (__instance.TryGetComponent<ActionnableInteractive>(out var ai))
+            {
+                ai.OnHoverInteractive();
+            }
+            // this.HandleHoverMaterial(true, null);
+
+            mActionableHandleHoverMaterial.Invoke(__instance, [true]);
+
+            // this._hovering = true;
+            fActionableHovering.Invoke(__instance) = true;
         }
     }
 }

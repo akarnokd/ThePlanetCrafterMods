@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>PerfSaveReduceSize</AssemblyName>
     <Description>(Perf) Reduce Save Size</Description>
-    <Version>1.0.0.14</Version>
+    <Version>1.0.0.16</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

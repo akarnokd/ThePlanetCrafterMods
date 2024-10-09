@@ -31,6 +31,8 @@ namespace CheatCraftFromNearbyContainers
 
         static ConfigEntry<string> key;
 
+        static ConfigEntry<string> includeFilter;
+
         static ManualLogSource logger;
 
         static bool inventoryLookupInProgress;
@@ -82,6 +84,7 @@ namespace CheatCraftFromNearbyContainers
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging? Chatty!");
             range = Config.Bind("General", "Range", 20, "The range to look for containers within.");
             key = Config.Bind("General", "Key", "<Keyboard>/Home", "The input action shortcut toggle this mod on or off.");
+            includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
 
             if (!key.Value.Contains("<"))
             {
@@ -341,11 +344,22 @@ namespace CheatCraftFromNearbyContainers
             GetInventoriesInRangeSearch(parent, pos, onComplete);
         }
 
+        static List<string> GetPrefixes()
+        {
+            var v = includeFilter.Value;
+            if (v.IsNullOrWhiteSpace())
+            {
+                return [];
+            }
+            return [..v.Split(',')];
+        }
+
         static void GetInventoriesInRangeSearch(MonoBehaviour parent, Vector3 pos, Action<List<Inventory>> onComplete)
         {
             List<int> candidateInventoryIds = [];
             List<WorldObject> candidateGetInventoryOfWorldObject = [];
             HashSet<int> seen = [];
+            List<string> prefixes = GetPrefixes();
             foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var grid = wo.GetGroup().GetId();
@@ -364,7 +378,7 @@ namespace CheatCraftFromNearbyContainers
                 }
                 var dist = Vector3.Distance(pos, wpos);
 
-                if (grid.StartsWith("Container")
+                if ((grid.StartsWith("Container") || CheckGIDList(grid, prefixes))
                     && dist <= range.Value
                 )
                 {
@@ -374,6 +388,10 @@ namespace CheatCraftFromNearbyContainers
                         if (wo.GetLinkedInventoryId() != 0)
                         {
                             candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                            if (wo.GetSecondaryInventoriesId().Count != 0)
+                            {
+                                candidateInventoryIds.AddRange(wo.GetSecondaryInventoriesId());
+                            }
                         }
                         else
                         {
@@ -398,6 +416,18 @@ namespace CheatCraftFromNearbyContainers
                 InventoriesHandler.Instance.GetWorldObjectInventory(wo, inventoryList.Add);
             }
             parent.StartCoroutine(GetInventoriesInRangeWait(candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count, inventoryList, onComplete));
+        }
+
+        static bool CheckGIDList(string grid, List<string> prefixes)
+        {
+            foreach (var prefix in prefixes)
+            {
+                if (grid.StartsWith(prefix))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         static IEnumerator GetInventoriesInRangeWait(int n, List<Inventory> inventoryList, Action<List<Inventory>> onComplete)
@@ -808,6 +838,8 @@ namespace CheatCraftFromNearbyContainers
                 var pos = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position;
                 candidateInventories = [];
                 HashSet<int> seen = [];
+                List<string> prefixes = GetPrefixes();
+
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var grid = wo.GetGroup().GetId();
@@ -826,7 +858,7 @@ namespace CheatCraftFromNearbyContainers
                     }
                     var dist = Vector3.Distance(pos, wpos);
 
-                    if (grid.StartsWith("Container")
+                    if ((grid.StartsWith("Container") || CheckGIDList(grid, prefixes))
                         && dist <= range.Value
                     )
                     {
@@ -837,6 +869,11 @@ namespace CheatCraftFromNearbyContainers
                             if (iid != 0)
                             {
                                 candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid));
+                                
+                                foreach (var iid2 in wo.GetSecondaryInventoriesId())
+                                {
+                                    candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid2));
+                                }
                             }
                         }
                     }
@@ -1081,6 +1118,36 @@ namespace CheatCraftFromNearbyContainers
             }
         }
         */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWorldInstanceSelector), nameof(UiWorldInstanceSelector.SetValues))]
+        static void UiWorldInstanceSelector_SetValue(
+            List<Group> groups, 
+            ref List<bool> groupsAvailabilty)
+        {
+            candidateInventories = null;
+            var inv = Managers.GetManager<PlayersManager>()
+                ?.GetActivePlayerController()
+                ?.GetPlayerBackpack()
+                ?.GetInventory();
+            if (inv != null) 
+            {
+                if (groups != null)
+                {
+                    groupsAvailabilty = inv.ItemsContainsStatus(groups);
+                }
+            }
+            else
+            {
+                if (groupsAvailabilty != null)
+                {
+                    for (int i = 0; i < groupsAvailabilty.Count; i++)
+                    {
+                        groupsAvailabilty[i] = false;
+                    }
+                }
+            }
+        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]

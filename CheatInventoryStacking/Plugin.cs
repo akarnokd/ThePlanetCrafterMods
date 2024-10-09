@@ -46,6 +46,8 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackAnimalFeeder;
         static ConfigEntry<bool> stackOnlyBackpack;
         static ConfigEntry<bool> stackVehicle;
+        static ConfigEntry<bool> stackOreCrusherIn;
+        static ConfigEntry<bool> stackOreCrusherOut;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -142,6 +144,8 @@ namespace CheatInventoryStacking
             stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");
             stackOnlyBackpack = Config.Bind("General", "StackOnlyBackpack", false, "If true, only the backpack will stack, nothing else no matter the other settings.");
             stackVehicle = Config.Bind("General", "StackVehicle", false, "If true, the inventory of vehicles stack.");
+            stackOreCrusherIn = Config.Bind("General", "StackOreCrusherIn", true, "Humble DLC: Stack the input of the Ore Crusher?");
+            stackOreCrusherOut = Config.Bind("General", "StackOreCrusherOut", true, "Humble DLC: Stack the output of the Ore Crusher?");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");

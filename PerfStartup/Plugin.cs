@@ -74,11 +74,13 @@ namespace PerfStartup
                     out var modeLabel, 
                     out var savedDataTerraformUnit, 
                     out var savedDataInfosCorrupted,
-                    out var name);
+                    out var state);
 
                 var gameObject = Instantiate(___prefabSaveDisplayer);
 
-                gameObject.GetComponent<SaveFileDisplayer>().SetData(fileName, name, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel);
+                gameObject.GetComponent<SaveFileDisplayer>().SetData(
+                    fileName, state, savedDataTerraformUnit, __instance, savedDataInfosCorrupted, modeLabel, 
+                    state?.planetId ?? "Prime");
                 gameObject.transform.SetParent(___displayersContainer.transform);
                 gameObject.transform.SetSiblingIndex(0);
                 gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
@@ -91,12 +93,13 @@ namespace PerfStartup
             return true;
         }
 
-        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, out bool corrupt, out string name)
+        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, 
+            out bool corrupt, out JsonableGameState state)
         {
             corrupt = false;
             ti = null;
             modeLabel = "";
-            name = "";
+            state = ScriptableObject.CreateInstance<JsonableGameState>();
             try
             {
                 // Note: adding buffer size doesn't seem to help at all
@@ -133,14 +136,8 @@ namespace PerfStartup
                             {
                                 throw new IOException("File ends just before the mode section: " + fileName);
                             }
-                            var m = ScriptableObject.CreateInstance<JsonableGameState>();
-                            JsonUtility.FromJsonOverwrite(line, m);
-                            modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), m.mode));
-                            name = m.saveDisplayName;
-                            if (string.IsNullOrEmpty(name))
-                            {
-                                name = fileName;
-                            }
+                            JsonUtility.FromJsonOverwrite(line, state);
+                            modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), state.mode));
                             break;
                         }
                     }
