@@ -8,6 +8,7 @@ using SpaceCraft;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -281,6 +282,29 @@ namespace MiscDebug
         {
             __result = true;
             return false;
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldInstanceDataSerializationExtensions), nameof(WorldInstanceDataSerializationExtensions.WriteValueSafe))]
+        static void WorldInstanceDataSerializationExtensions_WriteValueSafe(WorldInstanceData data)
+        {
+            foreach (Group group in data.GetRecipe().GetIngredientsGroupInRecipe())
+            {
+                if (GroupsHandler.GetGroupFromHash(group.stableHashCode) == null)
+                {
+                    string str = "Group " + group.id + " hash " + group.stableHashCode + " not in GroupsHandler in scene " + data.GetSceneName() + "\r\n";
+                    File.AppendAllLines(Application.persistentDataPath + "/host.log", [str]);
+                }
+            }
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldInstanceDataSerializationExtensions), nameof(WorldInstanceDataSerializationExtensions.ReadValueSafe))]
+        static void WorldInstanceDataSerializationExtensions_ReadValueSafe(ref WorldInstanceData data)
+        {
+            logger.LogInfo("GroupsHandler.GetAllGroups.Count = " + (GroupsHandler.GetAllGroups(false)?.Count ?? -1));
         }
         */
     }
