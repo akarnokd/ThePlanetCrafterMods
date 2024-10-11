@@ -275,7 +275,6 @@ namespace MiscDebug
             }
         }
         */
-        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlanetList), nameof(PlanetList.GetIsPlanetPurchased))]
         static bool PlanetList_GetIsPlanetPurchased(ref bool __result)
@@ -283,7 +282,6 @@ namespace MiscDebug
             __result = true;
             return false;
         }
-        */
         /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldInstanceDataSerializationExtensions), nameof(WorldInstanceDataSerializationExtensions.WriteValueSafe))]

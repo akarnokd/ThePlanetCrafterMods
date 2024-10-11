@@ -300,6 +300,10 @@ namespace CheatInventoryStacking
                 {
                     inventoryOwnerCache[iid] = wo;
                 }
+                foreach (var iid2 in wo.GetSecondaryInventoriesId())
+                {
+                    inventoryOwnerCache[iid2] = wo;
+                }
             }
         }
 
@@ -376,15 +380,16 @@ namespace CheatInventoryStacking
             {
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
-                    if (wo.GetLinkedInventoryId() == supplyInventory.GetId())
+                    if (OwnsInventory(wo, supplyInventory.GetId()))
                     {
                         supplyWorldObject = wo;
                     }
                     else
-                    if (wo.GetLinkedInventoryId() == demandInventory.GetId())
+                    if (OwnsInventory(wo, demandInventory.GetId()))
                     {
                         demandWorldObject = wo;
                     }
+
                     if (supplyWorldObject != null && demandWorldObject != null)
                     {
                         break;
@@ -406,6 +411,22 @@ namespace CheatInventoryStacking
             var task = new LogisticTask(worldObject, supplyInventory, demandInventory, supplyWorldObject, demandWorldObject);
             _allLogisticTasks[worldObject.GetId()] = task;
             return task;
+        }
+
+        static bool OwnsInventory(WorldObject wo, int iid)
+        {
+            if (wo.GetLinkedInventoryId() == iid)
+            {
+                return true;
+            }
+            foreach (var iid2 in wo.GetSecondaryInventoriesId())
+            {
+                if (iid2 == iid)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         static LogisticTask CreateNewTaskForWorldObjectForSpawnedObject(
