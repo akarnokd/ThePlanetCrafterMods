@@ -725,7 +725,7 @@ namespace FeatCommandConsole
                     [
                         "MultiToolLight3", "MultiToolDeconstruct3", "Backpack6", 
                         "Jetpack4", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
-                        "EquipmentIncrease3", "OxygenTank4", "HudCompass"
+                        "EquipmentIncrease4", "OxygenTank4", "HudCompass"
                     ];
                     int amount = 1;
                     if (args.Count > 2)

@@ -37,6 +37,7 @@ namespace CheatMinimap
         Texture2D portal;
         Texture2D altar;
         Texture2D stair;
+        Texture2D drone;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -55,6 +56,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showSafes;
         static ConfigEntry<bool> showAltars;
         static ConfigEntry<bool> showStairs;
+        static ConfigEntry<bool> showDrones;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -101,6 +103,7 @@ namespace CheatMinimap
             outOfBoundsTexture = new Texture2D(1, 1);
             altar = LoadPNG(Path.Combine(dir, "altar.png"));
             stair = LoadPNG(Path.Combine(dir, "stair.png"));
+            drone = LoadPNG(Path.Combine(dir, "drone.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -122,6 +125,8 @@ namespace CheatMinimap
             alphaBlend = Config.Bind("General", "AlphaBlend", 1f, "Specify the alpha-opacity level of the map. 1 - opaque, 0.5 - half transparent, 0 - invisible");
             showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
             showStairs = Config.Bind("General", "ShowStairs", true, "Show the stairs in procedural wrecks?");
+            showDrones = Config.Bind("General", "ShowDrones", true, "Show the lootable drones?");
+
             self = this;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -261,6 +266,7 @@ namespace CheatMinimap
                     else if (
                         (go.name.Contains("WreckSafe") && showSafes.Value)
                         || (go.name.Contains("Warden") && showAltars.Value)
+                        || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
@@ -278,7 +284,7 @@ namespace CheatMinimap
                                 }
                             }
                             else if (go.GetComponentInParent<InventoryFromScene>() != null 
-                                && id < 0 && (go.name.Contains("Warden") && showAltars.Value))
+                                && id < 0 && ((go.name.Contains("Warden") && showAltars.Value) || (go.name.StartsWith("Drone") && showDrones.Value)))
                             {
                                 chests.Add(go);
                             }
@@ -518,6 +524,12 @@ namespace CheatMinimap
                                     img = stair;
                                     chestW = 14;
                                     chestH = 14;
+                                }
+                                else if (nm.Contains("Drone"))
+                                {
+                                    img = drone;
+                                    chestW = 16;
+                                    chestH = 16;
                                 }
                                 else
                                 {

@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatMinimap</AssemblyName>
     <Description>(Cheat) Minimap</Description>
-    <Version>1.0.0.48</Version>
+    <Version>1.0.0.49</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -48,6 +48,7 @@
       <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 
       <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -66,6 +67,7 @@
       <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 
       <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
@@ -83,6 +85,7 @@
       <Copy SourceFiles="$(SourceDir)portal.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 
       <ZipDirectory
