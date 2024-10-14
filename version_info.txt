@@ -15,13 +15,13 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.10
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.53
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.54
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.52
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.53
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.27
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.48
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.49
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources
@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.2
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.3
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -43,7 +43,7 @@ akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.30
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.50
 # (Item) Rods
-akarnokd.theplanetcraftermods.itemrods=1.0.0.4
+akarnokd.theplanetcraftermods.itemrods=1.0.0.5
 # (Lathrey) Auto Move
 akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.13
 # (Lathrey) Disable Build Constraints
@@ -123,7 +123,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.24
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.21
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.85
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.86
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.27
 # (UI) Korean Translation
@@ -133,4 +133,4 @@ akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.44
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.21
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.10
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.11
