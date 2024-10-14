@@ -18,6 +18,7 @@ using System.Linq;
 namespace ItemRods
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.itemrods", "(Item) Rods", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         static readonly List<string> ores = ["Iron", "Sulfur", "Titanium", "Silicon", "Cobalt", "Magnesium", "Aluminium", "Zeolite"];
@@ -212,8 +213,7 @@ namespace ItemRods
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         private static void Localization_LoadLocalization(Dictionary<string, Dictionary<string, string>> ___localizationDictionary)
         {
-            bool flag = !___localizationDictionary.TryGetValue("english", out var dictionary);
-            if (!flag)
+            if (___localizationDictionary.TryGetValue("english", out var dictionary))
             {
                 foreach (string text in ores)
                 {
@@ -223,6 +223,20 @@ namespace ItemRods
                         string text2 = text.ToLowerInvariant();
                         dictionary["GROUP_NAME_Rod-" + text2] = text + " Rod";
                         dictionary["GROUP_DESC_Rod-" + text2] = "Extremely condensed " + text;
+                    }
+                }
+            }
+            if (___localizationDictionary.TryGetValue("hungarian", out dictionary))
+            {
+                foreach (string text in ores)
+                {
+                    bool flag2 = !oreConfigs.ContainsKey(text) || !oreConfigs[text].Value;
+                    if (!flag2)
+                    {
+                        string element = dictionary["GROUP_NAME_" + text];
+                        string text2 = text.ToLowerInvariant();
+                        dictionary["GROUP_NAME_Rod-" + text2] = element + " Rúd";
+                        dictionary["GROUP_DESC_Rod-" + text2] = "Extrém tömör " + element;
                     }
                 }
             }
