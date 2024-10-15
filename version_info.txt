@@ -21,7 +21,7 @@ akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.53
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.27
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.49
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.50
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources

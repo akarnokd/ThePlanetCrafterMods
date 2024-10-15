@@ -403,7 +403,8 @@ namespace CheatMinimap
 
                     var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
 
-                    if (pd != null && (pd.id == "" || pd.id == "Prime"))
+                    var isPrime = pd != null && (pd.id == "" || pd.id == "Prime");
+                    if (isPrime)
                     {
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
@@ -416,6 +417,10 @@ namespace CheatMinimap
                             else if (currT >= minT)
                             {
                                 theMap = lush;
+                            }
+                            else
+                            {
+                                theMap = barren;
                             }
                         }
                         else
