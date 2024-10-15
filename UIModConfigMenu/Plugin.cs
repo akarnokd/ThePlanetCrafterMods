@@ -127,6 +127,11 @@ namespace UIModConfigMenu
         [HarmonyPatch(typeof(UiWindowOptions), nameof(UiWindowOptions.OnClose))]
         static void UiWindowOptions_OnClose()
         {
+            ClearTooltips();
+        }
+
+        static void ClearTooltips()
+        {
             foreach (var tooltip in FindObjectsByType<ModConfigEntryHover>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 tooltip.OnPointerExit(default);
@@ -363,6 +368,8 @@ namespace UIModConfigMenu
             {
                 Destroy(modScrollContent.transform.GetChild(i).gameObject);
             }
+
+            ClearTooltips();
 
             var filterParts = filterValue.Split(' ').Where(s => s.Length != 0);
 
