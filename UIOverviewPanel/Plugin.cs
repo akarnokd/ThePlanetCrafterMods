@@ -154,7 +154,22 @@ namespace UIOverviewPanel
 
                 AddTextRow("Microchips unlocked", CreateMicrochipUnlock());
 
-                AddTextRow("Golden chests found", CreateSceneCounter(26, "GoldenContainer"));
+                var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
+
+                if (pd != null && pd.id == "Humble")
+                {
+                    AddTextRow("Starform chests found", CreateIdCounter(
+                        104938870, 108185956, 101338958, 106708099, 105547336,
+                        108239106, 109729201, 102343794, 105829268, 106518600,
+                        102636198, 104222068, 101449629, 108725859, 102829376,
+                        109796680, 108708926, 108621657, 105301774, 109034442,
+                        101606525, 109173923, 104503750
+                    ));
+                }
+                else
+                {
+                    AddTextRow("Golden chests found", CreateSceneCounter(26, "GoldenContainer"));
+                }
 
                 AddTextRow("Unique larvae found", CreateButterflyCount());
 
@@ -429,6 +444,23 @@ namespace UIOverviewPanel
 
                 return Readable.GetTerraformStageName(next) + " @ " + 
                     string.Format("{0:#,##0} Ti ({1:##0.00} %, ETA {2})", nstart, sperc * 100, eta);
+            };
+        }
+
+        Func<String> CreateIdCounter(params int[] ids)
+        {
+            return () =>
+            {
+                int csum = 0;
+                foreach (var id in ids) {
+                    var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                    var inv = InventoriesHandler.Instance.GetInventoryById(id);
+                    if (wo != null && inv != null && inv.GetInsideWorldObjects().Count == 0)
+                    {
+                        csum++;
+                    };
+                }
+                return csum + " / " + ids.Length + " (" + string.Format("{0:##0.00}", 100f * csum / ids.Length) + " %)";
             };
         }
 

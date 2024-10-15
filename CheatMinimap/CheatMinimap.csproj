@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatMinimap</AssemblyName>
     <Description>(Cheat) Minimap</Description>
-    <Version>1.0.0.50</Version>
+    <Version>1.0.0.51</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -39,7 +39,8 @@
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
@@ -58,7 +59,8 @@
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -77,7 +79,8 @@
     <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
