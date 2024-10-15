@@ -266,7 +266,7 @@ namespace CheatMinimap
                         chests.Add(go);
                     }
                     else if (
-                        (go.name.Contains("WreckSafe") && showSafes.Value)
+                        ((go.name.Contains("WreckSafe") || go.name.Contains("WorldSafe")) && showSafes.Value)
                         || (go.name.Contains("Warden") && showAltars.Value)
                         || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
                     )
@@ -285,12 +285,7 @@ namespace CheatMinimap
                                     chests.Add(go);
                                 }
                             }
-                            else if (go.GetComponentInParent<InventoryFromScene>() != null 
-                                && id < 0 && (
-                                    (go.name.Contains("Warden") && showAltars.Value) 
-                                    || (go.name.StartsWith("Drone") && showDrones.Value)
-                                    )
-                                )
+                            else if (go.GetComponentInParent<InventoryFromScene>() != null && id < 0)
                             {
                                 if (go.TryGetComponent<WorldUniqueId>(out var wuid))
                                 {
@@ -527,7 +522,7 @@ namespace CheatMinimap
                                 {
                                     img = starform;
                                 }
-                                else if (nm.Contains("WreckSafe"))
+                                else if (nm.Contains("WreckSafe") || nm.Contains("WorldSafe"))
                                 {
                                     img = safe;
                                     chestW = 16;
