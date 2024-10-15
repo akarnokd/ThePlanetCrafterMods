@@ -284,9 +284,24 @@ namespace CheatMinimap
                                 }
                             }
                             else if (go.GetComponentInParent<InventoryFromScene>() != null 
-                                && id < 0 && ((go.name.Contains("Warden") && showAltars.Value) || (go.name.StartsWith("Drone") && showDrones.Value)))
+                                && id < 0 && (
+                                    (go.name.Contains("Warden") && showAltars.Value) 
+                                    || (go.name.StartsWith("Drone") && showDrones.Value)
+                                    )
+                                )
                             {
-                                chests.Add(go);
+                                if (go.TryGetComponent<WorldUniqueId>(out var wuid))
+                                {
+                                    var inv = InventoriesHandler.Instance.GetInventoryById(wuid.GetWorldUniqueId());
+                                    if (inv == null || inv.GetInsideWorldObjects().Count != 0)
+                                    {
+                                        chests.Add(go);
+                                    }
+                                }
+                                else
+                                {
+                                    chests.Add(go);
+                                }
                             }
                         }
                         else if (invAssocProxy != null)
