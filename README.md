@@ -10,7 +10,7 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 1.310
+## Supported Game Version: 1.312
 
 With or without the DLC.
 
@@ -2459,6 +2459,10 @@ You can also apply aliases to either sorten the name required and/or to target t
 You can specify a comma separated list item ids (case sensitive) and counts to always keep in the backpack via `KeepList`:
 
 `KeepList = WaterBottle1:5,OxygenCapsule1:3`
+
+You can now configure the mod to deposit based on the logistics demand or supply settings of the container by enabling `storeByDemand` and `storeBySupply` respectively.
+
+The precedence of the settings is as follows: 1. by same, 2. by name, 3. by demand, 4. by supply.
 
 <details><summary>List of item identifiers</summary>
 
