@@ -28,6 +28,7 @@ namespace CheatMinimap
         Texture2D marker2;
         Texture2D chest;
         Texture2D golden;
+        Texture2D starform;
         Texture2D ladder;
         Texture2D server;
         Texture2D below;
@@ -94,6 +95,7 @@ namespace CheatMinimap
             marker2 = LoadPNG(Path.Combine(dir, "player_marker_2.png"));
             chest = LoadPNG(Path.Combine(dir, "chest.png"));
             golden = LoadPNG(Path.Combine(dir, "chest_golden.png"));
+            starform = LoadPNG(Path.Combine(dir, "chest_starform.png"));
             ladder = LoadPNG(Path.Combine(dir, "ladder.png"));
             server = LoadPNG(Path.Combine(dir, "server.png"));
             above = LoadPNG(Path.Combine(dir, "above.png"));
@@ -264,9 +266,10 @@ namespace CheatMinimap
                         chests.Add(go);
                     }
                     else if (
-                        (go.name.Contains("WreckSafe") && showSafes.Value)
+                        ((go.name.Contains("WreckSafe") || go.name.Contains("WorldSafe")) && showSafes.Value)
                         || (go.name.Contains("Warden") && showAltars.Value)
                         || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
+                        || go.name.Contains("WorldWardrobe")
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
@@ -283,12 +286,7 @@ namespace CheatMinimap
                                     chests.Add(go);
                                 }
                             }
-                            else if (go.GetComponentInParent<InventoryFromScene>() != null 
-                                && id < 0 && (
-                                    (go.name.Contains("Warden") && showAltars.Value) 
-                                    || (go.name.StartsWith("Drone") && showDrones.Value)
-                                    )
-                                )
+                            else if (go.GetComponentInParent<InventoryFromScene>() != null && id < 0)
                             {
                                 if (go.TryGetComponent<WorldUniqueId>(out var wuid))
                                 {
@@ -521,7 +519,11 @@ namespace CheatMinimap
                                 {
                                     img = golden;
                                 }
-                                else if (nm.Contains("WreckSafe"))
+                                else if (nm.Contains("WorldContainerStarform"))
+                                {
+                                    img = starform;
+                                }
+                                else if (nm.Contains("WreckSafe") || nm.Contains("WorldSafe"))
                                 {
                                     img = safe;
                                     chestW = 16;
