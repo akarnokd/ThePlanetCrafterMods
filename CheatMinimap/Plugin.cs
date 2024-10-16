@@ -269,6 +269,7 @@ namespace CheatMinimap
                         ((go.name.Contains("WreckSafe") || go.name.Contains("WorldSafe")) && showSafes.Value)
                         || (go.name.Contains("Warden") && showAltars.Value)
                         || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
+                        || go.name.Contains("WorldWardrobe")
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
