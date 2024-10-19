@@ -291,8 +291,6 @@ namespace CheatMachineRemoteDeposit
             }
         }
 
-
-
         static Inventory FindInventoryForOre(string oreId)
         {
             var containerNameFilter = "*" + oreId.ToLower();
@@ -328,6 +326,15 @@ namespace CheatMachineRemoteDeposit
                 }
             }
             return null;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDisintegrator), "SetSecondInventory")]
+        static void MachineDisintegrator_SetSecondInventory(
+            MachineDisintegrator __instance, 
+            Inventory inventory)
+        {
+            __instance.StartCoroutine(ClearMachineGeneratorInventory(inventory, 4));
         }
     }
 }

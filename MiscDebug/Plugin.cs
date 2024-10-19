@@ -305,5 +305,14 @@ namespace MiscDebug
             logger.LogInfo("GroupsHandler.GetAllGroups.Count = " + (GroupsHandler.GetAllGroups(false)?.Count ?? -1));
         }
         */
+
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDisintegrator), "Start")]
+        static void MachineDisintegrator_Start(ref int ___breakEveryXSec) 
+        {
+            ___breakEveryXSec = 1;
+        }
+        */
     }
 }
