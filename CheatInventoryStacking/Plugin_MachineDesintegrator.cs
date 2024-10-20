@@ -32,6 +32,20 @@ namespace CheatInventoryStacking
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDisintegrator), "Start")]
+        static void Patch_MachineDisintegrator_Start(
+            InventoryAssociatedProxy ___secondInventoryAssociatedProxy)
+        {
+            if (!stackOreCrusherOut.Value)
+            {
+                ___secondInventoryAssociatedProxy.GetInventory((inv, _) =>
+                {
+                    noStackingInventories.Add(inv.GetId());
+                });
+            }
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDisintegrator), "TryToDesintegrateAnObjectInInventory")]
         static bool Patch_MachineDisintegrator_TryToDesintegrateAnObjectInInventory(
             Inventory ___firstIventory,

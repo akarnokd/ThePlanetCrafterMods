@@ -48,7 +48,7 @@ namespace CheatInventoryStacking
         /// <param name="_inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineFlockSpawner), "Start")]
-        static void Patch_MachineFlockSpawner_SetSpawnerInventory(
+        static void Patch_MachineFlockSpawner_Start(
             MachineFlockSpawner __instance)
         {
             if (__instance.GetComponent<MachineGenerator>() == null)
