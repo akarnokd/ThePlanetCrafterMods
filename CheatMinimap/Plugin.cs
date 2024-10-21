@@ -80,9 +80,9 @@ namespace CheatMinimap
         const int primeMapMaxY = 3000;
 
         const int humbleMapMinY = -2300;
-        const int humbleMapMinX = -2165;
-        const int humbleMapMaxY = 1650;
-        const int humbleMapMaxX = 2765;
+        const int humbleMapMinX = -2300;
+        const int humbleMapMaxY = 2700;
+        const int humbleMapMaxX = 2700;
 
 
         private void Awake()
