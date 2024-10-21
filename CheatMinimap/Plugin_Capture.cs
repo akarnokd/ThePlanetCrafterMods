@@ -128,9 +128,9 @@ namespace CheatMinimap
             var q = Quaternion.Euler(new Vector3(0, 90, 0)) * Quaternion.Euler(new Vector3(90, 0, 0));
             var move = pm.GetPlayerMovable();
             move.flyMode = true;
-            int playerX = (mapMaxX + mapMinX) / 2;
-            int playerZ = (mapMaxY + mapMinY) / 2;
-            int visualStep = (mapMaxX - mapMinX) / 2;
+            int playerX = (primeMapMaxX + primeMapMinX) / 2;
+            int playerZ = (primeMapMaxY + primeMapMinY) / 2;
+            int visualStep = (primeMapMaxX - primeMapMinX) / 2;
             pm.SetPlayerPlacement(new Vector3(playerX, 300, playerZ), q);
             SetVisuals(visualStep, pm);
             foreach (ParticleSystem ps in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))

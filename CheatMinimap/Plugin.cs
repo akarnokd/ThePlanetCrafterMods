@@ -39,6 +39,8 @@ namespace CheatMinimap
         Texture2D altar;
         Texture2D stair;
         Texture2D drone;
+        Texture2D humbleBarren;
+        Texture2D humbleLush;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -72,10 +74,16 @@ namespace CheatMinimap
 
         static Plugin self;
 
-        const int mapMinX = -2000;
-        const int mapMinY = -2000;
-        const int mapMaxX = 3000;
-        const int mapMaxY = 3000;
+        const int primeMapMinX = -2000;
+        const int primeMapMinY = -2000;
+        const int primeMapMaxX = 3000;
+        const int primeMapMaxY = 3000;
+
+        const int humbleMapMinY = -2300;
+        const int humbleMapMinX = -2165;
+        const int humbleMapMaxY = 1650;
+        const int humbleMapMaxX = 2765;
+
 
         private void Awake()
         {
@@ -106,6 +114,8 @@ namespace CheatMinimap
             altar = LoadPNG(Path.Combine(dir, "altar.png"));
             stair = LoadPNG(Path.Combine(dir, "stair.png"));
             drone = LoadPNG(Path.Combine(dir, "drone.png"));
+            humbleBarren = LoadPNG(Path.Combine(dir, "humble_barren.png"));
+            humbleLush = LoadPNG(Path.Combine(dir, "humble_lush.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -399,6 +409,12 @@ namespace CheatMinimap
 
                     Texture2D theMap = grid;
 
+                    // calibrated to the given map
+                    float playerCenterX = (primeMapMaxX + primeMapMinX) / 2;
+                    float playerCenterY = (primeMapMaxY + primeMapMinY) / 2;
+                    float mapWidth = primeMapMaxX - primeMapMinX;
+                    float mapHeight = primeMapMaxY - primeMapMinY;
+
                     var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
 
                     var isPrime = pd != null && (pd.id == "" || pd.id == "Prime");
@@ -426,15 +442,27 @@ namespace CheatMinimap
                             theMap = barren;
                         }
                     }
+                    if (pd != null && pd.id == "Humble")
+                    {
+                        playerCenterX = (humbleMapMaxX + humbleMapMinX) / 2;
+                        playerCenterY = (humbleMapMaxY + humbleMapMinY) / 2;
+                        mapWidth = humbleMapMaxX - humbleMapMinX;
+                        mapHeight = humbleMapMaxY - humbleMapMinY;
+                        theMap = humbleBarren;
 
+                        if (achievementsHandler != null && worldUnitsHandler != null)
+                        {
+                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            if (currT >= minT)
+                            {
+                                theMap = humbleLush;
+                            }
+                        }
+                    }
                     float mapImageWidth = theMap.width;
                     float mapImageHeight = theMap.height;
 
-                    // calibrated to the given map
-                    float playerCenterX = (mapMaxX + mapMinX) / 2;
-                    float playerCenterY = (mapMaxY + mapMinY) / 2;
-                    float mapWidth = mapMaxX - mapMinX;
-                    float mapHeight = mapMaxY - mapMinY;
 
                     // ^
                     // | z+
