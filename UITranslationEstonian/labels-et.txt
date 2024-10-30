@@ -1321,7 +1321,6 @@ VehicleBackToGarage_use=Kasuta
 VehicleBackToGarage_screen_title=Mine tagasi garaaži
 VehicleBackToGarage_select_vehicle=Vali tagasi toodav masin:
 VehicleBackToGarage_cooldown=Laadib... Uuesti kasutuseks valmis:
-Meie esimene lisa on tulemas!
 Intro_Dlc_action=Pane see Steamis soovide nimekirja!
 Menu_Options_Keys_VehicleSwitchView=Sõiduk: vaheta vaadet
 Menu_Options_Keys_VehicleForward=Sõiduk: edasi
@@ -1427,7 +1426,6 @@ Message_Toxic_Person2_2=<br><br>Mul pole enam aimugi, kas alla kukkumisest on m�
 MessageSender_ToxicCompany=CyanExplo 
 MessageSender_Toxic1=Evren
 MessageSender_Toxic2=Ozgur
-Meie esimene lisa on tulemas!
 GROUP_DESC_Bauxite=Sisesta see maagipurustisse, et saada haruldasi maake
 GROUP_DESC_Bauxite=Sisesta see maagipurustisse, et saada haruldasi maake
 ModConfigMenu_Button=Modifikatsioonid
