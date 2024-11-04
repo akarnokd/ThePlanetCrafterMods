@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatCraftFromNearbyContainers</AssemblyName>
     <Description>(Cheat) Craft From Nearby Containers</Description>
-    <Version>1.0.0.59</Version>
+    <Version>1.0.0.60</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
