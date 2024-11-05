@@ -34,6 +34,10 @@ namespace LibCommon
 
         static bool loadSuccess;
 
+        static bool diffOnce;
+
+        static bool dumpOnce;
+
         /// <summary>
         /// Adds a new language to the game.
         /// </summary>
@@ -167,8 +171,9 @@ namespace LibCommon
 
             ___localizationDictionary[languageKey] = labels;
 
-            if (checkMissing.Value && ___localizationDictionary.TryGetValue("english", out var english))
+            if (!diffOnce && checkMissing.Value && ___localizationDictionary.TryGetValue("english", out var english))
             {
+                diffOnce = true;
                 var sbMissing = new StringBuilder(16 * 1024);
                 sbMissing.AppendLine();
                 var sbNotTranslated = new StringBuilder(16 * 1024);
@@ -204,8 +209,9 @@ namespace LibCommon
 
         static void ExportLocalization()
         {
-            if (dumpLabels.Value)
+            if (!dumpOnce && dumpLabels.Value)
             {
+                dumpOnce = true;
                 Localization.GetLocalizedString("");
                 FieldInfo fi = AccessTools.Field(typeof(Localization), "localizationDictionary");
                 Dictionary<string, Dictionary<string, string>> dic = (Dictionary<string, Dictionary<string, string>>)fi.GetValue(null);

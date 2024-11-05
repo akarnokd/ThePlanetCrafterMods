@@ -15,9 +15,9 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.11
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.58
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.60
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.58
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.60
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.28
 # (Cheat) Minimap
@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.8
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.10
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -119,18 +119,18 @@ akarnokd.theplanetcraftermods.uistackinrangelist=1.0.0.14
 # (UI) Telemetry Font Sizer
 akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.10
 # (UI) Czech Translation
-akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.24
+akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.25
 # (UI) Estonian Translation
-akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.22
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.23
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.87
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.88
 # (UI) Italian Translation
-akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.27
+akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.28
 # (UI) Korean Translation
-akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.16
+akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.17
 # (UI) Polish Translation
-akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.45
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.46
 # (UI) Romanian Translation
-akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.21
+akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.22
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.12
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.13
