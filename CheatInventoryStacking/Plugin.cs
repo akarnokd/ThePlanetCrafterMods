@@ -229,8 +229,8 @@ namespace CheatInventoryStacking
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            /*
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            /*
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
             */
         }
