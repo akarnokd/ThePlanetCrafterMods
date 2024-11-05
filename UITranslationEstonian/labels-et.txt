@@ -1382,6 +1382,7 @@ GROUP_NAME_StarformEffigie5=Starformi kujuke
 GROUP_NAME_StarformEffigie6=Starformi kujuke
 Message_humble_cacheSpy2=Need  väikesed droonid hakkavad mulle juba meeldima.<br>Nad avanevad nii vaikselt…<br>See missioon on lõbusam, kui ma arvasin…
 Message_humble_smugglers=Meie info kohaselt peaks see planeet olema kaetud uue tehnoloogiaga, mis teeb meid rikkaks. Sellel planeedil tundub olevat palju maasarnastamistehnoloogiat, mis on täis kõrge kvaliteediga materjale.<br><br>…<br>Läheneme planeedile.<br>…<br>Ohoo, mis see on?<br>Neil on kaitsesüsteemid?!<br>Peatame maabumisprotsessi  Peatame maabumisprotsessi!...
+GROUP_NAME_KeyCard1=Ligipääsukaart
 GROUP_DESC_VehicleTruck=Sõiduk reisimiseks
 GROUP_NAME_VehicleCrafter1=Sõiduki hooldusplatvorm
 GROUP_DESC_VehicleCrafter1=Lubab sõidukeid luua ja täiendada
