@@ -97,21 +97,22 @@ namespace UIShowGrabNMineCount
 
                 // FIXME: grabbed: true ???
                 InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inv, 
-                    grabbed: false, success =>
+                    grabbed: true, success =>
                 {
                     if (success)
                     {
                         ____playerSource.GetPlayerAudio().PlayGrab();
                         Managers.GetManager<DisplayersHandler>()?.GetItemWorldDisplayer()?.Hide();
-                        try
+                        
+                        /*try
                         {
                             __instance.grabedEvent?.Invoke(worldObject);
                             __instance.grabedEvent = null;
                         }
                         finally
-                        {
+                        {*/
                             ShowInventoryAdded(worldObject, inv);
-                        }
+                        // }
                     }
                 });
 

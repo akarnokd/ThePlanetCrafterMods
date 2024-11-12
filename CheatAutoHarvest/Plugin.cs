@@ -160,9 +160,11 @@ namespace CheatAutoHarvest
                                 logger = log,
                                 OnDepositSuccess = () =>
                                 {
+                                    /*
                                     var call = ag.grabedEvent;
                                     ag.grabedEvent = null;
                                     call?.Invoke(wo1, false);
+                                    */
                                 }
                             }.Drain();
                         }
@@ -242,8 +244,7 @@ namespace CheatAutoHarvest
                             logger?.Invoke("No suitable non-full inventory found for " + DebugWorldObject(worldObject));
                             break;
                         }
-                        // FIXME grabbed: true ???
-                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, grabbed: false, OnInventoryCallback);
+                        InventoriesHandler.Instance.AddWorldObjectToInventory(worldObject, inventory.Current, grabbed: true, OnInventoryCallback);
                     }
 
                     if (--wip == 0)

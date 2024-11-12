@@ -331,7 +331,7 @@ namespace CheatAutoGrabAndMine
                 }
 
                 // FIXME: grabbed: true  ????
-                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, grabbed: false, success =>
+                InventoriesHandler.Instance.AddWorldObjectToInventory(wo, backpackInv, grabbed: ag is ActionGrabable, success =>
                 {
                     if (success)
                     {
@@ -347,6 +347,7 @@ namespace CheatAutoGrabAndMine
                             ?.GetItemWorldDisplayer()
                             ?.Hide();
 
+                        /*
                         if (ag != null && ag is ActionGrabable agr)
                         {
                             var onGrab = agr.grabedEvent;
@@ -358,6 +359,7 @@ namespace CheatAutoGrabAndMine
                                 Log("    Invoking grabedEvent done.");
                             }
                         }
+                        */
                     }
                 });
             }
