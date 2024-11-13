@@ -85,7 +85,7 @@ akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.12
 # (UI) Logistic Select All
 akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.12
 # (UI) Menu Shortcut Keys
-akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.15
+akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.16
 # (UI) Mod Config Menu
 akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.15
 # (UI) Overview Panel

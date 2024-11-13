@@ -23,7 +23,7 @@ namespace UIMenuShortcutKeys
         const string modUiPinRecipeGuid = "akarnokd.theplanetcraftermods.uipinrecipe";
 
         ConfigEntry<int> fontSize;
-        ConfigEntry<string> configBuildToggleFilter;
+        // ConfigEntry<string> configBuildToggleFilter;
         ConfigEntry<string> configContainerTakeAll;
         ConfigEntry<string> configSortPlayerInventory;
         ConfigEntry<string> configSortOtherInventory;
@@ -32,8 +32,10 @@ namespace UIMenuShortcutKeys
         GameObject ourCanvas;
         GameObject shortcutBar;
 
+        /*
         InputAction buildToggleFilter;
         static bool buildToggleFilterState;
+        */
 
         InputAction containerTakeAll;
 
@@ -57,13 +59,14 @@ namespace UIMenuShortcutKeys
             Logger.LogInfo($"Plugin is loaded!");
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
-
+            /*
             {
                 configBuildToggleFilter = Config.Bind("General", "BuildToggleFilter", "<Keyboard>/F", "Toggle the tier-filter microchip's effect in the build screen");
 
                 buildToggleFilter = new InputAction(name: "Toggle tier filter", binding: configBuildToggleFilter.Value);
                 buildToggleFilter.Enable();
             }
+            */
 
             {
                 configContainerTakeAll = Config.Bind("General", "ContainerTakeAll", "<Keyboard>/R", "Take everything from the currently open container");
@@ -235,6 +238,7 @@ namespace UIMenuShortcutKeys
         {
             if (ui == DataConfig.UiType.Construction)
             {
+                /*
                 if (buildToggleFilter.WasPressedThisFrame()) {
                     if (window is UiWindowConstruction uiWindowConstruction)
                     {
@@ -254,6 +258,7 @@ namespace UIMenuShortcutKeys
                         Logger.LogWarning("Unknown container-type window: " + window.GetType());
                     }
                 }
+                */
             }
             else if (ui == DataConfig.UiType.Container || ui == DataConfig.UiType.GroupSelector)
             {
@@ -330,11 +335,13 @@ namespace UIMenuShortcutKeys
                 {
                     entries.Add(CreateEntry("BuildPin", "Middle Click", "Pin/Unpin Recipe (Mod)", shortcutBar.transform));
                 }
+                /*
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
                 if (pm.GetHasCleanConstructionChip())
                 {
                     entries.Add(CreateEntry("BuildToggleFilter", configBuildToggleFilter.Value.Replace("<Keyboard>/", ""), "Toggle Tier Filter", shortcutBar.transform));
                 }
+                */
             }
             else if (ui == DataConfig.UiType.Container || ui == DataConfig.UiType.GroupSelector)
             {
@@ -367,6 +374,7 @@ namespace UIMenuShortcutKeys
             }
         }
 
+        /*
         static bool originalHasFilter;
 
         [HarmonyPrefix]
@@ -385,13 +393,16 @@ namespace UIMenuShortcutKeys
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerEquipment();
             fPlayerEquipmentHasCleanConstructionChip(pm) = originalHasFilter;
         }
+        */
 
         static void PlanetLoader_HandleDataAfterLoad()
         {
+            /*
             buildToggleFilterState = Managers.GetManager<PlayersManager>()
                 .GetActivePlayerController()
                 .GetPlayerEquipment()
                 .GetHasCleanConstructionChip();
+            */
         }
 
         class ShortcutDisplayEntry
