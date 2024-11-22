@@ -11,7 +11,7 @@ namespace CheatInventoryStacking
     public partial class Plugin
     {
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventoryAssociatedProxy), nameof(InventoryAssociated.GetInventory))]
+        [HarmonyPatch(typeof(InventoryAssociatedProxy), nameof(InventoryAssociatedProxy.GetInventory))]
         static void Patch_InventoryAssociatedProxy_GetInventory(
             InventoryAssociatedProxy __instance,
             ref Action<Inventory, WorldObject> callback
