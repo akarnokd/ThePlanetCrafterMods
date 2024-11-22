@@ -11,6 +11,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using System.Collections;
 using UnityEngine;
+using System.Diagnostics;
 
 namespace CheatMachineRemoteDeposit
 {
@@ -271,21 +272,26 @@ namespace CheatMachineRemoteDeposit
                 // Server side is responsible for the transfer.
                 if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
+                    var sw = Stopwatch.StartNew();
                     Log("ClearMachineGeneratorInventory begin: " + _inventory.GetId());
                     var items = _inventory.GetInsideWorldObjects();
 
                     for (int i = items.Count - 1; i >= 0; i--)
                     {
-                        var item = items[i];
-                        var oreId = item.GetGroup().GetId();
-                        var candidateInv = FindInventoryForOre(oreId);
-                        if (candidateInv != null)
+                        if (i < items.Count)
                         {
-                            Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
-                            InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
+                            var item = items[i];
+                            var oreId = item.GetGroup().GetId();
+                            var candidateInv = FindInventoryForOre(oreId);
+                            if (candidateInv != null)
+                            {
+                                Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
+                                InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
+                            }
                         }
+                        yield return null;
                     }
-                    Log("ClearMachineGeneratorInventory end: " + _inventory.GetId());
+                    Log("ClearMachineGeneratorInventory end: " + _inventory.GetId() + ", elapsed " + sw.Elapsed.TotalMilliseconds);
                 }
                 yield return wait;
             }
@@ -293,13 +299,13 @@ namespace CheatMachineRemoteDeposit
 
         static Inventory FindInventoryForOre(string oreId)
         {
-            var containerNameFilter = "*" + oreId.ToLower();
+            var containerNameFilter = "*" + oreId.ToLowerInvariant();
             if (depositAliases.TryGetValue(oreId, out var alias))
             {
                 containerNameFilter = alias;
                 Log("    Ore " + oreId + " -> Alias " + alias);
             }
-
+            var sw = Stopwatch.StartNew();
             foreach (var constructs in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 if (constructs != null && constructs.GetGroup().GetId().StartsWith("Container") 
@@ -311,20 +317,21 @@ namespace CheatMachineRemoteDeposit
                         Inventory candidateInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
                         if (candidateInventory != null && InventoryCanAdd(candidateInventory, oreId))
                         {
-                            Log("    Found Inventory: " + candidateInventory.GetId() + " \"" + txt + "\"");
+                            Log("    Found Inventory: " + candidateInventory.GetId() + " \"" + txt + "\" in " + sw.Elapsed.TotalMilliseconds);
                             return candidateInventory;
                         }
                         else
                         {
-                            Log("    This inventory is full: " + (candidateInventory?.GetId() ?? -1) + " \"" + txt + "\"");
+                            //Log("    This inventory is full: " + (candidateInventory?.GetId() ?? -1) + " \"" + txt + "\"");
                         }
                     }
                     else if (!string.IsNullOrWhiteSpace(txt))
                     {
-                        Log("    This inventory does not have the right name: " + txt);
+                        //Log("    This inventory does not have the right name: " + txt);
                     }
                 }
             }
+            // Log("    No suitable inventory found for " + oreId + " under " + sw.Elapsed.TotalMilliseconds);
             return null;
         }
 
