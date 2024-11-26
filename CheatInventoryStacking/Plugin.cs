@@ -320,7 +320,7 @@ namespace CheatInventoryStacking
             {
                 string gid = expectedGroupIdToAdd;
                 expectedGroupIdToAdd = null;
-                __result = IsFullStacked(____worldObjectsInInventory, ____inventorySize, gid);
+                __result = IsLastSlotOccupied(____worldObjectsInInventory, ____inventorySize, gid);
                 return false;
             }
             return true;

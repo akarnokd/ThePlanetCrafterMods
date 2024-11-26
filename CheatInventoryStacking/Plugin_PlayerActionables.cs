@@ -49,6 +49,7 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.RetrieveResources))]
         static bool Patch_ActionDeconstructible_RetrieveResources(
@@ -107,6 +108,7 @@ namespace CheatInventoryStacking
 
             return false;
         }
+        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionPanelDeconstruct), "Deconstruct")]
