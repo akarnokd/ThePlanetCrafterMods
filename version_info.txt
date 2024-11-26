@@ -17,7 +17,7 @@ akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.62
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.62
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.63
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.29
 # (Cheat) Minimap
@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.11
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.12
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -109,7 +109,7 @@ akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.14
 # (UI) Show Player Inventory Counts
 akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.17
 # (UI) Show Player Tooltip Item Count
-akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.14
+akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.15
 # (UI) Show Rocket Counts
 akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.20
 # (UI) Sort Saves On The Load Screen

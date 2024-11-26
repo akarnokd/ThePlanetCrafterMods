@@ -1772,6 +1772,7 @@ namespace FeatCommandConsole
                         AddLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
                         AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
                         AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
+                        AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gi.GetLootRecipeOnDeconstruct());
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -4158,6 +4159,63 @@ namespace FeatCommandConsole
             }
             AddLine("<margin=1em><color=#FFFF00>" + i + " inventories updated");
         }
+
+        [Command("/list-lootables", "List items that when deconstructed produce a recipe.")]
+        public void ListLootables(List<string> args)
+        {
+            foreach (var gi in GroupsHandler.GetAllGroups())
+            {
+                if (gi.GetLootRecipeOnDeconstruct())
+                {
+                    var gid = gi.id;
+                    var nm = Readable.GetGroupName(gi);
+                    var dsc = Readable.GetGroupDescription(gi);
+                    AddLine("<color=#FFFF00>" + gid + "</color>\t<color=#00FF00>" + nm + "</color>\t" + dsc);
+                }
+            }
+        }
+
+        [Command("/spawn-blueprint", "Spawns a blueprint for the specified technology.")]
+        public void SpawnRecipe(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Spawns a blueprint for the specified technology");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-recipe identifier</color> spawns the blueprint with the recipe");
+                AddLine("<margin=1em>See also <color=#FFFF00>/list-tech</color> for all identifiers");
+            }
+            else
+            {
+                var gr = FindGroup(args[1].ToLowerInvariant());
+                if (gr == null)
+                {
+                    DidYouMean(args[1].ToLowerInvariant(), true, true);
+                }
+                else
+                {
+                    var groupViaId = GroupsHandler.GetGroupViaId(Managers.GetManager<UnlockingHandler>().GetBlueprintGroupData().id);
+                    WorldObject worldObject = WorldObjectsHandler.Instance.CreateNewWorldObject(groupViaId, 0, null, true);
+                    worldObject.SetLinkedGroups(new List<SpaceCraft.Group> { gr });
+                    
+                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                    var inv = pm.GetPlayerBackpack().GetInventory();
+                    InventoriesHandler.Instance.AddItemToInventory(worldObject, inv, success =>
+                    {
+                        if (!success)
+                        {
+                            WorldObjectsHandler.Instance.DestroyWorldObject(worldObject);
+                            AddLine("<margin=1em>Inventory full");
+                        }
+                        else
+                        {
+                            AddLine("<margin=1em>Item spawned");
+                        }
+                    });
+                }
+            }
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]

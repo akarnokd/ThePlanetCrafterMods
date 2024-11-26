@@ -49,6 +49,20 @@ namespace CheatInventoryStacking
             return true;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "RetrieveResourcesFromDeconstructionServerRpc")]
+        static void Patch_WorldObjectsHandler_RetrieveResourcesFromDeconstructionServerRpc_Pre()
+        {
+            isLastSlotOccupiedMode = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "RetrieveResourcesFromDeconstructionServerRpc")]
+        static void Patch_WorldObjectsHandler_RetrieveResourcesFromDeconstructionServerRpc_Post()
+        {
+            isLastSlotOccupiedMode = false;
+        }
+
         /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.RetrieveResources))]

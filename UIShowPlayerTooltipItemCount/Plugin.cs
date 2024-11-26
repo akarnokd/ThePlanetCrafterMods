@@ -54,15 +54,33 @@ namespace UIShowPlayerTooltipItemCount
         static void GroupInfosDisplayer_Show(
             Group group, 
             TextMeshProUGUI ___nameText,
-            GroupInfosDisplayerBlocksSwitches blocksSwitches)
+            GroupInfosDisplayerBlocksSwitches blocksSwitches,
+            WorldObject worldObject,
+            Group ___blueprintChipGroup
+            )
         {
             if (blocksSwitches.showDescription)
             {
-                string gname = Readable.GetGroupName(group);
-                if (group is GroupItem  gi && gi.GetUnlocksGroup() != null)
+                string gname = ___nameText.text;
+                /*
+                    Readable.GetGroupName(group);
+                if (group is GroupItem gi && gi.GetUnlocksGroup() != null)
                 {
-                    gname = Readable.GetGroupName(gi.GetUnlocksGroup());
+                    var unlocksGroup = gi.GetUnlocksGroup();
+                    if (unlocksGroup == null 
+                        && unlocksGroup == ___blueprintChipGroup 
+                        && worldObject != null 
+                        && worldObject.GetLinkedGroups() != null 
+                        && worldObject.GetLinkedGroups().Count > 0)
+                    {
+                        unlocksGroup = worldObject.GetLinkedGroups()[0];
+                    }
+                    if (unlocksGroup != null)
+                    {
+                        gname = Readable.GetGroupName(unlocksGroup);
+                    }
                 }
+                */
                 Inventory inventory = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
                 int cnt = 0;
 
