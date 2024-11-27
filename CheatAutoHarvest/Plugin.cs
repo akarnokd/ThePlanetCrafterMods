@@ -12,6 +12,7 @@ using System;
 using BepInEx.Logging;
 using Unity.Netcode;
 using LibCommon;
+using System.Diagnostics;
 
 namespace CheatAutoHarvest
 {
@@ -126,56 +127,54 @@ namespace CheatAutoHarvest
                     && Managers.GetManager<PlayersManager>()?.GetActivePlayerController() != null
                 )
                 {
-                    DoHarvest();
+                    var sw = Stopwatch.StartNew();
+                    var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
+                    foreach (var wo in new List<WorldObject>(pickables))
+                    {
+                        if (wo.GetIsPlaced())
+                        {
+                            var gid = wo.GetGroup().GetId();
+
+                            Action<string> log = gid.StartsWith("Algae") ? LogAlgae : LogFood;
+
+                            if ((gid.StartsWith("Algae") && gid.EndsWith("Seed") && harvestAlgae.Value)
+                                || (gid.StartsWith("Vegetable") && gid.EndsWith("Growable") && harvestFood.Value)
+                                || (gid.StartsWith("Cook") && gid.EndsWith("Growable") && harvestFood.Value)
+                            )
+                            {
+                                var ag = wo.GetGameObject().AsNullable()?.GetComponentInChildren<ActionGrabable>();
+
+                                if (ag != null && !GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
+                                {
+                                    var wo1 = wo;
+                                    new DeferredDepositor()
+                                    {
+                                        inventory = FindInventoryFor(gid),
+                                        worldObject = wo,
+                                        logger = log,
+                                        OnDepositSuccess = () =>
+                                        {
+                                            /*
+                                            var call = ag.grabedEvent;
+                                            ag.grabedEvent = null;
+                                            call?.Invoke(wo1, false);
+                                            */
+                                        }
+                                    }.Drain();
+                                }
+                            }
+                            else
+                            {
+                                log("Not grabbable: " + DebugWorldObject(wo));
+                            }
+                            yield return null;
+                        }
+                    }
                 }
                 yield return wait;
             }
         }
 
-        static void DoHarvest()
-        {
-            var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
-            foreach (var wo in new List<WorldObject>(pickables))
-            {
-                if (wo.GetIsPlaced())
-                {
-                    var gid = wo.GetGroup().GetId();
-
-                    Action<string> log = gid.StartsWith("Algae") ? LogAlgae : LogFood;
-
-                    if ((gid.StartsWith("Algae") && gid.EndsWith("Seed") && harvestAlgae.Value)
-                        || (gid.StartsWith("Vegetable") && gid.EndsWith("Growable") && harvestFood.Value)
-                        || (gid.StartsWith("Cook") && gid.EndsWith("Growable") && harvestFood.Value)
-                    )
-                    {
-                        var ag = wo.GetGameObject().AsNullable()?.GetComponentInChildren<ActionGrabable>();
-
-                        if (ag != null && !GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
-                        {
-                            var wo1 = wo;
-                            new DeferredDepositor()
-                            {
-                                inventory = FindInventoryFor(gid),
-                                worldObject = wo,
-                                logger = log,
-                                OnDepositSuccess = () =>
-                                {
-                                    /*
-                                    var call = ag.grabedEvent;
-                                    ag.grabedEvent = null;
-                                    call?.Invoke(wo1, false);
-                                    */
-                                }
-                            }.Drain();
-                        }
-                    }
-                    else
-                    {
-                        log("Not grabbable: " + DebugWorldObject(wo));
-                    }
-                }
-            }
-        }
 
         static IEnumerator<Inventory> FindInventoryFor(string gid)
         {
