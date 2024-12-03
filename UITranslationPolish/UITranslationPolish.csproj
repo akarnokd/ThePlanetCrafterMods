@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UITranslationPolish</AssemblyName>
     <Description>(UI) Polish Translation</Description>
-    <Version>1.0.0.48</Version>
+    <Version>1.0.0.49</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -27,9 +27,6 @@
     <Copy SourceFiles="$(SourceDir)labels-pl.txt" DestinationFolder="$(Destination1)" />
 	<Copy SourceFiles="$(SourceDir)labels-pl.txt" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)labels-pl.txt" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <ZipDirectory
-            SourceDirectory="$(TargetDir)\$(AssemblyName)"
-            DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
-            Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(TargetDir)\$(AssemblyName)" DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip" Overwrite="true" />
   </Target>
 </Project>
