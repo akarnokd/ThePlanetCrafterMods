@@ -49,7 +49,11 @@ namespace SaveQuickSave
                 logger.LogInfo("Quick Save Action");
                 if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
                 {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Can't save on the client in multiplayer!");
+                    var bh = Managers.GetManager<BaseHudHandler>();
+                    if (bh != null)
+                    {
+                        bh.DisplayCursorText("", 3f, "Can't save on the client in multiplayer!");
+                    }
                     return;
                 }
                 PlayersManager p = Managers.GetManager<PlayersManager>();

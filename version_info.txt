@@ -69,7 +69,7 @@ akarnokd.theplanetcraftermods.saveautobackup=1.0.0.14
 # (Save) Auto Save
 akarnokd.theplanetcraftermods.saveautosave=1.0.0.14
 # (Save) Quick Save
-akarnokd.theplanetcraftermods.savequicksave=1.0.0.14
+akarnokd.theplanetcraftermods.savequicksave=1.0.0.15
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.19
 # (UI) Continue
@@ -123,13 +123,13 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.25
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.24
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.91
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.92
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.28
 # (UI) Korean Translation
 akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.17
 # (UI) Polish Translation
-akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.49
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.50
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.22
 # (UI) Ukrainian Translation
