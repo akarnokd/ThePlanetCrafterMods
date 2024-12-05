@@ -53,7 +53,8 @@ namespace LibCommon
             "Butterfly16Larvae",
             "Butterfly17Larvae",
             "Butterfly18Larvae",
-            "Butterfly19Larvae"
+            "Butterfly19Larvae",
+            "Butterfly20Larvae"
         ]);
 
         internal static readonly string defaultFish = string.Join(",",
