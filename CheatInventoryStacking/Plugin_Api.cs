@@ -131,6 +131,26 @@ namespace CheatInventoryStacking
             return stacks > inventorySize;
         }
 
+        static bool IsLastSlotOccupied(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
+        {
+            Dictionary<string, int> groupCounts = [];
+
+            int n = stackSize.Value;
+            int stacks = 0;
+
+            foreach (WorldObject worldObject in worldObjectsInInventory)
+            {
+                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+            }
+
+            if (gid != null)
+            {
+                AddToStack(gid, groupCounts, n, ref stacks);
+            }
+
+            return stacks >= inventorySize;
+        }
+
         /// <summary>
         /// Returns the number of stacks in the given inventory.
         /// </summary>

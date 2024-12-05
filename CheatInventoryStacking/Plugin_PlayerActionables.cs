@@ -50,6 +50,21 @@ namespace CheatInventoryStacking
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "RetrieveResourcesFromDeconstructionServerRpc")]
+        static void Patch_WorldObjectsHandler_RetrieveResourcesFromDeconstructionServerRpc_Pre()
+        {
+            isLastSlotOccupiedMode = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "RetrieveResourcesFromDeconstructionServerRpc")]
+        static void Patch_WorldObjectsHandler_RetrieveResourcesFromDeconstructionServerRpc_Post()
+        {
+            isLastSlotOccupiedMode = false;
+        }
+
+        /*
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.RetrieveResources))]
         static bool Patch_ActionDeconstructible_RetrieveResources(
             GameObject ___gameObjectRoot,
@@ -107,6 +122,7 @@ namespace CheatInventoryStacking
 
             return false;
         }
+        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionPanelDeconstruct), "Deconstruct")]

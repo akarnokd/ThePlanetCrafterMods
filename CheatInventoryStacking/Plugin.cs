@@ -58,6 +58,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<float> offsetY;
 
         static string expectedGroupIdToAdd;
+        static bool isLastSlotOccupiedMode;
 
         static ManualLogSource logger;
 
@@ -320,7 +321,14 @@ namespace CheatInventoryStacking
             {
                 string gid = expectedGroupIdToAdd;
                 expectedGroupIdToAdd = null;
-                __result = IsFullStacked(____worldObjectsInInventory, ____inventorySize, gid);
+                if (isLastSlotOccupiedMode && gid == null)
+                {
+                    __result = IsLastSlotOccupied(____worldObjectsInInventory, ____inventorySize, gid);
+                }
+                else
+                {
+                    __result = IsFullStacked(____worldObjectsInInventory, ____inventorySize, gid);
+                }
                 return false;
             }
             return true;

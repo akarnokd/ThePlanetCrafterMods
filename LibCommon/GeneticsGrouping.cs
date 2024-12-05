@@ -43,6 +43,17 @@ namespace LibCommon
                 }
                 return sb.ToString();
             }
+            else if (grid == "BlueprintT1")
+            {
+                var sb = new StringBuilder(128);
+                sb.Append(grid);
+                var lg = wo.GetLinkedGroups();
+                if (lg != null && lg.Count > 0)
+                {
+                    sb.Append('_');
+                    sb.Append(lg[0].id);
+                }
+            }
             return grid;
         }
 

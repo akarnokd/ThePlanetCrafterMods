@@ -493,7 +493,7 @@ namespace CheatCraftFromNearbyContainers
                 ____crafting = true;
 
                 WorldObjectsHandler.Instance.CreateAndInstantiateWorldObject(groupItem, sourceCrafter.GetSpawnPosition(),
-                    sourceCrafter.GetSpawnRotation(), true, true, true, newSpawnedObject =>
+                    sourceCrafter.GetSpawnRotation(), true, true, true, false, newSpawnedObject =>
                 {
                     if (newSpawnedObject != null)
                     {
