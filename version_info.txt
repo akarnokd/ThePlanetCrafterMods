@@ -51,7 +51,7 @@ akarnokd.theplanetcraftermods.lathreydisablebuildconstraints=1.0.0.13
 # (Lib) Common tools for other mods
 akarnokd.theplanetcraftermods.libcommon=1.0.0.0
 # (Misc) Customize Flashlight
-akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.5
+akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.6
 # (Misc) Debug
 akarnokd.theplanetcraftermods.miscdebug=1.0.0.0
 # (Misc) Mod Enabler
@@ -123,7 +123,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.25
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.24
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.92
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.93
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.28
 # (UI) Korean Translation

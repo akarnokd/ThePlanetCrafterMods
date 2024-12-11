@@ -6,6 +6,8 @@ using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using UnityEngine;
+using BepInEx.Logging;
+using System;
 
 /// -------------------------------------------------------------------------------------------------------
 /// Remake of https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CustomFlashlight/BepInExPlugin.cs
@@ -81,13 +83,24 @@ namespace MiscCustomizeFlashlight
             light.range = range.Value;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerMultitool), "Start")]
+        static void PlayerMultitool_Start_Pre(MultiToolLight ___multiToolLight,
+            MultiToolScreen ___multiToolScreen, ref bool __state)
+        {
+            __state = ___multiToolScreen == null;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PlayerMultitool), "Start")]
-        static void PlayerMultitool_Start(MultiToolLight ___multiToolLight)
+        static void PlayerMultitool_Start_Post(MultiToolLight ___multiToolLight, ref bool __state)
         {
-            ApplyLightConfig(___multiToolLight.toolLightT1.GetComponent<Light>());
-            ApplyLightConfig(___multiToolLight.toolLightT2.GetComponent<Light>());
-            ApplyLightConfig(___multiToolLight.toolLightT3.GetComponent<Light>());
+            if (__state)
+            {
+                ApplyLightConfig(___multiToolLight.toolLightT1.GetComponent<Light>());
+                ApplyLightConfig(___multiToolLight.toolLightT2.GetComponent<Light>());
+                ApplyLightConfig(___multiToolLight.toolLightT3.GetComponent<Light>());
+            }
         }
 
         static void FindLights()
