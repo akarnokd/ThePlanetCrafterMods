@@ -16,7 +16,7 @@
 		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
     </ItemGroup>
-
+	<!--
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -26,4 +26,5 @@
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
   </Target>
+  -->
 </Project>
