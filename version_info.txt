@@ -51,7 +51,7 @@ akarnokd.theplanetcraftermods.lathreydisablebuildconstraints=1.0.0.13
 # (Lib) Common tools for other mods
 akarnokd.theplanetcraftermods.libcommon=1.0.0.0
 # (Misc) Customize Flashlight
-akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.6
+akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.7
 # (Misc) Debug
 akarnokd.theplanetcraftermods.miscdebug=1.0.0.0
 # (Misc) Mod Enabler

@@ -29,7 +29,9 @@ namespace MiscCustomizeFlashlight
         static ConfigEntry<float> intensity;
         static ConfigEntry<float> range;
 
-        static AccessTools.FieldRef<PlayerMultitool, MultiToolLight> fPlayerMultitoolMultiToolLight;
+        static AccessTools.FieldRef<MultiToolLight, float> fMultiToolLightBaseT1;
+        static AccessTools.FieldRef<MultiToolLight, float> fMultiToolLightBaseT2;
+        static AccessTools.FieldRef<MultiToolLight, float> fMultiToolLightBaseT3;
 
         public void Awake()
         {
@@ -47,13 +49,15 @@ namespace MiscCustomizeFlashlight
             intensity = Config.Bind("General", "FlashlightIntensity", 40f, "Flashlight intensity.");
             range = Config.Bind("General", "FlashlightRange", 40f, "Flashlight range.");
 
-            fPlayerMultitoolMultiToolLight = AccessTools.FieldRefAccess<MultiToolLight>(typeof(PlayerMultitool), "multiToolLight");
+            fMultiToolLightBaseT1 = AccessTools.FieldRefAccess<float>(typeof(MultiToolLight), "_baseT1");
+            fMultiToolLightBaseT2 = AccessTools.FieldRefAccess<float>(typeof(MultiToolLight), "_baseT2");
+            fMultiToolLightBaseT3 = AccessTools.FieldRefAccess<float>(typeof(MultiToolLight), "_baseT3");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        static void ApplyLightConfig(Light light)
+        static void ApplyLightConfig(Light light, MultiToolLight multiToolLight, int index)
         {
             if (!modEnabled.Value || light == null)
             {
@@ -81,6 +85,25 @@ namespace MiscCustomizeFlashlight
             light.colorTemperature = colorTemp.Value;
             light.intensity = intensity.Value;
             light.range = range.Value;
+
+            switch (index)
+            {
+                case 2:
+                    {
+                        fMultiToolLightBaseT2(multiToolLight) = intensity.Value; 
+                        break;
+                    }
+                case 3:
+                    {
+                        fMultiToolLightBaseT3(multiToolLight) = intensity.Value;
+                        break;
+                    }
+                default:
+                    {
+                        fMultiToolLightBaseT1(multiToolLight) = intensity.Value;
+                        break;
+                    }
+            }
         }
 
         [HarmonyPrefix]
@@ -97,9 +120,9 @@ namespace MiscCustomizeFlashlight
         {
             if (__state)
             {
-                ApplyLightConfig(___multiToolLight.toolLightT1.GetComponent<Light>());
-                ApplyLightConfig(___multiToolLight.toolLightT2.GetComponent<Light>());
-                ApplyLightConfig(___multiToolLight.toolLightT3.GetComponent<Light>());
+                ApplyLightConfig(___multiToolLight.toolLightT1.GetComponent<Light>(), ___multiToolLight, 1);
+                ApplyLightConfig(___multiToolLight.toolLightT2.GetComponent<Light>(), ___multiToolLight, 2);
+                ApplyLightConfig(___multiToolLight.toolLightT3.GetComponent<Light>(), ___multiToolLight, 3);
             }
         }
 
@@ -122,14 +145,14 @@ namespace MiscCustomizeFlashlight
                 return;
             }
 
-            var pmtl = fPlayerMultitoolMultiToolLight(pmt);
+            var pmtl = pmt.GetMultiToolLight();
             if (pmtl == null)
             {
                 return;
             }
-            ApplyLightConfig(pmtl.toolLightT1.GetComponent<Light>());
-            ApplyLightConfig(pmtl.toolLightT2.GetComponent<Light>());
-            ApplyLightConfig(pmtl.toolLightT3.GetComponent<Light>());
+            ApplyLightConfig(pmtl.toolLightT1.GetComponent<Light>(), pmtl, 1);
+            ApplyLightConfig(pmtl.toolLightT2.GetComponent<Light>(), pmtl, 2);
+            ApplyLightConfig(pmtl.toolLightT3.GetComponent<Light>(), pmtl, 3);
         }
 
         public static void OnModConfigChanged(ConfigEntryBase _)
