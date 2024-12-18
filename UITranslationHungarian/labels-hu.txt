@@ -1512,3 +1512,5 @@ GROUP_NAME_Poster4=Poszter D
 GROUP_NAME_Poster5=Poszter E
 GROUP_NAME_Poster6=Poszter F
 GROUP_NAME_Butterfly20Larvae=Oesbe lepke lárva
+GROUP_NAME_DeparturePlatformHumble=Kivonási platform
+GROUP_DESC_DeparturePlatformHumble=Csatlakozás egy pályán keringő űrhajóhoz

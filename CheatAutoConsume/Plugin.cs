@@ -44,7 +44,7 @@ namespace CheatAutoConsume
                     if (groupItem.GetUsableType() == type)
                     {
                         if ((type == DataConfig.UsableType.Eatable && gh.Eat(groupValue))
-                                || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue))
+                                || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue, true))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
                                 )
                         {
