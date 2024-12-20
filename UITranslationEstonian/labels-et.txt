@@ -1511,3 +1511,5 @@ GROUP_NAME_Poster4=Plakat D
 GROUP_NAME_Poster5=Plakat E
 GROUP_NAME_Poster6=Plakat F
 GROUP_NAME_Butterfly20Larvae=Liblika Oesbe vastne
+GROUP_NAME_DeparturePlatformHumble=Päästeplatvorm
+GROUP_DESC_DeparturePlatformHumble=Kasutatakse orbiidil olevale laevale saamiseks
