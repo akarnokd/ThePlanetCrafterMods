@@ -49,6 +49,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> fontName;
         static ConfigEntry<float> transparency;
+        static ConfigEntry<bool> allGroups;
 
         static GameObject canvas;
         static GameObject background;
@@ -136,6 +137,7 @@ namespace FeatCommandConsole
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
             transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
+            allGroups = Config.Bind("General", "AllGroups", true, "Consider all item types (true) or only the current planet's item types (false).");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -693,7 +695,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleSpawns = [];
-                    foreach (var g in GroupsHandler.GetAllGroups())
+                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
                     {
                         if (g is GroupItem gi && gi.GetId().ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
@@ -1542,7 +1544,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> list = [];
-                    foreach (var gd in GroupsHandler.GetAllGroups())
+                    foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
                         if (!UnlockedGroupsHandler.Instance.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1586,7 +1588,7 @@ namespace FeatCommandConsole
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
             List<string> list = [];
-            foreach (var gd in GroupsHandler.GetAllGroups())
+            foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
             {
                 var g = GroupsHandler.GetGroupViaId(gd.id);
                 if (g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1607,7 +1609,7 @@ namespace FeatCommandConsole
 
         SpaceCraft.Group FindGroup(string gid)
         {
-            foreach (var gr in GroupsHandler.GetAllGroups())
+            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
             {
                 var gci = gr.GetId().ToLower(CultureInfo.InvariantCulture);
                 if (gci == gid && !gci.StartsWith("spacemultiplier"))
@@ -1621,7 +1623,7 @@ namespace FeatCommandConsole
 
         void DidYouMean(string gid, bool isStructure, bool isItem)
         {
-            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
+            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups(!allGroups.Value)
                 .Where(g => { 
                     if (isStructure && g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
                     {
@@ -1974,7 +1976,7 @@ namespace FeatCommandConsole
             }
 
             Dictionary<string, List<string>> larvaeToSequenceInto = [];
-            foreach (var gr in GroupsHandler.GetAllGroups())
+            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
             {
                 if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
                 {
@@ -2180,7 +2182,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleStructures = [];
-                    foreach (var g in GroupsHandler.GetAllGroups())
+                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
                     {
                         if (g is GroupConstructible gc)
                         {
@@ -4098,7 +4100,7 @@ namespace FeatCommandConsole
             {
                 filter = args[2];
             }
-            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups());
+            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups(!allGroups.Value));
             if (sort == "id")
             {
                 gds.Sort((a, b) => a.id.CompareTo(b.id));
@@ -4161,9 +4163,9 @@ namespace FeatCommandConsole
         }
 
         [Command("/list-lootables", "List items that when deconstructed produce a recipe.")]
-        public void ListLootables(List<string> args)
+        public void ListLootables(List<string> _)
         {
-            foreach (var gi in GroupsHandler.GetAllGroups())
+            foreach (var gi in GroupsHandler.GetAllGroups(!allGroups.Value))
             {
                 if (gi.GetLootRecipeOnDeconstruct())
                 {
