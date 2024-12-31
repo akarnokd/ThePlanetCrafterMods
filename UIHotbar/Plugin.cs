@@ -586,12 +586,15 @@ namespace UIHotbar
         }
         static int WhichNumberKeyWasPressed()
         {
-            for (int i = 0; i < numberKeys.Length; i++)
+            if (!PlayerThirdPersonView_ShortcutEmote())
             {
-                Key k = numberKeys[i];
-                if (Keyboard.current[k].wasPressedThisFrame)
+                for (int i = 0; i < numberKeys.Length; i++)
                 {
-                    return i;
+                    Key k = numberKeys[i];
+                    if (Keyboard.current[k].wasPressedThisFrame)
+                    {
+                        return i;
+                    }
                 }
             }
             return -1;
