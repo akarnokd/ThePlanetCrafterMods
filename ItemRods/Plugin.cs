@@ -21,7 +21,10 @@ namespace ItemRods
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        static readonly List<string> ores = ["Iron", "Sulfur", "Titanium", "Silicon", "Cobalt", "Magnesium", "Aluminium", "Zeolite"];
+        static readonly List<string> ores = [
+            "Iron", "Sulfur", "Titanium", 
+            "Silicon", "Cobalt", "Magnesium", 
+            "Aluminium", "Zeolite", "Obsidian"];
 
         static readonly Dictionary<string, Color> oreColors = new()
         {
@@ -56,7 +59,11 @@ namespace ItemRods
             {
                 "Zeolite",
                 new Color(0.9568f, 0.9843f, 1f, 1f)
-            }
+            },
+            {
+                "Obsidian",
+                new Color(0.1333f, 0.1333f, 0.1333f, 1f)
+            },
         };
 
         static readonly Dictionary<string, ConfigEntry<bool>> oreConfigs = [];
