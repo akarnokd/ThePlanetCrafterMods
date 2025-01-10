@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -312,6 +313,32 @@ namespace MiscDebug
         static void MachineDisintegrator_Start(ref int ___breakEveryXSec) 
         {
             ___breakEveryXSec = 1;
+        }
+        */
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineOptimizer), "ChangeMultiplierDependingOnFuses")]
+        static void MachineOptimizer_ChangeMultiplierDependingOnFuses_Pre(ref Stopwatch __state)
+        {
+            __state = Stopwatch.StartNew();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineOptimizer), "ChangeMultiplierDependingOnFuses")]
+        static void MachineOptimizer_ChangeMultiplierDependingOnFuses_Post(
+            MachineOptimizer __instance,
+            Inventory ____inventory,
+            ref Stopwatch __state)
+        {
+            logger.LogInfo("MachineOptimizer::ChangeMultiplierDependingOnFuses");
+            logger.LogInfo("  time: " + __state.Elapsed.TotalMilliseconds);
+            logger.LogInfo("  id: " + __instance.GetComponent<WorldObjectAssociated>().GetWorldObject().GetId());
+            logger.LogInfo("  pos: " + __instance.transform.position);
+            logger.LogInfo("  inv: " + ____inventory.GetInsideWorldObjects().Count);
+            logger.LogInfo("      " 
+                + string.Join(", ", ____inventory.GetInsideWorldObjects().GroupBy(key => key.GetGroup().id)
+                  .Select(gr => gr.Key + " x " + gr.Count()))
+                );
         }
         */
     }

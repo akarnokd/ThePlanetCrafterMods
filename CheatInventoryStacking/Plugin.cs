@@ -663,6 +663,9 @@ namespace CheatInventoryStacking
             nonAttributedTasksCache.Clear();
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
+            optimizerLast = null;
+            optimizerLastFrame = -1;
+            optimizerWorldUnitCache.Clear();
         }
 
         [HarmonyPrefix]

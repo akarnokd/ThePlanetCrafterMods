@@ -60,20 +60,6 @@ namespace CheatInventoryStacking
             }
         }
 
-        /// <summary>
-        /// Conditionally disallow stackingin optimizers.
-        /// </summary>
-        /// <param name="inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineOptimizer), nameof(MachineOptimizer.SetOptimizerInventory))]
-        static void Patch_MachineOptimizer_SetOptimizerInventory(Inventory inventory)
-        {
-            if (!stackOptimizer.Value)
-            {
-                noStackingInventories.Add(inventory.GetId());
-            }
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InventoryShowContent), "RegisterToInventory")]
         static void Patch_InventoryShowContent_RegisterToInventory(
