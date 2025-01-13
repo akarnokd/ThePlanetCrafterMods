@@ -13,7 +13,8 @@ namespace LibCommon
     public static class GeneticsGrouping
     {
         /// <summary>
-        /// Generates a stack id that considers the genetic trait or DNA sequence information
+        /// Generates a stack id that considers the genetic trait, DNA sequence information
+        /// or blueprints
         /// as these should not stack based on their group id alone.
         /// </summary>
         /// <param name="wo"></param>
@@ -53,6 +54,7 @@ namespace LibCommon
                     sb.Append('_');
                     sb.Append(lg[0].id);
                 }
+                return sb.ToString();
             }
             return grid;
         }
