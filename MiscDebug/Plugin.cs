@@ -8,6 +8,7 @@ using SpaceCraft;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Unity.Collections;
@@ -339,6 +340,23 @@ namespace MiscDebug
                 + string.Join(", ", ____inventory.GetInsideWorldObjects().GroupBy(key => key.GetGroup().id)
                   .Select(gr => gr.Key + " x " + gr.Count()))
                 );
+        }
+        */
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GeneticTraitHandler), nameof(GeneticTraitHandler.InitAvailableGeneticTraits))]
+        static void GeneticTraitHandler_InitAvailableGeneticTraits(List<GeneticTraitData> geneticTraitDatas)
+        {
+            foreach (var data in geneticTraitDatas)
+            {
+                logger.LogInfo(data.GetGeneticTraitType() 
+                    + "\t" + data.GetTraitColor()
+                    + "\t" + ColorUtility.ToHtmlStringRGB(data.GetTraitColor())
+                    + "\t" + data.GetTraitValue()
+                    + "\t" + data.GetCanBeLooted()
+                    + "\t" + data.GetLootChance()
+                );
+            }
         }
         */
     }
