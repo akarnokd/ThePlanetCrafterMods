@@ -54,7 +54,7 @@ namespace UIStackInRangeList
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(GroupList), nameof(GroupList.AddGroups))]
+        [HarmonyPatch(typeof(GroupList), nameof(GroupList.AddGroups), [typeof(List<SpaceCraft.Group>), typeof(GroupInfosDisplayerBlocksSwitches),  typeof(bool)])]
         static bool GroupList_AddGroups(GroupList __instance, 
             List<Group> _groups,
             bool _showBacklines,

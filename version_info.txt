@@ -115,7 +115,7 @@ akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.20
 # (UI) Sort Saves On The Load Screen
 akarnokd.theplanetcraftermods.uisortsaves=1.0.0.14
 # (UI) Stack In-Range List
-akarnokd.theplanetcraftermods.uistackinrangelist=1.0.0.14
+akarnokd.theplanetcraftermods.uistackinrangelist=1.0.0.15
 # (UI) Telemetry Font Sizer
 akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.10
 # (UI) Czech Translation
