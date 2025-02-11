@@ -1516,4 +1516,3 @@ MENU_STUCK2=Vajuta siia, et teleporteeruda ühte suvalisse baasi.
 Menu_Options_Gameplay_idle_animations=Aktiveeri pausil oleva mängija animatsioonid.
 Menu_Options_Gameplay_terra_tokens_alert=Aktiveeri Terra raha saamise teated.
 Menu_Options_Controls_toggleforward=Lülita automaatne edasiminek sisse
-ModConfigMenu_Button=Modifikatsioonid
