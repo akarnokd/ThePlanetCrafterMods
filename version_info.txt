@@ -17,7 +17,7 @@ akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.62
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.64
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.65
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.29
 # (Cheat) Minimap
@@ -133,4 +133,4 @@ akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.53
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.22
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.14
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.15

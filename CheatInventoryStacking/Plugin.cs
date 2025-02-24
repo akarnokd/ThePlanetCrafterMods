@@ -98,6 +98,7 @@ namespace CheatInventoryStacking
         // These are needed by MachineAutoCrafter.TryCraft overrides
         static AccessTools.FieldRef<MachineAutoCrafter, bool> fMachineAutoCrafterHasEnergy;
         static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
+        static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterTimeHasCrafted;
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
@@ -108,7 +109,6 @@ namespace CheatInventoryStacking
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
         static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
-
         static Plugin me;
 
         static readonly Version requiredCFNC = new(1, 0, 0, 14);
@@ -164,8 +164,11 @@ namespace CheatInventoryStacking
             
             fMachineAutoCrafterHasEnergy = AccessTools.FieldRefAccess<MachineAutoCrafter, bool>("_hasEnergy");
             fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
+            fMachineAutoCrafterTimeHasCrafted = AccessTools.FieldRefAccess<MachineAutoCrafter, float>("_timeHasCrafted");
+
             mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
+
 
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
 

@@ -58,24 +58,28 @@ namespace CheatInventoryStacking
 
             var mSetItemsInRange = AccessTools.MethodDelegate<Action>(mMachineAutoCrafterSetItemsInRange, __instance);
             var mCraftIfPossible = AccessTools.MethodDelegate<Action<Group>>(mMachineAutoCrafterCraftIfPossible, __instance);
-            var inv = fMachineAutoCrafterInventory(__instance);
 
             for (; ; )
             {
-                if (fMachineAutoCrafterHasEnergy(__instance) && inv != null)
+                if (fMachineAutoCrafterHasEnergy(__instance))
                 {
-                    var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
-                    if (machineWo != null)
+                    fMachineAutoCrafterTimeHasCrafted(__instance) = Time.time;
+                    var inv = fMachineAutoCrafterInventory(__instance);
+                    if (inv != null)
                     {
-                        var linkedGroups = machineWo.GetLinkedGroups();
-                        if (linkedGroups != null && linkedGroups.Count != 0)
+                        var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+                        if (machineWo != null)
                         {
-                            var gr = linkedGroups[0];
-
-                            if (!IsFullStackedOfInventory(inv, gr.id))
+                            var linkedGroups = machineWo.GetLinkedGroups();
+                            if (linkedGroups != null && linkedGroups.Count != 0)
                             {
-                                mSetItemsInRange();
-                                mCraftIfPossible(gr);
+                                var gr = linkedGroups[0];
+
+                                if (!IsFullStackedOfInventory(inv, gr.id))
+                                {
+                                    mSetItemsInRange();
+                                    mCraftIfPossible(gr);
+                                }
                             }
                         }
                     }
