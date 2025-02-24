@@ -332,7 +332,24 @@ namespace CheatCraftFromNearbyContainers
                 {
                     counter[0]++;
                     n++;
-                    invp.GetInventory((inv, wo) => counter[0]--);
+                    invp.GetInventory((inv, wo) =>
+                    {
+                        if (inv != null && wo != null)
+                        {
+                            // On the Client, the secondary inventories list is not populated
+                            // So we have to fill back in those ids from the proxies targeting
+                            // the same world object jet not the main inventory id
+                            if (wo.GetLinkedInventoryId() != inv.GetId())
+                            {
+                                var lst = wo.GetSecondaryInventoriesId();
+                                if (lst != null && !lst.Contains(inv.GetId()))
+                                {
+                                    lst.Add(inv.GetId());
+                                }
+                            }
+                        }
+                        counter[0]--;
+                    });
                 }
             }
             Log("    Waiting for " + n + " objects");
