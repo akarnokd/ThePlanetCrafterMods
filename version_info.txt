@@ -61,7 +61,7 @@ akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.18
 # (Multi) Player Locator
 akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Reduce Save Size
-akarnokd.theplanetcraftermods.perfsavereducesize=1.0.0.16
+akarnokd.theplanetcraftermods.perfsavereducesize=1.0.0.17
 # (Perf) Startup
 akarnokd.theplanetcraftermods.perfstartup=1.0.0.12
 # (Save) Auto Backup
