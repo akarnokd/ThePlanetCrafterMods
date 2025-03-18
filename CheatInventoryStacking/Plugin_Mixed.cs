@@ -175,5 +175,12 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(inventoryRight.GetId());
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventoryChangeMaterial), "CheckInventory")]
+        static void Patch_InventoryChangeMaterial_CheckInventory(Inventory inventory)
+        {
+            noStackingInventories.Add(inventory.GetId());
+        }
     }
 }
