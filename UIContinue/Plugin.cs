@@ -19,6 +19,9 @@ namespace UIContinue
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uicontinue", "(UI) Continue", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("akarnokd.theplanetcraftermods.uitranslationpolish", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("akarnokd.theplanetcraftermods.uitranslationestonian", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("akarnokd.theplanetcraftermods.uitranslationukrainian", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         static GameObject continueButton;
@@ -352,6 +355,58 @@ namespace UIContinue
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
                 dict["MainMenu_Button_Continue"] = "Continue";
+            }
+            if (___localizationDictionary.TryGetValue("russian", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Продолжить";
+            }
+            if (___localizationDictionary.TryGetValue("french", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Continuer";
+            }
+            if (___localizationDictionary.TryGetValue("german", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Weiterspielen";
+            }
+            if (___localizationDictionary.TryGetValue("japanese", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "プレイを続ける";
+            }
+            if (___localizationDictionary.TryGetValue("spanish", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Continuar";
+            }
+            if (___localizationDictionary.TryGetValue("schinese", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "继续玩";
+            }
+            if (___localizationDictionary.TryGetValue("tchinese", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "繼續玩";
+            }
+            if (___localizationDictionary.TryGetValue("polish", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Kontynuować";
+            }
+            if (___localizationDictionary.TryGetValue("portuguese", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Continuar";
+            }
+            if (___localizationDictionary.TryGetValue("korean", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "계속하다";
+            }
+            if (___localizationDictionary.TryGetValue("turk", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Devam etmek";
+            }
+            if (___localizationDictionary.TryGetValue("ukrainian", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Продовжити";
+            }
+            if (___localizationDictionary.TryGetValue("estonian", out dict))
+            {
+                dict["MainMenu_Button_Continue"] = "Jätka";
             }
         }
 
