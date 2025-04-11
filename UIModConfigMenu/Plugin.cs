@@ -17,6 +17,7 @@ using BepInEx.Logging;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System.Text;
+using GameOptionsUtility;
 
 namespace UIModConfigMenu
 {
@@ -24,6 +25,8 @@ namespace UIModConfigMenu
     [BepInDependency("akarnokd.theplanetcraftermods.uitranslationhungarian", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        static Plugin me;
+
         static ManualLogSource logger;
 
         static string filterValue = "";
@@ -38,6 +41,7 @@ namespace UIModConfigMenu
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+            me = this;
 
             CreateResetButtonImage();
 
@@ -130,6 +134,13 @@ namespace UIModConfigMenu
             ClearTooltips();
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ButtonApplyOptions), nameof(ButtonApplyOptions.Apply))]
+        static void ButtonApplyOptions_Apply()
+        {
+            ClearTooltips();
+        }
+
         static void ClearTooltips()
         {
             foreach (var tooltip in FindObjectsByType<ModConfigEntryHover>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -148,6 +159,7 @@ namespace UIModConfigMenu
         static GameObject filterCount;
         static bool enterMainMenu;
         static Coroutine coroutineRenderPluginListDelayed;
+        static Text filterPlaceholderText;
 
         static void CreateModPanel()
         {
@@ -221,7 +233,7 @@ namespace UIModConfigMenu
 
                 modScrollContent = modScroll.transform.Find("Viewport/Content").gameObject;
 
-                pluginList = new(Chainloader.PluginInfos.Values);
+                pluginList = [.. Chainloader.PluginInfos.Values];
                 pluginList.Sort((a, b) =>
                 {
                     return a.Metadata.Name.CompareTo(b.Metadata.Name);
@@ -282,11 +294,11 @@ namespace UIModConfigMenu
             var filterTextPlaceholderGo = new GameObject("ModConfigMenu_Filter_Text_PlaceHolder");
             filterTextPlaceholderGo.transform.SetParent(filterGo.transform, false);
 
-            var filterPlaceholderText = filterTextPlaceholderGo.AddComponent<Text>();
+            filterPlaceholderText = filterTextPlaceholderGo.AddComponent<Text>();
             filterPlaceholderText.font = buttonTxtRef.font;
             filterPlaceholderText.fontSize = buttonTxtRef.fontSize;
             filterPlaceholderText.fontStyle = FontStyle.Italic;
-            filterPlaceholderText.text = "Filter by mod name parts or #parameter name";
+            filterPlaceholderText.text = Localization.GetLocalizedString("ModConfigMenu_Filter");
             filterPlaceholderText.color = new Color(0.7f, 0.7f, 0.7f);
 
             var filterText = filterTextGo.AddComponent<Text>();
@@ -456,7 +468,7 @@ namespace UIModConfigMenu
                 amodOpenCfgTextGo.transform.SetParent(amodOpenCfgImg.transform, false);
 
                 var amodOpenCfgTxt = amodOpenCfgTextGo.AddComponent<Text>();
-                amodOpenCfgTxt.text = " Open .cfg ";
+                amodOpenCfgTxt.text = Localization.GetLocalizedString("ModConfigMenu_OpenCfg");
                 amodOpenCfgTxt.font = txt.font;
                 amodOpenCfgTxt.fontSize = txt.fontSize;
                 amodOpenCfgTxt.fontStyle = txt.fontStyle;
@@ -465,7 +477,7 @@ namespace UIModConfigMenu
                 amodOpenCfgTxt.alignment = TextAnchor.MiddleCenter;
 
                 var amodOpenCfgRt = amodOpenCfg.GetComponent<RectTransform>();
-                amodOpenCfgRt.localPosition = new Vector3(1200, -rtLine.sizeDelta.y / 2, 0);
+                amodOpenCfgRt.localPosition = new Vector3(1300 - amodOpenCfgTxt.preferredWidth / 2, -rtLine.sizeDelta.y / 2, 0);
                 amodOpenCfgRt.sizeDelta = new Vector2(amodOpenCfgTxt.preferredWidth + 20, amodOpenCfgTxt.preferredHeight + 20);
 
                 var amodOpenCfgBtn = amodOpenCfg.AddComponent<Button>();
@@ -481,7 +493,7 @@ namespace UIModConfigMenu
 
                 j -= rtLine.sizeDelta.y;
 
-                List<string> sections = new(pi.Instance.Config.Keys.Select(e => e.Section).Distinct());
+                List<string> sections = [.. pi.Instance.Config.Keys.Select(e => e.Section).Distinct()];
                 sections.Sort(StringComparer.OrdinalIgnoreCase);
 
                 if (sections.Count == 0)
@@ -504,7 +516,7 @@ namespace UIModConfigMenu
 
                     rt.localPosition = new Vector3(otherOptionsX, j, 0);
 
-                    txt.text = "( No configuration options declared )";
+                    txt.text = Localization.GetLocalizedString("ModConfigMenu_No_Config");
 
                     j -= rt.sizeDelta.y;
                 }
@@ -569,6 +581,37 @@ namespace UIModConfigMenu
 
                                         mOnModConfigChanged?.Invoke(null, [ceb]);
                                     }));
+
+                                    var resetBtn = new GameObject(editorGo.name + "-reset");
+
+                                    resetBtn.transform.SetParent(txt.transform, false);
+
+                                    resetBtn.AddComponent<GraphicRaycaster>();
+
+                                    var resetRt = resetBtn.GetComponent<RectTransform>();
+
+                                    var resetImg = resetBtn.AddComponent<Image>();
+                                    resetImg.color = Color.white;
+                                    resetImg.sprite = Sprite.Create(resetButtonImage, new Rect(0, 0, 24, 24), new Vector2(0.5f, 0.5f));
+
+                                    resetRt.localPosition = new Vector2(bw + bw / 2 + 5, editorRt.localPosition.y);
+                                    resetRt.sizeDelta = new Vector2(bw, bw);
+
+                                    var resetBtnBtn = resetBtn.AddComponent<Button>();
+
+                                    resetBtnBtn.onClick.AddListener(new UnityAction(() =>
+                                    {
+                                        ceb.BoxedValue = ceb.DefaultValue;
+                                        pcfg.Save();
+
+                                        mOnModConfigChanged?.Invoke(null, [ceb]);
+
+                                        img.color = ceb.GetSerializedValue() == "true" ? colorOn : colorOff;
+                                    }));
+
+                                    var rbc = editorGo.AddComponent<ResetButtonChecker>();
+                                    rbc.resetImage = resetImg;
+                                    rbc.ceb = ceb;
                                 }
                                 else
                                 {
@@ -687,11 +730,41 @@ namespace UIModConfigMenu
             if (___localizationDictionary.TryGetValue("hungarian", out var dict))
             {
                 dict["ModConfigMenu_Button"] = "Modok";
+                dict["ModConfigMenu_No_Config"] = "( Nincs konfigurációs opció )";
+                dict["ModConfigMenu_Filter"] = "Szűrés mod nevére vagy #paraméter névre";
+                dict["ModConfigMenu_OpenCfg"] = " .cfg megnyitása ";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
                 dict["ModConfigMenu_Button"] = "Mods";
+                dict["ModConfigMenu_No_Config"] = "( No configuration options declared )";
+                dict["ModConfigMenu_Filter"] = "Filter by mod name parts or #parameter name";
+                dict["ModConfigMenu_OpenCfg"] = " Open .cfg ";
             }
+            if (___localizationDictionary.TryGetValue("russian", out dict))
+            {
+                dict["ModConfigMenu_Button"] = "Моды";
+                dict["ModConfigMenu_No_Config"] = "( Нет параметров )";
+                dict["ModConfigMenu_Filter"] = "Фильтр по частям имени мода или #имяпараметра";
+                dict["ModConfigMenu_OpenCfg"] = " Открыть .cfg ";
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Localization), nameof(Localization.SetLangage))]
+        static void Localization_SetLanguage()
+        {
+            if (buttonMods != null)
+            {
+                me.StartCoroutine(SetLanguageDelay());
+            }
+        }
+
+        static IEnumerator SetLanguageDelay()
+        {
+            yield return new WaitForSecondsRealtime(0.5f);
+            filterPlaceholderText.text = Localization.GetLocalizedString("ModConfigMenu_Filter");
+            RenderPluginList();
         }
 
         [HarmonyPrefix]
@@ -743,7 +816,7 @@ namespace UIModConfigMenu
                 txt.verticalOverflow = VerticalWrapMode.Overflow;
                 txt.alignment = TextAnchor.MiddleCenter;
 
-                txt.text = "<color=#FFFF00>" + cfg.Description.Description.Replace(". ", "\r\n") + "</color>\n\n"
+                txt.text = "<color=#FFFF00>" + cfg.Description.Description.Replace(". ", ".\r\n") + "</color>\n\n"
                     + "Type: <color=#FF8080>" + cfg.SettingType + "</color>\r\nDefault: <color=#00FF00>" + LimitWidth(cfg.DefaultValue, 80) + "</color>";
                 
                 var rtTxt = tooltipTxt.GetComponent<RectTransform>();
