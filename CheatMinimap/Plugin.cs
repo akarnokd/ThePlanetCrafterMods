@@ -225,17 +225,18 @@ namespace CheatMinimap
                             if (autoScanEnabled == 0)
                             {
                                 chests.Clear();
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Disabling Chest AutoScan");
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("Minimap_DisableChestAutoScan", 2f);
                             }
                             else
                             if (autoScanEnabled == 1)
                             {
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Begin Chest AutoScan");
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("Minimap_BeginChestAutoScan", 2f);
                                 FindChests();
                             }
                             else
                             {
-                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Stop Chest AutoScan, Chests found: " + chests.Count);
+                                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, 
+                                    string.Format(Localization.GetLocalizedString("Minimap_StopChestAutoScan"), chests.Count));
                             }
                         } 
                         else
@@ -383,7 +384,8 @@ namespace CheatMinimap
 
             if (autoScanEnabled == 0)
             {
-                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found " + chests.Count + " chests");
+                Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, 
+                    string.Format(Localization.GetLocalizedString("Minimap_FoundChestAutoScan"), chests.Count));
             }
         }
 
@@ -740,6 +742,35 @@ namespace CheatMinimap
         static void BlackScreen_DisplayLogoStudio()
         {
             UiWindowPause_OnQuit();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Localization), "LoadLocalization")]
+        static void Localization_LoadLocalization(
+            Dictionary<string, Dictionary<string, string>> ___localizationDictionary
+        )
+        {
+            if (___localizationDictionary.TryGetValue("hungarian", out var dict))
+            {
+                dict["Minimap_DisableChestAutoScan"] = "Tároló keresés kikapcsolása";
+                dict["Minimap_BeginChestAutoScan"] = "Tároló keresés indítása";
+                dict["Minimap_StopChestAutoScan"] = "Tároló keresés leállítása, {0} tároló található";
+                dict["Minimap_FoundChestAutoScan"] = "{0} tároló található";
+            }
+            if (___localizationDictionary.TryGetValue("english", out dict))
+            {
+                dict["Minimap_DisableChestAutoScan"] = "Disable Chest Auto Scan";
+                dict["Minimap_BeginChestAutoScan"] = "Begin Chest Auto Scan";
+                dict["Minimap_StopChestAutoScan"] = "Stop Chest Auto Scan, found {0} chest(s)";
+                dict["Minimap_FoundChestAutoScan"] = "Found {0} chest(s)";
+            }
+            if (___localizationDictionary.TryGetValue("russian", out dict))
+            {
+                dict["Minimap_DisableChestAutoScan"] = "Отключение Автосканирования ящиков";
+                dict["Minimap_BeginChestAutoScan"] = "Начать автосканирование ящиков";
+                dict["Minimap_StopChestAutoScan"] = "Остановить автосканирование ящиков. Найдено ящиков: {0}";
+                dict["Minimap_FoundChestAutoScan"] = "Найдено {0} ящиков";
+            }
         }
 
     }

@@ -163,8 +163,8 @@ namespace UIShowConsumableCount
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         static void Localization_LoadLocalization(
-    Dictionary<string, Dictionary<string, string>> ___localizationDictionary
-)
+            Dictionary<string, Dictionary<string, string>> ___localizationDictionary
+        )
         {
             if (___localizationDictionary.TryGetValue("hungarian", out var dict))
             {
