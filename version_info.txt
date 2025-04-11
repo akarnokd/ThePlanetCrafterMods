@@ -1,7 +1,7 @@
 # (Cheat) Asteroid Landing Position Override
 akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.16
 # (Cheat) Auto Consume Oxygen-Water-Food
-akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.19
+akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.18
 # (Cheat) Auto Grab and Mine
 akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.13
 # (Cheat) Automatically Harvest Food n Algae
@@ -73,7 +73,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.15
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.19
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.22
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.21
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.15
 # (UI) Prevent Accidental Deconstruct
@@ -87,7 +87,7 @@ akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.12
 # (UI) Menu Shortcut Keys
 akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.16
 # (UI) Mod Config Menu
-akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.16
+akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.15
 # (UI) Overview Panel
 akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.31
 # (UI) Pin Recipe to Screen
@@ -95,13 +95,13 @@ akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.31
 # (UI) Save When Quitting
 akarnokd.theplanetcraftermods.saveonquit=1.0.0.13
 # (UI) Show Consumable Counts
-akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.19
+akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.18
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.20
 # (UI) Show Crash
 akarnokd.theplanetcraftermods.uishowcrash=1.0.0.13
 # (UI) Show ETA
-akarnokd.theplanetcraftermods.uishoweta=1.0.0.14
+akarnokd.theplanetcraftermods.uishoweta=1.0.0.13
 # (UI) Show Grab N Mine Count
 akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.16
 # (UI) Show MultiTool Mode
