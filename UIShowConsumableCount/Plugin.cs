@@ -137,7 +137,7 @@ namespace UIShowConsumableCount
                 consumableCounts.TryGetValue(pair.Key, out int c);
 
                 Text text = pair.Value.GetComponent<Text>();
-                text.text = "x " + c;
+                text.text = string.Format(Localization.GetLocalizedString("ShowConsumableCount_Amount"), c);
 
                 if (c > 0)
                 {
@@ -159,5 +159,26 @@ namespace UIShowConsumableCount
             waterCount?.SetActive(active);
             oxygenCount?.SetActive(active);
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Localization), "LoadLocalization")]
+        static void Localization_LoadLocalization(
+    Dictionary<string, Dictionary<string, string>> ___localizationDictionary
+)
+        {
+            if (___localizationDictionary.TryGetValue("hungarian", out var dict))
+            {
+                dict["ShowConsumableCount_Amount"] = "x {0}";
+            }
+            if (___localizationDictionary.TryGetValue("english", out dict))
+            {
+                dict["ShowConsumableCount_Amount"] = "x {0}";
+            }
+            if (___localizationDictionary.TryGetValue("russian", out dict))
+            {
+                dict["ShowConsumableCount_Amount"] = "{0} шт.";
+            }
+        }
+
     }
 }
