@@ -10,28 +10,6 @@ namespace CheatInventoryStacking
     public partial class Plugin
     {
         /// <summary>
-        /// Disallow stacking in growers.
-        /// </summary>
-        /// <param name="inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineGrowerVegetationHarvestable), nameof(MachineGrowerVegetationHarvestable.SetGrowerInventory))]
-        static void Patch_MachineGrowerVegetationHarvestable_SetGrowerInventory(Inventory inventory)
-        {
-            noStackingInventories.Add(inventory.GetId());
-        }
-
-        /// <summary>
-        /// Disallow stacking in outside growers.
-        /// </summary>
-        /// <param name="inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
-        static void Patch_MachineGrowerVegetationStatic_SetGrowerInventory(Inventory inventory)
-        {
-            noStackingInventories.Add(inventory.GetId());
-        }
-
-        /// <summary>
         /// Disallow stacking in DNA/Incubator.
         /// </summary>
         /// <param name="_inventory"></param>

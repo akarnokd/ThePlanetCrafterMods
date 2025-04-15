@@ -17,7 +17,7 @@ akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.64
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.67
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.68
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.30
 # (Cheat) Minimap
@@ -63,7 +63,7 @@ akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Reduce Save Size
 akarnokd.theplanetcraftermods.perfsavereducesize=1.0.0.17
 # (Perf) Startup
-akarnokd.theplanetcraftermods.perfstartup=1.0.0.13
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.14
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.14
 # (Save) Auto Save
@@ -73,7 +73,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.15
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.19
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.23
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.24
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.15
 # (UI) Prevent Accidental Deconstruct
@@ -123,7 +123,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.25
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.27
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.96
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.0.97
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.28
 # (UI) Korean Translation

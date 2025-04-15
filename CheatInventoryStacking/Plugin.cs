@@ -48,6 +48,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackVehicle;
         static ConfigEntry<bool> stackOreCrusherIn;
         static ConfigEntry<bool> stackOreCrusherOut;
+        static ConfigEntry<bool> stackInterplanetaryRockets;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -109,6 +110,7 @@ namespace CheatInventoryStacking
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
         static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
+        static AccessTools.FieldRef<MachineGrowerVegetationHarvestable, Inventory> fMachineGrowerVegetationHarvestableSecondInventory;
         static Plugin me;
 
         static readonly Version requiredCFNC = new(1, 0, 0, 14);
@@ -132,6 +134,7 @@ namespace CheatInventoryStacking
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
+            stackInterplanetaryRockets = Config.Bind("General", "StackInterplanetaryRockets", false, "Should the interplanetary rockets' inventory stack?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
             stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
@@ -231,6 +234,8 @@ namespace CheatInventoryStacking
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
+
+            fMachineGrowerVegetationHarvestableSecondInventory = AccessTools.FieldRefAccess<MachineGrowerVegetationHarvestable, Inventory>("_secondInventory");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));

@@ -111,35 +111,44 @@ namespace PerfStartup
                 }
                 var tiLine = sr.ReadLine() ?? throw new IOException("File does not have the Ti information: " + fileName);
 
+
                 ws = new JsonablePlanetState();
                 tiLine = tiLine.Replace("unitBiomassLevel", "unitPlantsLevel");
 
-                JsonUtility.FromJsonOverwrite(tiLine, ws);
+                var isOldFileFormat = tiLine.Contains("unitOxygenLevel");
 
-                // now skip over 7 @ sections
-                int sections = 7;
+                int section = 1;
+                if (isOldFileFormat)
+                {
+                    JsonUtility.FromJsonOverwrite(tiLine, ws);
+                }
+
+                // now skip over several @ sections till the custom save name info
                 for (; ; )
                 {
                     var line = sr.ReadLine() ?? throw new IOException("File ends before the mode section: " + fileName);
                     if (line.StartsWith("@"))
                     {
-                        if (--sections == 0)
+                        section++;
+                    } 
+                    else 
+                    { 
+                        if (!isOldFileFormat && section == 2)
                         {
-                            line = sr.ReadLine();
-                            if (line == null)
-                            {
-                                throw new IOException("File ends just before the mode section: " + fileName);
-                            }
+                            JsonablePlanetState wsTemp = new();
+                            JsonUtility.FromJsonOverwrite(line.Replace("unitBiomassLevel", "unitPlantsLevel"), wsTemp);
+
+                            AddPlanetStates(ws, wsTemp);
+                        }
+                        else
+                        if (section == (isOldFileFormat ? 8 : 9))
+                        {
                             JsonUtility.FromJsonOverwrite(line, state);
+                            state.preInterplanetarySave = isOldFileFormat;
                             modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), state.mode));
                             break;
                         }
                     }
-                }
-
-                if (sections != 0)
-                {
-                    throw new IOException("File ends with missing sections" + fileName + " (" + sections + " to go)");
                 }
             } 
             catch (Exception ex)
@@ -147,6 +156,16 @@ namespace PerfStartup
                 logger.LogError(ex);
                 corrupt = true;
             }
+        }
+
+        static void AddPlanetStates(JsonablePlanetState dest, JsonablePlanetState src)
+        {
+            dest.unitOxygenLevel += src.unitOxygenLevel;
+            dest.unitHeatLevel += src.unitHeatLevel;
+            dest.unitPressureLevel += src.unitPressureLevel;
+            dest.unitPlantsLevel += src.unitPlantsLevel;
+            dest.unitInsectsLevel += src.unitInsectsLevel;
+            dest.unitAnimalsLevel += src.unitAnimalsLevel;
         }
 
         [HarmonyPrefix]

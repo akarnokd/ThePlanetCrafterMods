@@ -10,15 +10,24 @@ namespace CheatInventoryStacking
 {
     public partial class Plugin
     {
+
+        static bool IsBackAndForthStackable(MachineRocketBackAndForth __instance)
+        {
+            return (__instance is MachineRocketBackAndForthTrade && stackTradeRockets.Value)
+                || (__instance is MachineRocketBackAndForthInterplanetaryExchange && stackInterplanetaryRockets.Value);
+        }
+
         /// <summary>
         /// Conditionally disallow stacking in trade rockets.
         /// </summary>
         /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
-        static void Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(Inventory inventory)
+        static void Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(
+            MachineRocketBackAndForth __instance,
+            Inventory inventory)
         {
-            if (!stackTradeRockets.Value)
+            if (!IsBackAndForthStackable(__instance))
             {
                 noStackingInventories.Add(inventory.GetId());
             }
@@ -31,7 +40,7 @@ namespace CheatInventoryStacking
             MachineRocketBackAndForth __instance,
             Inventory ____inventory)
         {
-            if (stackTradeRockets.Value && stackSize.Value > 1)
+            if (stackSize.Value > 1 && IsBackAndForthStackable(__instance))
             {
                 if (__instance.GetComponent<SettingProxy>().GetSetting() == 1
                     && ____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count)
@@ -53,7 +62,7 @@ namespace CheatInventoryStacking
             Group group, 
             int changeOfValue)
         {
-            if (stackSize.Value <= 1 || !stackTradeRockets.Value)
+            if (stackSize.Value <= 1 || !IsBackAndForthStackable(____machineRocketBackAndForth))
             {
                 return true;
             }

@@ -28,9 +28,9 @@ namespace CheatInventoryStacking
             {
                 try
                 {
-                    if (__instance.TryGetComponent<MachineGrowerVegetationHarvestable>(out _))
+                    if (__instance.TryGetComponent<MachineGrowerVegetationHarvestable>(out var mgvh))
                     {
-                        Patch_MachineGrowerVegetationHarvestable_SetGrowerInventory(inventory);
+                        Patch_MachineGrowerVegetationHarvestable_SetGrowerInventory(mgvh, inventory);
                     }
                     if (__instance.TryGetComponent<MachineGrowerVegetationStatic>(out _))
                     {
@@ -52,9 +52,9 @@ namespace CheatInventoryStacking
                     {
                         Patch_MachineAutoCrafter_SetAutoCrafterInventory(inventory);
                     }
-                    if (__instance.TryGetComponent<MachineRocketBackAndForth>(out _))
+                    if (__instance.TryGetComponent<MachineRocketBackAndForth>(out var mrbaf))
                     {
-                        Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(inventory);
+                        Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(mrbaf, inventory);
                     }
                     if (__instance.TryGetComponent<MachineDestructInventoryIfFull>(out _))
                     {
