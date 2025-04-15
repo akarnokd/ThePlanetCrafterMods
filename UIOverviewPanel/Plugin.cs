@@ -154,7 +154,7 @@ namespace UIOverviewPanel
 
                 AddTextRow(Translate("OverviewPanel_MicrochipsUnlocked"), CreateMicrochipUnlock());
 
-                var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
+                var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
 
                 if (pd != null && pd.id == "Humble")
                 {
@@ -345,18 +345,19 @@ namespace UIOverviewPanel
                 }
                 else
                 {
+                    // FIXME units sometimes double now!!!
                     var prevValue = 0f;
                     if (prevUnlocks.Count != 0)
                     {
-                        prevValue = prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
+                        prevValue = (float)prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
                     }
 
                     var nextUnlock = nextUnlocks[0];
-                    var value = nextUnlock.GetUnlockingInfos().GetUnlockingValue();
+                    var value = (float)nextUnlock.GetUnlockingInfos().GetUnlockingValue();
 
                     var wu = Managers.GetManager<WorldUnitsHandler>();
                     var wut = wu.GetUnit(unitType);
-                    var remaining = Mathf.InverseLerp(prevValue, value, wut.GetValue()) * 100;
+                    var remaining = Mathf.InverseLerp(prevValue, value, (float)wut.GetValue()) * 100;
                     var speed = wut.GetCurrentValuePersSec();
                     var gameSettings = Managers.GetManager<GameSettingsHandler>();
                     if (gameSettings != null)
@@ -424,9 +425,9 @@ namespace UIOverviewPanel
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
 
-                var cstart = curr.GetStageStartValue();
-                var nstart = next.GetStageStartValue();
-                var sperc = Mathf.InverseLerp(cstart, nstart, wut.GetValue());
+                var cstart = (float)curr.GetStageStartValue(); // FIXME units now double in some API
+                var nstart = (float)next.GetStageStartValue();
+                var sperc = Mathf.InverseLerp(cstart, nstart, (float)wut.GetValue());
 
                 var value = nstart;
                 var speed = wut.GetCurrentValuePersSec();

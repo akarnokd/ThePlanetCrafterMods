@@ -484,9 +484,9 @@ namespace CheatInventoryStacking
                         if (!worldObject.GetIsLockedInInventory())
                         {
                             EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick,
-                                onImageClickedDelegate, null, worldObject);
+                                onImageClickedDelegate, new EventTriggerCallbackData(worldObject));
                             EventsHelpers.AddTriggerEvent(dropIcon, EventTriggerType.PointerClick,
-                                onDropClickedDelegate, null, worldObject);
+                                onDropClickedDelegate, new EventTriggerCallbackData(worldObject));
 
                             gameObject.AddComponent<EventGamepadAction>()
                             .SetEventGamepadAction(
@@ -660,15 +660,17 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void Patch_UiWindowPause_OnQuit()
         {
-            noStackingInventories = new(defaultNoStackingInventories);
+            noStackingInventories = [.. defaultNoStackingInventories];
             inventoryOwnerCache.Clear();
             stationDistancesCache.Clear();
             nonAttributedTasksCache.Clear();
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
+            /*
             optimizerLast = null;
             optimizerLastFrame = -1;
             optimizerWorldUnitCache.Clear();
+            */
         }
 
         [HarmonyPrefix]
@@ -727,8 +729,8 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(JsonablesHelper), nameof(JsonablesHelper.JsonableToInventory))]
-        static bool Patch_JsonablesHelper_JsonableToInventory(JsonableInventory _jsonableInventory,
-            Dictionary<int, WorldObject> _objectMap,
+        static bool Patch_JsonablesHelper_JsonableToInventory(JsonableInventory jsonableInventory,
+            Dictionary<int, WorldObject> objectMap,
             ref Inventory __result)
         {
             if (stackSize.Value <= 1)
@@ -737,20 +739,27 @@ namespace CheatInventoryStacking
             }
             List<WorldObject> list = [];
             // Vanilla started limiting this list to 8000 entries, we need to free it
-            foreach (string text in _jsonableInventory.woIds.Split(',', StringSplitOptions.None))
+            foreach (string text in jsonableInventory.woIds.Split(',', StringSplitOptions.None))
             {
                 if (!(text == ""))
                 {
                     int num;
                     int.TryParse(text, out num);
-                    if (_objectMap.ContainsKey(num))
+                    if (objectMap.ContainsKey(num))
                     {
-                        WorldObject worldObject = _objectMap[num];
+                        WorldObject worldObject = objectMap[num];
                         list.Add(worldObject);
                     }
                 }
             }
-            __result = new Inventory(_jsonableInventory.id, _jsonableInventory.size, list, GroupsHandler.GetGroupsViaString(_jsonableInventory.supplyGrps, new HashSet<Group>()) as HashSet<Group>, GroupsHandler.GetGroupsViaString(_jsonableInventory.demandGrps, new HashSet<Group>()) as HashSet<Group>, _jsonableInventory.priority);
+            __result = new Inventory(
+                jsonableInventory.id, 
+                jsonableInventory.size, 
+                list, 
+                GroupsHandler.GetGroupsViaString(jsonableInventory.supplyGrps, new HashSet<Group>()) as HashSet<Group>,
+                GroupsHandler.GetGroupsViaString(jsonableInventory.demandGrps, new HashSet<Group>()) as HashSet<Group>, 
+                jsonableInventory.priority
+            );
 
             return false;
         }

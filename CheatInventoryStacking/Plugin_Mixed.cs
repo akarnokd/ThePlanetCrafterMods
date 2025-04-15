@@ -14,8 +14,8 @@ namespace CheatInventoryStacking
         /// </summary>
         /// <param name="inventory"></param>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
-        static void Patch_MachineGrower_SetGrowerInventory(Inventory inventory)
+        [HarmonyPatch(typeof(MachineGrowerVegetationHarvestable), nameof(MachineGrowerVegetationHarvestable.SetGrowerInventory))]
+        static void Patch_MachineGrowerVegetationHarvestable_SetGrowerInventory(Inventory inventory)
         {
             noStackingInventories.Add(inventory.GetId());
         }
@@ -25,8 +25,8 @@ namespace CheatInventoryStacking
         /// </summary>
         /// <param name="inventory"></param>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
-        static void Patch_MachineOutsideGrower_SetGrowerInventory(Inventory inventory)
+        [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
+        static void Patch_MachineGrowerVegetationStatic_SetGrowerInventory(Inventory inventory)
         {
             noStackingInventories.Add(inventory.GetId());
         }

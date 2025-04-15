@@ -183,7 +183,7 @@ namespace CheatAutoStore
             List<(int, string)> candidateInventoryIds = [];
             List<(WorldObject, string)> candidateGetInventoryOfWorldObject = [];
 
-            List<WorldObject> wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
+            var wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
             Log("  Constructed WorldObjects: " + wos.Count);
 
             foreach (var wo in wos)

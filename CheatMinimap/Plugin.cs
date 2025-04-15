@@ -418,15 +418,15 @@ namespace CheatMinimap
                     float mapWidth = primeMapMaxX - primeMapMinX;
                     float mapHeight = primeMapMaxY - primeMapMinY;
 
-                    var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
+                    var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
 
                     var isPrime = pd != null && (pd.id == "" || pd.id == "Prime");
                     if (isPrime)
                     {
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
-                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
                             if (currT >= 425000000000f)
                             {
                                 theMap = endgame;
@@ -455,8 +455,8 @@ namespace CheatMinimap
 
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
-                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
                             if (currT >= minT)
                             {
                                 theMap = humbleLush;

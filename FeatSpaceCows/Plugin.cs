@@ -42,7 +42,7 @@ namespace FeatSpaceCows
 
         static Coroutine cowChecker;
 
-        static AccessTools.FieldRef<WorldObjectsHandler, List<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
+        static AccessTools.FieldRef<WorldObjectsHandler, HashSet<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
 
         private void Awake()
         {
@@ -64,7 +64,7 @@ namespace FeatSpaceCows
 
                 cow1 = LoadPNG(Path.Combine(dir, "SpaceCow1.png"));
 
-                fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, List<WorldObject>>("_itemsPickablesWorldObjects");
+                fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, HashSet<WorldObject>>("_itemsPickablesWorldObjects");
 
                 LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -390,7 +390,7 @@ namespace FeatSpaceCows
 
                     Log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
 
-                    wu.SetCurrentTotalValue(after);
+                    wu.SetCurrentTotalValue((float)after);
                 }
             }
         }

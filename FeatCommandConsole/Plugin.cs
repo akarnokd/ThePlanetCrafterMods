@@ -695,7 +695,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleSpawns = [];
-                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupItem gi && gi.GetId().ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
@@ -1144,8 +1144,8 @@ namespace FeatCommandConsole
         [Command("/list-stages", "List the terraformation stages along with their Ti amounts.")]
         public void ListStages(List<string> _)
         {
-            var tfm = Managers.GetManager<TerraformStagesHandler>();
-            foreach (var stage in tfm.GetAllTerraGlobalStages())
+            var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
+            foreach (var stage in pd.GetPlanetTerraformationStages())
             {
                 AddLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
                     + "</color> <color=#00FF00>\"" + Readable.GetTerraformStageName(stage)
@@ -1306,7 +1306,7 @@ namespace FeatCommandConsole
             var worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
 
             WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
-            foreach (WorldUnit wu in wuh.GetAllWorldUnits())
+            foreach (WorldUnit wu in wuh.GetAllPlanetUnits())
             {
                 if (wu.GetUnitType() == wut)
                 {
@@ -1333,9 +1333,9 @@ namespace FeatCommandConsole
             }
             */
 
-            List<GameObject> allWaterVolumes = Managers.GetManager<WaterHandler>().GetAllWaterVolumes();
+            var allWaterVolumes = FindObjectsByType<WaterVolume>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             //LogInfo("allWaterVolumes.Count = " + allWaterVolumes.Count);
-            foreach (GameObject go1 in allWaterVolumes)
+            foreach (var go1 in allWaterVolumes)
             {
                 var wup = go1.GetComponent<WorldUnitPositioning>();
 
@@ -1544,7 +1544,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> list = [];
-                    foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var gd in GroupsHandler.GetAllGroups())
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
                         if (!UnlockedGroupsHandler.Instance.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1588,7 +1588,7 @@ namespace FeatCommandConsole
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
             List<string> list = [];
-            foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gd in GroupsHandler.GetAllGroups())
             {
                 var g = GroupsHandler.GetGroupViaId(gd.id);
                 if (g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1609,7 +1609,7 @@ namespace FeatCommandConsole
 
         SpaceCraft.Group FindGroup(string gid)
         {
-            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 var gci = gr.GetId().ToLower(CultureInfo.InvariantCulture);
                 if (gci == gid && !gci.StartsWith("spacemultiplier"))
@@ -1623,7 +1623,7 @@ namespace FeatCommandConsole
 
         void DidYouMean(string gid, bool isStructure, bool isItem)
         {
-            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups(!allGroups.Value)
+            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
                 .Where(g => { 
                     if (isStructure && g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
                     {
@@ -1976,7 +1976,7 @@ namespace FeatCommandConsole
             }
 
             Dictionary<string, List<string>> larvaeToSequenceInto = [];
-            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
                 {
@@ -2062,8 +2062,8 @@ namespace FeatCommandConsole
             logger.LogInfo("Found " + stages.Count + " stages");
             stages.Sort((a, b) =>
             {
-                float v1 = a.terraStage.GetStageStartValue();
-                float v2 = b.terraStage.GetStageStartValue();
+                var v1 = a.terraStage.GetStageStartValue();
+                var v2 = b.terraStage.GetStageStartValue();
                 return v1 < v2 ? -1 : (v1 > v2 ? 1 : 0);
             });
             foreach (InventoryLootStage ils in stages)
@@ -2182,7 +2182,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleStructures = [];
-                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupConstructible gc)
                         {
@@ -2732,14 +2732,14 @@ namespace FeatCommandConsole
                 
                 AddLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
 
-                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
+                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineRocketBackAndForth), "updateGrowthEvery");
 
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
                     {
-                        var platform = go.GetComponent<MachineTradePlatform>();
+                        var platform = go.GetComponent<MachineRocketBackAndForth>();
                         if (platform != null)
                         {
                             ___updateGrowthEvery.SetValue(platform, tradePlatformDelay);
@@ -2750,8 +2750,8 @@ namespace FeatCommandConsole
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
-        static void MachineTradePlatform_SetInventoryTradePlatform(ref float ___updateGrowthEvery)
+        [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
+        static void MachineRocketBackAndForth_SetInventoryRocketBackAndForth(ref float ___updateGrowthEvery)
         {
             ___updateGrowthEvery = tradePlatformDelay;
         }
@@ -3145,14 +3145,14 @@ namespace FeatCommandConsole
 
                 AddLine("<margin=1em>Outside growers' delay progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
 
-                FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineOutsideGrower), "updateInterval");
+                FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineGrowerVegetationStatic), "growthUpdateInterval");
 
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
                     {
-                        var platform = go.GetComponent<MachineOutsideGrower>();
+                        var platform = go.GetComponent<MachineGrowerVegetationStatic>();
                         if (platform != null)
                         {
                             ___updeteInterval.SetValue(platform, outsideGrowerDelay);
@@ -4100,7 +4100,7 @@ namespace FeatCommandConsole
             {
                 filter = args[2];
             }
-            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups(!allGroups.Value));
+            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups());
             if (sort == "id")
             {
                 gds.Sort((a, b) => a.id.CompareTo(b.id));
@@ -4165,7 +4165,7 @@ namespace FeatCommandConsole
         [Command("/list-lootables", "List items that when deconstructed produce a recipe.")]
         public void ListLootables(List<string> _)
         {
-            foreach (var gi in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gi in GroupsHandler.GetAllGroups())
             {
                 if (gi.GetLootRecipeOnDeconstruct())
                 {
@@ -4202,7 +4202,7 @@ namespace FeatCommandConsole
                     
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     var inv = pm.GetPlayerBackpack().GetInventory();
-                    InventoriesHandler.Instance.AddItemToInventory(worldObject, inv, success =>
+                    InventoriesHandler.Instance.AddItemToInventory(worldObject, inv, resetPositionAndRotation: true, success =>
                     {
                         if (!success)
                         {
@@ -4220,10 +4220,10 @@ namespace FeatCommandConsole
 
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
-        static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
+        [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
+        static void MachineGrowerVegetationStatic_SetGrowerInventory(ref float ___growthUpdateInterval)
         {
-            ___updateInterval = outsideGrowerDelay;
+            ___growthUpdateInterval = outsideGrowerDelay;
         }
 
         [HarmonyPostfix]

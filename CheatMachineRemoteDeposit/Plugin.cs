@@ -142,9 +142,9 @@ namespace CheatMachineRemoteDeposit
         static bool MachineGenerator_GenerateAnObject(
             List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject,
+            WorldObject ____worldObject,
             List<GroupData> ___groupDatasTerraStage,
-            ref WorldUnitsHandler ___worldUnitsHandler,
+            ref WorldUnitsHandler ____worldUnitsHandler,
             TerraformStage ___terraStage
         )
         {
@@ -159,11 +159,11 @@ namespace CheatMachineRemoteDeposit
 
             Log("GenerateAnObject start");
 
-            if (___worldUnitsHandler == null)
+            if (____worldUnitsHandler == null)
             {
-                ___worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
+                ____worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
             }
-            if (___worldUnitsHandler == null)
+            if (____worldUnitsHandler == null)
             {
                 return false;
             }
@@ -174,7 +174,7 @@ namespace CheatMachineRemoteDeposit
             if (___groupDatas.Count != 0)
             {
                 List<GroupData> list = new(___groupDatas);
-                if (___groupDatasTerraStage.Count != 0 && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                if (___groupDatasTerraStage.Count != 0 && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
                 {
                     list.AddRange(___groupDatasTerraStage);
                 }
@@ -182,9 +182,9 @@ namespace CheatMachineRemoteDeposit
             }
             if (___setGroupsDataViaLinkedGroup)
             {
-                if (___worldObject.GetLinkedGroups() != null && ___worldObject.GetLinkedGroups().Count > 0)
+                if (____worldObject.GetLinkedGroups() != null && ____worldObject.GetLinkedGroups().Count > 0)
                 {
-                    group = ___worldObject.GetLinkedGroups()[UnityEngine.Random.Range(0, ___worldObject.GetLinkedGroups().Count)];
+                    group = ____worldObject.GetLinkedGroups()[UnityEngine.Random.Range(0, ____worldObject.GetLinkedGroups().Count)];
                 }
                 else
                 {
@@ -208,7 +208,7 @@ namespace CheatMachineRemoteDeposit
                     {
                         if (!success)
                         {
-                            Log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                            Log("GenerateAnObject: Machine " + ____worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
                             if (id != 0)
                             {
                                 WorldObjectsHandler.Instance.DestroyWorldObject(id);
@@ -237,14 +237,14 @@ namespace CheatMachineRemoteDeposit
         /// MachineGenerator.TryToGenerate method.
         /// </summary>
         /// <param name="__instance"></param>
-        /// <param name="_inventory"></param>
+        /// <param name="inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
         static void MachineGenerator_SetGeneratorInventory(
             MachineGenerator __instance, 
-            Inventory _inventory)
+            Inventory inventory)
         {
-            __instance.StartCoroutine(ClearMachineGeneratorInventory(_inventory, __instance.spawnEveryXSec));
+            __instance.StartCoroutine(ClearMachineGeneratorInventory(inventory, __instance.spawnEveryXSec));
         }
 
         /// <summary>
@@ -253,15 +253,15 @@ namespace CheatMachineRemoteDeposit
         /// We have to also restart our inventory cleaning routine.
         /// </summary>
         /// <param name="__instance"></param>
-        /// <param name="___inventory"></param>
+        /// <param name="____inventory"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.AddToGenerationSpeedMultiplier))]
         static void MachineGenerator_AddToGenerationSpeedMultiplier(
             MachineGenerator __instance,
-            Inventory ___inventory
+            Inventory ____inventory
         )
         {
-            __instance.StartCoroutine(ClearMachineGeneratorInventory(___inventory, __instance.spawnEveryXSec));
+            __instance.StartCoroutine(ClearMachineGeneratorInventory(____inventory, __instance.spawnEveryXSec));
         }
 
         static IEnumerator ClearMachineGeneratorInventory(Inventory _inventory, int delay)

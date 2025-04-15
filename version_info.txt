@@ -1,7 +1,7 @@
 # (Cheat) Asteroid Landing Position Override
 akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.16
 # (Cheat) Auto Consume Oxygen-Water-Food
-akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.18
+akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.19
 # (Cheat) Auto Grab and Mine
 akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.13
 # (Cheat) Automatically Harvest Food n Algae
@@ -11,35 +11,35 @@ akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.12
 # (Cheat) Auto Sequence DNA
 akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.23
 # (Cheat) Auto Store
-akarnokd.theplanetcraftermods.cheatautostore=1.0.0.11
+akarnokd.theplanetcraftermods.cheatautostore=1.0.0.12
 # (Cheat) Birthday
 akarnokd.theplanetcraftermods.cheatbirthday=1.0.0.11
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.64
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.66
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.67
 # (Cheat) Machines Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.29
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.30
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.55
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.57
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources
 akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.27
 # (Cheat) Hide Water in Photomode
-akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.15
+akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.16
 # (Cheat) Recyclers Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.13
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.14
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.24
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.25
 # (Feat) Technicians Exile
-akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.30
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.31
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.50
 # (Item) Rods
@@ -63,7 +63,7 @@ akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Reduce Save Size
 akarnokd.theplanetcraftermods.perfsavereducesize=1.0.0.17
 # (Perf) Startup
-akarnokd.theplanetcraftermods.perfstartup=1.0.0.12
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.13
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.14
 # (Save) Auto Save
@@ -73,7 +73,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.15
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.19
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.21
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.23
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.15
 # (UI) Prevent Accidental Deconstruct
@@ -87,21 +87,21 @@ akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.12
 # (UI) Menu Shortcut Keys
 akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.16
 # (UI) Mod Config Menu
-akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.15
+akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.16
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.31
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.33
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.31
 # (UI) Save When Quitting
 akarnokd.theplanetcraftermods.saveonquit=1.0.0.13
 # (UI) Show Consumable Counts
-akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.18
+akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.19
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.20
 # (UI) Show Crash
 akarnokd.theplanetcraftermods.uishowcrash=1.0.0.13
 # (UI) Show ETA
-akarnokd.theplanetcraftermods.uishoweta=1.0.0.13
+akarnokd.theplanetcraftermods.uishoweta=1.0.0.14
 # (UI) Show Grab N Mine Count
 akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.16
 # (UI) Show MultiTool Mode

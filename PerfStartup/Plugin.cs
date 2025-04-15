@@ -93,11 +93,11 @@ namespace PerfStartup
             return true;
         }
 
-        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, 
+        static void LoadMetadata(string fileName, out string modeLabel, out JsonablePlanetState ws, 
             out bool corrupt, out JsonableGameState state)
         {
             corrupt = false;
-            ti = null;
+            ws = null;
             modeLabel = "";
             state = ScriptableObject.CreateInstance<JsonableGameState>();
             try
@@ -111,16 +111,10 @@ namespace PerfStartup
                 }
                 var tiLine = sr.ReadLine() ?? throw new IOException("File does not have the Ti information: " + fileName);
 
-                var ws = new JsonableWorldState();
+                ws = new JsonablePlanetState();
                 tiLine = tiLine.Replace("unitBiomassLevel", "unitPlantsLevel");
 
                 JsonUtility.FromJsonOverwrite(tiLine, ws);
-
-                ti = new WorldUnit(["Ti", "kTi", "MTi", "GTi", "TTi", "PTi", "ETi", "ZTi", "YTi"],
-                    DataConfig.WorldUnitType.Terraformation);
-                ti.Init(ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel
-                        + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel);
-                ti.SetCurrentLabelIndex();
 
                 // now skip over 7 @ sections
                 int sections = 7;
@@ -157,9 +151,9 @@ namespace PerfStartup
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.CreateNewSaveFile))]
-        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ___proceduralInstances)
+        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ____proceduralInstances)
         {
-            ___proceduralInstances ??= [];
+            ____proceduralInstances ??= [];
         }
 
     }

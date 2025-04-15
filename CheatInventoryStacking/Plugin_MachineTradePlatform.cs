@@ -15,8 +15,8 @@ namespace CheatInventoryStacking
         /// </summary>
         /// <param name="inventory"></param>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
-        static void Patch_MachineTradePlatform_SetInventoryTradePlatform(Inventory inventory)
+        [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
+        static void Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(Inventory inventory)
         {
             if (!stackTradeRockets.Value)
             {
@@ -26,9 +26,9 @@ namespace CheatInventoryStacking
 
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineTradePlatform), "OnTradeInventoryModified")]
-        static bool Patch_MachineTradePlatform_OnTradeInventoryModified(
-            MachineTradePlatform __instance,
+        [HarmonyPatch(typeof(MachineRocketBackAndForth), "OnRocketBackAndForthInventoryModified")]
+        static bool Patch_MachineRocketBackAndForth_OnRocketBackAndForthInventoryModified(
+            MachineRocketBackAndForth __instance,
             Inventory ____inventory)
         {
             if (stackTradeRockets.Value && stackSize.Value > 1)
@@ -36,7 +36,7 @@ namespace CheatInventoryStacking
                 if (__instance.GetComponent<SettingProxy>().GetSetting() == 1
                     && ____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count)
                 {
-                    __instance.SendTradeRocket();
+                    __instance.SendBackAndForthRocket();
                 }
                 return false;
             }
@@ -47,7 +47,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(UiWindowTrade), "OnClickButtons")]
         static bool Patch_UiWindowTrade_OnClickButtons(
             UiWindowTrade __instance,
-            MachineTradePlatform ____machineTradePlatform,
+            MachineRocketBackAndForth ____machineRocketBackAndForth,
             Dictionary<Group, int> ____groupsWithNumber,
             UiGroupLine uiGroupLine, 
             Group group, 
@@ -58,7 +58,7 @@ namespace CheatInventoryStacking
                 return true;
             }
 
-            ____machineTradePlatform.GetMachineTradeInventory(inventory =>
+            ____machineRocketBackAndForth.GetMachineRocketBackAndForthInventory(inventory =>
             {
                 var newCount = 0;
                 if (changeOfValue < 0)
@@ -132,7 +132,7 @@ namespace CheatInventoryStacking
                         toLink.Add(gc.Key);
                     }
                 }
-                ____machineTradePlatform.SetMachineTradeLinkedGroups(toLink);
+                ____machineRocketBackAndForth.SetMachineRocketBackAndForthLinkedGroups(toLink);
                 uiGroupLine.UpdateQuantity(newCount);
                 mUiWindowTradeUpdateTokenUi.Invoke(__instance, []);
             });

@@ -103,7 +103,7 @@ namespace UIContinue
 
                             if (sf.Length > 2)
                             {
-                                JsonableWorldState ws = new();
+                                JsonablePlanetState ws = new();
                                 JsonUtility.FromJsonOverwrite(sf[1].Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
 
                                 if (sf.Length > 4)
@@ -243,7 +243,7 @@ namespace UIContinue
             }
         }
 
-        static string CreateTiAndUnit(JsonableWorldState ws)
+        static string CreateTiAndUnit(JsonablePlanetState ws)
         {
             var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
 

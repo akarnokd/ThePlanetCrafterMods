@@ -202,7 +202,7 @@ namespace FeatTechniciansExile
 
             logger.LogInfo("Start");
 
-            var pid = pl.GetPlanetData().id;
+            var pid = pl.GetCurrentPlanetData().id;
 
             var technicianDropLocation = technicianDropLocationPerPlanet[pid];
 
@@ -281,7 +281,7 @@ namespace FeatTechniciansExile
         {
             bool dontSaveMe = false;
 
-            var pid = Managers.GetManager<PlanetLoader>().GetPlanetData().id;
+            var pid = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id;
 
             var technicianDropLocation = technicianDropLocationPerPlanet[pid];
 
@@ -894,7 +894,7 @@ namespace FeatTechniciansExile
             var mh = Managers.GetManager<MeteoHandler>();
             if (mh != null)
             {
-                var pid = Managers.GetManager<PlanetLoader>().GetPlanetData().id;
+                var pid = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id;
 
                 if (asteroid == null)
                 {
@@ -991,7 +991,7 @@ namespace FeatTechniciansExile
         void CheckBaseSetup()
         {
             var pm = GetPlayerMainController();
-            var technicianDropLocation = technicianDropLocationPerPlanet[Managers.GetManager<PlanetLoader>().GetPlanetData().id];
+            var technicianDropLocation = technicianDropLocationPerPlanet[Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id];
 
             if (Vector3.Distance(pm.transform.position, technicianDropLocation) >= 300)
             {
@@ -1008,7 +1008,7 @@ namespace FeatTechniciansExile
 
         static void ForceResetWorldUnits()
         {
-            foreach (var wo in Managers.GetManager<WorldUnitsHandler>().GetAllWorldUnits())
+            foreach (var wo in Managers.GetManager<WorldUnitsHandler>().GetAllPlanetUnits())
             {
                 wo.ForceResetValues();
             }
@@ -1282,7 +1282,7 @@ namespace FeatTechniciansExile
         {
             if (questPhase == QuestPhase.Operating)
             {
-                List<WorldUnit> allWorldUnits = Managers.GetManager<WorldUnitsHandler>().GetAllWorldUnits();
+                List<WorldUnit> allWorldUnits = Managers.GetManager<WorldUnitsHandler>().GetAllPlanetUnits();
                 var lines = ___gridGenerationRockets.GetComponentsInChildren<UiGroupLine>();
 
                 logger.LogInfo("Rocket lines: " + lines.Length);

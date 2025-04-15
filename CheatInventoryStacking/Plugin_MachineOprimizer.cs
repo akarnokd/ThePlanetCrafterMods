@@ -26,11 +26,12 @@ namespace CheatInventoryStacking
             }
         }
 
+
+        /*
         static int optimizerLastFrame = -1;
         static MachineOptimizer optimizerLast = null;
         static readonly Dictionary<DataConfig.WorldUnitType, List<GameObject>> optimizerWorldUnitCache = [];
 
-        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOptimizer), "GetWorldObjectsOfMachines")]
         static bool Patch_MachineOptimizer_GetWorldObjectsOfMachines_Pre(
