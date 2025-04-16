@@ -204,7 +204,7 @@ namespace FeatTechniciansExile
 
             var pid = pl.GetCurrentPlanetData().id;
 
-            var technicianDropLocation = technicianDropLocationPerPlanet[pid];
+            technicianDropLocationPerPlanet.TryGetValue(pid, out var technicianDropLocation);
 
             technicianLocation1 = technicianDropLocation + new Vector3(0, -0.5f, 0);
             technicianRotation1 = Quaternion.identity * Quaternion.Euler(0, -90, 0);
@@ -283,7 +283,7 @@ namespace FeatTechniciansExile
 
             var pid = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id;
 
-            var technicianDropLocation = technicianDropLocationPerPlanet[pid];
+            technicianDropLocationPerPlanet.TryGetValue(pid, out var technicianDropLocation);
 
             var livingPodBase = technicianDropLocation + new Vector3(0, 0, 15);
 
@@ -931,7 +931,7 @@ namespace FeatTechniciansExile
 
                                 var ah = Managers.GetManager<AsteroidsHandler>();
 
-                                var technicianDropLocation = technicianDropLocationPerPlanet[pid];
+                                technicianDropLocationPerPlanet.TryGetValue(pid, out var technicianDropLocation);
 
                                 var obj = Instantiate(
                                     selectedAsteroidEventData.asteroidGameObject,
@@ -991,7 +991,8 @@ namespace FeatTechniciansExile
         void CheckBaseSetup()
         {
             var pm = GetPlayerMainController();
-            var technicianDropLocation = technicianDropLocationPerPlanet[Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id];
+            var pid = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().id;
+            technicianDropLocationPerPlanet.TryGetValue(pid, out var technicianDropLocation);
 
             if (Vector3.Distance(pm.transform.position, technicianDropLocation) >= 300)
             {

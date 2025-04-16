@@ -284,6 +284,13 @@ namespace MiscDebug
             __result = true;
             return false;
         }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlanetList), "GetShowInBuild")]
+        static bool PlanetList_GetShowInBuild(ref bool __result)
+        {
+            __result = true;
+            return false;
+        }
         /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldInstanceDataSerializationExtensions), nameof(WorldInstanceDataSerializationExtensions.WriteValueSafe))]

@@ -187,5 +187,12 @@ namespace FixUnofficialPatches
             }
         }
         */
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldUnitPositioning), nameof(WorldUnitPositioning.UpdateEvolutionPositioning))]
+        static bool WorldUnitPositioning_UpdateEvolutionPositioning(TerraformStage ___startTerraformStage)
+        {
+            return ___startTerraformStage != null;
+        }
     }
 }
