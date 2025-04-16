@@ -31,10 +31,11 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modFeatCommandConsole, "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatCommandConsole = "akarnokd.theplanetcraftermods.featcommandconsole";
         const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
 
         static ManualLogSource logger;
@@ -49,7 +50,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> fontName;
         static ConfigEntry<float> transparency;
-        static ConfigEntry<bool> allGroups;
+        static ConfigEntry<string> onLoadCommand;
 
         static GameObject canvas;
         static GameObject background;
@@ -88,6 +89,8 @@ namespace FeatCommandConsole
         static Func<Inventory, int> GetInventoryCapacity;
 
         static Func<Inventory, string, bool> InventoryCanAdd;
+
+        static int worldLoadCount;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -137,7 +140,7 @@ namespace FeatCommandConsole
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
             transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
-            allGroups = Config.Bind("General", "AllGroups", true, "Consider all item types (true) or only the current planet's item types (false).");
+            onLoadCommand = Config.Bind("General", "OnLoadCommand", "", "The command to execute after the player loads into a world. Use a # prefix to 'comment out' the command.");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -211,6 +214,7 @@ namespace FeatCommandConsole
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modFeatCommandConsole, _ => PlanetLoader_HandleDataAfterLoad());
             /*
             LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
             */
@@ -514,6 +518,18 @@ namespace FeatCommandConsole
             }
         }
 
+        static void PlanetLoader_HandleDataAfterLoad()
+        {
+            var onLoadCommandText = onLoadCommand.Value;
+            if (++worldLoadCount == 1
+                && !string.IsNullOrWhiteSpace(onLoadCommandText) 
+                && !onLoadCommandText.StartsWith("#"))
+            {
+                AddLine("<color=#FFFF00>Executing OnLoadCommand");
+                me.ExecuteConsoleCommand(onLoadCommandText);
+            }
+        }
+
         void ExecuteConsoleCommand(string text)
         {
             Log("Debug executing command: " + text);
@@ -570,7 +586,7 @@ namespace FeatCommandConsole
 
         List<string> ParseConsoleCommand(string text)
         {
-            return new(Regex.Split(text, "\\s+"));
+            return [.. Regex.Split(text, "\\s+")];
         }
 
         [HarmonyPrefix]
@@ -979,6 +995,34 @@ namespace FeatCommandConsole
                 );
             }
         }
+
+        [Command("/tpf", "Teleport forward or backward where the camera is facing.")]
+        public void TeleportForward(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Teleport forward or backward where the camera is facing");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpf distance</color> - teleport by a positive or negative distance");
+            }
+            else
+            if (args.Count == 2)
+            {
+                var dist = float.Parse(args[1]);
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                pm.SetPlayerPlacement(pm.transform.position + Camera.main.transform.forward * dist, pm.transform.rotation);
+
+                AddLine("<margin=1em>Teleported to: ( "
+                    + pm.transform.position.x.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pm.transform.position.y.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pm.transform.position.z.ToString(CultureInfo.InvariantCulture)
+                    + " )"
+                );
+            }
+        }
+
+
         [Command("/tpp", "Teleport to another planet.")]
         public void TeleportPlanet(List<string> args)
         {
@@ -4189,7 +4233,7 @@ namespace FeatCommandConsole
         }
 
         [Command("/clear-all-supply", "Clears all supply settings.")]
-        public void ClearAllSupply(List<string> args)
+        public void ClearAllSupply(List<string> _)
         {
             var i = 0;
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
@@ -4205,7 +4249,7 @@ namespace FeatCommandConsole
         }
 
         [Command("/clear-all-demand", "Clears all demand settings.")]
-        public void ClearAllDemand(List<string> args)
+        public void ClearAllDemand(List<string> _)
         {
             var i = 0;
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
@@ -4256,7 +4300,7 @@ namespace FeatCommandConsole
                 {
                     var groupViaId = GroupsHandler.GetGroupViaId(Managers.GetManager<UnlockingHandler>().GetBlueprintGroupData().id);
                     WorldObject worldObject = WorldObjectsHandler.Instance.CreateNewWorldObject(groupViaId, 0, null, true);
-                    worldObject.SetLinkedGroups(new List<SpaceCraft.Group> { gr });
+                    worldObject.SetLinkedGroups([gr]);
                     
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     var inv = pm.GetPlayerBackpack().GetInventory();
@@ -4275,7 +4319,6 @@ namespace FeatCommandConsole
                 }
             }
         }
-
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
@@ -4344,6 +4387,21 @@ namespace FeatCommandConsole
         {
             return background == null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            worldLoadCount = 0;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
