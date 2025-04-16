@@ -136,7 +136,10 @@ namespace PerfStartup
                         if (!isOldFileFormat && section == 2)
                         {
                             JsonablePlanetState wsTemp = new();
-                            JsonUtility.FromJsonOverwrite(line.Replace("unitBiomassLevel", "unitPlantsLevel"), wsTemp);
+                            JsonUtility.FromJsonOverwrite(
+                                line.Replace("unitBiomassLevel", "unitPlantsLevel")
+                                .Replace("}|", "}"), 
+                                wsTemp);
 
                             AddPlanetStates(ws, wsTemp);
                         }

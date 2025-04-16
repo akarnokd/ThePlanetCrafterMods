@@ -152,6 +152,13 @@ namespace UIOverviewPanel
 
                 AddTextRow("", () => "");
 
+                AddTextRow(Translate("OverviewPanel_NextSysTIStage"), CreateNextSysTiStage());
+                AddTextRow(Translate("OverviewPanel_Growth"), CreateWorldUnitChangeValue(WorldUnitType.SystemTerraformation));
+                AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.SystemTerraformation));
+                AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.SystemTerraformation));
+
+                AddTextRow("", () => "");
+
                 AddTextRow(Translate("OverviewPanel_MicrochipsUnlocked"), CreateMicrochipUnlock());
 
                 var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
@@ -208,8 +215,8 @@ namespace UIOverviewPanel
             {
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(unitType);
-
-                return string.Format("{0:#,##0.00} {1}", wut.GetCurrentValuePersSec(), 
+                var speed = wut.GetCurrentValuePersSec();
+                return string.Format("{0:#,##0.00} {1}", speed,
                     Translate("OverviewPanel_PerSecond"));
             };
         }
@@ -457,6 +464,32 @@ namespace UIOverviewPanel
             };
         }
 
+        Func<string> CreateNextSysTiStage()
+        {
+            return () =>
+            {
+                var wu = Managers.GetManager<WorldUnitsHandler>();
+                var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
+
+                return string.Format("{0:#,##0} SysTi", wut.GetValue());
+            };
+        }
+
+        float GetCurrentSysTi()
+        {
+            var wu = Managers.GetManager<WorldUnitsHandler>();
+            if (wu == null)
+            {
+                return 0f;
+            }
+            var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
+            if (wut == null)
+            {
+                return 0f;
+            }
+            return (float)wut.GetValue();
+        }
+
         Func<String> CreateIdCounter(params int[] ids)
         {
             return () =>
@@ -691,6 +724,7 @@ namespace UIOverviewPanel
             }
 
             float t = Time.time;
+
             if (parent.activeSelf && t - lastUpdate >= 0.5f)
             {
                 lastUpdate = t;
@@ -765,6 +799,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Rovarok";
                 dict["OverviewPanel_Animals"] = "Állatok";
                 dict["OverviewPanel_NextTIStage"] = "Következő TI szakasz";
+                dict["OverviewPanel_NextSysTIStage"] = "Rendszer TI";
                 dict["OverviewPanel_Growth"] = "- (növekedés)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Mikrocsipek feloldva";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform láda megtalálva";
@@ -802,6 +837,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Insects";
                 dict["OverviewPanel_Animals"] = "Animals";
                 dict["OverviewPanel_NextTIStage"] = "Next TI Stage";
+                dict["OverviewPanel_NextSysTIStage"] = "System TI";
                 dict["OverviewPanel_Growth"] = "- (growth)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Microchips unlocked";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform chests found";
@@ -838,6 +874,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Насекомые";
                 dict["OverviewPanel_Animals"] = "Животные";
                 dict["OverviewPanel_NextTIStage"] = "Следующий этап";
+                dict["OverviewPanel_NextSysTIStage"] = "Системная терраформация";
                 dict["OverviewPanel_Growth"] = "- (рост)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Микрочипов расшифровано";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform найдено коробок";

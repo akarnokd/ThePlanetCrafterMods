@@ -1328,15 +1328,6 @@ namespace FeatTechniciansExile
             }
         }
 
-        // This method crashes with NPE for some reason, maybe because the pod is 
-        // made invisible?
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ConstraintAgainstPanel), "OnDestroy")]
-        static bool ConstraintAgainstPanel_OnDestroy(BuilderDisplayer ____builderDisplayer)
-        {
-            return ____builderDisplayer != null;
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WindowsHandler), nameof(WindowsHandler.CloseAllWindows))]
         static bool WindowsHandler_CloseAllWindows()

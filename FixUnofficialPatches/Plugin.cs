@@ -192,6 +192,7 @@ namespace FixUnofficialPatches
             return true;
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GroupNetworkBase), "DeconstructServerRpc")]
         static void GroupNetworkBase_DeconstructServerRpc(GroupNetworkBase __instance, 
@@ -207,5 +208,6 @@ namespace FixUnofficialPatches
                 ____actionDeconstruct = __instance.GetComponentInChildren<ActionDeconstructible>(true);
             }
         }
+        */
     }
 }

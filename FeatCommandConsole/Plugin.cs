@@ -727,9 +727,9 @@ namespace FeatCommandConsole
                 {
                     string[] resources =
                     [
-                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack6", 
+                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack7", 
                         "Jetpack4", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
-                        "EquipmentIncrease4", "OxygenTank4", "HudCompass"
+                        "EquipmentIncrease4", "OxygenTank5", "HudCompass"
                     ];
                     int amount = 1;
                     if (args.Count > 2)
@@ -977,6 +977,49 @@ namespace FeatCommandConsole
                     + ", " + z.ToString(CultureInfo.InvariantCulture)
                     + " )"
                 );
+            }
+        }
+        [Command("/tpp", "Teleport to another planet.")]
+        public void TeleportPlanet(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Teleport to another planet");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpp planetName</color> - teleport to the named planet, case insensitive");
+                AddLine("<margin=2em><color=#FFFF00>/tpp list</color> - list planet names");
+            }
+            else
+            {
+                var availablePlanets = PlanetNetworkLoader.Instance.GetAvailablePlanets(false, true);
+                bool found = false;
+                if (args[1] != "list")
+                {
+                    foreach (var ap in availablePlanets)
+                    {
+                        if (ap.id.Equals(args[1], StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            PlanetNetworkLoader.Instance.SwitchToPlanet(ap);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found)
+                {
+                    if (availablePlanets.Count != 0)
+                    {
+                        AddLine("<margin=1em>Available planets");
+                        foreach (var ap in availablePlanets)
+                        {
+                            AddLine("<margin=2em><#00FF00>" + ap.id);
+                        }
+                    }
+                    else
+                    {
+                        AddLine("<margin=1em>No available planets");
+                    }
+                }
             }
         }
 
@@ -1768,13 +1811,9 @@ namespace FeatCommandConsole
                         }
                         AddLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         AddLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
-                        AddLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
                         AddLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
                         AddLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
                         AddLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
-                        AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
-                        AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
-                        AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gi.GetLootRecipeOnDeconstruct());
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -1807,6 +1846,25 @@ namespace FeatCommandConsole
                     {
                         AddLine("<margin=1em><b>Class:</b> Unknown");
                     }
+
+                    AddLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gr.GetHideInCrafter()); ;
+                    AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gr.GetTradeCategory());
+                    AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gr.GetTradeValue());
+                    AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gr.GetLootRecipeOnDeconstruct());
+                    AddLine("<margin=2em><b>Interplanetary logistics type:</b> <color=#00FF00>" + gr.GetLogisticInterplanetaryType());
+                    AddLine("<margin=2em><b>Primary inventory size:</b> <color=#00FF00>" + gr.GetInventorySize());
+                    AddLine("<margin=2em><b>Secondary inventory size:</b> <color=#00FF00>" + gr.GetSecondaryInventoriesSize());
+
+                    var grd = gr.GetGroupData();
+                    AddLine("<margin=2em><b>Planet usage type:</b> <color=#00FF00>" + grd.planetUsageType);
+                    if (grd.unlockInPlanets != null && grd.unlockInPlanets.Count != 0) {
+                        AddLine("<margin=2em><b>Unlock in planets:</b> <color=#00FF00>" + string.Join(", ", grd.unlockInPlanets.Select(p => p.id)));
+                    } 
+                    else
+                    {
+                        AddLine("<margin=2em><b>Unlock in planets:</b> <color=#00FF00>None");
+                    }
+
                     var recipe = gr.GetRecipe();
                     if (recipe != null)
                     {

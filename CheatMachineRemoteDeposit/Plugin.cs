@@ -171,25 +171,31 @@ namespace CheatMachineRemoteDeposit
             Log("    begin ore search");
 
             Group group = null;
-            if (___groupDatas.Count != 0)
+            if (___setGroupsDataViaLinkedGroup)
             {
-                List<GroupData> list = new(___groupDatas);
+                List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
+                if (linkedGroups != null && linkedGroups.Count != 0)
+                {
+                    group = linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
+                }
+            }
+            else if (___groupDatas.Count != 0)
+            {
+                List<GroupData> list = [.. ___groupDatas];
+                List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
+                if (linkedGroups != null)
+                {
+                    foreach (var linkedGroup in linkedGroups)
+                    {
+                        list.Add(linkedGroup.GetGroupData());
+                    }
+                }
+
                 if (___groupDatasTerraStage.Count != 0 && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
                 {
                     list.AddRange(___groupDatasTerraStage);
                 }
                 group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
-            }
-            if (___setGroupsDataViaLinkedGroup)
-            {
-                if (____worldObject.GetLinkedGroups() != null && ____worldObject.GetLinkedGroups().Count > 0)
-                {
-                    group = ____worldObject.GetLinkedGroups()[UnityEngine.Random.Range(0, ____worldObject.GetLinkedGroups().Count)];
-                }
-                else
-                {
-                    group = null;
-                }
             }
 
             // deposit the ore

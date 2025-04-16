@@ -132,7 +132,10 @@ namespace UIContinue
                                         else if (section == 2 && !isOldSaveFormat)
                                         {
                                             JsonablePlanetState wsTemp = new();
-                                            JsonUtility.FromJsonOverwrite(sf[j].Replace("unitBiomassLevel", "unitPlantsLevel"), wsTemp);
+                                            JsonUtility.FromJsonOverwrite(
+                                                sf[j].Replace("unitBiomassLevel", "unitPlantsLevel")
+                                                .Replace("}|", "}"), 
+                                                wsTemp);
 
                                             AddPlanetStates(ws, wsTemp);
                                         }

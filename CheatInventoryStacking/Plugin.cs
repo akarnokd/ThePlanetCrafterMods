@@ -100,6 +100,7 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, bool> fMachineAutoCrafterHasEnergy;
         static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
         static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterTimeHasCrafted;
+        static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterInstancedAutocrafters;
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
@@ -168,6 +169,7 @@ namespace CheatInventoryStacking
             fMachineAutoCrafterHasEnergy = AccessTools.FieldRefAccess<MachineAutoCrafter, bool>("_hasEnergy");
             fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
             fMachineAutoCrafterTimeHasCrafted = AccessTools.FieldRefAccess<MachineAutoCrafter, float>("_timeHasCrafted");
+            fMachineAutoCrafterInstancedAutocrafters = AccessTools.FieldRefAccess<float>(typeof(MachineAutoCrafter), "_instancedAutocrafters"); ;
 
             mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
@@ -666,9 +668,8 @@ namespace CheatInventoryStacking
         static void Patch_UiWindowPause_OnQuit()
         {
             noStackingInventories = [.. defaultNoStackingInventories];
-            inventoryOwnerCache.Clear();
-            stationDistancesCache.Clear();
-            nonAttributedTasksCache.Clear();
+            stationDistancesCacheCurrentPlanet.Clear();
+            nonAttributedTasksCacheAllPlanets.Clear();
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
             /*
