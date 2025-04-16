@@ -39,7 +39,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.25
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.31
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.51
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.52
 # (Item) Rods
 akarnokd.theplanetcraftermods.itemrods=1.0.0.6
 # (Lathrey) Auto Move
@@ -85,7 +85,7 @@ akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.16
 # (UI) Mod Config Menu
 akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.16
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.34
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.35
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.31
 # (UI) Save When Quitting
@@ -97,7 +97,7 @@ akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.20
 # (UI) Show Crash
 akarnokd.theplanetcraftermods.uishowcrash=1.0.0.13
 # (UI) Show ETA
-akarnokd.theplanetcraftermods.uishoweta=1.0.0.14
+akarnokd.theplanetcraftermods.uishoweta=1.0.0.15
 # (UI) Show Grab N Mine Count
 akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.16
 # (UI) Show MultiTool Mode

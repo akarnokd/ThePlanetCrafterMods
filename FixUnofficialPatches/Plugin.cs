@@ -114,28 +114,6 @@ namespace FixUnofficialPatches
         static readonly Color colorTransparent = new(0, 0, 0, 0);
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ColorToString))]
-        static bool DataTreatments_ColorToString(ref string __result, in Color color, char ___colorDelimiter)
-        {
-            if (color == colorTransparent)
-            {
-                __result = "";
-            }
-            else
-            {
-                __result = color.r.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + color.g.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + color.b.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + color.a.ToString(CultureInfo.InvariantCulture)
-                    ;
-            }
-            return false;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ParseStringColor))]
         static void DataTreatments_ParseStringColor(ref string value)
         {

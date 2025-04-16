@@ -44,8 +44,14 @@ namespace UIShowETA
             else
             {
                 var wuh = Managers.GetManager<WorldUnitsHandler>();
-                var speed = wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetCurrentValuePersSec();
-                var remaining = nextGlobalStage.GetStageStartValue() - wuh.GetUnit(nextGlobalStage.GetWorldUnitType()).GetValue();
+                var nextGlobalStageUnit = wuh.GetUnit(nextGlobalStage.GetWorldUnitType());
+                var speed = 0f;
+                var remaining = nextGlobalStage.GetStageStartValue();
+                if (nextGlobalStageUnit != null)
+                {
+                    speed = nextGlobalStageUnit.GetCurrentValuePersSec();
+                    remaining = nextGlobalStage.GetStageStartValue() - nextGlobalStageUnit.GetValue();
+                }
 
                 var gameSettings = Managers.GetManager<GameSettingsHandler>();
                 if (gameSettings != null)
