@@ -1008,7 +1008,7 @@ namespace FeatCommandConsole
             else
             if (args.Count == 2)
             {
-                var dist = float.Parse(args[1]);
+                var dist = float.Parse(args[1], CultureInfo.InvariantCulture);
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
 
                 pm.SetPlayerPlacement(pm.transform.position + Camera.main.transform.forward * dist, pm.transform.rotation);
@@ -2400,8 +2400,8 @@ namespace FeatCommandConsole
             }
             else
             {
-                var radius = Math.Abs(float.Parse(args[1]));
-                var amount = float.Parse(args[2]);
+                var radius = Math.Abs(float.Parse(args[1], CultureInfo.InvariantCulture));
+                var amount = float.Parse(args[2], CultureInfo.InvariantCulture);
 
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var pos = pm.transform.position;
