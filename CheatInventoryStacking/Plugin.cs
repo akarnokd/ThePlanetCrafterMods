@@ -58,6 +58,11 @@ namespace CheatInventoryStacking
         static ConfigEntry<float> offsetX;
         static ConfigEntry<float> offsetY;
 
+        static ConfigEntry<bool> groupListEnabled;
+        static ConfigEntry<int> groupListFontSize;
+        static ConfigEntry<float> groupListOffsetX;
+        static ConfigEntry<float> groupListOffsetY;
+
         static string expectedGroupIdToAdd;
         static bool isLastSlotOccupiedMode;
 
@@ -104,6 +109,7 @@ namespace CheatInventoryStacking
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
+        static MethodInfo mGroupListOnGroupClicked;
 
         static Font font;
 
@@ -158,6 +164,11 @@ namespace CheatInventoryStacking
             offsetX = Config.Bind("General", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right)");
             offsetY = Config.Bind("General", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up)");
 
+            groupListEnabled = Config.Bind("GroupList", "Enabled", true, "Enable stacking on the Interplanetary exchange screen's item preview list.");
+            groupListFontSize = Config.Bind("GroupList", "FontSize", 15, "The font size for the stack amount on the Interplanetary exchange screen's item preview list.");
+            groupListOffsetX = Config.Bind("GroupList", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right) on the Interplanetary exchange screen's item preview list.");
+            groupListOffsetY = Config.Bind("GroupList", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up) on the Interplanetary exchange screen's item preview list.");
+
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
@@ -176,6 +187,8 @@ namespace CheatInventoryStacking
 
 
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
+
+            mGroupListOnGroupClicked = AccessTools.Method(typeof(GroupList), "OnGroupClicked");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 

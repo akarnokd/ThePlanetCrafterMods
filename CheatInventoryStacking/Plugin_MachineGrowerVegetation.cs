@@ -25,6 +25,20 @@ namespace CheatInventoryStacking
             __instance.StartCoroutine(MachineGrowerVegetationHarvestable_WaitForSecondInventory(__instance));
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrowerVegetationHarvestable), "OnInventoryModified")]
+        static void Patch_MachineGrowerVegetationHarvestable_OnInventoryModified(Inventory ____secondInventory)
+        {
+            noStackingInventories.Add(____secondInventory.GetId());
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrowerVegetationHarvestable), "OnSecondInventoryModified")]
+        static void Patch_MachineGrowerVegetationHarvestable_OnSecondInventoryModified(Inventory ____secondInventory)
+        {
+            noStackingInventories.Add(____secondInventory.GetId());
+        }
+
         static IEnumerator MachineGrowerVegetationHarvestable_WaitForSecondInventory(
             MachineGrowerVegetationHarvestable __instance)
         {
