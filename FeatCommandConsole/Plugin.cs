@@ -1897,7 +1897,10 @@ namespace FeatCommandConsole
                     AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gr.GetLootRecipeOnDeconstruct());
                     AddLine("<margin=2em><b>Interplanetary logistics type:</b> <color=#00FF00>" + gr.GetLogisticInterplanetaryType());
                     AddLine("<margin=2em><b>Primary inventory size:</b> <color=#00FF00>" + gr.GetInventorySize());
-                    AddLine("<margin=2em><b>Secondary inventory size:</b> <color=#00FF00>" + gr.GetSecondaryInventoriesSize());
+                    var sis = gr.GetSecondaryInventoriesSize();
+                    if (sis != null && sis.Count != 0) {
+                        AddLine("<margin=2em><b>Secondary inventory size:</b> <color=#00FF00>" + string.Join(", ", sis));
+                    }
 
                     var grd = gr.GetGroupData();
                     AddLine("<margin=2em><b>Planet usage type:</b> <color=#00FF00>" + grd.planetUsageType);
