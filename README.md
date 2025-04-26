@@ -37,6 +37,8 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 
 `HideManagerGameObject = true`
 
+You will also have to update solution_private.targets with your Steam directories if they do not match mine.
+
 # Mods
 
 ### Content

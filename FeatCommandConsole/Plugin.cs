@@ -2496,38 +2496,143 @@ namespace FeatCommandConsole
             {
                 AddLine("<margin=1em>Lists the world object ids and their types within a radius.");
                 AddLine("<margin=1em>Usage:");
-                AddLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter]</color> - List the items with group type name containing the optional typefilter");
+                AddLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter] [objectIdPattern]</color> - List the items with group type name containing the optional typefilter and objectId to teleport to.");
             }
             else
             {
-                string filter = "";
+                string filter = string.Empty;
                 if (args.Count > 2)
                 {
                     filter = args[2].ToLowerInvariant();
+                }
+                string objectIdPattern = string.Empty;
+                if (args.Count > 3)
+                {
+                    objectIdPattern = args[3].ToLowerInvariant();
+                    if (!Regex.IsMatch(objectIdPattern, @"^\d+$"))
+                    {
+                        AddLine("<margin=1em>The object ID parameter must be a number. You can also enter just a portion of the ID.");
+                        return;
+                    }
                 }
                 float radius = float.Parse(args[1], CultureInfo.InvariantCulture);
 
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var pp = pm.transform.position;
 
-                List<WorldObject> found = [];
+                SortedDictionary<float, WorldObject> found = new SortedDictionary<float, WorldObject>();
                 foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
                 {
                     if (wo.GetIsPlaced() && Vector3.Distance(pp, wo.GetPosition()) < radius)
                     {
                         if (wo.GetGroup().id.ToLowerInvariant().Contains(filter))
                         {
-                            found.Add(wo);
+                            found[Vector3.Distance(wo.GetPosition(), pp)] = wo;
                         }
                     }
                 }
-                AddLine("<margin=1em>Found " + found.Count + " world objects");
-                foreach (var wo in found) {
-                    AddLine("<margin=2em>" 
-                        + wo.GetId() + " - " 
-                        + wo.GetGroup().GetId() 
-                        + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) 
-                        + "\"</color>  @ " + wo.GetPosition() + " (" + string.Format("{0:0.#}", Vector3.Distance(wo.GetPosition(), pp)) + ")");
+                if (string.Empty.Equals(objectIdPattern))
+                {
+                    foreach (var kvp in found)
+                    {
+                        AddLine("<margin=2em>"
+                            + kvp.Value.GetId() + " - "
+                            + kvp.Value.GetGroup().GetId()
+                            + " <color=#00FF00>\"" + Readable.GetGroupName(kvp.Value.GetGroup())
+                            + "\"</color>  @ " + kvp.Value.GetPosition() + " (" + string.Format("{0:0.#}", kvp.Key) + ")");
+                    }
+                }
+                else
+                {
+                    foreach (var kvp in found)
+                    {
+                        if (kvp.Value.GetId().ToString().Contains(objectIdPattern))
+                        {
+                            pm.SetPlayerPlacement(kvp.Value.GetPosition(), pm.transform.rotation);
+
+                            AddLine("<margin=1em>Teleported to: "
+                                + kvp.Value.GetId() + " - "
+                                + " <color=#00FF00>\"" + Readable.GetGroupName(kvp.Value.GetGroup()));
+                            return; //Stop on the first match.
+                        }
+                    }
+                    AddLine("<margin=1em>Unable to find an object ID that contains the number: " + objectIdPattern);
+                }
+            }
+        }
+
+        [Command("/list-items-index", "Lists the objects and their types within a radius but uses an index instead of object ID.")]
+        public void ItemsNearbyIndexed(List<string> args)
+        {
+            if (args.Count == 1)
+            {
+                AddLine("<margin=1em>Lists the objects and their types within a radius but uses an index instead of object ID.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/list-items-nearby radius [typefilter] [index]</color> - List the items with group type name containing the optional typefilter and index to teleport to.");
+            }
+            else
+            {
+                string filter = string.Empty;
+                if (args.Count > 2)
+                {
+                    filter = args[2].ToLowerInvariant();
+                }
+                string indexParameter = string.Empty;
+                if (args.Count > 3)
+                {
+                    indexParameter = args[3].ToLowerInvariant();
+                    if (!Regex.IsMatch(indexParameter, @"^\d+$"))
+                    {
+                        AddLine("<margin=1em>The index parameter must be a number.");
+                        return;
+                    }
+                }
+                float radius = float.Parse(args[1], CultureInfo.InvariantCulture);
+
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var pp = pm.transform.position;
+
+                SortedDictionary<float, WorldObject> found = new SortedDictionary<float, WorldObject>();
+                foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects().Values)
+                {
+                    if (wo.GetIsPlaced() && Vector3.Distance(pp, wo.GetPosition()) < radius)
+                    {
+                        if (wo.GetGroup().id.ToLowerInvariant().Contains(filter))
+                        {
+                            found[Vector3.Distance(wo.GetPosition(), pp)] = wo;
+                        }
+                    }
+                }
+                if (string.Empty.Equals(indexParameter))
+                {
+                    int iteration = 0;
+                    foreach (var kvp in found)
+                    {
+                        AddLine("<margin=2em>"
+                            + iteration + " - "
+                            + kvp.Value.GetGroup().GetId()
+                            + " <color=#00FF00>\"" + Readable.GetGroupName(kvp.Value.GetGroup())
+                            + "\"</color>  @ " + kvp.Value.GetPosition() + " (" + string.Format("{0:0.#}", kvp.Key) + ")");
+                        iteration++;
+                    }
+                }
+                else
+                {
+                    int iteration = 0;
+                    foreach (var kvp in found)
+                    {
+                        if (iteration.ToString().Equals(indexParameter))
+                        {
+                            pm.SetPlayerPlacement(kvp.Value.GetPosition(), pm.transform.rotation);
+
+                            AddLine("<margin=1em>Teleported to: "
+                                + kvp.Value.GetId() + " - "
+                                + " <color=#00FF00>\"" + Readable.GetGroupName(kvp.Value.GetGroup()));
+                            return; //Stop on the first match.
+                        }
+                        iteration++;
+                    }
+                    AddLine("<margin=1em>Unable to find index " + indexParameter);
                 }
             }
         }
@@ -2764,33 +2869,71 @@ namespace FeatCommandConsole
             {
                 range = int.Parse(args[1]);
             }
+            string indexParameter = string.Empty;
+            if (args.Count > 2)
+            {
+                indexParameter = args[2].ToLowerInvariant();
+                if (indexParameter.Length < 2 || !Regex.IsMatch(indexParameter, @"^\d+$"))
+                {
+                    AddLine("<margin=1em>Index must be in the same format as the list (Example: 00)");
+                    return;
+                }
+            }
 
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var player = pm.transform.position;
 
-            int i = 0;
-            foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (string.Empty.Equals(indexParameter))
             {
-                var gd = wos.GetGroupData();
-                if (gd.id == "GoldenContainer")
+                int i = 0;
+                foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    if (i == 0)
+                    var gd = wos.GetGroupData();
+                    if (gd.id == "GoldenContainer")
                     {
-                        AddLine("<margin=1em>Golden Containers found:");
+                        if (i == 0)
+                        {
+                            AddLine("<margin=1em>Golden Containers found:");
+                        }
+                        var p = wos.transform.position;
+                        var d = Vector3.Distance(player, p);
+                        if (range == 0 || d <= range)
+                        {
+                            AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        }
+                        i++;
                     }
-                    var p = wos.transform.position;
-                    var d = Vector3.Distance(player, p);
-                    if (range == 0 || d <= range)
-                    {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
-                    }
-                    i++;
+                }
+
+                if (i == 0)
+                {
+                    AddLine("<margin=1em>No containers found.");
                 }
             }
-
-            if (i == 0)
+            else
             {
-                AddLine("<margin=1em>No containers found.");
+                int i = 0;
+                foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    var gd = wos.GetGroupData();
+                    if (gd.id == "GoldenContainer")
+                    {
+                        var p = wos.transform.position;
+                        var d = Vector3.Distance(player, p);
+                        if (range == 0 || d <= range)
+                        {
+                            string formattedId = string.Format("{0:00}", i);
+                            if (formattedId.Equals(indexParameter))
+                            {
+                                pm.SetPlayerPlacement(p, pm.transform.rotation);
+                                AddLine(string.Format("<margin=1em>Teleported to {0}, Id: {1}", formattedId, wos.GetUniqueId()));
+                                return;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                AddLine("<margin=1em>Unable to find index " + indexParameter);
             }
         }
 
@@ -2802,32 +2945,71 @@ namespace FeatCommandConsole
             {
                 range = int.Parse(args[1]);
             }
+            string indexParameter = string.Empty;
+            if (args.Count > 2)
+            {
+                indexParameter = args[2].ToLowerInvariant();
+                if (indexParameter.Length < 2 || !Regex.IsMatch(indexParameter, @"^\d+$"))
+                {
+                    AddLine("<margin=1em>Index must be in the same format as the list (Example: 00)");
+                    return;
+                }
+            }
 
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var player = pm.transform.position;
 
-            int i = 0;
-            foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (string.Empty.Equals(indexParameter))
             {
-                if (wos.name.Contains("WorldContainerStarform"))
+                int i = 0;
+                foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    if (i == 0)
+                    var gd = wos.GetGroupData();
+                    if (gd.id == "WorldContainerStarform")
                     {
-                        AddLine("<margin=1em>Starform Containers found:");
+                        if (i == 0)
+                        {
+                            AddLine("<margin=1em>Starform Containers found:");
+                        }
+                        var p = wos.transform.position;
+                        var d = Vector3.Distance(player, p);
+                        if (range == 0 || d <= range)
+                        {
+                            AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        }
+                        i++;
                     }
-                    var p = wos.transform.position;
-                    var d = Vector3.Distance(player, p);
-                    if (range == 0 || d <= range)
-                    {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
-                    }
-                    i++;
+                }
+
+                if (i == 0)
+                {
+                    AddLine("<margin=1em>No containers found.");
                 }
             }
-
-            if (i == 0)
+            else
             {
-                AddLine("<margin=1em>No containers found.");
+                int i = 0;
+                foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    var gd = wos.GetGroupData();
+                    if (gd.id == "WorldContainerStarform")
+                    {
+                        var p = wos.transform.position;
+                        var d = Vector3.Distance(player, p);
+                        if (range == 0 || d <= range)
+                        {
+                            string formattedId = string.Format("{0:00} @ {1}", i);
+                            if (formattedId.Equals(indexParameter))
+                            {
+                                pm.SetPlayerPlacement(p, pm.transform.rotation);
+                                AddLine(string.Format("<margin=1em>Teleported to {1}, Id: {2}", formattedId, wos.GetUniqueId()));
+                                return;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                AddLine("<margin=1em>Unable to find index " + indexParameter);
             }
         }
 
