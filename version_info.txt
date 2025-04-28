@@ -3,7 +3,7 @@ akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.16
 # (Cheat) Auto Consume Oxygen-Water-Food
 akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.19
 # (Cheat) Auto Grab and Mine
-akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.13
+akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.14
 # (Cheat) Automatically Harvest Food n Algae
 akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.34
 # (Cheat) Auto Launch Rockets
@@ -23,7 +23,7 @@ akarnokd.theplanetcraftermods.cheatminimap=1.0.0.57
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources
-akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.27
+akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.28
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.16
 # (Cheat) Recyclers Deposit Into Remote Containers
@@ -85,7 +85,7 @@ akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.16
 # (UI) Mod Config Menu
 akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.16
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.35
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.36
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.31
 # (UI) Save When Quitting
