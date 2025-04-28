@@ -33,6 +33,8 @@ namespace CheatCraftFromNearbyContainers
 
         static ConfigEntry<string> includeFilter;
 
+        static ConfigEntry<bool> currentPlanetOnly;
+
         static ManualLogSource logger;
 
         static bool inventoryLookupInProgress;
@@ -85,6 +87,7 @@ namespace CheatCraftFromNearbyContainers
             range = Config.Bind("General", "Range", 20, "The range to look for containers within.");
             key = Config.Bind("General", "Key", "<Keyboard>/Home", "The input action shortcut toggle this mod on or off.");
             includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
+            currentPlanetOnly = Config.Bind("General", "CurrentPlanetOnly", true, "If true, only containers from the current planet are considered.");
 
             if (!key.Value.Contains("<"))
             {
@@ -380,6 +383,9 @@ namespace CheatCraftFromNearbyContainers
             List<WorldObject> candidateGetInventoryOfWorldObject = [];
             HashSet<int> seen = [];
             List<string> prefixes = GetPrefixes();
+            var planetId = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().GetPlanetHash();
+            var currentPlanetOnlyFlag = currentPlanetOnly.Value;
+
             foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var grid = wo.GetGroup().GetId();
@@ -400,6 +406,7 @@ namespace CheatCraftFromNearbyContainers
 
                 if ((grid.StartsWith("Container") || CheckGIDList(grid, prefixes))
                     && dist <= range.Value
+                    && (!currentPlanetOnlyFlag || planetId == wo.GetPlanetHash())
                 )
                 {
                     if (seen.Add(wo.GetId()))

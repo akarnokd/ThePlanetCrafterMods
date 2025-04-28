@@ -160,5 +160,27 @@ namespace CheatInventoryStacking
         {
             noStackingInventories.Add(inventory.GetId());
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoryAssociated), nameof(InventoryAssociated.SetInventory))]
+        static void Patch_InventoryAssociated_SetInventory(
+            InventoryAssociated __instance,
+            Inventory inventory
+        )
+        {
+            if (__instance == null 
+                || __instance.gameObject ==  null 
+                || inventory == null
+                || NetworkManager.Singleton == null
+                || !NetworkManager.Singleton.IsServer)
+            {
+                return;
+            }
+            if (!stackPlanetaryDepots.Value 
+                && __instance.gameObject.name.StartsWith("PlanetaryDeliveryDepot"))
+            {
+                noStackingInventories.Add(inventory.GetId());
+            }
+        }
     }
 }
