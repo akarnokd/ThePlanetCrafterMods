@@ -49,6 +49,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackOreCrusherIn;
         static ConfigEntry<bool> stackOreCrusherOut;
         static ConfigEntry<bool> stackInterplanetaryRockets;
+        static ConfigEntry<bool> stackPlanetaryDepots;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -142,6 +143,7 @@ namespace CheatInventoryStacking
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
             stackInterplanetaryRockets = Config.Bind("General", "StackInterplanetaryRockets", false, "Should the interplanetary rockets' inventory stack?");
+            stackPlanetaryDepots = Config.Bind("General", "StackPlanetaryDepots", false, "Stack the planetary depots?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
             stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
@@ -171,9 +173,9 @@ namespace CheatInventoryStacking
 
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
-            mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
-            mInventoryDisplayerOnConsumeViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
-            mInventoryDisplayerOnDropViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnDropViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
+            mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(EventTriggerCallbackData)]);
+            mInventoryDisplayerOnConsumeViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(EventTriggerCallbackData)]);
+            mInventoryDisplayerOnDropViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnDropViaGamepad", [typeof(EventTriggerCallbackData)]);
             
             fCraftManagerCrafting = AccessTools.FieldRefAccess<object, bool>(AccessTools.Field(typeof(CraftManager), "_crafting"));
             
@@ -292,9 +294,9 @@ namespace CheatInventoryStacking
             return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
         }
 
-        static Action<WorldObject, Group, int> CreateGamepadCallback(MethodInfo mi, InventoryDisplayer __instance)
+        static Action<EventTriggerCallbackData> CreateGamepadCallback(MethodInfo mi, InventoryDisplayer __instance)
         {
-            return AccessTools.MethodDelegate<Action<WorldObject, Group, int>>(mi, __instance);
+            return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
         }
 
         static List<List<WorldObject>> CreateInventorySlots(IEnumerable<WorldObject> worldObjects, int n)
@@ -437,9 +439,9 @@ namespace CheatInventoryStacking
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnImageClicked, __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnDropClicked, __instance);
 
-                Action<WorldObject, Group, int> onActionViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnActionViaGamepad, __instance);
-                Action<WorldObject, Group, int> onConsumeViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnConsumeViaGamepad, __instance);
-                Action<WorldObject, Group, int> onDropViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnDropViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onActionViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnActionViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onConsumeViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnConsumeViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onDropViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnDropViaGamepad, __instance);
 
                 var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
 
@@ -503,17 +505,24 @@ namespace CheatInventoryStacking
                         GameObject dropIcon = component.GetDropIcon();
                         if (!worldObject.GetIsLockedInInventory())
                         {
-                            EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick,
-                                onImageClickedDelegate, new EventTriggerCallbackData(worldObject));
-                            EventsHelpers.AddTriggerEvent(dropIcon, EventTriggerType.PointerClick,
-                                onDropClickedDelegate, new EventTriggerCallbackData(worldObject));
+                            var eventTriggerCallbackData = new EventTriggerCallbackData(worldObject);
+                            eventTriggerCallbackData.intValue = i;
+
+                            EventsHelpers.AddTriggerEvent(
+                                gameObject, 
+                                EventTriggerType.PointerClick,
+                                onImageClickedDelegate,
+                                eventTriggerCallbackData);
+                            EventsHelpers.AddTriggerEvent(
+                                dropIcon, 
+                                EventTriggerType.PointerClick,
+                                onDropClickedDelegate,
+                                eventTriggerCallbackData);
 
                             gameObject.AddComponent<EventGamepadAction>()
                             .SetEventGamepadAction(
                                 onActionViaGamepadDelegate,
-                                worldObject.GetGroup(), 
-                                worldObject, 
-                                i,
+                                eventTriggerCallbackData,
                                 onConsumeViaGamepadDelegate,
                                 showDropIconAtAll ? onDropViaGamepadDelegate : null,
                                 null
@@ -544,7 +553,12 @@ namespace CheatInventoryStacking
                             waitingSlots -= n;
                         }
                         gameObject.AddComponent<EventGamepadAction>()
-                            .SetEventGamepadAction(null, null, null, i, null, null, null);
+                            .SetEventGamepadAction(
+                                null, 
+                                new EventTriggerCallbackData(i), 
+                                null, 
+                                null, 
+                                null);
                     }
                     gameObject.SetActive(true);
                     if (enabled)

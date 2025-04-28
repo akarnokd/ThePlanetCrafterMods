@@ -4,6 +4,7 @@
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -393,6 +394,38 @@ namespace CheatInventoryStacking
                 }
             }
             return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineRocketBackAndForthInterplanetaryExchange), "ProcessRocketLanded")]
+        static bool Patch_MachineRocketBackAndForthInterplanetaryExchange_ProcessRocketLanded(
+            MachineRocketBackAndForthInterplanetaryExchange __instance, Inventory ____inventory
+        )
+        {
+            if (stackSize.Value > 1 && stackInterplanetaryRockets.Value)
+            {
+                if (____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count
+                    && __instance.GetComponent<SettingProxy>().GetSetting() == 1)
+                {
+                    CoroutineHandler.Instance.StartCoroutine(RelaunchRocket(__instance, ____inventory));
+                }
+                return false;
+            }
+            return true;
+        }
+
+        static IEnumerator RelaunchRocket(MachineRocketBackAndForthInterplanetaryExchange __instance, Inventory ____inventory)
+        {
+            yield return new WaitForSeconds(5f);
+            if (__instance == null || ____inventory == null)
+            {
+                yield break;
+            }
+            if (____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count
+                && __instance.GetComponent<SettingProxy>().GetSetting() == 1)
+            {
+                __instance.SendBackAndForthRocket();
+            }
         }
     }
 }

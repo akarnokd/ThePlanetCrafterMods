@@ -1886,7 +1886,13 @@ namespace FeatCommandConsole
                         {
                             AddLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
                         }
-                    } else
+                        var tsr = gc.GetTerraStageRequirement();
+                        if (tsr != null)
+                        {
+                            AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType()); ;
+                        }
+                    } 
+                    else
                     {
                         AddLine("<margin=1em><b>Class:</b> Unknown");
                     }

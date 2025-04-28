@@ -252,7 +252,7 @@ namespace FeatSpaceCows
             
             if (cow.inventory != null)
             {
-                InventoriesHandler.Instance.DestroyInventory(cow.inventory.GetId());
+                InventoriesHandler.Instance.DestroyInventory(cow.inventory.GetId(), false);
             }
             cow.Destroy();
         }
