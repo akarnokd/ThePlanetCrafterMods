@@ -88,7 +88,7 @@ namespace CheatInventoryStacking
         /// <summary>
         /// The set of static and dynamic inventory ids that should not stack.
         /// </summary>
-        static HashSet<int> noStackingInventories = new(defaultNoStackingInventories);
+        static HashSet<int> noStackingInventories = [.. defaultNoStackingInventories];
 
         static PlayersManager playersManager;
 
@@ -461,8 +461,7 @@ namespace CheatInventoryStacking
                         var showDropIcon = showDropIconAtAll;
                         if (showDropIcon && !(worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed()))
                         {
-                            var gi1 = worldObject.GetGroup() as GroupItem;
-                            showDropIcon = gi1 == null || gi1.GetUsableType() != DataConfig.UsableType.Buildable;
+                            showDropIcon = worldObject.GetGroup() is not GroupItem gi1 || gi1.GetUsableType() != DataConfig.UsableType.Buildable;
                         }
                         else
                         {
@@ -505,8 +504,10 @@ namespace CheatInventoryStacking
                         GameObject dropIcon = component.GetDropIcon();
                         if (!worldObject.GetIsLockedInInventory())
                         {
-                            var eventTriggerCallbackData = new EventTriggerCallbackData(worldObject);
-                            eventTriggerCallbackData.intValue = i;
+                            var eventTriggerCallbackData = new EventTriggerCallbackData(worldObject)
+                            {
+                                intValue = i
+                            };
 
                             EventsHelpers.AddTriggerEvent(
                                 gameObject, 
@@ -776,8 +777,7 @@ namespace CheatInventoryStacking
             {
                 if (!(text == ""))
                 {
-                    int num;
-                    int.TryParse(text, out num);
+                    int.TryParse(text, out int num);
                     if (objectMap.ContainsKey(num))
                     {
                         WorldObject worldObject = objectMap[num];

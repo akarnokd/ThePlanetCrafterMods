@@ -87,7 +87,6 @@ namespace UIShowGrabNMineCount
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionGrabable), "AddToInventory")]
         static bool ActionGrabable_AddToInventory(
-            ActionGrabable __instance,
             WorldObject worldObject, 
             PlayerMainController ____playerSource)
         {

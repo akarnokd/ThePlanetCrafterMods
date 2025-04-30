@@ -16,7 +16,6 @@ using Unity.Netcode;
 using System.Collections;
 using static SpaceCraft.DataConfig;
 using LibCommon;
-using System.Linq;
 
 namespace UIOverviewPanel
 {

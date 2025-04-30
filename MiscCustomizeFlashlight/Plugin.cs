@@ -6,8 +6,6 @@ using SpaceCraft;
 using HarmonyLib;
 using BepInEx.Configuration;
 using UnityEngine;
-using BepInEx.Logging;
-using System;
 
 /// -------------------------------------------------------------------------------------------------------
 /// Remake of https://github.com/aedenthorn/PlanetCrafterMods/blob/master/CustomFlashlight/BepInExPlugin.cs
@@ -108,7 +106,7 @@ namespace MiscCustomizeFlashlight
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerMultitool), "Start")]
-        static void PlayerMultitool_Start_Pre(MultiToolLight ___multiToolLight,
+        static void PlayerMultitool_Start_Pre(
             MultiToolScreen ___multiToolScreen, ref bool __state)
         {
             __state = ___multiToolScreen == null;

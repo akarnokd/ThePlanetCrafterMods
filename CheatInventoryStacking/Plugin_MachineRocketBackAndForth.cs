@@ -161,7 +161,6 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowInterplanetaryExchange), "OnClickButtons")]
         static bool Patch_UiWindowInterplanetaryExchange_OnClickButtons(
-            UiWindowTrade __instance,
             int ____inventorySize,
             MachineRocketBackAndForthInterplanetaryExchange ____machineRocketBackAndForthInterplanetary,
             Dictionary<Group, int> ____groupsWithNumber,

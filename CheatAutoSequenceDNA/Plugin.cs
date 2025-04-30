@@ -249,7 +249,7 @@ namespace CheatAutoSequenceDNA
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
-                        List<WorldObject> items = new(currentItems);
+                        List<WorldObject> items = [.. currentItems];
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
                             WorldObject item = items[i];
@@ -335,8 +335,8 @@ namespace CheatAutoSequenceDNA
         {
             Log("    Picked: " + spawnTarget.id + " (\"" + Readable.GetGroupName(spawnTarget) + "\") @ Chance = " + spawnTarget.GetChanceToSpawn() + " %");
 
-            List<Group> ingredients = new(spawnTarget.GetRecipe().GetIngredientsGroupInRecipe());
-            List<WorldObject> available = new(currentItems);
+            List<Group> ingredients = [.. spawnTarget.GetRecipe().GetIngredientsGroupInRecipe()];
+            List<WorldObject> available = [.. currentItems];
             List<Group> missing = [];
 
             int ingredientsFulfilled = 0;
@@ -553,7 +553,7 @@ namespace CheatAutoSequenceDNA
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
-                        List<WorldObject> items = new(currentItems);
+                        List<WorldObject> items = [.. currentItems];
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
                             WorldObject item = items[i];

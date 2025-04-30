@@ -13,7 +13,6 @@ using System.Reflection;
 using System.IO;
 using System;
 using TMPro;
-using System.Globalization;
 using Steamworks;
 using Unity.Netcode;
 

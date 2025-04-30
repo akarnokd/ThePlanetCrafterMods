@@ -54,9 +54,7 @@ namespace UIShowPlayerTooltipItemCount
         static void GroupInfosDisplayer_Show(
             Group group, 
             TextMeshProUGUI ___nameText,
-            GroupInfosDisplayerBlocksSwitches blocksSwitches,
-            WorldObject worldObject,
-            Group ___blueprintChipGroup
+            GroupInfosDisplayerBlocksSwitches blocksSwitches
             )
         {
             if (blocksSwitches.showDescription)

@@ -3,7 +3,6 @@
 
 using HarmonyLib;
 using SpaceCraft;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CheatInventoryStacking

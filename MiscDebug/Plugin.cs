@@ -5,15 +5,6 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using Unity.Collections;
-using Unity.Netcode;
-using UnityEngine;
 
 namespace MiscDebug
 {

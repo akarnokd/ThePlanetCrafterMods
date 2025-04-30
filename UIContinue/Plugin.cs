@@ -10,11 +10,9 @@ using UnityEngine.UI;
 using TMPro;
 using System.IO;
 using System;
-using System.Linq;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using BepInEx.Logging;
-using UnityEngine.Tilemaps;
 
 namespace UIContinue
 {
@@ -269,16 +267,16 @@ namespace UIContinue
         {
             var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
 
-            var tiAndUnit = "";
+            string tiAndUnit;
             if (ti >= 1E24)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} YTi", ti / 1E24);
             }
-            if (ti >= 1E21)
+            else if (ti >= 1E21)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} ZTi", ti / 1E21);
             }
-            if (ti >= 1E18)
+            else if (ti >= 1E18)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E18);
             }

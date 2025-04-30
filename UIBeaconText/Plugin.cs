@@ -10,8 +10,6 @@ using BepInEx.Configuration;
 using UnityEngine.InputSystem;
 using BepInEx.Logging;
 using TMPro;
-using Unity.Netcode;
-using System.Collections;
 
 namespace UIBeaconText
 {
