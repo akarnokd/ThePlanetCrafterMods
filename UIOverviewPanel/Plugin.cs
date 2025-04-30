@@ -163,22 +163,7 @@ namespace UIOverviewPanel
 
                 AddTextRow(Translate("OverviewPanel_MicrochipsUnlocked"), CreateMicrochipUnlock());
 
-                var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
-
-                if (pd != null && pd.id == "Humble")
-                {
-                    AddTextRow(Translate("OverviewPanel_StarformChestsFound"), CreateIdCounter(
-                        104938870, 108185956, 101338958, 106708099, 105547336,
-                        108239106, 109729201, 102343794, 105829268, 106518600,
-                        102636198, 104222068, 101449629, 108725859, 102829376,
-                        109796680, 108708926, 108621657, 105301774, 109034442,
-                        101606525, 109173923, 104503750
-                    ));
-                }
-                else
-                {
-                    AddTextRow(Translate("OverviewPanel_GoldenChestsFound"), CreateSceneCounter(26, "GoldenContainer"));
-                }
+                AddTextRow(Translate("OverviewPanel_ChestsFound"), CreateChestsFound());
 
                 AddTextRow(Translate("OverviewPanel_UniqueLarvaeFound"), CreateButterflyCount());
 
@@ -502,7 +487,7 @@ namespace UIOverviewPanel
             return (float)wut.GetValue();
         }
 
-        Func<String> CreateIdCounter(params int[] ids)
+        Func<string> CreateIdCounter(params int[] ids)
         {
             return () =>
             {
@@ -516,6 +501,23 @@ namespace UIOverviewPanel
                     };
                 }
                 return csum + " / " + ids.Length + " (" + string.Format("{0:##0.00}", 100f * csum / ids.Length) + " %)";
+            };
+        }
+
+        Func<string> CreateChestsFound()
+        {
+            var starform = CreateIdCounter(
+                        104938870, 108185956, 101338958, 106708099, 105547336,
+                        108239106, 109729201, 102343794, 105829268, 106518600,
+                        102636198, 104222068, 101449629, 108725859, 102829376,
+                        109796680, 108708926, 108621657, 105301774, 109034442,
+                        101606525, 109173923, 104503750
+                    );
+            var golden = CreateSceneCounter(26, "GoldenContainer");
+            return () =>
+            {
+                return Translate("OverviewPanel_ChestsFound_Golden") + golden()
+                + " | " + Translate("OverviewPanel_ChestsFound_Starform") + starform();
             };
         }
 
@@ -821,6 +823,9 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_StarformChestsFound"] = "Starform láda megtalálva";
                 dict["OverviewPanel_GoldenChestsFound"] = "Aranyláda megtalálva";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Egyedi lepke lárva megtalálva";
+                dict["OverviewPanel_ChestsFound"] = "Láda megtalálva";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Arany:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueFishFound"] = "Egyedi halikra megtalálva";
                 dict["OverviewPanel_UniqueFrogFound"] = "Egyedi békalárva megtalálva";
                 dict["OverviewPanel_TradeTokens"] = "Kereskedelmi tokenek";
@@ -860,6 +865,9 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Microchips unlocked";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform chests found";
                 dict["OverviewPanel_GoldenChestsFound"] = "Golden chests found";
+                dict["OverviewPanel_ChestsFound"] = "Chests found";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Golden:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Unique larvae found";
                 dict["OverviewPanel_UniqueFishFound"] = "Unique fish found";
                 dict["OverviewPanel_UniqueFrogFound"] = "Unique frog found";
@@ -899,6 +907,9 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Микрочипов расшифровано";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform найдено коробок";
                 dict["OverviewPanel_GoldenChestsFound"] = "Найдено золотых ящиков";
+                dict["OverviewPanel_ChestsFound"] = "Сундуки найдены";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Золотой:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Найдено уникальных личинок";
                 dict["OverviewPanel_UniqueFishFound"] = "Найдено уникальных рыб";
                 dict["OverviewPanel_UniqueFrogFound"] = "Найдено уникальных лягушек";

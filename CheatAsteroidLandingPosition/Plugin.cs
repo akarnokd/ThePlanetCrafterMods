@@ -14,23 +14,13 @@ namespace CheatAsteroidLandingPosition
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatasteroidlandingposition", "(Cheat) Asteroid Landing Position Override", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        /// <summary>
-        /// Relative position up-down.
-        /// </summary>
-        static ConfigEntry<int> deltaY;
-        /// <summary>
-        /// Relative position east-west (east is positive).
-        /// </summary>
-        static ConfigEntry<int> deltaX;
-        /// <summary>
-        /// Relative position north-south (north is positive).
-        /// </summary>
-        static ConfigEntry<int> deltaZ;
 
-        /// <summary>
-        /// Should the coordinates treated as absolute?
-        /// </summary>
-        static ConfigEntry<bool> absolute;
+        static ConfigEntry<bool> isEnabled;
+
+        static readonly List<string> planets = [
+            "Prime", "Humble", "Selenea", "Aqualis"];
+
+        static readonly Dictionary<string, PlanetConfig> configs = [];
 
         public void Awake()
         {
@@ -39,10 +29,20 @@ namespace CheatAsteroidLandingPosition
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
-            deltaX = Config.Bind("General", "DeltaX", 100, "Relative position east-west (east is positive).");
-            deltaY = Config.Bind("General", "DeltaY", 0, "Relative position up-down.");
-            deltaZ = Config.Bind("General", "DeltaZ", 0, "Relative position north-south (north is positive).");
-            absolute = Config.Bind("General", "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.");
+            isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
+
+            foreach (var planet in planets)
+            {
+                var config = new PlanetConfig
+                {
+                    deltaX = Config.Bind("Planet " + planet, "DeltaX", 100, "Relative position east-west (east is positive)."),
+                    deltaY = Config.Bind("Planet " + planet, "DeltaY", 0, "Relative position up-down."),
+                    deltaZ = Config.Bind("Planet " + planet, "DeltaZ", 0, "Relative position north-south (north is positive)."),
+                    absolute = Config.Bind("Planet " + planet, "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.")
+                };
+                configs[planet] = config;
+            }
+
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -57,6 +57,16 @@ namespace CheatAsteroidLandingPosition
             List<Collider> ___spawnBoxes,
             ref Unity.Mathematics.Random ____random)
         {
+            if (!isEnabled.Value)
+            {
+                return true;
+            }
+            var planet = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().GetPlanetId();
+            if (!configs.TryGetValue(planet, out var config))
+            {
+                return true;
+            }
+
             // Unfortunately, I have to copy out the original sources and patch inbetween some instructions
 
             if (asteroidEvent.GetExistingAsteroidsCount() >= asteroidEvent.GetMaxAsteroidsSimultaneous())
@@ -67,6 +77,7 @@ namespace CheatAsteroidLandingPosition
             {
                 return false;
             }
+
 
             Vector3 playerPosition = Vector3.zero;
 
@@ -94,8 +105,8 @@ namespace CheatAsteroidLandingPosition
                 }
             }
             // Vector2 vector = UnityEngine.Random.insideUnitCircle * (float)_asteroidEvent.distanceFromPlayer;
-            var landingPosition = new Vector3(deltaX.Value, deltaY.Value, deltaZ.Value);
-            if (!absolute.Value)
+            var landingPosition = new Vector3(config.deltaX.Value, config.deltaY.Value, config.deltaZ.Value);
+            if (!config.absolute.Value)
             {
                 landingPosition += playerPosition;
             }
@@ -133,5 +144,26 @@ namespace CheatAsteroidLandingPosition
                 UnityEngine.Random.Range(bounds.min.z, bounds.max.z)
             );
         }
+    }
+
+    internal class PlanetConfig
+    {
+        /// <summary>
+        /// Relative position up-down.
+        /// </summary>
+        internal ConfigEntry<int> deltaY;
+        /// <summary>
+        /// Relative position east-west (east is positive).
+        /// </summary>
+        internal ConfigEntry<int> deltaX;
+        /// <summary>
+        /// Relative position north-south (north is positive).
+        /// </summary>
+        internal ConfigEntry<int> deltaZ;
+
+        /// <summary>
+        /// Should the coordinates treated as absolute?
+        /// </summary>
+        internal ConfigEntry<bool> absolute;
     }
 }
