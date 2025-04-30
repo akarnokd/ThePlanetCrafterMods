@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatMinimap</AssemblyName>
     <Description>(Cheat) Minimap</Description>
-    <Version>1.0.0.57</Version>
+    <Version>1.0.0.58</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -32,70 +32,76 @@
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)map_endgame.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)portal.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\map_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\map_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\map_endgame.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\player_marker.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\player_marker_2.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\chest.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\chest_golden.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\chest_starform.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\ladder.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\server.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\above.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\below.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\safe.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\portal.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\altar.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 
       <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)map_endgame.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)portal.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\map_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\map_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\map_endgame.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\player_marker.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\player_marker_2.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\chest.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\chest_golden.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\chest_starform.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\ladder.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\server.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\above.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\below.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\safe.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\portal.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\altar.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 
       <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)map_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)map_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)map_endgame.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)player_marker.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)player_marker_2.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)chest.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)chest_golden.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)chest_starform.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	<Copy SourceFiles="$(SourceDir)server.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)above.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)below.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)safe.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)portal.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)altar.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-	  <Copy SourceFiles="$(SourceDir)stair.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)drone.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)map_grid.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
-      <Copy SourceFiles="$(SourceDir)humble_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\map_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\map_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\map_endgame.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\player_marker.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\player_marker_2.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+    <Copy SourceFiles="$(SourceDir)images\chest.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\chest_golden.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\chest_starform.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\ladder.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	<Copy SourceFiles="$(SourceDir)images\server.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\above.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\below.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\safe.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\portal.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\altar.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\selenea_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 
       <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"

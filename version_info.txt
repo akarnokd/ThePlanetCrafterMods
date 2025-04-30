@@ -19,7 +19,7 @@ akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.73
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.31
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.57
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.58
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources
@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.17
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.18
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows

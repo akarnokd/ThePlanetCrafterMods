@@ -361,14 +361,20 @@ namespace FeatCommandConsole
                     }
                     if (list.Count != 0)
                     {
-                        list.Sort();
-                        Colorize(list, "#FFFF00");
-                        foreach (var k in JoinPerLine(list, 10))
+                        if (list.Count == 1)
                         {
-                            AddLine("<margin=2em>" + k);
+                            inputFieldText.text = list[0];
                         }
-
-                        CreateOutputLines();
+                        else
+                        {
+                            list.Sort();
+                            Colorize(list, "#FFFF00");
+                            foreach (var k in JoinPerLine(list, 10))
+                            {
+                                AddLine("<margin=2em>" + k);
+                            }
+                            CreateOutputLines();
+                        }
                     }
                     inputFieldText.ActivateInputField();
                     inputFieldText.caretPosition = inputFieldText.text.Length;
@@ -2632,13 +2638,28 @@ namespace FeatCommandConsole
                         }
                     }
                 }
+                found.Sort((a, b) =>
+                {
+                    var p1 = a.GetPosition();
+                    var d1 = Vector3.Distance(pp, p1);
+
+                    var p2 = b.GetPosition();
+                    var d2 = Vector3.Distance(pp, p2);
+
+                    return d1.CompareTo(d2);
+                });
+
                 AddLine("<margin=1em>Found " + found.Count + " world objects");
+                var i = 0;
                 foreach (var wo in found) {
-                    AddLine("<margin=2em>" 
+                    AddLine("<margin=2em>"
+                        + string.Format("{0:00}.  ", i)
                         + wo.GetId() + " - " 
                         + wo.GetGroup().GetId() 
                         + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) 
                         + "\"</color>  @ " + wo.GetPosition() + " (" + string.Format("{0:0.#}", Vector3.Distance(wo.GetPosition(), pp)) + ")");
+
+                    i++;
                 }
             }
         }
@@ -2880,6 +2901,7 @@ namespace FeatCommandConsole
             var player = pm.transform.position;
 
             int i = 0;
+            var found = new List<WorldObjectFromScene>();
             foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 var gd = wos.GetGroupData();
@@ -2893,10 +2915,29 @@ namespace FeatCommandConsole
                     var d = Vector3.Distance(player, p);
                     if (range == 0 || d <= range)
                     {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        found.Add(wos);
                     }
                     i++;
                 }
+            }
+            found.Sort((a, b) =>
+            {
+                var p1 = a.transform.position;
+                var d1 = Vector3.Distance(player, p1);
+
+                var p2 = b.transform.position;
+                var d2 = Vector3.Distance(player, p2);
+
+                return d1.CompareTo(d2);
+            });
+
+            var j = 0;
+            foreach (var wos in found)
+            {
+                var p = wos.transform.position;
+                var d = Vector3.Distance(player, p);
+                AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", j, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                j++;
             }
 
             if (i == 0)
@@ -2917,6 +2958,7 @@ namespace FeatCommandConsole
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var player = pm.transform.position;
 
+            var found = new List<WorldObjectFromScene>();
             int i = 0;
             foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
@@ -2930,10 +2972,30 @@ namespace FeatCommandConsole
                     var d = Vector3.Distance(player, p);
                     if (range == 0 || d <= range)
                     {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        found.Add(wos);
                     }
                     i++;
                 }
+            }
+
+            found.Sort((a, b) =>
+            {
+                var p1 = a.transform.position;
+                var d1 = Vector3.Distance(player, p1);
+
+                var p2 = b.transform.position;
+                var d2 = Vector3.Distance(player, p2);
+
+                return d1.CompareTo(d2);
+            });
+
+            var j = 0;
+            foreach (var wos in found)
+            {
+                var p = wos.transform.position;
+                var d = Vector3.Distance(player, p);
+                AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", j, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                j++;
             }
 
             if (i == 0)
