@@ -475,11 +475,21 @@ namespace CheatInventoryStacking
 
             var droneGroupId = ____droneWorldObject?.GetGroup().id;
 
-            if (droneGroupId != null )
+            if (droneGroupId != null)
             {
-                if (allDroneStations.Count == 1)
+                var currentPlanetDroneStations = new List<MachineDroneStation>();
+                var dronePlanet = __instance.GetDronePlanetHash();
+                foreach (var md in allDroneStations)
                 {
-                    var onlyDroneStation = allDroneStations[0];
+                    if (md.GetPlanetHash() == dronePlanet)
+                    {
+                        currentPlanetDroneStations.Add(md);
+                    }
+                }
+
+                if (currentPlanetDroneStations.Count == 1)
+                {
+                    var onlyDroneStation = currentPlanetDroneStations[0];
                     var inv = onlyDroneStation.GetDroneStationInventory();
                     if (!IsFullStackedOfInventory(inv, droneGroupId))
                     {
@@ -491,11 +501,10 @@ namespace CheatInventoryStacking
                 var maxDistance = float.MaxValue;
                 var pos = ____droneRoot.transform.position;
 
-                foreach (var ds in allDroneStations)
+                foreach (var ds in currentPlanetDroneStations)
                 {
                     var inv = ds.GetDroneStationInventory();
-                    if (!IsFullStackedOfInventory(inv, droneGroupId)
-                        && ds.GetPlanetHash() == __instance.GetDronePlanetHash())
+                    if (!IsFullStackedOfInventory(inv, droneGroupId))
                     {
                         var dist = Vector3.Distance(ds.gameObject.transform.position, pos);
                         if (dist < maxDistance)
@@ -505,11 +514,12 @@ namespace CheatInventoryStacking
                         }
                     }
                 }
-            }
 
-            if (____associatedDroneStation == null && allDroneStations.Count != 0)
-            {
-                ____associatedDroneStation = allDroneStations[UnityEngine.Random.Range(0, allDroneStations.Count)];
+                if (____associatedDroneStation == null && currentPlanetDroneStations.Count != 0)
+                {
+                    var rng = UnityEngine.Random.Range(0, currentPlanetDroneStations.Count);
+                    ____associatedDroneStation = currentPlanetDroneStations[rng];
+                }
             }
 
             return false;
