@@ -18,6 +18,7 @@ namespace CheatInventoryStacking
         static readonly Dictionary<int, List<LogisticTask>> nonAttributedTasksCacheAllPlanets = [];
         static readonly List<int> allTasksFrameCache = [];
         static readonly Dictionary<string, bool> inventoryGroupIsFull = [];
+        static readonly List<Drone> droneFleetCache = [];
 
         static readonly Comparison<Inventory> CompareInventoryPriorityDesc =
             (x, y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority());
@@ -27,8 +28,8 @@ namespace CheatInventoryStacking
         static bool Patch_LogisticManager_SetLogisticTasks(
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
-            List<MachineDroneStation> ____allDroneStations,
-            List<Drone> ____droneFleet,
+            HashSet<MachineDroneStation> ____allDroneStations,
+            HashSet<Drone> ____droneFleet,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories,
             ref IEnumerator __result
@@ -53,8 +54,8 @@ namespace CheatInventoryStacking
         static IEnumerator LogisticManager_SetLogisticTasks_Override(
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
-            List<MachineDroneStation> ____allDroneStations,
-            List<Drone> ____droneFleet,
+            HashSet<MachineDroneStation> ____allDroneStations,
+            HashSet<Drone> ____droneFleet,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories
         )
@@ -217,9 +218,13 @@ namespace CheatInventoryStacking
 
             Log("  LogisticManager::SetLogisticTasks Task removals done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
-            foreach (var drone in ____droneFleet)
+            droneFleetCache.Clear();
+            droneFleetCache.AddRange(____droneFleet);
+
+            for (int i = 0; i < droneFleetCache.Count; i++)
             {
-                if (drone.GetLogisticTask() == null)
+                var drone = droneFleetCache[i];
+                if (drone != null && drone.GetLogisticTask() == null)
                 {
                     var planetHash = drone.GetDronePlanetHash();
                     if (!nextNonAttributedTaskIndices.TryGetValue(planetHash, out var nextNonAttributedTaskIndex))
@@ -458,6 +463,8 @@ namespace CheatInventoryStacking
             }
         }
 
+        static readonly List<MachineDroneStation> candidateDroneStationsPerPlanet = [];
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "SetClosestAvailableDroneStation")]
         static bool Patch_Drone_SetClosestAvailableDroneStation(
@@ -465,7 +472,7 @@ namespace CheatInventoryStacking
             ref MachineDroneStation ____associatedDroneStation,
             GameObject ____droneRoot,
             WorldObject ____droneWorldObject,
-            List<MachineDroneStation> allDroneStations
+            HashSet<MachineDroneStation> allDroneStations
         )
         {
             if (stackSize.Value <= 1 || !stackDroneStation.Value)
@@ -477,35 +484,16 @@ namespace CheatInventoryStacking
 
             if (droneGroupId != null)
             {
-                var currentPlanetDroneStations = new List<MachineDroneStation>();
                 var dronePlanet = __instance.GetDronePlanetHash();
-                foreach (var md in allDroneStations)
-                {
-                    if (md.GetPlanetHash() == dronePlanet)
-                    {
-                        currentPlanetDroneStations.Add(md);
-                    }
-                }
-
-                if (currentPlanetDroneStations.Count == 1)
-                {
-                    var onlyDroneStation = currentPlanetDroneStations[0];
-                    var inv = onlyDroneStation.GetDroneStationInventory();
-                    if (!IsFullStackedOfInventory(inv, droneGroupId))
-                    {
-                        ____associatedDroneStation = onlyDroneStation;
-                        return false;
-                    }
-                }
-
                 var maxDistance = float.MaxValue;
                 var pos = ____droneRoot.transform.position;
 
-                foreach (var ds in currentPlanetDroneStations)
+                foreach (var ds in allDroneStations)
                 {
                     var inv = ds.GetDroneStationInventory();
-                    if (!IsFullStackedOfInventory(inv, droneGroupId))
+                    if (ds.GetPlanetHash() == dronePlanet && !IsFullStackedOfInventory(inv, droneGroupId))
                     {
+                        candidateDroneStationsPerPlanet.Add(ds);
                         var dist = Vector3.Distance(ds.gameObject.transform.position, pos);
                         if (dist < maxDistance)
                         {
@@ -515,12 +503,14 @@ namespace CheatInventoryStacking
                     }
                 }
 
-                if (____associatedDroneStation == null && currentPlanetDroneStations.Count != 0)
+                if (____associatedDroneStation == null && candidateDroneStationsPerPlanet.Count != 0)
                 {
-                    var rng = UnityEngine.Random.Range(0, currentPlanetDroneStations.Count);
-                    ____associatedDroneStation = currentPlanetDroneStations[rng];
+                    var rng = UnityEngine.Random.Range(0, candidateDroneStationsPerPlanet.Count);
+                    ____associatedDroneStation = candidateDroneStationsPerPlanet[rng];
                 }
             }
+
+            candidateDroneStationsPerPlanet.Clear();
 
             return false;
         }

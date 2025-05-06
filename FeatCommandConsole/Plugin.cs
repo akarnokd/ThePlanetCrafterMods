@@ -1897,6 +1897,12 @@ namespace FeatCommandConsole
                         {
                             AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType()); ;
                         }
+                        var notallowed = gc.GetNotAllowedPlanetsRequirement();
+                        if (notallowed != null && notallowed.Count != 0)
+                        {
+                            AddLine("<margin=1em><b>Not allowed planets requirement:</b> <color=#00FF00>" 
+                                + string.Join(", ", notallowed.Select(v => v.id)));
+                        }
                     } 
                     else
                     {
