@@ -384,7 +384,16 @@ namespace CheatCraftFromNearbyContainers
             List<WorldObject> candidateGetInventoryOfWorldObject = [];
             HashSet<int> seen = [];
             List<string> prefixes = GetPrefixes();
-            var planetId = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().GetPlanetHash();
+            var planetId = 0;
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl != null)
+            {
+                var cp = pl.GetCurrentPlanetData();
+                if (cp != null)
+                {
+                    planetId = cp.GetPlanetHash();
+                }
+            }
             var currentPlanetOnlyFlag = currentPlanetOnly.Value;
 
             foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
