@@ -126,7 +126,20 @@ namespace PerfStartup
                 // now skip over several @ sections till the custom save name info
                 for (; ; )
                 {
-                    var line = sr.ReadLine() ?? throw new IOException("File ends before the mode section: " + fileName);
+                    var line = sr.ReadLine();
+                    if (line == null)
+                    {
+                        modeLabel = Readable.GetModeLabel(DataConfig.GameSettingMode.Standard);
+                        state.planetId = "Prime";
+                        state.saveDisplayName = "";
+                        state.gameMode = DataConfig.GameSettingMode.Standard;
+                        state.gameStartLocation = "Standard";
+                        state.gameDyingConsequences = DataConfig.GameSettingDyingConsequences.DropSomeItems;
+                        state.dyingConsequencesLabel = "DropSomeItems";
+                        state.startLocationLabel = "Standard";
+                        state.preInterplanetarySave = true;
+                        break;
+                    }
                     if (line.StartsWith("@"))
                     {
                         section++;

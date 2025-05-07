@@ -114,6 +114,7 @@ namespace UIContinue
                                         , ws);
                                 }
 
+                                bool nameSectionFound = false;
                                 int section = 1;
                                 for (int j = 2; j < sf.Length; j++)
                                 {
@@ -139,6 +140,7 @@ namespace UIContinue
                                         }
                                         if (section == (isOldSaveFormat ? 8 : 9))
                                         {
+                                            nameSectionFound = true;
                                             var state = ScriptableObject.CreateInstance<JsonableGameState>();
                                             JsonUtility.FromJsonOverwrite(sf[j], state);
 
@@ -159,9 +161,12 @@ namespace UIContinue
                                         }
                                     }
                                 }
-
+                                if (!nameSectionFound)
+                                {
+                                    lastSaveInfoText += Path.GetFileNameWithoutExtension(lastSave);
+                                }
                                 lastSaveInfoText += "  @  " + CreateTiAndUnit(ws);
-                                if (playerCount == 1)
+                                if (playerCount <= 1)
                                 {
                                     lastSaveInfoText += "     <i><color=#FFFF00>[Single]</color></i>";
                                 }

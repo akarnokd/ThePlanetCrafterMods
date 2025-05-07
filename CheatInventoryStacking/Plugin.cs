@@ -772,8 +772,9 @@ namespace CheatInventoryStacking
                 return true;
             }
             List<WorldObject> list = [];
+            var woIds = jsonableInventory.woIds ?? "";
             // Vanilla started limiting this list to 8000 entries, we need to free it
-            foreach (string text in jsonableInventory.woIds.Split(',', StringSplitOptions.None))
+            foreach (string text in woIds.Split(',', StringSplitOptions.None))
             {
                 if (!(text == ""))
                 {

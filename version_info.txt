@@ -15,7 +15,7 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.12
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.66
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.75
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.76
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.32
 # (Cheat) Minimap
@@ -59,7 +59,7 @@ akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.18
 # (Multi) Player Locator
 akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Startup
-akarnokd.theplanetcraftermods.perfstartup=1.0.0.15
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.16
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.14
 # (Save) Auto Save
@@ -69,7 +69,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.15
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.19
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.25
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.26
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.15
 # (UI) Prevent Accidental Deconstruct
