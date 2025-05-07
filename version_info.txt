@@ -15,9 +15,9 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.12
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.66
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.74
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.75
 # (Cheat) Machines Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.31
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.32
 # (Cheat) Minimap
 akarnokd.theplanetcraftermods.cheatminimap=1.0.0.58
 # (Cheat) More Trade
@@ -27,7 +27,7 @@ akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.28
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.16
 # (Cheat) Recyclers Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.20
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.21
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.9
 # (Feat) Command Console
@@ -35,7 +35,7 @@ akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.19
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.26
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.27
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.32
 # (Fix) Unofficial Patches
@@ -91,7 +91,7 @@ akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.31
 # (UI) Save When Quitting
 akarnokd.theplanetcraftermods.saveonquit=1.0.0.13
 # (UI) Show Consumable Counts
-akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.19
+akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.20
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.20
 # (UI) Show Crash

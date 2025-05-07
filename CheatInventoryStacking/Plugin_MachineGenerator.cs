@@ -77,7 +77,7 @@ namespace CheatInventoryStacking
                     var inventory = ____inventory;
                     if ((IsFindInventoryForGroupIDEnabled?.Invoke() ?? false) && FindInventoryForGroupID != null)
                     {
-                        inventory = FindInventoryForGroupID(oreId);
+                        inventory = FindInventoryForGroupID(oreId, ____worldObject.GetPlanetHash());
                     }
 
                     if (inventory != null)

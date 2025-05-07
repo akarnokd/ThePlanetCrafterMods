@@ -77,7 +77,7 @@ namespace CheatInventoryStacking
         /// Use <see cref="IsFindInventoryForGroupIDEnabled"/> to indicate if this method
         /// should be called at all or not.
         /// </summary>
-        public static Func<string, Inventory> FindInventoryForGroupID;
+        public static Func<string, int, Inventory> FindInventoryForGroupID;
 
         // -------------------------------------------------------------------------------------------------------------
         // API: pointed to by the delegates. Please use the delegates instead of doing reflective method calls on these.
