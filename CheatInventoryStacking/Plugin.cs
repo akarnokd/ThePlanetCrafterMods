@@ -709,7 +709,7 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
-        static void BlackScreen_DisplayLogoStudio()
+        static void Patch_BlackScreen_DisplayLogoStudio()
         {
             Patch_UiWindowPause_OnQuit();
         }
