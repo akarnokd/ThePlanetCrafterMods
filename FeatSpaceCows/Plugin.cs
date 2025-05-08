@@ -314,6 +314,10 @@ namespace FeatSpaceCows
             for (; ; )
             {
                 yield return new WaitForSeconds(delay);
+                if (cow.body == null)
+                {
+                    yield break;
+                }
                 var currentPlanetHash = 0;
                 var pl = Managers.GetManager<PlanetLoader>();
                 if (pl != null)

@@ -35,7 +35,7 @@ akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.19
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.27
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.28
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.32
 # (Fix) Unofficial Patches
@@ -59,7 +59,7 @@ akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.18
 # (Multi) Player Locator
 akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Startup
-akarnokd.theplanetcraftermods.perfstartup=1.0.0.16
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.17
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.14
 # (Save) Auto Save

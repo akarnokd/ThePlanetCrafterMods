@@ -130,7 +130,6 @@ namespace PerfStartup
                     if (line == null)
                     {
                         modeLabel = Readable.GetModeLabel(DataConfig.GameSettingMode.Standard);
-                        state.planetId = "Prime";
                         state.saveDisplayName = "";
                         state.gameMode = DataConfig.GameSettingMode.Standard;
                         state.gameStartLocation = "Standard";
@@ -165,6 +164,10 @@ namespace PerfStartup
                             break;
                         }
                     }
+                }
+                if (string.IsNullOrWhiteSpace(state.planetId))
+                {
+                    state.planetId = "Prime";
                 }
             } 
             catch (Exception ex)
