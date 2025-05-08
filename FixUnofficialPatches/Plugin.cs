@@ -96,20 +96,6 @@ namespace FixUnofficialPatches
             return true;
         }
 
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Localization), nameof(Localization.GetLocalizedString))]
-        static bool Localization_GetLocalizedString(string stringCode, ref string __result)
-        {
-            if (stringCode == null)
-            {
-                __result = "";
-                return false;
-            }
-            return true;
-        }
-        */
-
         static readonly Color colorTransparent = new(0, 0, 0, 0);
 
         [HarmonyPrefix]
@@ -132,25 +118,11 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Actionnable), "HandleHoverMaterial")]
-        static bool Actionnable_HandleHoverMaterial()
-        {
-            return Managers.GetManager<VisualsResourcesHandler>() != null;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(GamepadConfig), "OnDestroy")]
         static void GamepadConfig_OnDestroy(ref Callback<GamepadTextInputDismissed_t> ____gamepadTextInputDismissed)
         {
             ____gamepadTextInputDismissed ??= Callback<GamepadTextInputDismissed_t>.Create(
                     new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventorySpawnContent), "OnConstructibleDestroyed")]
-        static bool InventorySpawnContent_OnConstructibleDestroyed()
-        {
-            return NetworkManager.Singleton != null;
         }
 
         [HarmonyPrefix]
@@ -168,24 +140,6 @@ namespace FixUnofficialPatches
             }
             return true;
         }
-
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(GroupNetworkBase), "DeconstructServerRpc")]
-        static void GroupNetworkBase_DeconstructServerRpc(GroupNetworkBase __instance, 
-            ref ActionDeconstructible ____actionDeconstruct)
-        {
-            NetworkManager networkManager = __instance.NetworkManager;
-            if (networkManager == null || !networkManager.IsListening || !networkManager.IsServer)
-            {
-                return;
-            }
-            if (____actionDeconstruct == null)
-            {
-                ____actionDeconstruct = __instance.GetComponentInChildren<ActionDeconstructible>(true);
-            }
-        }
-        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldUnitPositioning), nameof(WorldUnitPositioning.UpdateEvolutionPositioning))]

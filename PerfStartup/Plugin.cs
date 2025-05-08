@@ -187,12 +187,5 @@ namespace PerfStartup
             dest.unitAnimalsLevel += src.unitAnimalsLevel;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.CreateNewSaveFile))]
-        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ____proceduralInstances)
-        {
-            ____proceduralInstances ??= [];
-        }
-
     }
 }
