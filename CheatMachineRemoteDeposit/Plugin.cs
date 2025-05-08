@@ -413,7 +413,7 @@ namespace CheatMachineRemoteDeposit
 
         static void StopClearMachineInventory(Inventory inventory) 
         {
-            if (clearCoroutines.Remove(inventory.GetId(), out var coroutine))
+            if (inventory != null && clearCoroutines.Remove(inventory.GetId(), out var coroutine))
             {
                 me.StopCoroutine(coroutine);
                 Log("StopClearMachineInventory: " + inventory.GetId() + " (remaining: " + clearCoroutines.Count + ")");

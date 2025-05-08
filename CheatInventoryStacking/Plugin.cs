@@ -831,6 +831,8 @@ namespace CheatInventoryStacking
             var keys = ____allWorldObjects.Keys;
             ____currentPlanetHash = currentPlanetHash;
 
+            var seenKeys = new HashSet<int>(keys.Count + 1);
+
             var sw = Stopwatch.StartNew();
             var sw1 = Stopwatch.StartNew();
 
@@ -860,11 +862,10 @@ namespace CheatInventoryStacking
                 Log(string.Format("PlaceAllWorldObjects - loop current keys | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
                 sw.Restart();
 
-                HashSet<int> updatedKeys = CopyHashSetExcept(keys, currentKeys);
+                seenKeys.UnionWith(currentKeys);
+                currentKeys = CopyHashSetExcept(keys, seenKeys);
                 Log(string.Format("PlaceAllWorldObjects - keys copy new | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
                 sw.Restart();
-
-                currentKeys = updatedKeys;
             }
             ____hasInitiatedAllObjects = true;
             Log(string.Format("PlaceAllWorldObjects - done | {0:0.000}ms", sw1.Elapsed.TotalMilliseconds));

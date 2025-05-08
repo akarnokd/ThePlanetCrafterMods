@@ -447,7 +447,7 @@ namespace CheatInventoryStacking
             {
                 return null;
             }
-
+            // Log("CreateNewTaskForWorldObjectForSpawnedObject: " + worldObject.GetId() + " (" + worldObject.GetGroup().GetId() + ")");
             var task = new LogisticTask(worldObject, null, demandInventory, null, demandWorldObject, _isSpawnedObject: true);
             _allLogisticTasks[worldObject.GetId()] = task;
             return task;
