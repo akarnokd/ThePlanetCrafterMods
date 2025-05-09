@@ -13,6 +13,7 @@ using BepInEx.Logging;
 using System.Linq;
 using static SpaceCraft.DataConfig;
 using Unity.Netcode;
+using System.Reflection;
 
 namespace CheatAutoSequenceDNA
 {
@@ -63,8 +64,17 @@ namespace CheatAutoSequenceDNA
 
         static ManualLogSource logger;
 
+        static Plugin me;
+
+        static AccessTools.FieldRef<MachineConvertRecipe, float> machineConvertRecipeCheckEvery;
+        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, float> machineGrowerIfLinkedGroupUpdateEvery;
+        static MethodInfo machineGrowerIfLinkedGroupUpdateUpdateGrowth;
+        static MethodInfo machineConvertRecipeCheckIfFullyGrownCoroutine;
+
         public void Awake()
         {
+            me = this;
+
             LibCommon.BepInExLoggerFix.ApplyFix();
 
             // Plugin startup logic
@@ -95,6 +105,12 @@ namespace CheatAutoSequenceDNA
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
 
             logger = Logger;
+
+            machineConvertRecipeCheckEvery = AccessTools.FieldRefAccess<MachineConvertRecipe, float>("_checkEvery");
+            machineGrowerIfLinkedGroupUpdateEvery = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, float>("_updateEvery");
+
+            machineGrowerIfLinkedGroupUpdateUpdateGrowth = AccessTools.Method(typeof(MachineGrowerIfLinkedGroup), "UpdateGrowth", [typeof(float)]);
+            machineConvertRecipeCheckIfFullyGrownCoroutine = AccessTools.Method(typeof(MachineConvertRecipe), "CheckIfFullyGrownCoroutine", [typeof(float)]);
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -785,6 +801,104 @@ namespace CheatAutoSequenceDNA
                     current = null;
                     Drain();
                 }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
+        private static void StaticDataHandler_LoadStaticData(List<GroupData> ___groupsData)
+        {
+            foreach (var gd in ___groupsData)
+            {
+                if (gd.associatedGameObject != null 
+                    && gd.associatedGameObject.GetComponent<MachineGrowerIfLinkedGroup>() != null
+                    && gd.associatedGameObject.GetComponent<MachineConvertRecipe>() != null
+                    && gd.associatedGameObject.GetComponent<OffPlanetUpdater>() == null
+                    )
+                {
+                    Log("Adding OffPlanetUpdater to " + gd.id);
+
+                    gd.associatedGameObject.AddComponent<OffPlanetUpdater>();
+                }
+            }
+        }
+
+        internal class OffPlanetUpdater : MonoBehaviour
+        {
+            Coroutine linkedGroupCoroutine;
+
+            Coroutine recipeConvertCoroutine;
+
+            MachineGrowerIfLinkedGroup machineGrowerIfLinkedGroup;
+
+            MachineConvertRecipe machineConvertRecipe;
+
+            internal void Awake()
+            {
+                var gp = GetComponentInParent<GrowthProxy>(true);
+                var lp = GetComponentInParent<LinkedGroupsProxy>(true);
+
+                machineGrowerIfLinkedGroup = GetComponent<MachineGrowerIfLinkedGroup>();
+                machineConvertRecipe = GetComponent<MachineConvertRecipe>();
+
+                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_growthProxy").SetValue(machineGrowerIfLinkedGroup, gp);
+                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_lgProxy").SetValue(machineGrowerIfLinkedGroup, lp);
+
+                AccessTools.Field(typeof(MachineConvertRecipe), "_growthProxy").SetValue(machineConvertRecipe, gp);
+                AccessTools.Field(typeof(MachineConvertRecipe), "_lgProxy").SetValue(machineConvertRecipe, lp);
+            }
+
+            internal void OnEnable()
+            {
+                Log("OffPlanetUpdater::OnEnable " + GetWorldObject());
+                StopCoroutines();
+            }
+
+            internal void OnDisable()
+            {
+                Log("OffPlanetUpdater::OnDisable " + GetWorldObject());
+                recipeConvertCoroutine = me.StartCoroutine(
+                    (IEnumerator)machineConvertRecipeCheckIfFullyGrownCoroutine.Invoke(
+                        machineConvertRecipe, [machineConvertRecipeCheckEvery(machineConvertRecipe)]));
+
+                linkedGroupCoroutine = me.StartCoroutine(
+                    (IEnumerator)machineGrowerIfLinkedGroupUpdateUpdateGrowth.Invoke(
+                        machineGrowerIfLinkedGroup, [machineGrowerIfLinkedGroupUpdateEvery(machineGrowerIfLinkedGroup)])
+                    );
+            }
+
+            void StopCoroutines()
+            {
+                if (linkedGroupCoroutine != null)
+                {
+                    me.StopCoroutine(linkedGroupCoroutine);
+                    linkedGroupCoroutine = null;
+                }
+                if (recipeConvertCoroutine != null)
+                {
+                    me.StopCoroutine(recipeConvertCoroutine);
+                    recipeConvertCoroutine = null;
+                }
+            }
+
+            internal void OnDestroy()
+            {
+                Log("OffPlanetUpdater::OnDestroy " + GetWorldObject());
+                StopCoroutines();
+            }
+
+            string GetWorldObject()
+            {
+                var woa = GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    var wo = woa.GetWorldObject();
+                    if (wo != null)
+                    {
+                        return wo.GetId() + " at " + wo.GetPosition() + " on planet " + wo.GetPlanetHash() + " (" + gameObject.GetInstanceID() + ")";
+                    }
+                }
+                return "unknown (" + gameObject.GetInstanceID() + ")";
             }
         }
     }
