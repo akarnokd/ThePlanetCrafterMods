@@ -43,6 +43,7 @@ namespace FeatCommandConsole
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<string> toggleKey;
+        static ConfigEntry<string> toggleKeyController;
         static ConfigEntry<int> consoleTop;
         static ConfigEntry<int> consoleLeft;
         static ConfigEntry<int> consoleRight;
@@ -67,6 +68,7 @@ namespace FeatCommandConsole
         static readonly List<string> commandHistory = [];
 
         static InputAction toggleAction;
+        static InputAction toggleActionController;
 
         static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = [];
 
@@ -132,6 +134,7 @@ namespace FeatCommandConsole
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable the detailed logging of this mod");
             toggleKey = Config.Bind("General", "ToggleKey", "<Keyboard>/enter", "Key to open the console");
+            toggleKeyController = Config.Bind("General", "ToggleKeyController", "<Gamepad>/rightStickPress", "Controller action to open the console");
 
             consoleTop = Config.Bind("General", "ConsoleTop", 200, "Console window's position relative to the top of the screen.");
             consoleLeft = Config.Bind("General", "ConsoleLeft", 300, "Console window's position relative to the left of the screen.");
@@ -148,6 +151,13 @@ namespace FeatCommandConsole
             }
             toggleAction = new InputAction(name: "Open console", binding: toggleKey.Value);
             toggleAction.Enable();
+
+            if (!toggleKeyController.Value.Contains("<"))
+            {
+                toggleKeyController.Value = "<Gamepad>/" + toggleKey.Value;
+            }
+            toggleActionController = new InputAction(name: "Open console via controller", binding: toggleKeyController.Value);
+            toggleActionController.Enable();
 
             Log("   Get resource");
             Font osFont = null;
@@ -233,9 +243,10 @@ namespace FeatCommandConsole
             var ver = typeof(Plugin).GetCustomAttribute<BepInPlugin>().Version;
             consoleText.Add("Welcome to <b>Command Console</b> version <color=#00FF00>" + ver + "</color>.");
             consoleText.Add("<margin=1em>Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
-            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
-            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
-            consoleText.Add("<margin=1em><i>Start typing <color=#FFFF00>/</color> and press TAB to see commands starting with those letters.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow/D-Pad</color></b> to cycle command history.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel or Left Stick Up/Down</color></b> to scroll up/down the output.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>ESC or Gamepad B</color></b> close the dialog.</i>");
+            consoleText.Add("<margin=1em><i>Start typing <color=#FFFF00>/</color> and press <b><color=#FFFFFF>TAB or Gamepad Y</color></b> to see commands starting with those letters.</i>");
             consoleText.Add("");
         }
 
@@ -280,7 +291,8 @@ namespace FeatCommandConsole
             }
             if (wh.GetHasUiOpen() && background != null)
             {
-                if (Keyboard.current[Key.Escape].wasPressedThisFrame)
+                if (Keyboard.current[Key.Escape].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.bButton.wasPressedThisFrame))
                 {
                     Log("Escape pressed. Closing GUI");
                     DestroyConsoleGUI();
@@ -298,11 +310,23 @@ namespace FeatCommandConsole
                     }
                     */
                 }
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (Mouse.current.leftButton.wasPressedThisFrame 
+                    || (Gamepad.current != null && Gamepad.current.aButton.wasPressedThisFrame))
                 {
                     inputFieldText.ActivateInputField();
                 }
                 var ms = Mouse.current.scroll.ReadValue();
+                if (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null)
+                {
+                    if (Gamepad.current.leftStick.up.wasPressedThisFrame)
+                    {
+                        ms = new(0, 1);
+                    }
+                    else if (Gamepad.current.leftStick.down.wasPressedThisFrame)
+                    {
+                        ms = new(0, -1);
+                    }
+                }
                 if (ms.y != 0)
                 {
                     Log(" Scrolling " + ms.y);
@@ -321,7 +345,10 @@ namespace FeatCommandConsole
                     }
                     CreateOutputLines();
                 }
-                if (Keyboard.current[Key.UpArrow].wasPressedThisFrame)
+                bool prevHistoryPressed = Keyboard.current[Key.UpArrow].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null 
+                    && Gamepad.current.dpad.up.wasPressedThisFrame);
+                if (prevHistoryPressed)
                 {
                     Log("UpArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     if (commandHistoryIndex < commandHistory.Count)
@@ -333,7 +360,10 @@ namespace FeatCommandConsole
                         inputFieldText.stringPosition = inputFieldText.text.Length;
                     }
                 }
-                if (Keyboard.current[Key.DownArrow].wasPressedThisFrame)
+                bool nextHistoryPressed = Keyboard.current[Key.DownArrow].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null 
+                    && Gamepad.current.dpad.down.wasPressedThisFrame);
+                if (nextHistoryPressed)
                 {
                     Log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     commandHistoryIndex = Math.Max(0, commandHistoryIndex - 1);
@@ -349,7 +379,9 @@ namespace FeatCommandConsole
                     inputFieldText.caretPosition = inputFieldText.text.Length;
                     inputFieldText.stringPosition = inputFieldText.text.Length;
                 }
-                if (Keyboard.current[Key.Tab].wasPressedThisFrame)
+                bool suggestionPressed = Keyboard.current[Key.Tab].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.yButton.wasPressedThisFrame);
+                if (suggestionPressed)
                 {
                     List<string> list = [];
                     foreach (var k in commandRegistry.Keys)
@@ -381,11 +413,15 @@ namespace FeatCommandConsole
                 }
                 return;
             }
-            if (wh.GetHasUiOpen() && toggleAction.WasPressedThisFrame() && background == null)
+
+            bool toogleActionWasPressed = toggleAction.WasPressedThisFrame()
+                || (GamepadConfig.Instance.GetIsUsingController() && toggleActionController.WasPressedThisFrame());
+
+            if (wh.GetHasUiOpen() && toogleActionWasPressed && background == null)
             {
                 return;
             }
-            if (!toggleAction.WasPressedThisFrame() || background != null)
+            if (!toogleActionWasPressed || background != null)
             {
                 return;
             }
