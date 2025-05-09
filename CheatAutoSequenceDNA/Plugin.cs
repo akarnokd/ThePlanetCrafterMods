@@ -71,6 +71,8 @@ namespace CheatAutoSequenceDNA
         static MethodInfo machineGrowerIfLinkedGroupUpdateUpdateGrowth;
         static MethodInfo machineConvertRecipeCheckIfFullyGrownCoroutine;
 
+        static ConfigEntry<bool> debugFixPlanetSwitch;
+
         public void Awake()
         {
             me = this;
@@ -103,6 +105,8 @@ namespace CheatAutoSequenceDNA
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
+
+            debugFixPlanetSwitch = Config.Bind("General", "FixPlanetSwitch", true, "Fix for the vanilla bug with switching planets stopping sequencers/incubators");
 
             logger = Logger;
 
@@ -808,6 +812,10 @@ namespace CheatAutoSequenceDNA
         [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
         private static void StaticDataHandler_LoadStaticData(List<GroupData> ___groupsData)
         {
+            if (!debugFixPlanetSwitch.Value)
+            {
+                return;
+            }
             foreach (var gd in ___groupsData)
             {
                 if (gd.associatedGameObject != null 
@@ -841,6 +849,8 @@ namespace CheatAutoSequenceDNA
                 machineGrowerIfLinkedGroup = GetComponent<MachineGrowerIfLinkedGroup>();
                 machineConvertRecipe = GetComponent<MachineConvertRecipe>();
 
+                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_increaseRate")
+                    .SetValue(machineGrowerIfLinkedGroup, 100f / (machineGrowerIfLinkedGroup.timeToGrow * 60f / machineGrowerIfLinkedGroupUpdateEvery(machineGrowerIfLinkedGroup)));
                 AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_growthProxy").SetValue(machineGrowerIfLinkedGroup, gp);
                 AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_lgProxy").SetValue(machineGrowerIfLinkedGroup, lp);
 
@@ -848,15 +858,11 @@ namespace CheatAutoSequenceDNA
                 AccessTools.Field(typeof(MachineConvertRecipe), "_lgProxy").SetValue(machineConvertRecipe, lp);
             }
 
-            internal void OnEnable()
-            {
-                Log("OffPlanetUpdater::OnEnable " + GetWorldObject());
-                StopCoroutines();
-            }
-
             internal void OnDisable()
             {
                 Log("OffPlanetUpdater::OnDisable " + GetWorldObject());
+                StopCoroutines();
+
                 recipeConvertCoroutine = me.StartCoroutine(
                     (IEnumerator)machineConvertRecipeCheckIfFullyGrownCoroutine.Invoke(
                         machineConvertRecipe, [machineConvertRecipeCheckEvery(machineConvertRecipe)]));
