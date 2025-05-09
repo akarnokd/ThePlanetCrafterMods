@@ -23,7 +23,7 @@ akarnokd.theplanetcraftermods.cheatminimap=1.0.0.58
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.11
 # (Cheat) Highlight Nearby Resources
-akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.28
+akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.29
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.16
 # (Cheat) Recyclers Deposit Into Remote Containers

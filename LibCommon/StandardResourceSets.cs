@@ -74,6 +74,8 @@ namespace LibCommon
             "Fish11Eggs",
             "Fish12Eggs",
             "Fish13Eggs",
+            "Fish14Eggs",
+            "Fish15Eggs",
         ]);
 
         internal static readonly string defaultFrogs = string.Join(",",
@@ -91,7 +93,9 @@ namespace LibCommon
             "FrogGoldEggs",
             "Frog11Eggs",
             "Frog12Eggs",
-            "Frog13Eggs"
+            "Frog13Eggs",
+            "Frog14Eggs",
+            "Frog15Eggs"
         ]);
     }
 }
