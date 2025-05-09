@@ -311,7 +311,7 @@ namespace FeatCommandConsole
                     */
                 }
                 if (Mouse.current.leftButton.wasPressedThisFrame 
-                    || (Gamepad.current != null && Gamepad.current.aButton.wasPressedThisFrame))
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.aButton.wasPressedThisFrame))
                 {
                     inputFieldText.ActivateInputField();
                 }
@@ -4432,6 +4432,18 @@ namespace FeatCommandConsole
                 }
             }
         }
+
+        [Command("/close", "Closes the dialog.")]
+        public void Close(List<string> _)
+        {
+            DestroyConsoleGUI();
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh != null)
+            {
+                wh.CloseAllWindows();
+            }
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]

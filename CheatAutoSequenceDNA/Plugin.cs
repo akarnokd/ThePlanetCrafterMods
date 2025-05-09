@@ -162,6 +162,7 @@ namespace CheatAutoSequenceDNA
                 str += ", \"" + txt + "\"";
             }
             str += ", " + (wo.GetIsPlaced() ? wo.GetPosition() : "");
+            str += ", planet " + wo.GetPlanetHash();
             return str;
         }
 
@@ -237,6 +238,7 @@ namespace CheatAutoSequenceDNA
                     Log("  Incubator: " + DebugWorldObject(incubator));
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
+                    int incubatorPlanetHash = incubator.GetPlanetHash();
 
                     // Fix incubators that don't have enough slots for all ingredients.
                     if (incubatorInv.GetSize() < minInventoryCapacity)
@@ -256,27 +258,27 @@ namespace CheatAutoSequenceDNA
                             var gid = item.GetGroup().GetId();
                             if (gid.StartsWith("Butterfly"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Butterfly");
+                                TryDeposit(incubatorInv, item, itemCategories, "Butterfly", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Bee"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Bee");
+                                TryDeposit(incubatorInv, item, itemCategories, "Bee", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Silk"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Silk");
+                                TryDeposit(incubatorInv, item, itemCategories, "Silk", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Fish"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Fish");
+                                TryDeposit(incubatorInv, item, itemCategories, "Fish", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "FrogEgg");
+                                TryDeposit(incubatorInv, item, itemCategories, "FrogEgg", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("LarvaeBase"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Larvae");
+                                TryDeposit(incubatorInv, item, itemCategories, "Larvae", incubatorPlanetHash);
                             }
                         }
                     }
@@ -387,7 +389,7 @@ namespace CheatAutoSequenceDNA
                         ingredientSources = [];
                         sourcesPerCategory[cat] = ingredientSources;
                     }
-                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition());
+                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition(), machine.GetPlanetHash());
                 }
 
                 foreach (var m in missing)
@@ -548,6 +550,7 @@ namespace CheatAutoSequenceDNA
                     Log("  Sequencer: " + DebugWorldObject(sequencer));
                     // Try to deposit finished products first
                     Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
+                    int sequencerPlanetHash = sequencer.GetPlanetHash();
 
                     var currentItems = sequencerInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
@@ -560,11 +563,11 @@ namespace CheatAutoSequenceDNA
                             var gid = item.GetGroup().GetId();
                             if (gid.StartsWith("Tree") && gid.EndsWith("Seed"))
                             {
-                                TryDeposit(sequencerInv, item, itemCategories, "TreeSeed");
+                                TryDeposit(sequencerInv, item, itemCategories, "TreeSeed", sequencerPlanetHash);
                             }
                             if (gid.StartsWith("Seed"))
                             {
-                                TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed");
+                                TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed", sequencerPlanetHash);
                             }
                         }
                     }
@@ -632,14 +635,15 @@ namespace CheatAutoSequenceDNA
             Inventory source, 
             WorldObject item, 
             Dictionary<string, List<WorldObject>> itemCategories, 
-            string itemKey)
+            string itemKey,
+            int sourcePlanetHash)
         {
             Log("      Deposit item: " + DebugWorldObject(item));
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
                 if (containers.Count != 0)
                 {
-                    new DeferredDepositor(item, source, containers.GetEnumerator())
+                    new DeferredDepositor(item, source, sourcePlanetHash, containers.GetEnumerator())
                         .Drain();
                     return;
                 }
@@ -658,7 +662,8 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories, 
             string itemKey, 
             List<IngredientSource> result,
-            Vector3 incubatorDistance)
+            Vector3 incubatorDistance,
+            int incubatorPlanetHash)
         {
             var maxDistance = range.Value;
             if (itemCategories.TryGetValue(itemKey, out var containers))
@@ -666,6 +671,10 @@ namespace CheatAutoSequenceDNA
                 foreach (var container in containers)
                 {
                     if (maxDistance > 0 && Vector3.Distance(container.GetPosition(), incubatorDistance) > maxDistance)
+                    {
+                        continue;
+                    }
+                    if (incubatorPlanetHash != container.GetPlanetHash())
                     {
                         continue;
                     }
@@ -705,14 +714,16 @@ namespace CheatAutoSequenceDNA
         {
             internal WorldObject item;
             internal Inventory source;
+            internal int sourcePlanetHash;
             internal IEnumerator<WorldObject> candidatesEnumerator;
             int wip;
             WorldObject current;
 
-            internal DeferredDepositor(WorldObject item, Inventory source, IEnumerator<WorldObject> candidatesEnumerator)
+            internal DeferredDepositor(WorldObject item, Inventory source, int sourcePlanetHash, IEnumerator<WorldObject> candidatesEnumerator)
             {
                 this.item = item;
                 this.source = source;
+                this.sourcePlanetHash = sourcePlanetHash;
                 this.candidatesEnumerator = candidatesEnumerator;
             }
 
@@ -735,6 +746,12 @@ namespace CheatAutoSequenceDNA
                         {
                             Log("        Into      : Failed - all target containers are full");
                             break;
+                        }
+
+                        if (current.GetPlanetHash() != sourcePlanetHash)
+                        {
+                            current = null;
+                            continue;
                         }
 
                         var inv = InventoriesHandler.Instance.GetInventoryById(current.GetLinkedInventoryId());
