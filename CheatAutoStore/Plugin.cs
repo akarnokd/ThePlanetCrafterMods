@@ -180,7 +180,7 @@ namespace CheatAutoStore
         {
             var playerPos = ac.transform.position;
 
-            List<(int, string)> candidateInventoryIds = [];
+            List<(int, string, int)> candidateInventoryIds = [];
             List<(WorldObject, string)> candidateGetInventoryOfWorldObject = [];
 
             var wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
@@ -219,7 +219,8 @@ namespace CheatAutoStore
                         {
                             candidateInventoryIds.Add((
                                 wo.GetLinkedInventoryId(),
-                                woTxt
+                                woTxt,
+                                wo.GetPlanetHash()
                             ));
                         }
                         else
@@ -237,19 +238,19 @@ namespace CheatAutoStore
 
             var backpackInv = ac.GetPlayerBackpack().GetInventory();
 
-            var candidateInv = new List<(Inventory, string)>();
+            var candidateInv = new List<(Inventory, string, int)>();
 
             foreach (var iid in candidateInventoryIds)
             {
                 var fiid = iid;
                 InventoriesHandler.Instance.GetInventoryById(iid.Item1, 
-                    responseInv => candidateInv.Add((responseInv, fiid.Item2)));
+                    responseInv => candidateInv.Add((responseInv, fiid.Item2, fiid.Item3)));
             }
             foreach (var wo in candidateGetInventoryOfWorldObject)
             {
                 var fwo = wo;
                 InventoriesHandler.Instance.GetWorldObjectInventory(wo.Item1, 
-                    responseInv => candidateInv.Add((responseInv, fwo.Item2))
+                    responseInv => candidateInv.Add((responseInv, fwo.Item2, fwo.Item1.GetPlanetHash()))
                 );
             }
 
@@ -257,7 +258,7 @@ namespace CheatAutoStore
 
         }
 
-        static IEnumerator WaitForInventories(Inventory backpackInv, List<(Inventory, string)> candidateInventory, int n)
+        static IEnumerator WaitForInventories(Inventory backpackInv, List<(Inventory, string, int)> candidateInventory, int n)
         {
             Log("  Waiting for GetInventoryById callbacks: " + candidateInventory.Count + " of " + n);
             while (candidateInventory.Count != n)
@@ -275,6 +276,17 @@ namespace CheatAutoStore
             var marker = storeByNameMarker.Value;
             var modeStoreByDemand = storeByDemand.Value;
             var modeStoreBySupply = storeBySupply.Value;
+
+            var currentPlanetHash = 0;
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl != null)
+            {
+                var cp = pl.GetCurrentPlanetData();
+                if (cp != null)
+                {
+                    currentPlanetHash = cp.GetPlanetHash();
+                }
+            }
 
             var aliases = new Dictionary<string, string>();
             foreach (var kv in storeByNameAliases.Value.Split(","))
@@ -360,7 +372,7 @@ namespace CheatAutoStore
 
                 foreach (var inv in candidateInventory)
                 {
-                    if (inv.Item1 != null)
+                    if (inv.Item1 != null && inv.Item3 == currentPlanetHash)
                     {
                         var foundCandidate = false;
                         if (modeStoreBySame)
@@ -440,32 +452,6 @@ namespace CheatAutoStore
             inventoryStoringActive = false;
             Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + (backpackWos.Count + kept) + " deposited. " + excluded + " excluded. " + kept + " kept.");
         }
-
-        /* Fixed in 1.002
-        // Workaround for the method as it may crash if the woId no longer exists.
-        // We temporarily restore an empty object for the duration of the method
-        // so it can see no inventory and respond accordingly.
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
-        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Pre(int woId, ref bool __state)
-        {
-            if (!WorldObjectsHandler.Instance.GetAllWorldObjects().ContainsKey(woId))
-            {
-                WorldObjectsHandler.Instance.GetAllWorldObjects()[woId] = new WorldObject(woId, null);
-                __state = true;
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
-        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Post(int woId, ref bool __state)
-        {
-            if (__state)
-            {
-                WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
-            }
-        }
-        */
 
         internal class TransferCompletionHandler
         {
