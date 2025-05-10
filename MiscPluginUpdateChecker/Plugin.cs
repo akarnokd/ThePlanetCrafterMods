@@ -452,7 +452,9 @@ namespace MiscPluginUpdateChecker
             List<string> result = [];
             LogInfo("GetBranches");
             var api = "https://api.github.com/repos/akarnokd/ThePlanetCrafterMods/branches";
-            var request = WebRequest.Create(MaybeRandom(api, randomArgument)).NoCache();
+            var request = (HttpWebRequest)WebRequest.Create(MaybeRandom(api, randomArgument)).NoCache();
+            request.UserAgent = "akarnokd-ThePlanetCrafterMods-MiscPluginUpdateChecker";
+            request.Accept = "application/json";
 
             using var response = request.GetResponse();
             using var stream = response.GetResponseStream();
