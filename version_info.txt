@@ -55,7 +55,7 @@ akarnokd.theplanetcraftermods.miscdebug=1.0.0.0
 # (Misc) Mod Enabler
 akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.12
 # (Misc) Plugin Update Checker
-akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.18
+akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.20
 # (Multi) Player Locator
 akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.7
 # (Perf) Startup
