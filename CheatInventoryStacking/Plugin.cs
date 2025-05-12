@@ -848,10 +848,12 @@ namespace CheatInventoryStacking
                 int i = 0;
                 foreach (var key in currentKeys)
                 {
-                    var worldObject = ____allWorldObjects[key];
-                    if (worldObject.GetIsPlaced())
+                    if (____allWorldObjects.TryGetValue(key, out var worldObject))
                     {
-                        __instance.InstantiateWorldObject(worldObject, true, 0UL);
+                        if (worldObject.GetIsPlaced())
+                        {
+                            __instance.InstantiateWorldObject(worldObject, true, 0UL);
+                        }
                     }
                     if (i % 10000 == 0)
                     {
@@ -869,6 +871,80 @@ namespace CheatInventoryStacking
             }
             ____hasInitiatedAllObjects = true;
             Log(string.Format("PlaceAllWorldObjects - done | {0:0.000}ms", sw1.Elapsed.TotalMilliseconds));
+
+            return false;
+        }
+
+        /// <summary>
+        /// The vanilla routine uses keys.ElementAt which results in O(N^2) performance
+        /// when looping through all known objects.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="currentPlanetHash"></param>
+        /// <param name="____currentPlanetHash"></param>
+        /// <param name="____allWorldObjects"></param>
+        /// <param name="____hasInitiatedAllObjects"></param>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.UpdateAllWorldObjectsActivation))]
+        static bool Patch_WorldObjectsHandler_UpdateAllWorldObjectsActivation(
+            WorldObjectsHandler __instance,
+            int currentPlanetHash,
+            ref int ____currentPlanetHash,
+            Dictionary<int, WorldObject> ____allWorldObjects,
+            ref bool ____hasInitiatedAllObjects
+        )
+        {
+
+            if (!savePerfFix.Value)
+            {
+                return true;
+            }
+
+            var keys = ____allWorldObjects.Keys;
+            ____currentPlanetHash = currentPlanetHash;
+
+            var seenKeys = new HashSet<int>(keys.Count + 1);
+
+            var sw = Stopwatch.StartNew();
+            var sw1 = Stopwatch.StartNew();
+
+            Log(string.Format("UpdateAllWorldObjectsActivation - begin | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+
+            HashSet<int> currentKeys = CopyHashSet(keys);
+            Log(string.Format("UpdateAllWorldObjectsActivation - keys copy | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+            sw.Restart();
+
+            while (currentKeys.Count != 0)
+            {
+                Log("UpdateAllWorldObjectsActivation - world objects to process: " + currentKeys.Count);
+                int i = 0;
+                foreach (var key in currentKeys)
+                {
+                    if (____allWorldObjects.TryGetValue(key, out var worldObject))
+                    {
+                        var worldObjectPlanetHash = worldObject.GetPlanetHash();
+                        var gameObject = worldObject.GetGameObject();
+                        if (worldObjectPlanetHash != 0 && gameObject != null)
+                        {
+                            gameObject.SetActive(worldObjectPlanetHash == currentPlanetHash);
+                        }
+                    }
+                    if (i % 10000 == 0)
+                    {
+                        Log(string.Format("UpdateAllWorldObjectsActivation -    progress: {0:#,##0} / {1:#,###} = {2:0.000}% (@ {3:0.000}ms)", i, currentKeys.Count, 100d * i / currentKeys.Count, sw.Elapsed.TotalMilliseconds));
+                    }
+                    i++;
+                }
+                Log(string.Format("UpdateAllWorldObjectsActivation - loop current keys | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+
+                seenKeys.UnionWith(currentKeys);
+                currentKeys = CopyHashSetExcept(keys, seenKeys);
+                Log(string.Format("UpdateAllWorldObjectsActivation - keys copy new | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+            }
+            Log(string.Format("UpdateAllWorldObjectsActivation - done | {0:0.000}ms", sw1.Elapsed.TotalMilliseconds));
 
             return false;
         }
