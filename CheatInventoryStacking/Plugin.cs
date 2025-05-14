@@ -41,6 +41,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackGasExtractors;
         static ConfigEntry<bool> stackBeehives;
         static ConfigEntry<bool> stackBiodomes;
+        static ConfigEntry<bool> stackHarvestingRobots;
         static ConfigEntry<bool> stackAutoCrafters;
         static ConfigEntry<bool> stackDroneStation;
         static ConfigEntry<bool> stackAnimalFeeder;
@@ -154,6 +155,7 @@ namespace CheatInventoryStacking
             stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
             stackBeehives = Config.Bind("General", "StackBeehives", true, "Allow stacking in Beehives.");
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
+            stackHarvestingRobots = Config.Bind("General", "StackHarvestingRobots", true, "Allow stacking in Harvesting Robots");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
             stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");

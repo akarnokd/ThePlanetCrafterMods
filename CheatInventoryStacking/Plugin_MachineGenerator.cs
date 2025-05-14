@@ -160,6 +160,13 @@ namespace CheatInventoryStacking
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
+                else if (gid.StartsWith("HarvestingRobot"))
+                {
+                    if (!stackHarvestingRobots.Value)
+                    {
+                        noStackingInventories.Add(inventory.GetId());
+                    }
+                }
             }
         }
     }
