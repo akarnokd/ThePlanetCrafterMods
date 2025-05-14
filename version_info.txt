@@ -9,15 +9,15 @@ akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.35
 # (Cheat) Auto Launch Rockets
 akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.12
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.25
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.26
 # (Cheat) Auto Store
 akarnokd.theplanetcraftermods.cheatautostore=1.0.0.13
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.67
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.78
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.79
 # (Cheat) Machines Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.33
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.34
 # (Cheat) Minimap
 akarnokd.theplanetcraftermods.cheatminimap=1.0.0.58
 # (Cheat) More Trade

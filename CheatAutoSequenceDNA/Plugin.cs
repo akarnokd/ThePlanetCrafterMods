@@ -66,16 +66,17 @@ namespace CheatAutoSequenceDNA
 
         static Plugin me;
 
-        static AccessTools.FieldRef<MachineConvertRecipe, float> machineConvertRecipeCheckEvery;
-        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, float> machineGrowerIfLinkedGroupUpdateEvery;
-        static MethodInfo machineGrowerIfLinkedGroupUpdateUpdateGrowth;
-        static MethodInfo machineConvertRecipeCheckIfFullyGrownCoroutine;
-
         static ConfigEntry<bool> debugFixPlanetSwitch;
+
+        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, LinkedGroupsProxy> fMachineGrowerIfLinkedGroupLinkedGroupsProxy;
+        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, GrowthProxy> fMachineGrowerIfLinkedGroupGrowthProxy;
+        static AccessTools.FieldRef<MachineConvertRecipe, LinkedGroupsProxy> fMachineConvertRecipeLinkedGroupsProxy;
+        static AccessTools.FieldRef<MachineConvertRecipe, GrowthProxy> fMachineConvertRecipeGrowthProxy;
 
         public void Awake()
         {
             me = this;
+            logger = Logger;
 
             LibCommon.BepInExLoggerFix.ApplyFix();
 
@@ -108,13 +109,11 @@ namespace CheatAutoSequenceDNA
 
             debugFixPlanetSwitch = Config.Bind("General", "FixPlanetSwitch", true, "Fix for the vanilla bug with switching planets stopping sequencers/incubators");
 
-            logger = Logger;
+            fMachineGrowerIfLinkedGroupGrowthProxy = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, GrowthProxy>("_growthProxy");
+            fMachineGrowerIfLinkedGroupLinkedGroupsProxy = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, LinkedGroupsProxy>("_lgProxy");
 
-            machineConvertRecipeCheckEvery = AccessTools.FieldRefAccess<MachineConvertRecipe, float>("_checkEvery");
-            machineGrowerIfLinkedGroupUpdateEvery = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, float>("_updateEvery");
-
-            machineGrowerIfLinkedGroupUpdateUpdateGrowth = AccessTools.Method(typeof(MachineGrowerIfLinkedGroup), "UpdateGrowth", [typeof(float)]);
-            machineConvertRecipeCheckIfFullyGrownCoroutine = AccessTools.Method(typeof(MachineConvertRecipe), "CheckIfFullyGrownCoroutine", [typeof(float)]);
+            fMachineConvertRecipeGrowthProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, GrowthProxy>("_growthProxy");
+            fMachineConvertRecipeLinkedGroupsProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, LinkedGroupsProxy>("_lgProxy");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -833,78 +832,19 @@ namespace CheatAutoSequenceDNA
 
         internal class OffPlanetUpdater : MonoBehaviour
         {
-            Coroutine linkedGroupCoroutine;
-
-            Coroutine recipeConvertCoroutine;
-
-            MachineGrowerIfLinkedGroup machineGrowerIfLinkedGroup;
-
-            MachineConvertRecipe machineConvertRecipe;
-
             internal void Awake()
             {
                 var gp = GetComponentInParent<GrowthProxy>(true);
                 var lp = GetComponentInParent<LinkedGroupsProxy>(true);
 
-                machineGrowerIfLinkedGroup = GetComponent<MachineGrowerIfLinkedGroup>();
-                machineConvertRecipe = GetComponent<MachineConvertRecipe>();
+                var machineGrowerIfLinkedGroup = GetComponent<MachineGrowerIfLinkedGroup>();
+                var machineConvertRecipe = GetComponent<MachineConvertRecipe>();
 
-                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_increaseRate")
-                    .SetValue(machineGrowerIfLinkedGroup, 100f / (machineGrowerIfLinkedGroup.timeToGrow * 60f / machineGrowerIfLinkedGroupUpdateEvery(machineGrowerIfLinkedGroup)));
-                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_growthProxy").SetValue(machineGrowerIfLinkedGroup, gp);
-                AccessTools.Field(typeof(MachineGrowerIfLinkedGroup), "_lgProxy").SetValue(machineGrowerIfLinkedGroup, lp);
+                fMachineGrowerIfLinkedGroupGrowthProxy(machineGrowerIfLinkedGroup) = gp;
+                fMachineGrowerIfLinkedGroupLinkedGroupsProxy(machineGrowerIfLinkedGroup) = lp;
 
-                AccessTools.Field(typeof(MachineConvertRecipe), "_growthProxy").SetValue(machineConvertRecipe, gp);
-                AccessTools.Field(typeof(MachineConvertRecipe), "_lgProxy").SetValue(machineConvertRecipe, lp);
-            }
-
-            internal void OnDisable()
-            {
-                Log("OffPlanetUpdater::OnDisable " + GetWorldObject());
-                StopCoroutines();
-
-                recipeConvertCoroutine = me.StartCoroutine(
-                    (IEnumerator)machineConvertRecipeCheckIfFullyGrownCoroutine.Invoke(
-                        machineConvertRecipe, [machineConvertRecipeCheckEvery(machineConvertRecipe)]));
-
-                linkedGroupCoroutine = me.StartCoroutine(
-                    (IEnumerator)machineGrowerIfLinkedGroupUpdateUpdateGrowth.Invoke(
-                        machineGrowerIfLinkedGroup, [machineGrowerIfLinkedGroupUpdateEvery(machineGrowerIfLinkedGroup)])
-                    );
-            }
-
-            void StopCoroutines()
-            {
-                if (linkedGroupCoroutine != null)
-                {
-                    me.StopCoroutine(linkedGroupCoroutine);
-                    linkedGroupCoroutine = null;
-                }
-                if (recipeConvertCoroutine != null)
-                {
-                    me.StopCoroutine(recipeConvertCoroutine);
-                    recipeConvertCoroutine = null;
-                }
-            }
-
-            internal void OnDestroy()
-            {
-                Log("OffPlanetUpdater::OnDestroy " + GetWorldObject());
-                StopCoroutines();
-            }
-
-            string GetWorldObject()
-            {
-                var woa = GetComponent<WorldObjectAssociated>();
-                if (woa != null)
-                {
-                    var wo = woa.GetWorldObject();
-                    if (wo != null)
-                    {
-                        return wo.GetId() + " at " + wo.GetPosition() + " on planet " + wo.GetPlanetHash() + " (" + gameObject.GetInstanceID() + ")";
-                    }
-                }
-                return "unknown (" + gameObject.GetInstanceID() + ")";
+                fMachineConvertRecipeGrowthProxy(machineConvertRecipe) = gp;
+                fMachineConvertRecipeLinkedGroupsProxy(machineConvertRecipe) = lp;
             }
         }
     }

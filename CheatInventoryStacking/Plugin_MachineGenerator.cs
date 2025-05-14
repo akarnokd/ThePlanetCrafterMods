@@ -18,7 +18,8 @@ namespace CheatInventoryStacking
             WorldObject ____worldObject,
             List<GroupData> ___groupDatasTerraStage,
             ref WorldUnitsHandler ____worldUnitsHandler,
-            TerraformStage ___terraStage
+            TerraformStage ____terraStage,
+            PlanetData ____planetData
         )
         {
             if (stackSize.Value > 1)
@@ -59,7 +60,8 @@ namespace CheatInventoryStacking
                         }
                     }
 
-                    if (___groupDatasTerraStage.Count != 0 && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                    if (___groupDatasTerraStage.Count != 0 
+                        && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(____terraStage, null, ____planetData.GetPlanetId()))
                     {
                         list.AddRange(___groupDatasTerraStage);
                     }
