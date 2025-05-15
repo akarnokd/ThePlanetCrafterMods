@@ -1679,3 +1679,5 @@ GROUP_NAME_ButterflyFarm3=Lepke farm t3
 GROUP_DESC_ButterflyFarm3=Lepke lárva behelyezésével növeli a rovarok szintjét
 Planet_Desc_Selenea=Selenea bolygó
 UI_InterplanetaryExchange_selectedPlanet=Kiválasztott bolygó:
+Ui_Alert_buildConstraint_oreExtractorsAqualis=A hold geológiai struktúrája nem teszi lehetővé ércek kibányászását
+Ui_Alert_buildConstraint_portalsOnMoons=A holdon nincsnek felfedezhető hajóroncsok
