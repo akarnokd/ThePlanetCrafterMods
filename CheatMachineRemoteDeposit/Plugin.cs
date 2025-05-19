@@ -171,8 +171,7 @@ namespace CheatMachineRemoteDeposit
             WorldObject ____worldObject,
             List<GroupData> ___groupDatasTerraStage,
             ref WorldUnitsHandler ____worldUnitsHandler,
-            TerraformStage ____terraStage,
-            PlanetData ____planetData
+            TerraformStage ____terraStage
         )
         {
             if (!modEnabled.Value)
@@ -218,8 +217,13 @@ namespace CheatMachineRemoteDeposit
                     }
                 }
 
+                var planetId = Managers.GetManager<PlanetLoader>()
+                    .planetList
+                    .GetPlanetFromIdHash(____worldObject.GetPlanetHash())
+                    .GetPlanetId();
+
                 if (___groupDatasTerraStage.Count != 0 
-                    && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(____terraStage, null, ____planetData.GetPlanetId()))
+                    && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(____terraStage, null, planetId))
                 {
                     list.AddRange(___groupDatasTerraStage);
                 }

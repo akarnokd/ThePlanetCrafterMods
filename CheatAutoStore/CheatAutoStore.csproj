@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatAutoStore</AssemblyName>
     <Description>(Cheat) Auto Store</Description>
-    <Version>1.0.0.13</Version>
+    <Version>1.0.0.14</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
