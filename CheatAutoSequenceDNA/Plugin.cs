@@ -13,6 +13,7 @@ using BepInEx.Logging;
 using System.Linq;
 using static SpaceCraft.DataConfig;
 using Unity.Netcode;
+using System.Reflection;
 
 namespace CheatAutoSequenceDNA
 {
@@ -63,8 +64,20 @@ namespace CheatAutoSequenceDNA
 
         static ManualLogSource logger;
 
+        static Plugin me;
+
+        static ConfigEntry<bool> debugFixPlanetSwitch;
+
+        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, LinkedGroupsProxy> fMachineGrowerIfLinkedGroupLinkedGroupsProxy;
+        static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, GrowthProxy> fMachineGrowerIfLinkedGroupGrowthProxy;
+        static AccessTools.FieldRef<MachineConvertRecipe, LinkedGroupsProxy> fMachineConvertRecipeLinkedGroupsProxy;
+        static AccessTools.FieldRef<MachineConvertRecipe, GrowthProxy> fMachineConvertRecipeGrowthProxy;
+
         public void Awake()
         {
+            me = this;
+            logger = Logger;
+
             LibCommon.BepInExLoggerFix.ApplyFix();
 
             // Plugin startup logic
@@ -94,7 +107,13 @@ namespace CheatAutoSequenceDNA
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
 
-            logger = Logger;
+            debugFixPlanetSwitch = Config.Bind("General", "FixPlanetSwitch", true, "Fix for the vanilla bug with switching planets stopping sequencers/incubators");
+
+            fMachineGrowerIfLinkedGroupGrowthProxy = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, GrowthProxy>("_growthProxy");
+            fMachineGrowerIfLinkedGroupLinkedGroupsProxy = AccessTools.FieldRefAccess<MachineGrowerIfLinkedGroup, LinkedGroupsProxy>("_lgProxy");
+
+            fMachineConvertRecipeGrowthProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, GrowthProxy>("_growthProxy");
+            fMachineConvertRecipeLinkedGroupsProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, LinkedGroupsProxy>("_lgProxy");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -162,6 +181,7 @@ namespace CheatAutoSequenceDNA
                 str += ", \"" + txt + "\"";
             }
             str += ", " + (wo.GetIsPlaced() ? wo.GetPosition() : "");
+            str += ", planet " + wo.GetPlanetHash();
             return str;
         }
 
@@ -237,6 +257,7 @@ namespace CheatAutoSequenceDNA
                     Log("  Incubator: " + DebugWorldObject(incubator));
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
+                    int incubatorPlanetHash = incubator.GetPlanetHash();
 
                     // Fix incubators that don't have enough slots for all ingredients.
                     if (incubatorInv.GetSize() < minInventoryCapacity)
@@ -249,34 +270,34 @@ namespace CheatAutoSequenceDNA
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
-                        List<WorldObject> items = new(currentItems);
+                        List<WorldObject> items = [.. currentItems];
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
                             WorldObject item = items[i];
                             var gid = item.GetGroup().GetId();
                             if (gid.StartsWith("Butterfly"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Butterfly");
+                                TryDeposit(incubatorInv, item, itemCategories, "Butterfly", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Bee"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Bee");
+                                TryDeposit(incubatorInv, item, itemCategories, "Bee", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Silk"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Silk");
+                                TryDeposit(incubatorInv, item, itemCategories, "Silk", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Fish"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Fish");
+                                TryDeposit(incubatorInv, item, itemCategories, "Fish", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "FrogEgg");
+                                TryDeposit(incubatorInv, item, itemCategories, "FrogEgg", incubatorPlanetHash);
                             }
                             if (gid.StartsWith("LarvaeBase"))
                             {
-                                TryDeposit(incubatorInv, item, itemCategories, "Larvae");
+                                TryDeposit(incubatorInv, item, itemCategories, "Larvae", incubatorPlanetHash);
                             }
                         }
                     }
@@ -335,8 +356,8 @@ namespace CheatAutoSequenceDNA
         {
             Log("    Picked: " + spawnTarget.id + " (\"" + Readable.GetGroupName(spawnTarget) + "\") @ Chance = " + spawnTarget.GetChanceToSpawn() + " %");
 
-            List<Group> ingredients = new(spawnTarget.GetRecipe().GetIngredientsGroupInRecipe());
-            List<WorldObject> available = new(currentItems);
+            List<Group> ingredients = [.. spawnTarget.GetRecipe().GetIngredientsGroupInRecipe()];
+            List<WorldObject> available = [.. currentItems];
             List<Group> missing = [];
 
             int ingredientsFulfilled = 0;
@@ -387,7 +408,7 @@ namespace CheatAutoSequenceDNA
                         ingredientSources = [];
                         sourcesPerCategory[cat] = ingredientSources;
                     }
-                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition());
+                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition(), machine.GetPlanetHash());
                 }
 
                 foreach (var m in missing)
@@ -548,23 +569,24 @@ namespace CheatAutoSequenceDNA
                     Log("  Sequencer: " + DebugWorldObject(sequencer));
                     // Try to deposit finished products first
                     Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
+                    int sequencerPlanetHash = sequencer.GetPlanetHash();
 
                     var currentItems = sequencerInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
-                        List<WorldObject> items = new(currentItems);
+                        List<WorldObject> items = [.. currentItems];
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
                             WorldObject item = items[i];
                             var gid = item.GetGroup().GetId();
                             if (gid.StartsWith("Tree") && gid.EndsWith("Seed"))
                             {
-                                TryDeposit(sequencerInv, item, itemCategories, "TreeSeed");
+                                TryDeposit(sequencerInv, item, itemCategories, "TreeSeed", sequencerPlanetHash);
                             }
                             if (gid.StartsWith("Seed"))
                             {
-                                TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed");
+                                TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed", sequencerPlanetHash);
                             }
                         }
                     }
@@ -632,14 +654,15 @@ namespace CheatAutoSequenceDNA
             Inventory source, 
             WorldObject item, 
             Dictionary<string, List<WorldObject>> itemCategories, 
-            string itemKey)
+            string itemKey,
+            int sourcePlanetHash)
         {
             Log("      Deposit item: " + DebugWorldObject(item));
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
                 if (containers.Count != 0)
                 {
-                    new DeferredDepositor(item, source, containers.GetEnumerator())
+                    new DeferredDepositor(item, source, sourcePlanetHash, containers.GetEnumerator())
                         .Drain();
                     return;
                 }
@@ -658,7 +681,8 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories, 
             string itemKey, 
             List<IngredientSource> result,
-            Vector3 incubatorDistance)
+            Vector3 incubatorDistance,
+            int incubatorPlanetHash)
         {
             var maxDistance = range.Value;
             if (itemCategories.TryGetValue(itemKey, out var containers))
@@ -666,6 +690,10 @@ namespace CheatAutoSequenceDNA
                 foreach (var container in containers)
                 {
                     if (maxDistance > 0 && Vector3.Distance(container.GetPosition(), incubatorDistance) > maxDistance)
+                    {
+                        continue;
+                    }
+                    if (incubatorPlanetHash != container.GetPlanetHash())
                     {
                         continue;
                     }
@@ -705,14 +733,16 @@ namespace CheatAutoSequenceDNA
         {
             internal WorldObject item;
             internal Inventory source;
+            internal int sourcePlanetHash;
             internal IEnumerator<WorldObject> candidatesEnumerator;
             int wip;
             WorldObject current;
 
-            internal DeferredDepositor(WorldObject item, Inventory source, IEnumerator<WorldObject> candidatesEnumerator)
+            internal DeferredDepositor(WorldObject item, Inventory source, int sourcePlanetHash, IEnumerator<WorldObject> candidatesEnumerator)
             {
                 this.item = item;
                 this.source = source;
+                this.sourcePlanetHash = sourcePlanetHash;
                 this.candidatesEnumerator = candidatesEnumerator;
             }
 
@@ -735,6 +765,12 @@ namespace CheatAutoSequenceDNA
                         {
                             Log("        Into      : Failed - all target containers are full");
                             break;
+                        }
+
+                        if (current.GetPlanetHash() != sourcePlanetHash)
+                        {
+                            current = null;
+                            continue;
                         }
 
                         var inv = InventoriesHandler.Instance.GetInventoryById(current.GetLinkedInventoryId());
@@ -768,6 +804,47 @@ namespace CheatAutoSequenceDNA
                     current = null;
                     Drain();
                 }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
+        private static void StaticDataHandler_LoadStaticData(List<GroupData> ___groupsData)
+        {
+            if (!debugFixPlanetSwitch.Value)
+            {
+                return;
+            }
+            foreach (var gd in ___groupsData)
+            {
+                if (gd.associatedGameObject != null 
+                    && gd.associatedGameObject.GetComponent<MachineGrowerIfLinkedGroup>() != null
+                    && gd.associatedGameObject.GetComponent<MachineConvertRecipe>() != null
+                    && gd.associatedGameObject.GetComponent<OffPlanetUpdater>() == null
+                    )
+                {
+                    Log("Adding OffPlanetUpdater to " + gd.id);
+
+                    gd.associatedGameObject.AddComponent<OffPlanetUpdater>();
+                }
+            }
+        }
+
+        internal class OffPlanetUpdater : MonoBehaviour
+        {
+            internal void Awake()
+            {
+                var gp = GetComponentInParent<GrowthProxy>(true);
+                var lp = GetComponentInParent<LinkedGroupsProxy>(true);
+
+                var machineGrowerIfLinkedGroup = GetComponent<MachineGrowerIfLinkedGroup>();
+                var machineConvertRecipe = GetComponent<MachineConvertRecipe>();
+
+                fMachineGrowerIfLinkedGroupGrowthProxy(machineGrowerIfLinkedGroup) = gp;
+                fMachineGrowerIfLinkedGroupLinkedGroupsProxy(machineGrowerIfLinkedGroup) = lp;
+
+                fMachineConvertRecipeGrowthProxy(machineConvertRecipe) = gp;
+                fMachineConvertRecipeLinkedGroupsProxy(machineConvertRecipe) = lp;
             }
         }
     }

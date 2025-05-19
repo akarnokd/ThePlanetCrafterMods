@@ -33,6 +33,8 @@ namespace CheatCraftFromNearbyContainers
 
         static ConfigEntry<string> includeFilter;
 
+        static ConfigEntry<bool> currentPlanetOnly;
+
         static ManualLogSource logger;
 
         static bool inventoryLookupInProgress;
@@ -71,6 +73,11 @@ namespace CheatCraftFromNearbyContainers
 
         static Coroutine vanillaPinUpdaterCoroutine;
 
+        const string funcGetWorldObjectPlanetHash = "CFNCGetWorldObjectPlanetHash";
+        const string funcSetWorldObjectPlanetHash = "CFNCSetWorldObjectPlanetHash";
+
+        static AccessTools.FieldRef<WorldObject, int> fWorldObjectPlanetHash;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -85,6 +92,7 @@ namespace CheatCraftFromNearbyContainers
             range = Config.Bind("General", "Range", 20, "The range to look for containers within.");
             key = Config.Bind("General", "Key", "<Keyboard>/Home", "The input action shortcut toggle this mod on or off.");
             includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
+            currentPlanetOnly = Config.Bind("General", "CurrentPlanetOnly", true, "If true, only containers from the current planet are considered.");
 
             if (!key.Value.Contains("<"))
             {
@@ -97,11 +105,20 @@ namespace CheatCraftFromNearbyContainers
             mPlayerInputDispatcherIsTyping = AccessTools.Method(typeof(PlayerInputDispatcher), "IsTyping")
                 ?? throw new InvalidOperationException("PlayerInputDispatcher::IsTyping not found");
 
+            fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            /*var harmony = */
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             /*
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Craft From Nearby Containers - v" + PluginInfo.PLUGIN_VERSION);
             */
+
+            ModNetworking.Init(modCheatCraftFromNearbyContainersGuid, logger);
+            ModNetworking.Patch(h);
+            ModNetworking._debugMode = debugMode.Value;
+            ModNetworking.RegisterFunction(funcGetWorldObjectPlanetHash, OnGetWorldObjectPlanetHash);
+            ModNetworking.RegisterFunction(funcSetWorldObjectPlanetHash, OnSetWorldObjectPlanetHash);
         }
 
         static void Log(object message)
@@ -380,10 +397,24 @@ namespace CheatCraftFromNearbyContainers
             List<WorldObject> candidateGetInventoryOfWorldObject = [];
             HashSet<int> seen = [];
             List<string> prefixes = GetPrefixes();
+            var planetId = 0;
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl != null)
+            {
+                var cp = pl.GetCurrentPlanetData();
+                if (cp != null)
+                {
+                    planetId = cp.GetPlanetHash();
+                }
+            }
+            var isClient = !(NetworkManager.Singleton?.IsServer ?? true);
+            var currentPlanetOnlyFlag = currentPlanetOnly.Value;
+
             foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
                 var grid = wo.GetGroup().GetId();
                 var wpos = Vector3.zero;
+
                 if (wo.GetIsPlaced())
                 {
                     wpos = wo.GetPosition();
@@ -398,24 +429,34 @@ namespace CheatCraftFromNearbyContainers
                 }
                 var dist = Vector3.Distance(pos, wpos);
 
-                if ((grid.StartsWith("Container") || CheckGIDList(grid, prefixes))
+                if ((grid.StartsWith("Container", StringComparison.InvariantCulture) 
+                        || CheckGIDList(grid, prefixes))
                     && dist <= range.Value
                 )
                 {
-                    if (seen.Add(wo.GetId()))
+                    var ph = fWorldObjectPlanetHash(wo);
+                    if (isClient && ph == 0)
                     {
-                        Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
-                        if (wo.GetLinkedInventoryId() != 0)
+                        ModNetworking.SendHost(funcGetWorldObjectPlanetHash, wo.GetId().ToString());
+                    }
+
+                    if (!currentPlanetOnlyFlag || planetId == ph)
+                    {
+                        if (seen.Add(wo.GetId()))
                         {
-                            candidateInventoryIds.Add(wo.GetLinkedInventoryId());
-                            if (wo.GetSecondaryInventoriesId().Count != 0)
+                            Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
+                            if (wo.GetLinkedInventoryId() != 0)
                             {
-                                candidateInventoryIds.AddRange(wo.GetSecondaryInventoriesId());
+                                candidateInventoryIds.Add(wo.GetLinkedInventoryId());
+                                if (wo.GetSecondaryInventoriesId().Count != 0)
+                                {
+                                    candidateInventoryIds.AddRange(wo.GetSecondaryInventoriesId());
+                                }
                             }
-                        }
-                        else
-                        {
-                            candidateGetInventoryOfWorldObject.Add(wo);
+                            else
+                            {
+                                candidateGetInventoryOfWorldObject.Add(wo);
+                            }
                         }
                     }
                 }
@@ -442,7 +483,7 @@ namespace CheatCraftFromNearbyContainers
         {
             foreach (var prefix in prefixes)
             {
-                if (grid.StartsWith(prefix))
+                if (grid.StartsWith(prefix, StringComparison.InvariantCulture))
                 {
                     return true;
                 }
@@ -860,6 +901,19 @@ namespace CheatCraftFromNearbyContainers
                 HashSet<int> seen = [];
                 List<string> prefixes = GetPrefixes();
 
+                var planetId = 0;
+                var pl = Managers.GetManager<PlanetLoader>();
+                if (pl != null)
+                {
+                    var cp = pl.GetCurrentPlanetData();
+                    if (cp != null)
+                    {
+                        planetId = cp.GetPlanetHash();
+                    }
+                }
+                var isClient = !(NetworkManager.Singleton?.IsServer ?? true);
+                var currentPlanetOnlyFlag = currentPlanetOnly.Value;
+
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var grid = wo.GetGroup().GetId();
@@ -878,21 +932,31 @@ namespace CheatCraftFromNearbyContainers
                     }
                     var dist = Vector3.Distance(pos, wpos);
 
-                    if ((grid.StartsWith("Container") || CheckGIDList(grid, prefixes))
+                    if ((grid.StartsWith("Container", StringComparison.InvariantCulture) 
+                        || CheckGIDList(grid, prefixes))
                         && dist <= range.Value
                     )
                     {
-                        if (seen.Add(wo.GetId()))
+                        var ph = fWorldObjectPlanetHash(wo);
+                        if (isClient && ph == 0)
                         {
-                            var iid = wo.GetLinkedInventoryId();
-                            Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m, IID: " + iid);
-                            if (iid != 0)
+                            ModNetworking.SendHost(funcGetWorldObjectPlanetHash, wo.GetId().ToString());
+                        }
+
+                        if (!currentPlanetOnlyFlag || planetId == ph)
+                        {
+                            if (seen.Add(wo.GetId()))
                             {
-                                candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid));
-                                
-                                foreach (var iid2 in wo.GetSecondaryInventoriesId())
+                                var iid = wo.GetLinkedInventoryId();
+                                Log("  Found Container " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m, IID: " + iid);
+                                if (iid != 0)
                                 {
-                                    candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid2));
+                                    candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid));
+
+                                    foreach (var iid2 in wo.GetSecondaryInventoriesId())
+                                    {
+                                        candidateInventories.Add(InventoriesHandler.Instance.GetInventoryById(iid2));
+                                    }
                                 }
                             }
                         }
@@ -1182,6 +1246,46 @@ namespace CheatCraftFromNearbyContainers
         static void BlackScreen_DisplayLogoStudio()
         {
             Patch_UiWindowPause_OnQuit();
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
+        }
+
+        void OnGetWorldObjectPlanetHash(ulong sender, string parameters)
+        {
+            if (int.TryParse(parameters, out var id))
+            {
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo != null)
+                {
+                    ModNetworking.SendClient(sender, funcSetWorldObjectPlanetHash, id + "," + wo.GetPlanetHash());
+                }
+            }
+        }
+
+        void OnSetWorldObjectPlanetHash(ulong sender, string parameters)
+        {
+            var idHash = parameters.Split(',');
+            if (idHash.Length == 2)
+            {
+                if (int.TryParse(idHash[0], out var id) && int.TryParse(idHash[1], out var hash))
+                {
+                    var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                    if (wo != null)
+                    {
+                        wo.SetPlanetHash(hash);
+                        Log("OnSetWorldObjectPlanetHash: " + id + " set to " + hash);
+                    }
+                    else
+                    {
+                        Log("OnSetWorldObjectPlanetHash: " + id + " not found for " + hash);
+                    }
+                    return;
+                }
+            }
+            Log("OnSetWorldObjectPlanetHash: format error: " + parameters);
         }
     }
 }

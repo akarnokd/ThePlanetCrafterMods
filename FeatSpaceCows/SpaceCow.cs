@@ -23,6 +23,11 @@ namespace FeatSpaceCows
 
         internal Quaternion rawRotation;
 
+        internal Coroutine cowGrowthCoroutine;
+        internal Coroutine cowVisibleCoroutine;
+
+        internal bool placementFailed;
+
         internal static SpaceCow CreateCow(Texture2D sideTexture, Color color)
         {
             var result = new SpaceCow
@@ -67,15 +72,26 @@ namespace FeatSpaceCows
 
             // ------------
 
+            result.body.SetActive(false);
 
             return result;
         }
 
-        internal void Destroy()
+        internal void Destroy(MonoBehaviour pluginParent)
         {
             UnityEngine.Object.Destroy(body);
             UnityEngine.Object.Destroy(side1);
             UnityEngine.Object.Destroy(side2);
+            if (cowGrowthCoroutine != null)
+            {
+                pluginParent.StopCoroutine(cowGrowthCoroutine);
+                cowGrowthCoroutine = null;
+            }
+            if (cowVisibleCoroutine != null)
+            {
+                pluginParent.StopCoroutine(cowVisibleCoroutine);
+                cowVisibleCoroutine = null;
+            }
             inventory = null;
             parent = null;
         }

@@ -31,10 +31,11 @@ namespace FeatCommandConsole
     // because so far, I only did overlays or modified existing windows
     // https://github.com/aedenthorn/PlanetCrafterMods/blob/master/SpawnObject/BepInExPlugin.cs
 
-    [BepInPlugin("akarnokd.theplanetcraftermods.featcommandconsole", "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modFeatCommandConsole, "(Feat) Command Console", PluginInfo.PLUGIN_VERSION)]
     [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modFeatCommandConsole = "akarnokd.theplanetcraftermods.featcommandconsole";
         const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
 
         static ManualLogSource logger;
@@ -42,6 +43,7 @@ namespace FeatCommandConsole
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<string> toggleKey;
+        static ConfigEntry<string> toggleKeyController;
         static ConfigEntry<int> consoleTop;
         static ConfigEntry<int> consoleLeft;
         static ConfigEntry<int> consoleRight;
@@ -49,7 +51,7 @@ namespace FeatCommandConsole
         static ConfigEntry<int> fontSize;
         static ConfigEntry<string> fontName;
         static ConfigEntry<float> transparency;
-        static ConfigEntry<bool> allGroups;
+        static ConfigEntry<string> onLoadCommand;
 
         static GameObject canvas;
         static GameObject background;
@@ -66,6 +68,7 @@ namespace FeatCommandConsole
         static readonly List<string> commandHistory = [];
 
         static InputAction toggleAction;
+        static InputAction toggleActionController;
 
         static readonly Dictionary<string, CommandRegistryEntry> commandRegistry = [];
 
@@ -88,6 +91,8 @@ namespace FeatCommandConsole
         static Func<Inventory, int> GetInventoryCapacity;
 
         static Func<Inventory, string, bool> InventoryCanAdd;
+
+        static int worldLoadCount;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -129,6 +134,7 @@ namespace FeatCommandConsole
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable the detailed logging of this mod");
             toggleKey = Config.Bind("General", "ToggleKey", "<Keyboard>/enter", "Key to open the console");
+            toggleKeyController = Config.Bind("General", "ToggleKeyController", "<Gamepad>/rightStickPress", "Controller action to open the console");
 
             consoleTop = Config.Bind("General", "ConsoleTop", 200, "Console window's position relative to the top of the screen.");
             consoleLeft = Config.Bind("General", "ConsoleLeft", 300, "Console window's position relative to the left of the screen.");
@@ -137,7 +143,7 @@ namespace FeatCommandConsole
             fontSize = Config.Bind("General", "FontSize", 20, "The font size in the console");
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
             transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
-            allGroups = Config.Bind("General", "AllGroups", true, "Consider all item types (true) or only the current planet's item types (false).");
+            onLoadCommand = Config.Bind("General", "OnLoadCommand", "", "The command to execute after the player loads into a world. Use a # prefix to 'comment out' the command.");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -145,6 +151,13 @@ namespace FeatCommandConsole
             }
             toggleAction = new InputAction(name: "Open console", binding: toggleKey.Value);
             toggleAction.Enable();
+
+            if (!toggleKeyController.Value.Contains("<"))
+            {
+                toggleKeyController.Value = "<Gamepad>/" + toggleKey.Value;
+            }
+            toggleActionController = new InputAction(name: "Open console via controller", binding: toggleKeyController.Value);
+            toggleActionController.Enable();
 
             Log("   Get resource");
             Font osFont = null;
@@ -211,6 +224,7 @@ namespace FeatCommandConsole
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+            LibCommon.ModPlanetLoaded.Patch(h, modFeatCommandConsole, _ => PlanetLoader_HandleDataAfterLoad());
             /*
             LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
             */
@@ -229,9 +243,10 @@ namespace FeatCommandConsole
             var ver = typeof(Plugin).GetCustomAttribute<BepInPlugin>().Version;
             consoleText.Add("Welcome to <b>Command Console</b> version <color=#00FF00>" + ver + "</color>.");
             consoleText.Add("<margin=1em>Type in <b><color=#FFFF00>/help</color></b> to list the available commands.");
-            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow</color></b> to cycle command history.</i>");
-            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel</color></b> to scroll up/down the output.</i>");
-            consoleText.Add("<margin=1em><i>Start typing <color=#FFFF00>/</color> and press TAB to see commands starting with those letters.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Up/Down Arrow/D-Pad</color></b> to cycle command history.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>Mouse Wheel or Left Stick Up/Down</color></b> to scroll up/down the output.</i>");
+            consoleText.Add("<margin=1em><i>Use the <b><color=#FFFFFF>ESC or Gamepad B</color></b> close the dialog.</i>");
+            consoleText.Add("<margin=1em><i>Start typing <color=#FFFF00>/</color> and press <b><color=#FFFFFF>TAB or Gamepad Y</color></b> to see commands starting with those letters.</i>");
             consoleText.Add("");
         }
 
@@ -276,7 +291,8 @@ namespace FeatCommandConsole
             }
             if (wh.GetHasUiOpen() && background != null)
             {
-                if (Keyboard.current[Key.Escape].wasPressedThisFrame)
+                if (Keyboard.current[Key.Escape].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.bButton.wasPressedThisFrame))
                 {
                     Log("Escape pressed. Closing GUI");
                     DestroyConsoleGUI();
@@ -294,11 +310,23 @@ namespace FeatCommandConsole
                     }
                     */
                 }
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (Mouse.current.leftButton.wasPressedThisFrame 
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.aButton.wasPressedThisFrame))
                 {
                     inputFieldText.ActivateInputField();
                 }
                 var ms = Mouse.current.scroll.ReadValue();
+                if (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null)
+                {
+                    if (Gamepad.current.leftStick.up.wasPressedThisFrame)
+                    {
+                        ms = new(0, 1);
+                    }
+                    else if (Gamepad.current.leftStick.down.wasPressedThisFrame)
+                    {
+                        ms = new(0, -1);
+                    }
+                }
                 if (ms.y != 0)
                 {
                     Log(" Scrolling " + ms.y);
@@ -317,7 +345,10 @@ namespace FeatCommandConsole
                     }
                     CreateOutputLines();
                 }
-                if (Keyboard.current[Key.UpArrow].wasPressedThisFrame)
+                bool prevHistoryPressed = Keyboard.current[Key.UpArrow].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null 
+                    && Gamepad.current.dpad.up.wasPressedThisFrame);
+                if (prevHistoryPressed)
                 {
                     Log("UpArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     if (commandHistoryIndex < commandHistory.Count)
@@ -329,7 +360,10 @@ namespace FeatCommandConsole
                         inputFieldText.stringPosition = inputFieldText.text.Length;
                     }
                 }
-                if (Keyboard.current[Key.DownArrow].wasPressedThisFrame)
+                bool nextHistoryPressed = Keyboard.current[Key.DownArrow].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null 
+                    && Gamepad.current.dpad.down.wasPressedThisFrame);
+                if (nextHistoryPressed)
                 {
                     Log("DownArrow, commandHistoryIndex = " + commandHistoryIndex + ", commandHistory.Count = " + commandHistory.Count);
                     commandHistoryIndex = Math.Max(0, commandHistoryIndex - 1);
@@ -345,7 +379,9 @@ namespace FeatCommandConsole
                     inputFieldText.caretPosition = inputFieldText.text.Length;
                     inputFieldText.stringPosition = inputFieldText.text.Length;
                 }
-                if (Keyboard.current[Key.Tab].wasPressedThisFrame)
+                bool suggestionPressed = Keyboard.current[Key.Tab].wasPressedThisFrame
+                    || (GamepadConfig.Instance.GetIsUsingController() && Gamepad.current != null && Gamepad.current.yButton.wasPressedThisFrame);
+                if (suggestionPressed)
                 {
                     List<string> list = [];
                     foreach (var k in commandRegistry.Keys)
@@ -357,25 +393,35 @@ namespace FeatCommandConsole
                     }
                     if (list.Count != 0)
                     {
-                        list.Sort();
-                        Colorize(list, "#FFFF00");
-                        foreach (var k in JoinPerLine(list, 10))
+                        if (list.Count == 1)
                         {
-                            AddLine("<margin=2em>" + k);
+                            inputFieldText.text = list[0];
                         }
-
-                        CreateOutputLines();
+                        else
+                        {
+                            list.Sort();
+                            Colorize(list, "#FFFF00");
+                            foreach (var k in JoinPerLine(list, 10))
+                            {
+                                AddLine("<margin=2em>" + k);
+                            }
+                            CreateOutputLines();
+                        }
                     }
                     inputFieldText.ActivateInputField();
                     inputFieldText.caretPosition = inputFieldText.text.Length;
                 }
                 return;
             }
-            if (wh.GetHasUiOpen() && toggleAction.WasPressedThisFrame() && background == null)
+
+            bool toogleActionWasPressed = toggleAction.WasPressedThisFrame()
+                || (GamepadConfig.Instance.GetIsUsingController() && toggleActionController.WasPressedThisFrame());
+
+            if (wh.GetHasUiOpen() && toogleActionWasPressed && background == null)
             {
                 return;
             }
-            if (!toggleAction.WasPressedThisFrame() || background != null)
+            if (!toogleActionWasPressed || background != null)
             {
                 return;
             }
@@ -514,6 +560,18 @@ namespace FeatCommandConsole
             }
         }
 
+        static void PlanetLoader_HandleDataAfterLoad()
+        {
+            var onLoadCommandText = onLoadCommand.Value;
+            if (++worldLoadCount == 1
+                && !string.IsNullOrWhiteSpace(onLoadCommandText) 
+                && !onLoadCommandText.StartsWith("#"))
+            {
+                AddLine("<color=#FFFF00>Executing OnLoadCommand");
+                me.ExecuteConsoleCommand(onLoadCommandText);
+            }
+        }
+
         void ExecuteConsoleCommand(string text)
         {
             Log("Debug executing command: " + text);
@@ -570,7 +628,7 @@ namespace FeatCommandConsole
 
         List<string> ParseConsoleCommand(string text)
         {
-            return new(Regex.Split(text, "\\s+"));
+            return [.. Regex.Split(text, "\\s+")];
         }
 
         [HarmonyPrefix]
@@ -695,7 +753,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleSpawns = [];
-                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupItem gi && gi.GetId().ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
                         {
@@ -727,9 +785,9 @@ namespace FeatCommandConsole
                 {
                     string[] resources =
                     [
-                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack6", 
+                        "MultiToolLight3", "MultiToolDeconstruct3", "Backpack7", 
                         "Jetpack4", "BootsSpeed3", "MultiBuild", "MultiToolMineSpeed4",
-                        "EquipmentIncrease4", "OxygenTank4", "HudCompass"
+                        "EquipmentIncrease4", "OxygenTank5", "HudCompass"
                     ];
                     int amount = 1;
                     if (args.Count > 2)
@@ -980,6 +1038,77 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/tpf", "Teleport forward or backward where the camera is facing.")]
+        public void TeleportForward(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Teleport forward or backward where the camera is facing");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpf distance</color> - teleport by a positive or negative distance");
+            }
+            else
+            if (args.Count == 2)
+            {
+                var dist = float.Parse(args[1], CultureInfo.InvariantCulture);
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+
+                pm.SetPlayerPlacement(pm.transform.position + Camera.main.transform.forward * dist, pm.transform.rotation);
+
+                AddLine("<margin=1em>Teleported to: ( "
+                    + pm.transform.position.x.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pm.transform.position.y.ToString(CultureInfo.InvariantCulture)
+                    + ", " + pm.transform.position.z.ToString(CultureInfo.InvariantCulture)
+                    + " )"
+                );
+            }
+        }
+
+
+        [Command("/tpp", "Teleport to another planet.")]
+        public void TeleportPlanet(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Teleport to another planet");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/tpp planetName</color> - teleport to the named planet, case insensitive");
+                AddLine("<margin=2em><color=#FFFF00>/tpp list</color> - list planet names");
+            }
+            else
+            {
+                var availablePlanets = PlanetNetworkLoader.Instance.GetAvailablePlanets(false, true);
+                bool found = false;
+                if (args[1] != "list")
+                {
+                    foreach (var ap in availablePlanets)
+                    {
+                        if (ap.id.Equals(args[1], StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            PlanetNetworkLoader.Instance.SwitchToPlanet(ap);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found)
+                {
+                    if (availablePlanets.Count != 0)
+                    {
+                        AddLine("<margin=1em>Available planets");
+                        foreach (var ap in availablePlanets)
+                        {
+                            AddLine("<margin=2em><#00FF00>" + ap.id);
+                        }
+                    }
+                    else
+                    {
+                        AddLine("<margin=1em>No available planets");
+                    }
+                }
+            }
+        }
+
         [Command("/tp-list", "List all known user-named teleport locations; can specify name prefix.")]
         public void TeleportList(List<string> args)
         {
@@ -1144,8 +1273,8 @@ namespace FeatCommandConsole
         [Command("/list-stages", "List the terraformation stages along with their Ti amounts.")]
         public void ListStages(List<string> _)
         {
-            var tfm = Managers.GetManager<TerraformStagesHandler>();
-            foreach (var stage in tfm.GetAllTerraGlobalStages())
+            var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
+            foreach (var stage in pd.GetPlanetTerraformationStages())
             {
                 AddLine("<margin=1em><color=#FFFFFF>" + stage.GetTerraId()
                     + "</color> <color=#00FF00>\"" + Readable.GetTerraformStageName(stage)
@@ -1306,7 +1435,7 @@ namespace FeatCommandConsole
             var worldUnitsPositioningHasMadeFirstInit = AccessTools.Field(typeof(WorldUnitPositioning), "hasMadeFirstInit");
 
             WorldUnitsHandler wuh = Managers.GetManager<WorldUnitsHandler>();
-            foreach (WorldUnit wu in wuh.GetAllWorldUnits())
+            foreach (WorldUnit wu in wuh.GetAllPlanetUnits())
             {
                 if (wu.GetUnitType() == wut)
                 {
@@ -1333,9 +1462,9 @@ namespace FeatCommandConsole
             }
             */
 
-            List<GameObject> allWaterVolumes = Managers.GetManager<WaterHandler>().GetAllWaterVolumes();
+            var allWaterVolumes = FindObjectsByType<WaterVolume>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             //LogInfo("allWaterVolumes.Count = " + allWaterVolumes.Count);
-            foreach (GameObject go1 in allWaterVolumes)
+            foreach (var go1 in allWaterVolumes)
             {
                 var wup = go1.GetComponent<WorldUnitPositioning>();
 
@@ -1544,7 +1673,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> list = [];
-                    foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var gd in GroupsHandler.GetAllGroups())
                     {
                         var g = GroupsHandler.GetGroupViaId(gd.id);
                         if (!UnlockedGroupsHandler.Instance.IsGloballyUnlocked(g) && g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1588,7 +1717,7 @@ namespace FeatCommandConsole
                 prefix = args[1].ToLower(CultureInfo.InvariantCulture);
             }
             List<string> list = [];
-            foreach (var gd in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gd in GroupsHandler.GetAllGroups())
             {
                 var g = GroupsHandler.GetGroupViaId(gd.id);
                 if (g.id.ToLower(CultureInfo.InvariantCulture).StartsWith(prefix))
@@ -1609,7 +1738,7 @@ namespace FeatCommandConsole
 
         SpaceCraft.Group FindGroup(string gid)
         {
-            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 var gci = gr.GetId().ToLower(CultureInfo.InvariantCulture);
                 if (gci == gid && !gci.StartsWith("spacemultiplier"))
@@ -1623,7 +1752,7 @@ namespace FeatCommandConsole
 
         void DidYouMean(string gid, bool isStructure, bool isItem)
         {
-            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups(!allGroups.Value)
+            List<string> similar = FindSimilar(gid, GroupsHandler.GetAllGroups()
                 .Where(g => { 
                     if (isStructure && g is GroupConstructible && !g.id.StartsWith("SpaceMultiplier"))
                     {
@@ -1768,13 +1897,9 @@ namespace FeatCommandConsole
                         }
                         AddLine("<margin=2em><b>Chance to spawn:</b> <color=#00FF00>" + gi.GetChanceToSpawn());
                         AddLine("<margin=2em><b>Destroyable:</b> <color=#00FF00>" + !gi.GetCantBeDestroyed());
-                        AddLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gi.GetHideInCrafter()); ;
                         AddLine("<margin=2em><b>Logistics display type:</b> <color=#00FF00>" + gi.GetLogisticDisplayType());
                         AddLine("<margin=2em><b>Recycleable:</b> <color=#00FF00>" + !gi.GetCantBeRecycled());
                         AddLine("<margin=2em><b>World pickup by drone:</b> <color=#00FF00>" + gi.GetCanBePickedUpFromWorldByDrones());
-                        AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gi.GetTradeCategory());
-                        AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gi.GetTradeValue());
-                        AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gi.GetLootRecipeOnDeconstruct());
                     }
                     else if (gr is GroupConstructible gc)
                     {
@@ -1803,10 +1928,44 @@ namespace FeatCommandConsole
                         {
                             AddLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
                         }
-                    } else
+                        var tsr = gc.GetTerraStageRequirement();
+                        if (tsr != null)
+                        {
+                            AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType()); ;
+                        }
+                        var notallowed = gc.GetNotAllowedPlanetsRequirement();
+                        if (notallowed != null && notallowed.Count != 0)
+                        {
+                            AddLine("<margin=1em><b>Not allowed planets requirement:</b> <color=#00FF00>" 
+                                + string.Join(", ", notallowed.Select(v => v.id)));
+                        }
+                    } 
+                    else
                     {
                         AddLine("<margin=1em><b>Class:</b> Unknown");
                     }
+
+                    AddLine("<margin=2em><b>Hide in crafter:</b> <color=#00FF00>" + gr.GetHideInCrafter()); ;
+                    AddLine("<margin=2em><b>Trade category:</b> <color=#00FF00>" + gr.GetTradeCategory());
+                    AddLine("<margin=2em><b>Trade value:</b> <color=#00FF00>" + gr.GetTradeValue());
+                    AddLine("<margin=2em><b>Loot recipe on deconstruct:</b> <color=#00FF00>" + gr.GetLootRecipeOnDeconstruct());
+                    AddLine("<margin=2em><b>Interplanetary logistics type:</b> <color=#00FF00>" + gr.GetLogisticInterplanetaryType());
+                    AddLine("<margin=2em><b>Primary inventory size:</b> <color=#00FF00>" + gr.GetInventorySize());
+                    var sis = gr.GetSecondaryInventoriesSize();
+                    if (sis != null && sis.Count != 0) {
+                        AddLine("<margin=2em><b>Secondary inventory size:</b> <color=#00FF00>" + string.Join(", ", sis));
+                    }
+
+                    var grd = gr.GetGroupData();
+                    AddLine("<margin=2em><b>Planet usage type:</b> <color=#00FF00>" + grd.planetUsageType);
+                    if (grd.unlockInPlanets != null && grd.unlockInPlanets.Count != 0) {
+                        AddLine("<margin=2em><b>Unlock in planets:</b> <color=#00FF00>" + string.Join(", ", grd.unlockInPlanets.Select(p => p.id)));
+                    } 
+                    else
+                    {
+                        AddLine("<margin=2em><b>Unlock in planets:</b> <color=#00FF00>None");
+                    }
+
                     var recipe = gr.GetRecipe();
                     if (recipe != null)
                     {
@@ -1976,7 +2135,7 @@ namespace FeatCommandConsole
             }
 
             Dictionary<string, List<string>> larvaeToSequenceInto = [];
-            foreach (var gr in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 if (gr is GroupItem gi && gi.CanBeCraftedIn(DataConfig.CraftableIn.CraftIncubatorT1))
                 {
@@ -2062,8 +2221,8 @@ namespace FeatCommandConsole
             logger.LogInfo("Found " + stages.Count + " stages");
             stages.Sort((a, b) =>
             {
-                float v1 = a.terraStage.GetStageStartValue();
-                float v2 = b.terraStage.GetStageStartValue();
+                var v1 = a.terraStage.GetStageStartValue();
+                var v2 = b.terraStage.GetStageStartValue();
                 return v1 < v2 ? -1 : (v1 > v2 ? 1 : 0);
             });
             foreach (InventoryLootStage ils in stages)
@@ -2182,7 +2341,7 @@ namespace FeatCommandConsole
                         prefix = args[2].ToLower(CultureInfo.InvariantCulture);
                     }
                     List<string> possibleStructures = [];
-                    foreach (var g in GroupsHandler.GetAllGroups(!allGroups.Value))
+                    foreach (var g in GroupsHandler.GetAllGroups())
                     {
                         if (g is GroupConstructible gc)
                         {
@@ -2298,8 +2457,8 @@ namespace FeatCommandConsole
             }
             else
             {
-                var radius = Math.Abs(float.Parse(args[1]));
-                var amount = float.Parse(args[2]);
+                var radius = Math.Abs(float.Parse(args[1], CultureInfo.InvariantCulture));
+                var amount = float.Parse(args[2], CultureInfo.InvariantCulture);
 
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var pos = pm.transform.position;
@@ -2521,13 +2680,28 @@ namespace FeatCommandConsole
                         }
                     }
                 }
+                found.Sort((a, b) =>
+                {
+                    var p1 = a.GetPosition();
+                    var d1 = Vector3.Distance(pp, p1);
+
+                    var p2 = b.GetPosition();
+                    var d2 = Vector3.Distance(pp, p2);
+
+                    return d1.CompareTo(d2);
+                });
+
                 AddLine("<margin=1em>Found " + found.Count + " world objects");
+                var i = 0;
                 foreach (var wo in found) {
-                    AddLine("<margin=2em>" 
+                    AddLine("<margin=2em>"
+                        + string.Format("{0:00}.  ", i)
                         + wo.GetId() + " - " 
                         + wo.GetGroup().GetId() 
                         + " <color=#00FF00>\"" + Readable.GetGroupName(wo.GetGroup()) 
                         + "\"</color>  @ " + wo.GetPosition() + " (" + string.Format("{0:0.#}", Vector3.Distance(wo.GetPosition(), pp)) + ")");
+
+                    i++;
                 }
             }
         }
@@ -2732,14 +2906,14 @@ namespace FeatCommandConsole
                 
                 AddLine("<margin=1em>Trading rocket progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", tradePlatformDelay));
 
-                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineTradePlatform), "updateGrowthEvery");
+                FieldInfo ___updateGrowthEvery = AccessTools.Field(typeof(MachineRocketBackAndForth), "updateGrowthEvery");
 
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
                     {
-                        var platform = go.GetComponent<MachineTradePlatform>();
+                        var platform = go.GetComponent<MachineRocketBackAndForth>();
                         if (platform != null)
                         {
                             ___updateGrowthEvery.SetValue(platform, tradePlatformDelay);
@@ -2750,8 +2924,8 @@ namespace FeatCommandConsole
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineTradePlatform), nameof(MachineTradePlatform.SetInventoryTradePlatform))]
-        static void MachineTradePlatform_SetInventoryTradePlatform(ref float ___updateGrowthEvery)
+        [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
+        static void MachineRocketBackAndForth_SetInventoryRocketBackAndForth(ref float ___updateGrowthEvery)
         {
             ___updateGrowthEvery = tradePlatformDelay;
         }
@@ -2769,6 +2943,7 @@ namespace FeatCommandConsole
             var player = pm.transform.position;
 
             int i = 0;
+            var found = new List<WorldObjectFromScene>();
             foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 var gd = wos.GetGroupData();
@@ -2782,10 +2957,29 @@ namespace FeatCommandConsole
                     var d = Vector3.Distance(player, p);
                     if (range == 0 || d <= range)
                     {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        found.Add(wos);
                     }
                     i++;
                 }
+            }
+            found.Sort((a, b) =>
+            {
+                var p1 = a.transform.position;
+                var d1 = Vector3.Distance(player, p1);
+
+                var p2 = b.transform.position;
+                var d2 = Vector3.Distance(player, p2);
+
+                return d1.CompareTo(d2);
+            });
+
+            var j = 0;
+            foreach (var wos in found)
+            {
+                var p = wos.transform.position;
+                var d = Vector3.Distance(player, p);
+                AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", j, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                j++;
             }
 
             if (i == 0)
@@ -2806,6 +3000,7 @@ namespace FeatCommandConsole
             var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
             var player = pm.transform.position;
 
+            var found = new List<WorldObjectFromScene>();
             int i = 0;
             foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
@@ -2819,10 +3014,30 @@ namespace FeatCommandConsole
                     var d = Vector3.Distance(player, p);
                     if (range == 0 || d <= range)
                     {
-                        AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", i, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                        found.Add(wos);
                     }
                     i++;
                 }
+            }
+
+            found.Sort((a, b) =>
+            {
+                var p1 = a.transform.position;
+                var d1 = Vector3.Distance(player, p1);
+
+                var p2 = b.transform.position;
+                var d2 = Vector3.Distance(player, p2);
+
+                return d1.CompareTo(d2);
+            });
+
+            var j = 0;
+            foreach (var wos in found)
+            {
+                var p = wos.transform.position;
+                var d = Vector3.Distance(player, p);
+                AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", j, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                j++;
             }
 
             if (i == 0)
@@ -3145,14 +3360,14 @@ namespace FeatCommandConsole
 
                 AddLine("<margin=1em>Outside growers' delay progress delay updated. Now at <color=#00FF00>" + string.Format("{0:#,##0.00} s", outsideGrowerDelay));
 
-                FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineOutsideGrower), "updateInterval");
+                FieldInfo ___updeteInterval = AccessTools.Field(typeof(MachineGrowerVegetationStatic), "growthUpdateInterval");
 
                 foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
                 {
                     var go = wo.GetGameObject();
                     if (go != null)
                     {
-                        var platform = go.GetComponent<MachineOutsideGrower>();
+                        var platform = go.GetComponent<MachineGrowerVegetationStatic>();
                         if (platform != null)
                         {
                             ___updeteInterval.SetValue(platform, outsideGrowerDelay);
@@ -4100,7 +4315,7 @@ namespace FeatCommandConsole
             {
                 filter = args[2];
             }
-            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups(!allGroups.Value));
+            var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups());
             if (sort == "id")
             {
                 gds.Sort((a, b) => a.id.CompareTo(b.id));
@@ -4131,7 +4346,7 @@ namespace FeatCommandConsole
         }
 
         [Command("/clear-all-supply", "Clears all supply settings.")]
-        public void ClearAllSupply(List<string> args)
+        public void ClearAllSupply(List<string> _)
         {
             var i = 0;
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
@@ -4147,7 +4362,7 @@ namespace FeatCommandConsole
         }
 
         [Command("/clear-all-demand", "Clears all demand settings.")]
-        public void ClearAllDemand(List<string> args)
+        public void ClearAllDemand(List<string> _)
         {
             var i = 0;
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories())
@@ -4165,7 +4380,7 @@ namespace FeatCommandConsole
         [Command("/list-lootables", "List items that when deconstructed produce a recipe.")]
         public void ListLootables(List<string> _)
         {
-            foreach (var gi in GroupsHandler.GetAllGroups(!allGroups.Value))
+            foreach (var gi in GroupsHandler.GetAllGroups())
             {
                 if (gi.GetLootRecipeOnDeconstruct())
                 {
@@ -4198,11 +4413,11 @@ namespace FeatCommandConsole
                 {
                     var groupViaId = GroupsHandler.GetGroupViaId(Managers.GetManager<UnlockingHandler>().GetBlueprintGroupData().id);
                     WorldObject worldObject = WorldObjectsHandler.Instance.CreateNewWorldObject(groupViaId, 0, null, true);
-                    worldObject.SetLinkedGroups(new List<SpaceCraft.Group> { gr });
+                    worldObject.SetLinkedGroups([gr]);
                     
                     var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                     var inv = pm.GetPlayerBackpack().GetInventory();
-                    InventoriesHandler.Instance.AddItemToInventory(worldObject, inv, success =>
+                    InventoriesHandler.Instance.AddItemToInventory(worldObject, inv, resetPositionAndRotation: true, success =>
                     {
                         if (!success)
                         {
@@ -4218,12 +4433,23 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/close", "Closes the dialog.")]
+        public void Close(List<string> _)
+        {
+            DestroyConsoleGUI();
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh != null)
+            {
+                wh.CloseAllWindows();
+            }
+        }
+
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
-        static void MachineOutsideGrower_SetGrowerInventory(ref float ___updateInterval)
+        [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
+        static void MachineGrowerVegetationStatic_SetGrowerInventory(ref float ___growthUpdateInterval)
         {
-            ___updateInterval = outsideGrowerDelay;
+            ___growthUpdateInterval = outsideGrowerDelay;
         }
 
         [HarmonyPostfix]
@@ -4286,6 +4512,21 @@ namespace FeatCommandConsole
         {
             return background == null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            worldLoadCount = 0;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
+
 
         // oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 

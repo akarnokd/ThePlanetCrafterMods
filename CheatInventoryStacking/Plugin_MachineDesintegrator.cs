@@ -13,11 +13,11 @@ namespace CheatInventoryStacking
     {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDisintegrator), nameof(MachineDisintegrator.SetDisintegratorInventory))]
-        static void Patch_MachineDisintegrator_SetDisintegratorInventory(Inventory _inventory)
+        static void Patch_MachineDisintegrator_SetDisintegratorInventory(Inventory inventory)
         {
             if (!stackOreCrusherIn.Value)
             {
-                noStackingInventories.Add(_inventory.GetId());
+                noStackingInventories.Add(inventory.GetId());
             }
         }
 
@@ -48,8 +48,8 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineDisintegrator), "TryToDesintegrateAnObjectInInventory")]
         static bool Patch_MachineDisintegrator_TryToDesintegrateAnObjectInInventory(
-            Inventory ___firstIventory,
-            Inventory ___secondInventory,
+            Inventory ____firstIventory,
+            Inventory ____secondInventory,
             int ___giveXIngredientsBack
         )
         {
@@ -58,7 +58,7 @@ namespace CheatInventoryStacking
                 return true;
             }
 
-            foreach (var wo in ___firstIventory.GetInsideWorldObjects())
+            foreach (var wo in ____firstIventory.GetInsideWorldObjects())
             {
                 var recipe = wo.GetGroup().GetRecipe().GetIngredientsGroupInRecipe();
                 if (recipe.Count != 0)
@@ -82,7 +82,7 @@ namespace CheatInventoryStacking
                     int n = stackSize.Value;
                     int stacks = 0;
 
-                    foreach (var worldObject in ___secondInventory.GetInsideWorldObjects())
+                    foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
                     {
                         AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
                     }
@@ -92,13 +92,13 @@ namespace CheatInventoryStacking
                         AddToStack(candidate.GetId(), groupCounts, n, ref stacks);
                     }
 
-                    if (stacks <= ___secondInventory.GetSize())
+                    if (stacks <= ____secondInventory.GetSize())
                     {
-                        InventoriesHandler.Instance.RemoveItemFromInventory(wo, ___firstIventory, true, null);
+                        InventoriesHandler.Instance.RemoveItemFromInventory(wo, ____firstIventory, true, null);
 
                         foreach (var candidate in candidates)
                         {
-                            InventoriesHandler.Instance.AddItemToInventory(candidate, ___secondInventory, null);
+                            InventoriesHandler.Instance.AddItemToInventory(candidate, ____secondInventory, null);
                         }
 
                         return false;

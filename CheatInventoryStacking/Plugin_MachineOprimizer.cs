@@ -3,9 +3,6 @@
 
 using HarmonyLib;
 using SpaceCraft;
-using System.Collections.Generic;
-using Unity.Netcode;
-using UnityEngine;
 
 namespace CheatInventoryStacking
 {
@@ -26,11 +23,12 @@ namespace CheatInventoryStacking
             }
         }
 
+
+        /*
         static int optimizerLastFrame = -1;
         static MachineOptimizer optimizerLast = null;
         static readonly Dictionary<DataConfig.WorldUnitType, List<GameObject>> optimizerWorldUnitCache = [];
 
-        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineOptimizer), "GetWorldObjectsOfMachines")]
         static bool Patch_MachineOptimizer_GetWorldObjectsOfMachines_Pre(

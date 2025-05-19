@@ -13,13 +13,14 @@ namespace FeatSpaceCows
         internal Quaternion rotation;
         internal Color color;
         internal bool added;
+        internal bool visible;
 
         internal static bool TryParse(string str, out MessageAddRemoveSpaceCow msg)
         {
             if (str.StartsWith("SpaceCowAddRemove|"))
             {
                 var parts = str.Split('|');
-                if (parts.Length == 7)
+                if (parts.Length == 8)
                 {
                     msg = new MessageAddRemoveSpaceCow
                     {
@@ -28,7 +29,8 @@ namespace FeatSpaceCows
                         position = MessageHelper.StringToVector3(parts[3]),
                         rotation = MessageHelper.StringToQuaternion(parts[4]),
                         color = MessageHelper.StringToColor(parts[5]),
-                        added = "1" == parts[6]
+                        added = "1" == parts[6],
+                        visible = "1" == parts[7]
                     };
                     return true;
                 }
@@ -50,6 +52,7 @@ namespace FeatSpaceCows
                 + "|" + MessageHelper.QuaternionToString(rotation)
                 + "|" + MessageHelper.ColorToString(color)
                 + "|" + (added ? 1 : 0)
+                + "|" + (visible ? 1 : 0)
             ;
         }
     }

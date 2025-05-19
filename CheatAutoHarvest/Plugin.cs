@@ -149,7 +149,7 @@ namespace CheatAutoHarvest
                                     var wo1 = wo;
                                     new DeferredDepositor()
                                     {
-                                        inventory = FindInventoryFor(gid),
+                                        inventory = FindInventoryFor(gid, wo.GetPlanetHash()),
                                         worldObject = wo,
                                         logger = log,
                                         OnDepositSuccess = () =>
@@ -176,7 +176,7 @@ namespace CheatAutoHarvest
         }
 
 
-        static IEnumerator<Inventory> FindInventoryFor(string gid)
+        static IEnumerator<Inventory> FindInventoryFor(string gid, int planetHash)
         {
             var containerName = gid;
             if (depositAliases.TryGetValue(gid, out var alias))
@@ -185,16 +185,19 @@ namespace CheatAutoHarvest
             }
             foreach (var candidate in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
             {
-                var txt = candidate.GetText();
-                if (txt != null && txt.Contains(containerName, StringComparison.InvariantCultureIgnoreCase))
+                if (candidate.GetPlanetHash() == planetHash)
                 {
-                    var iid = candidate.GetLinkedInventoryId();
-                    if (iid != 0)
+                    var txt = candidate.GetText();
+                    if (txt != null && txt.Contains(containerName, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var inv = InventoriesHandler.Instance.GetInventoryById(iid);
-                        if (inv != null)
+                        var iid = candidate.GetLinkedInventoryId();
+                        if (iid != 0)
                         {
-                            yield return inv;
+                            var inv = InventoriesHandler.Instance.GetInventoryById(iid);
+                            if (inv != null)
+                            {
+                                yield return inv;
+                            }
                         }
                     }
                 }
@@ -210,6 +213,7 @@ namespace CheatAutoHarvest
                 str += ", \"" + txt + "\"";
             }
             str += ", " + (wo.GetIsPlaced() ? wo.GetPosition() : "");
+            str += ", planet " + wo.GetPlanetHash();
             return str;
         }
 

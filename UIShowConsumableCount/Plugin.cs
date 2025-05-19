@@ -19,6 +19,8 @@ namespace UIShowConsumableCount
 
         ConfigEntry<int> fontSize;
 
+        ConfigEntry<bool> debugMode;
+
         static GameObject healthCount;
 
         static GameObject waterCount;
@@ -35,12 +37,19 @@ namespace UIShowConsumableCount
             Logger.LogInfo($"Plugin is loaded!");
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
+            debugMode = Config.Bind("General", "DebugMode", false, "Enable debug logging (chatty!)");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-
+        void LogInfo(string message)
+        {
+            if (debugMode.Value)
+            {
+                Logger.LogInfo(message);
+            }
+        }
 
         void Update()
         {
@@ -68,7 +77,7 @@ namespace UIShowConsumableCount
 
         void Setup()
         {
-            Logger.LogInfo("Begin adding UI elements");
+            LogInfo("Begin adding UI elements");
 
             healthCount = AddTextForGauge(PlayerGaugeHealth.Instance, "FoodConsumableCounter");
             waterCount = AddTextForGauge(PlayerGaugeThirst.Instance, "WaterConsumableCounter");
@@ -78,7 +87,7 @@ namespace UIShowConsumableCount
             counts[DataConfig.UsableType.Drinkable] = waterCount;
             counts[DataConfig.UsableType.Breathable] = oxygenCount;
 
-            Logger.LogInfo("Done adding UI elements");
+            LogInfo("Done adding UI elements");
         }
 
         GameObject AddTextForGauge<T>(PlayerGauge<T> gauge, string name) where T : PlayerGauge<T>
@@ -109,11 +118,11 @@ namespace UIShowConsumableCount
             rect.sizeDelta = new Vector2(fs * 5, fs + 5);
             
 
-            Logger.LogInfo("Gauge " + gauge.GetType() + " is at " + 
+            LogInfo("Gauge " + gauge.GetType() + " is at " + 
                 grt.localPosition.x + ", " + grt.localPosition.y + " width " + grt.sizeDelta.x
                 + " height " + grt.sizeDelta.y + " scale " + grt.localScale);
 
-            Logger.LogInfo("Parent " + gauge.GetType() + " is at " +
+            LogInfo("Parent " + gauge.GetType() + " is at " +
                 tr.localPosition.x + ", " + tr.localPosition.y + " scale " + tr.localScale);
 
             return result;

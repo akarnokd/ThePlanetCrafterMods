@@ -10,7 +10,6 @@ using UnityEngine.UI;
 using TMPro;
 using System.IO;
 using System;
-using System.Linq;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using BepInEx.Logging;
@@ -97,29 +96,27 @@ namespace UIContinue
                         {
                             lastSaveInfoText = "";
                             lastSaveDateText = File.GetLastWriteTime(lastSave).ToString();
-                            var isSingle = false;
+                            var playerCount = 0;
 
                             var sf = File.ReadAllLines(lastSave);
 
                             if (sf.Length > 2)
                             {
-                                JsonableWorldState ws = new();
-                                JsonUtility.FromJsonOverwrite(sf[1].Replace("unitBiomassLevel", "unitPlantsLevel"), ws);
+                                var worldStateLine = sf[1];
 
-                                if (sf.Length > 4)
+                                JsonablePlanetState ws = new();
+
+                                bool isOldSaveFormat = worldStateLine.Contains("unitOxygenLevel");
+                                if (isOldSaveFormat)
                                 {
-                                    if (sf[4].StartsWith("@"))
-                                    {
-                                        isSingle = true;
-                                    }
-                                    else
-                                    {
-                                        isSingle = false;
-                                    }
+                                    JsonUtility.FromJsonOverwrite(worldStateLine
+                                        .Replace("unitBiomassLevel", "unitPlantsLevel")
+                                        , ws);
                                 }
 
+                                bool nameSectionFound = false;
                                 int section = 1;
-                                for (int j = 4; j < sf.Length; j++)
+                                for (int j = 2; j < sf.Length; j++)
                                 {
                                     if (sf[j].StartsWith("@"))
                                     {
@@ -127,8 +124,23 @@ namespace UIContinue
                                     }
                                     else
                                     {
-                                        if (section == 7)
+                                        if ((section == 2 && isOldSaveFormat) || (section == 3 && !isOldSaveFormat))
                                         {
+                                            playerCount++;
+                                        }
+                                        else if (section == 2 && !isOldSaveFormat)
+                                        {
+                                            JsonablePlanetState wsTemp = new();
+                                            JsonUtility.FromJsonOverwrite(
+                                                sf[j].Replace("unitBiomassLevel", "unitPlantsLevel")
+                                                .Replace("}|", "}"), 
+                                                wsTemp);
+
+                                            AddPlanetStates(ws, wsTemp);
+                                        }
+                                        if (section == (isOldSaveFormat ? 8 : 9))
+                                        {
+                                            nameSectionFound = true;
                                             var state = ScriptableObject.CreateInstance<JsonableGameState>();
                                             JsonUtility.FromJsonOverwrite(sf[j], state);
 
@@ -149,9 +161,12 @@ namespace UIContinue
                                         }
                                     }
                                 }
-
+                                if (!nameSectionFound)
+                                {
+                                    lastSaveInfoText += Path.GetFileNameWithoutExtension(lastSave);
+                                }
                                 lastSaveInfoText += "  @  " + CreateTiAndUnit(ws);
-                                if (isSingle)
+                                if (playerCount <= 1)
                                 {
                                     lastSaveInfoText += "     <i><color=#FFFF00>[Single]</color></i>";
                                 }
@@ -243,20 +258,30 @@ namespace UIContinue
             }
         }
 
-        static string CreateTiAndUnit(JsonableWorldState ws)
+        static void AddPlanetStates(JsonablePlanetState dest, JsonablePlanetState src)
+        {
+            dest.unitOxygenLevel += src.unitOxygenLevel;
+            dest.unitHeatLevel += src.unitHeatLevel;
+            dest.unitPressureLevel += src.unitPressureLevel;
+            dest.unitPlantsLevel += src.unitPlantsLevel;
+            dest.unitInsectsLevel += src.unitInsectsLevel;
+            dest.unitAnimalsLevel += src.unitAnimalsLevel;
+        }
+
+        static string CreateTiAndUnit(JsonablePlanetState ws)
         {
             var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
 
-            var tiAndUnit = "";
+            string tiAndUnit;
             if (ti >= 1E24)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} YTi", ti / 1E24);
             }
-            if (ti >= 1E21)
+            else if (ti >= 1E21)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} ZTi", ti / 1E21);
             }
-            if (ti >= 1E18)
+            else if (ti >= 1E18)
             {
                 tiAndUnit = string.Format("{0:#,##0.0} ETi", ti / 1E18);
             }

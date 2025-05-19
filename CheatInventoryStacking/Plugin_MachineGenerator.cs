@@ -12,13 +12,14 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
         static bool Patch_MachineGenerator_GenerateAnObject(
-            Inventory ___inventory,
+            Inventory ____inventory,
             List<GroupData> ___groupDatas,
             bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ___worldObject,
+            WorldObject ____worldObject,
             List<GroupData> ___groupDatasTerraStage,
-            ref WorldUnitsHandler ___worldUnitsHandler,
-            TerraformStage ___terraStage
+            ref WorldUnitsHandler ____worldUnitsHandler,
+            ref TerraformStage ____terraStage,
+            string ___terraStageNameInPlanetData
         )
         {
             if (stackSize.Value > 1)
@@ -27,37 +28,54 @@ namespace CheatInventoryStacking
                 //      eventually it would be great to get it factored out in some fashion...
                 Log("GenerateAnObject start");
 
-                if (___worldUnitsHandler == null)
+                if (____worldUnitsHandler == null)
                 {
-                    ___worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
+                    ____worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
                 }
-                if (___worldUnitsHandler == null)
+                if (____worldUnitsHandler == null)
                 {
                     return false;
                 }
+                if (____terraStage == null && !string.IsNullOrEmpty(___terraStageNameInPlanetData))
+                {
+                    ____terraStage = typeof(PlanetData).GetField(___terraStageNameInPlanetData).GetValue(Managers.GetManager<PlanetLoader>().GetCurrentPlanetData()) as TerraformStage;
+                }
+
 
                 Log("    begin ore search");
 
                 Group group = null;
-                if (___groupDatas.Count != 0)
+                if (___setGroupsDataViaLinkedGroup)
                 {
-                    List<GroupData> list = new(___groupDatas);
-                    if (___groupDatasTerraStage.Count != 0 && ___worldUnitsHandler.IsWorldValuesAreBetweenStages(___terraStage, null))
+                    List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
+                    if (linkedGroups != null && linkedGroups.Count != 0)
+                    {
+                        group = linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
+                    }
+                }
+                else if (___groupDatas.Count != 0)
+                {
+                    List<GroupData> list = [.. ___groupDatas];
+                    List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
+                    if (linkedGroups != null)
+                    {
+                        foreach (var linkedGroup in linkedGroups)
+                        {
+                            list.Add(linkedGroup.GetGroupData());
+                        }
+                    }
+
+                    var planetId = Managers.GetManager<PlanetLoader>()
+                        .planetList
+                        .GetPlanetFromIdHash(____worldObject.GetPlanetHash())
+                        .GetPlanetId();
+
+                    if (___groupDatasTerraStage.Count != 0 
+                        && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(____terraStage, null, planetId))
                     {
                         list.AddRange(___groupDatasTerraStage);
                     }
                     group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
-                }
-                if (___setGroupsDataViaLinkedGroup)
-                {
-                    if (___worldObject.GetLinkedGroups() != null && ___worldObject.GetLinkedGroups().Count > 0)
-                    {
-                        group = ___worldObject.GetLinkedGroups()[UnityEngine.Random.Range(0, ___worldObject.GetLinkedGroups().Count)];
-                    }
-                    else
-                    {
-                        group = null;
-                    }
                 }
 
                 // deposit the ore
@@ -68,10 +86,10 @@ namespace CheatInventoryStacking
 
                     Log("    ore: " + oreId);
 
-                    var inventory = ___inventory;
+                    var inventory = ____inventory;
                     if ((IsFindInventoryForGroupIDEnabled?.Invoke() ?? false) && FindInventoryForGroupID != null)
                     {
-                        inventory = FindInventoryForGroupID(oreId);
+                        inventory = FindInventoryForGroupID(oreId, ____worldObject.GetPlanetHash());
                     }
 
                     if (inventory != null)
@@ -80,7 +98,7 @@ namespace CheatInventoryStacking
                         {
                             if (!success)
                             {
-                                Log("GenerateAnObject: Machine " + ___worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                                Log("GenerateAnObject: Machine " + ____worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
                                 if (id != 0)
                                 {
                                     WorldObjectsHandler.Instance.DestroyWorldObject(id);
@@ -108,10 +126,10 @@ namespace CheatInventoryStacking
         /// Conditionally disallow stacking in Ore Extractors, Water and Atmosphere generators.
         /// </summary>
         /// <param name="__instance">The current component used to find the world object's group id</param>
-        /// <param name="_inventory">The inventory of the machine being set.</param>
+        /// <param name="inventory">The inventory of the machine being set.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
-        static void Patch_MachineGenerator_SetGeneratorInventory(MachineGenerator __instance, Inventory _inventory)
+        static void Patch_MachineGenerator_SetGeneratorInventory(MachineGenerator __instance, Inventory inventory)
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
             if (wo != null)
@@ -121,35 +139,42 @@ namespace CheatInventoryStacking
                 {
                     if (!stackOreExtractors.Value)
                     {
-                        noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("WaterCollector"))
                 {
                     if (!stackWaterCollectors.Value)
                     {
-                        noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("GasExtractor"))
                 {
                     if (!stackGasExtractors.Value)
                     {
-                        noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Beehive"))
                 {
                     if (!stackBeehives.Value)
                     {
-                        noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Biodome"))
                 {
                     if (!stackBiodomes.Value)
                     {
-                        noStackingInventories.Add(_inventory.GetId());
+                        noStackingInventories.Add(inventory.GetId());
+                    }
+                }
+                else if (gid.StartsWith("HarvestingRobot"))
+                {
+                    if (!stackHarvestingRobots.Value)
+                    {
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
             }

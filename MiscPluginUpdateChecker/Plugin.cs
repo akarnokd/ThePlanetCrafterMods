@@ -18,6 +18,9 @@ using UnityEngine.InputSystem;
 using System.IO;
 using System.Net.Cache;
 using System.Net;
+using static System.Net.WebRequestMethods;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 [assembly: InternalsVisibleTo("XTestPlugins")]
 namespace MiscPluginUpdateChecker
@@ -29,7 +32,6 @@ namespace MiscPluginUpdateChecker
         static ManualLogSource _logger;
 
         static ConfigEntry<bool> isEnabled;
-        static ConfigEntry<string> versionInfoRepositoryTxt;
         static ConfigEntry<bool> bypassCache;
         static ConfigEntry<int> fontSize;
         static ConfigEntry<bool> debugMode;
@@ -44,7 +46,6 @@ namespace MiscPluginUpdateChecker
             _logger = Logger;
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
-            versionInfoRepositoryTxt = Config.Bind("General", "VersionInfoRepositoryTxt", defaultVersionInfoRepositoryTxt, "The URL from where to download an text file describing various known plugins and their latest versions.");
             bypassCache = Config.Bind("General", "BypassCache", false, "If true, this mod will try to bypass caching on the targeted URLs by appending an arbitrary query parameter");
             fontSize = Config.Bind("General", "FontSize", 16, "The font size");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging of the mod (chatty!)");
@@ -80,7 +81,6 @@ namespace MiscPluginUpdateChecker
             {
                 pluginInfos = null;
 
-                var startUrl = versionInfoRepositoryTxt.Value;
                 var bypass = bypassCache.Value;
 
                 var localPlugins = GetLocalPlugins();
@@ -90,7 +90,7 @@ namespace MiscPluginUpdateChecker
                 aparent.SetActive(false);
 
                 cancelDownload = new CancellationTokenSource();
-                Task.Factory.StartNew(() => GetPluginInfos(startUrl, bypass, localPlugins),
+                Task.Factory.StartNew(() => GetPluginInfos(bypass, localPlugins),
                     cancelDownload.Token,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default);
@@ -129,7 +129,7 @@ namespace MiscPluginUpdateChecker
                         diff.gameObject.GetComponent<Text>().color = new Color(0.3f, 0.3f, 1f);
                         if (Mouse.current.leftButton.wasPressedThisFrame)
                         {
-                            Application.OpenURL(versionInfoRepositoryTxt.Value.Replace("/version_info.txt",""));
+                            Application.OpenURL("https://github.com/akarnokd/ThePlanetCrafterMods/releases");
                         }
                     }
                     else
@@ -337,12 +337,11 @@ namespace MiscPluginUpdateChecker
             return result;
         }
 
-        static void GetPluginInfos(string startUrl, bool bypassCache, Dictionary<string, PluginEntry> localPlugins)
+        static void GetPluginInfos(bool bypassCache, Dictionary<string, PluginEntry> localPlugins)
         {
             try
             {
                 var remotePluginInfos = DownloadPluginInfos(
-                    startUrl,
                     LogInfo,
                     bypassCache
                 );
@@ -377,14 +376,33 @@ namespace MiscPluginUpdateChecker
             }
         }
 
-        internal const string defaultVersionInfoRepositoryTxt = "https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/version_info.txt";
+        // internal const string defaultVersionInfoRepositoryTxt = "https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/version_info.txt";
 
         internal static Dictionary<string, PluginEntry> DownloadPluginInfos(
-            string startUrl,
             Action<object> logInfo,
             bool randomArgument)
         {
-            logInfo("Download version_info.txt");
+
+            var startUrl = "https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/main/version_info.txt";
+
+            if (SteamManager.Initialized && Steamworks.SteamApps.GetCurrentBetaName(out var text, 256))
+            {
+                LogInfo("Beta name: " + text);
+                var branches = GetBranches(randomArgument);
+                branches.Sort();
+                branches.Reverse();
+
+                foreach (var b in branches)
+                {
+                    if (b != "main")
+                    {
+                        startUrl = "https://raw.githubusercontent.com/akarnokd/ThePlanetCrafterMods/" + b + "/version_info.txt";
+                        break;
+                    }
+                }
+            }
+
+            logInfo("Download " + startUrl);
 
             Dictionary<string, PluginEntry> plugins = [];
 
@@ -427,6 +445,37 @@ namespace MiscPluginUpdateChecker
             logInfo("Version discovery done");
 
             return plugins;
+        }
+
+        internal static List<string> GetBranches(bool randomArgument)
+        {
+            List<string> result = [];
+            LogInfo("GetBranches");
+            var api = "https://api.github.com/repos/akarnokd/ThePlanetCrafterMods/branches";
+            var request = (HttpWebRequest)WebRequest.Create(MaybeRandom(api, randomArgument)).NoCache();
+            request.UserAgent = "akarnokd-ThePlanetCrafterMods-MiscPluginUpdateChecker";
+            request.Accept = "application/json";
+
+            using var response = request.GetResponse();
+            using var stream = response.GetResponseStream();
+            using var reader = new StreamReader(stream);
+
+            LogInfo("Parsing Branches");
+
+            var json = JArray.Parse(reader.ReadToEnd());
+
+            foreach (var item in json)
+            {
+                var jo = item as JObject;
+                if (jo != null && jo.ContainsKey("name"))
+                {
+                    var nm = jo["name"];
+                    result.Add(nm.ToString());
+                    LogInfo("  " + nm);
+                }
+            }
+            LogInfo("Parsing Branches Done");
+            return result;
         }
 
         static string MaybeRandom(string url, bool randomize)

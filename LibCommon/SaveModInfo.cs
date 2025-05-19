@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx.Bootstrap;
-using HarmonyLib;
 using SpaceCraft;
 using System.Text;
 using Unity.Netcode;

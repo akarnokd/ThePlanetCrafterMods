@@ -10,28 +10,6 @@ namespace CheatInventoryStacking
     public partial class Plugin
     {
         /// <summary>
-        /// Disallow stacking in growers.
-        /// </summary>
-        /// <param name="inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineGrower), nameof(MachineGrower.SetGrowerInventory))]
-        static void Patch_MachineGrower_SetGrowerInventory(Inventory inventory)
-        {
-            noStackingInventories.Add(inventory.GetId());
-        }
-
-        /// <summary>
-        /// Disallow stacking in outside growers.
-        /// </summary>
-        /// <param name="inventory"></param>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), nameof(MachineOutsideGrower.SetGrowerInventory))]
-        static void Patch_MachineOutsideGrower_SetGrowerInventory(Inventory inventory)
-        {
-            noStackingInventories.Add(inventory.GetId());
-        }
-
-        /// <summary>
         /// Disallow stacking in DNA/Incubator.
         /// </summary>
         /// <param name="_inventory"></param>
@@ -181,6 +159,28 @@ namespace CheatInventoryStacking
         static void Patch_InventoryChangeMaterial_CheckInventory(Inventory inventory)
         {
             noStackingInventories.Add(inventory.GetId());
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InventoryAssociated), nameof(InventoryAssociated.SetInventory))]
+        static void Patch_InventoryAssociated_SetInventory(
+            InventoryAssociated __instance,
+            Inventory inventory
+        )
+        {
+            if (__instance == null 
+                || __instance.gameObject ==  null 
+                || inventory == null
+                || NetworkManager.Singleton == null
+                || !NetworkManager.Singleton.IsServer)
+            {
+                return;
+            }
+            if (!stackPlanetaryDepots.Value 
+                && __instance.gameObject.name.StartsWith("PlanetaryDeliveryDepot"))
+            {
+                noStackingInventories.Add(inventory.GetId());
+            }
         }
     }
 }

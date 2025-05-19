@@ -42,6 +42,8 @@ namespace CheatMinimap
         Texture2D drone;
         Texture2D humbleBarren;
         Texture2D humbleLush;
+        Texture2D seleneaBarren;
+        Texture2D seleneaLush;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -85,6 +87,11 @@ namespace CheatMinimap
         const int humbleMapMaxY = 2700;
         const int humbleMapMaxX = 2700;
 
+        const int seleneaMapMinY = -2000;
+        const int seleneaMapMinX = -2000;
+        const int seleneaMapMaxY = 3000;
+        const int seleneaMapMaxX = 3000;
+
 
         private void Awake()
         {
@@ -117,6 +124,8 @@ namespace CheatMinimap
             drone = LoadPNG(Path.Combine(dir, "drone.png"));
             humbleBarren = LoadPNG(Path.Combine(dir, "humble_barren.png"));
             humbleLush = LoadPNG(Path.Combine(dir, "humble_lush.png"));
+            seleneaBarren = LoadPNG(Path.Combine(dir, "selenea_barren.png"));
+            seleneaLush = LoadPNG(Path.Combine(dir, "selenea_lush.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -418,15 +427,15 @@ namespace CheatMinimap
                     float mapWidth = primeMapMaxX - primeMapMinX;
                     float mapHeight = primeMapMaxY - primeMapMinY;
 
-                    var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
+                    var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
 
                     var isPrime = pd != null && (pd.id == "" || pd.id == "Prime");
                     if (isPrime)
                     {
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
-                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
                             if (currT >= 425000000000f)
                             {
                                 theMap = endgame;
@@ -455,11 +464,29 @@ namespace CheatMinimap
 
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
-                            float currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            float minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
                             if (currT >= minT)
                             {
                                 theMap = humbleLush;
+                            }
+                        }
+                    }
+                    if (pd != null && pd.id == "Selenea")
+                    {
+                        playerCenterX = (seleneaMapMaxX + seleneaMapMinX) / 2;
+                        playerCenterY = (seleneaMapMaxY + seleneaMapMinY) / 2;
+                        mapWidth = seleneaMapMaxX - seleneaMapMinX;
+                        mapHeight = seleneaMapMaxY - seleneaMapMinY;
+                        theMap = seleneaBarren;
+
+                        if (achievementsHandler != null && worldUnitsHandler != null)
+                        {
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            if (currT >= minT)
+                            {
+                                theMap = seleneaLush;
                             }
                         }
                     }

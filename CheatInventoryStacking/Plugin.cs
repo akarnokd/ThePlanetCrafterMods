@@ -41,6 +41,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackGasExtractors;
         static ConfigEntry<bool> stackBeehives;
         static ConfigEntry<bool> stackBiodomes;
+        static ConfigEntry<bool> stackHarvestingRobots;
         static ConfigEntry<bool> stackAutoCrafters;
         static ConfigEntry<bool> stackDroneStation;
         static ConfigEntry<bool> stackAnimalFeeder;
@@ -48,6 +49,8 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackVehicle;
         static ConfigEntry<bool> stackOreCrusherIn;
         static ConfigEntry<bool> stackOreCrusherOut;
+        static ConfigEntry<bool> stackInterplanetaryRockets;
+        static ConfigEntry<bool> stackPlanetaryDepots;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<int> networkBufferScaling;
@@ -56,6 +59,13 @@ namespace CheatInventoryStacking
 
         static ConfigEntry<float> offsetX;
         static ConfigEntry<float> offsetY;
+
+        static ConfigEntry<bool> groupListEnabled;
+        static ConfigEntry<int> groupListFontSize;
+        static ConfigEntry<float> groupListOffsetX;
+        static ConfigEntry<float> groupListOffsetY;
+
+        static ConfigEntry<bool> savePerfFix;
 
         static string expectedGroupIdToAdd;
         static bool isLastSlotOccupiedMode;
@@ -81,7 +91,7 @@ namespace CheatInventoryStacking
         /// <summary>
         /// The set of static and dynamic inventory ids that should not stack.
         /// </summary>
-        static HashSet<int> noStackingInventories = new(defaultNoStackingInventories);
+        static HashSet<int> noStackingInventories = [.. defaultNoStackingInventories];
 
         static PlayersManager playersManager;
 
@@ -99,9 +109,11 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, bool> fMachineAutoCrafterHasEnergy;
         static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
         static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterTimeHasCrafted;
+        static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterInstancedAutocrafters;
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
+        static MethodInfo mGroupListOnGroupClicked;
 
         static Font font;
 
@@ -109,6 +121,7 @@ namespace CheatInventoryStacking
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
         static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
+        static AccessTools.FieldRef<MachineGrowerVegetationHarvestable, Inventory> fMachineGrowerVegetationHarvestableSecondInventory;
         static Plugin me;
 
         static readonly Version requiredCFNC = new(1, 0, 0, 14);
@@ -132,6 +145,8 @@ namespace CheatInventoryStacking
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
             stackTradeRockets = Config.Bind("General", "StackTradeRockets", false, "Should the trade rockets' inventory stack?");
+            stackInterplanetaryRockets = Config.Bind("General", "StackInterplanetaryRockets", false, "Should the interplanetary rockets' inventory stack?");
+            stackPlanetaryDepots = Config.Bind("General", "StackPlanetaryDepots", false, "Stack the planetary depots?");
             stackShredder = Config.Bind("General", "StackShredder", false, "Should the shredder inventory stack?");
             stackOptimizer = Config.Bind("General", "StackOptimizer", false, "Should the Optimizer's inventory stack?");
             stackBackpack = Config.Bind("General", "StackBackpack", true, "Should the player backpack stack?");
@@ -140,6 +155,7 @@ namespace CheatInventoryStacking
             stackGasExtractors = Config.Bind("General", "StackGasExtractors", true, "Allow stacking in Gas Extractors.");
             stackBeehives = Config.Bind("General", "StackBeehives", true, "Allow stacking in Beehives.");
             stackBiodomes = Config.Bind("General", "StackBiodomes", true, "Allow stacking in Biodomes.");
+            stackHarvestingRobots = Config.Bind("General", "StackHarvestingRobots", true, "Allow stacking in Harvesting Robots");
             stackAutoCrafters = Config.Bind("General", "StackAutoCrafter", true, "Allow stacking in AutoCrafters.");
             stackDroneStation = Config.Bind("General", "StackDroneStation", true, "Allow stacking in Drone Stations.");
             stackAnimalFeeder = Config.Bind("General", "StackAnimalFeeder", false, "Allow stacking in Animal Feeders.");
@@ -154,23 +170,33 @@ namespace CheatInventoryStacking
             offsetX = Config.Bind("General", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right)");
             offsetY = Config.Bind("General", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up)");
 
+            savePerfFix = Config.Bind("General", "SavePerformanceFix", true, "If enabled, saves with million items should load much faster.");
+
+            groupListEnabled = Config.Bind("GroupList", "Enabled", true, "Enable stacking on the Interplanetary exchange screen's item preview list.");
+            groupListFontSize = Config.Bind("GroupList", "FontSize", 15, "The font size for the stack amount on the Interplanetary exchange screen's item preview list.");
+            groupListOffsetX = Config.Bind("GroupList", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right) on the Interplanetary exchange screen's item preview list.");
+            groupListOffsetY = Config.Bind("GroupList", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up) on the Interplanetary exchange screen's item preview list.");
+
             mInventoryDisplayerOnImageClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnImageClicked", [typeof(EventTriggerCallbackData)]);
             mInventoryDisplayerOnDropClicked = AccessTools.Method(typeof(InventoryDisplayer), "OnDropClicked", [typeof(EventTriggerCallbackData)]);
-            mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
-            mInventoryDisplayerOnConsumeViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
-            mInventoryDisplayerOnDropViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnDropViaGamepad", [typeof(WorldObject), typeof(Group), typeof(int)]);
+            mInventoryDisplayerOnActionViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnActionViaGamepad", [typeof(EventTriggerCallbackData)]);
+            mInventoryDisplayerOnConsumeViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnConsumeViaGamepad", [typeof(EventTriggerCallbackData)]);
+            mInventoryDisplayerOnDropViaGamepad = AccessTools.Method(typeof(InventoryDisplayer), "OnDropViaGamepad", [typeof(EventTriggerCallbackData)]);
             
             fCraftManagerCrafting = AccessTools.FieldRefAccess<object, bool>(AccessTools.Field(typeof(CraftManager), "_crafting"));
             
             fMachineAutoCrafterHasEnergy = AccessTools.FieldRefAccess<MachineAutoCrafter, bool>("_hasEnergy");
             fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
             fMachineAutoCrafterTimeHasCrafted = AccessTools.FieldRefAccess<MachineAutoCrafter, float>("_timeHasCrafted");
+            fMachineAutoCrafterInstancedAutocrafters = AccessTools.FieldRefAccess<float>(typeof(MachineAutoCrafter), "_instancedAutocrafters"); ;
 
             mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
 
 
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
+
+            mGroupListOnGroupClicked = AccessTools.Method(typeof(GroupList), "OnGroupClicked");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -232,6 +258,8 @@ namespace CheatInventoryStacking
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
+            fMachineGrowerVegetationHarvestableSecondInventory = AccessTools.FieldRefAccess<MachineGrowerVegetationHarvestable, Inventory>("_secondInventory");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             /*
@@ -272,9 +300,9 @@ namespace CheatInventoryStacking
             return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
         }
 
-        static Action<WorldObject, Group, int> CreateGamepadCallback(MethodInfo mi, InventoryDisplayer __instance)
+        static Action<EventTriggerCallbackData> CreateGamepadCallback(MethodInfo mi, InventoryDisplayer __instance)
         {
-            return AccessTools.MethodDelegate<Action<WorldObject, Group, int>>(mi, __instance);
+            return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
         }
 
         static List<List<WorldObject>> CreateInventorySlots(IEnumerable<WorldObject> worldObjects, int n)
@@ -417,9 +445,9 @@ namespace CheatInventoryStacking
                 Action<EventTriggerCallbackData> onImageClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnImageClicked, __instance);
                 Action<EventTriggerCallbackData> onDropClickedDelegate = CreateMouseCallback(mInventoryDisplayerOnDropClicked, __instance);
 
-                Action<WorldObject, Group, int> onActionViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnActionViaGamepad, __instance);
-                Action<WorldObject, Group, int> onConsumeViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnConsumeViaGamepad, __instance);
-                Action<WorldObject, Group, int> onDropViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnDropViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onActionViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnActionViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onConsumeViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnConsumeViaGamepad, __instance);
+                Action<EventTriggerCallbackData> onDropViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnDropViaGamepad, __instance);
 
                 var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
 
@@ -439,8 +467,7 @@ namespace CheatInventoryStacking
                         var showDropIcon = showDropIconAtAll;
                         if (showDropIcon && !(worldObject.GetGroup() is GroupItem gi && gi.GetCantBeDestroyed()))
                         {
-                            var gi1 = worldObject.GetGroup() as GroupItem;
-                            showDropIcon = gi1 == null || gi1.GetUsableType() != DataConfig.UsableType.Buildable;
+                            showDropIcon = worldObject.GetGroup() is not GroupItem gi1 || gi1.GetUsableType() != DataConfig.UsableType.Buildable;
                         }
                         else
                         {
@@ -483,17 +510,26 @@ namespace CheatInventoryStacking
                         GameObject dropIcon = component.GetDropIcon();
                         if (!worldObject.GetIsLockedInInventory())
                         {
-                            EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick,
-                                onImageClickedDelegate, null, worldObject);
-                            EventsHelpers.AddTriggerEvent(dropIcon, EventTriggerType.PointerClick,
-                                onDropClickedDelegate, null, worldObject);
+                            var eventTriggerCallbackData = new EventTriggerCallbackData(worldObject)
+                            {
+                                intValue = i
+                            };
+
+                            EventsHelpers.AddTriggerEvent(
+                                gameObject, 
+                                EventTriggerType.PointerClick,
+                                onImageClickedDelegate,
+                                eventTriggerCallbackData);
+                            EventsHelpers.AddTriggerEvent(
+                                dropIcon, 
+                                EventTriggerType.PointerClick,
+                                onDropClickedDelegate,
+                                eventTriggerCallbackData);
 
                             gameObject.AddComponent<EventGamepadAction>()
                             .SetEventGamepadAction(
                                 onActionViaGamepadDelegate,
-                                worldObject.GetGroup(), 
-                                worldObject, 
-                                i,
+                                eventTriggerCallbackData,
                                 onConsumeViaGamepadDelegate,
                                 showDropIconAtAll ? onDropViaGamepadDelegate : null,
                                 null
@@ -524,7 +560,12 @@ namespace CheatInventoryStacking
                             waitingSlots -= n;
                         }
                         gameObject.AddComponent<EventGamepadAction>()
-                            .SetEventGamepadAction(null, null, null, i, null, null, null);
+                            .SetEventGamepadAction(
+                                null, 
+                                new EventTriggerCallbackData(i), 
+                                null, 
+                                null, 
+                                null);
                     }
                     gameObject.SetActive(true);
                     if (enabled)
@@ -660,20 +701,21 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void Patch_UiWindowPause_OnQuit()
         {
-            noStackingInventories = new(defaultNoStackingInventories);
-            inventoryOwnerCache.Clear();
-            stationDistancesCache.Clear();
-            nonAttributedTasksCache.Clear();
+            noStackingInventories = [.. defaultNoStackingInventories];
+            stationDistancesCacheCurrentPlanet.Clear();
+            nonAttributedTasksCacheAllPlanets.Clear();
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
+            /*
             optimizerLast = null;
             optimizerLastFrame = -1;
             optimizerWorldUnitCache.Clear();
+            */
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
-        static void BlackScreen_DisplayLogoStudio()
+        static void Patch_BlackScreen_DisplayLogoStudio()
         {
             Patch_UiWindowPause_OnQuit();
         }
@@ -727,8 +769,8 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(JsonablesHelper), nameof(JsonablesHelper.JsonableToInventory))]
-        static bool Patch_JsonablesHelper_JsonableToInventory(JsonableInventory _jsonableInventory,
-            Dictionary<int, WorldObject> _objectMap,
+        static bool Patch_JsonablesHelper_JsonableToInventory(JsonableInventory jsonableInventory,
+            Dictionary<int, WorldObject> objectMap,
             ref Inventory __result)
         {
             if (stackSize.Value <= 1)
@@ -736,23 +778,199 @@ namespace CheatInventoryStacking
                 return true;
             }
             List<WorldObject> list = [];
+            var woIds = jsonableInventory.woIds ?? "";
             // Vanilla started limiting this list to 8000 entries, we need to free it
-            foreach (string text in _jsonableInventory.woIds.Split(',', StringSplitOptions.None))
+            foreach (string text in woIds.Split(',', StringSplitOptions.None))
             {
                 if (!(text == ""))
                 {
-                    int num;
-                    int.TryParse(text, out num);
-                    if (_objectMap.ContainsKey(num))
+                    int.TryParse(text, out int num);
+                    if (objectMap.ContainsKey(num))
                     {
-                        WorldObject worldObject = _objectMap[num];
+                        WorldObject worldObject = objectMap[num];
                         list.Add(worldObject);
                     }
                 }
             }
-            __result = new Inventory(_jsonableInventory.id, _jsonableInventory.size, list, GroupsHandler.GetGroupsViaString(_jsonableInventory.supplyGrps, new HashSet<Group>()) as HashSet<Group>, GroupsHandler.GetGroupsViaString(_jsonableInventory.demandGrps, new HashSet<Group>()) as HashSet<Group>, _jsonableInventory.priority);
+            __result = new Inventory(
+                jsonableInventory.id, 
+                jsonableInventory.size, 
+                list, 
+                GroupsHandler.GetGroupsViaString(jsonableInventory.supplyGrps, new HashSet<Group>()) as HashSet<Group>,
+                GroupsHandler.GetGroupsViaString(jsonableInventory.demandGrps, new HashSet<Group>()) as HashSet<Group>, 
+                jsonableInventory.priority
+            );
 
             return false;
+        }
+
+        /// <summary>
+        /// The vanilla routine uses keys.ElementAt which results in O(N^2) performance
+        /// when looping through all known objects.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="currentPlanetHash"></param>
+        /// <param name="____currentPlanetHash"></param>
+        /// <param name="____allWorldObjects"></param>
+        /// <param name="____hasInitiatedAllObjects"></param>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "PlaceAllWorldObjects")]
+        static bool Patch_WorldObjectsHandler_PlaceAllWorldObjects(
+            WorldObjectsHandler __instance,
+            int currentPlanetHash,
+            ref int ____currentPlanetHash,
+            Dictionary<int, WorldObject> ____allWorldObjects,
+            ref bool ____hasInitiatedAllObjects
+        )
+        {
+
+            if (!savePerfFix.Value)
+            {
+                return true;
+            }
+
+            var keys = ____allWorldObjects.Keys;
+            ____currentPlanetHash = currentPlanetHash;
+
+            var seenKeys = new HashSet<int>(keys.Count + 1);
+
+            var sw = Stopwatch.StartNew();
+            var sw1 = Stopwatch.StartNew();
+
+            Log(string.Format("PlaceAllWorldObjects - begin | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+
+            HashSet<int> currentKeys = CopyHashSet(keys);
+            Log(string.Format("PlaceAllWorldObjects - keys copy | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+            sw.Restart();
+
+            while (currentKeys.Count != 0)
+            {
+                Log("PlaceAllWorldObjects - world objects to process: " + currentKeys.Count);
+                int i = 0;
+                foreach (var key in currentKeys)
+                {
+                    if (____allWorldObjects.TryGetValue(key, out var worldObject))
+                    {
+                        if (worldObject.GetIsPlaced())
+                        {
+                            __instance.InstantiateWorldObject(worldObject, true, 0UL);
+                        }
+                    }
+                    if (i % 10000 == 0)
+                    {
+                        Log(string.Format("PlaceAllWorldObjects -    progress: {0:#,##0} / {1:#,###} = {2:0.000}% (@ {3:0.000}ms)", i, currentKeys.Count, 100d * i / currentKeys.Count, sw.Elapsed.TotalMilliseconds));
+                    }
+                    i++;
+                }
+                Log(string.Format("PlaceAllWorldObjects - loop current keys | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+
+                seenKeys.UnionWith(currentKeys);
+                currentKeys = CopyHashSetExcept(keys, seenKeys);
+                Log(string.Format("PlaceAllWorldObjects - keys copy new | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+            }
+            ____hasInitiatedAllObjects = true;
+            Log(string.Format("PlaceAllWorldObjects - done | {0:0.000}ms", sw1.Elapsed.TotalMilliseconds));
+
+            return false;
+        }
+
+        /// <summary>
+        /// The vanilla routine uses keys.ElementAt which results in O(N^2) performance
+        /// when looping through all known objects.
+        /// </summary>
+        /// <param name="__instance"></param>
+        /// <param name="currentPlanetHash"></param>
+        /// <param name="____currentPlanetHash"></param>
+        /// <param name="____allWorldObjects"></param>
+        /// <param name="____hasInitiatedAllObjects"></param>
+        /// <returns></returns>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.UpdateAllWorldObjectsActivation))]
+        static bool Patch_WorldObjectsHandler_UpdateAllWorldObjectsActivation(
+            WorldObjectsHandler __instance,
+            int currentPlanetHash,
+            ref int ____currentPlanetHash,
+            Dictionary<int, WorldObject> ____allWorldObjects,
+            ref bool ____hasInitiatedAllObjects
+        )
+        {
+
+            if (!savePerfFix.Value)
+            {
+                return true;
+            }
+
+            var keys = ____allWorldObjects.Keys;
+            ____currentPlanetHash = currentPlanetHash;
+
+            var seenKeys = new HashSet<int>(keys.Count + 1);
+
+            var sw = Stopwatch.StartNew();
+            var sw1 = Stopwatch.StartNew();
+
+            Log(string.Format("UpdateAllWorldObjectsActivation - begin | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+
+            HashSet<int> currentKeys = CopyHashSet(keys);
+            Log(string.Format("UpdateAllWorldObjectsActivation - keys copy | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+            sw.Restart();
+
+            while (currentKeys.Count != 0)
+            {
+                Log("UpdateAllWorldObjectsActivation - world objects to process: " + currentKeys.Count);
+                int i = 0;
+                foreach (var key in currentKeys)
+                {
+                    if (____allWorldObjects.TryGetValue(key, out var worldObject))
+                    {
+                        var worldObjectPlanetHash = worldObject.GetPlanetHash();
+                        var gameObject = worldObject.GetGameObject();
+                        if (worldObjectPlanetHash != 0 && gameObject != null)
+                        {
+                            gameObject.SetActive(worldObjectPlanetHash == currentPlanetHash);
+                        }
+                    }
+                    if (i % 10000 == 0)
+                    {
+                        Log(string.Format("UpdateAllWorldObjectsActivation -    progress: {0:#,##0} / {1:#,###} = {2:0.000}% (@ {3:0.000}ms)", i, currentKeys.Count, 100d * i / currentKeys.Count, sw.Elapsed.TotalMilliseconds));
+                    }
+                    i++;
+                }
+                Log(string.Format("UpdateAllWorldObjectsActivation - loop current keys | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+
+                seenKeys.UnionWith(currentKeys);
+                currentKeys = CopyHashSetExcept(keys, seenKeys);
+                Log(string.Format("UpdateAllWorldObjectsActivation - keys copy new | {0:0.000}ms", sw.Elapsed.TotalMilliseconds));
+                sw.Restart();
+            }
+            Log(string.Format("UpdateAllWorldObjectsActivation - done | {0:0.000}ms", sw1.Elapsed.TotalMilliseconds));
+
+            return false;
+        }
+
+        static HashSet<int> CopyHashSet(ICollection<int> set)
+        {
+            var result = new HashSet<int>(set.Count + 1);
+            foreach (var e in set)
+            {
+                result.Add(e);
+            }
+            return result;
+        }
+        static HashSet<int> CopyHashSetExcept(ICollection<int> set, HashSet<int> except)
+        {
+            var result = new HashSet<int>(set.Count + 1);
+            foreach (var e in set)
+            {
+                if (!except.Contains(e))
+                {
+                    result.Add(e);
+                }
+            }
+            return result;
         }
     }
 }

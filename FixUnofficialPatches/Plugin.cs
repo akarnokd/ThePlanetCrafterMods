@@ -13,7 +13,6 @@ using System.Reflection;
 using System.IO;
 using System;
 using TMPro;
-using System.Globalization;
 using Steamworks;
 using Unity.Netcode;
 
@@ -97,49 +96,13 @@ namespace FixUnofficialPatches
             return true;
         }
 
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Localization), nameof(Localization.GetLocalizedString))]
-        static bool Localization_GetLocalizedString(string stringCode, ref string __result)
-        {
-            if (stringCode == null)
-            {
-                __result = "";
-                return false;
-            }
-            return true;
-        }
-        */
-
         static readonly Color colorTransparent = new(0, 0, 0, 0);
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ColorToString))]
-        static bool DataTreatments_ColorToString(ref string __result, in Color _color, char ___colorDelimiter)
-        {
-            if (_color == colorTransparent)
-            {
-                __result = "";
-            }
-            else
-            {
-                __result = _color.r.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + _color.g.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + _color.b.ToString(CultureInfo.InvariantCulture)
-                        + ___colorDelimiter
-                        + _color.a.ToString(CultureInfo.InvariantCulture)
-                    ;
-            }
-            return false;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(DataTreatments), nameof(DataTreatments.ParseStringColor))]
-        static void DataTreatments_ParseStringColor(ref string _float)
+        static void DataTreatments_ParseStringColor(ref string value)
         {
-            _float = _float.Replace('/', '.');
+            value = value.Replace('/', '.');
         }
 
         [HarmonyPrefix]
@@ -155,39 +118,11 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Actionnable), "HandleHoverMaterial")]
-        static bool Actionnable_HandleHoverMaterial()
-        {
-            return Managers.GetManager<VisualsResourcesHandler>() != null;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(GamepadConfig), "OnDestroy")]
         static void GamepadConfig_OnDestroy(ref Callback<GamepadTextInputDismissed_t> ____gamepadTextInputDismissed)
         {
             ____gamepadTextInputDismissed ??= Callback<GamepadTextInputDismissed_t>.Create(
                     new Callback<GamepadTextInputDismissed_t>.DispatchDelegate(_ => { }));
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventorySpawnContent), "OnConstructibleDestroyed")]
-        static bool InventorySpawnContent_OnConstructibleDestroyed()
-        {
-            return NetworkManager.Singleton != null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineOutsideGrower), "InstantiateAtRandomPosition")]
-        static bool MachineOutsideGrower_InstantiateAtRandomPosition()
-        {
-            return NetworkManager.Singleton != null;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineGrower), "OnVegetableGrabed")]
-        static bool MachineGrower_OnVegetableGrabed()
-        {
-            return InventoriesHandler.Instance != null;
         }
 
         [HarmonyPrefix]
@@ -207,19 +142,10 @@ namespace FixUnofficialPatches
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(GroupNetworkBase), "DeconstructServerRpc")]
-        static void GroupNetworkBase_DeconstructServerRpc(GroupNetworkBase __instance, 
-            ref ActionDeconstructible ____actionDeconstruct)
+        [HarmonyPatch(typeof(WorldUnitPositioning), nameof(WorldUnitPositioning.UpdateEvolutionPositioning))]
+        static bool WorldUnitPositioning_UpdateEvolutionPositioning(TerraformStage ___startTerraformStage)
         {
-            NetworkManager networkManager = __instance.NetworkManager;
-            if (networkManager == null || !networkManager.IsListening || !networkManager.IsServer)
-            {
-                return;
-            }
-            if (____actionDeconstruct == null)
-            {
-                ____actionDeconstruct = __instance.GetComponentInChildren<ActionDeconstructible>(true);
-            }
+            return ___startTerraformStage != null;
         }
     }
 }

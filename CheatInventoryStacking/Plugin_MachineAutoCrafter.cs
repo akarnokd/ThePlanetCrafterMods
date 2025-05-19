@@ -54,6 +54,8 @@ namespace CheatInventoryStacking
 
         static IEnumerator MachineAutoCrafterTryToCraftOverride(MachineAutoCrafter __instance, float timeRepeat)
         {
+            yield return new WaitForSeconds(fMachineAutoCrafterInstancedAutocrafters() / 10f);
+
             var wait = new WaitForSeconds(timeRepeat);
 
             var mSetItemsInRange = AccessTools.MethodDelegate<Action>(mMachineAutoCrafterSetItemsInRange, __instance);

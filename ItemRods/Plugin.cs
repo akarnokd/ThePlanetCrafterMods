@@ -141,8 +141,10 @@ namespace ItemRods
                 bool flag2 = componentInChildren != null;
                 if (flag2)
                 {
-                    componentInChildren.material = new Material(componentInChildren.material);
-                    componentInChildren.material.name = "Rod" + ore;
+                    componentInChildren.material = new Material(componentInChildren.material)
+                    {
+                        name = "Rod" + ore
+                    };
                     componentInChildren.material.SetTexture("_MainTex", rodTexture);
                     componentInChildren.material.SetTexture("_BaseMap", rodTexture);
                     componentInChildren.material.SetTexture("_EmissionMap", emissionTexture);
@@ -160,7 +162,7 @@ namespace ItemRods
                 if (flag4)
                 {
                     byte[] array = File.ReadAllBytes(text2);
-                    Texture2D texture2D = new Texture2D(1, 1);
+                    var texture2D = new Texture2D(1, 1);
                     texture2D.LoadImage(array);
                     groupDataItem3.icon = Sprite.Create(texture2D, new Rect(0f, 0f, (float)texture2D.width, (float)texture2D.height), new Vector2(0f, 0f));
                 }

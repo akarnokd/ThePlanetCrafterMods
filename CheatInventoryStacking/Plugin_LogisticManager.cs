@@ -13,13 +13,12 @@ namespace CheatInventoryStacking
 {
     public partial class Plugin
     {
-
-        static readonly Dictionary<int, WorldObject> inventoryOwnerCache = [];
         static readonly List<int> taskKeysToRemove = [];
-        static readonly List<LogisticStationDistanceToTask> stationDistancesCache = [];
-        static readonly List<LogisticTask> nonAttributedTasksCache = [];
+        static readonly List<LogisticStationDistanceToTask> stationDistancesCacheCurrentPlanet = [];
+        static readonly Dictionary<int, List<LogisticTask>> nonAttributedTasksCacheAllPlanets = [];
         static readonly List<int> allTasksFrameCache = [];
         static readonly Dictionary<string, bool> inventoryGroupIsFull = [];
+        static readonly List<Drone> droneFleetCache = [];
 
         static readonly Comparison<Inventory> CompareInventoryPriorityDesc =
             (x, y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority());
@@ -29,8 +28,8 @@ namespace CheatInventoryStacking
         static bool Patch_LogisticManager_SetLogisticTasks(
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
-            List<MachineDroneStation> ____allDroneStations,
-            List<Drone> ____droneFleet,
+            HashSet<MachineDroneStation> ____allDroneStations,
+            HashSet<Drone> ____droneFleet,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories,
             ref IEnumerator __result
@@ -55,8 +54,8 @@ namespace CheatInventoryStacking
         static IEnumerator LogisticManager_SetLogisticTasks_Override(
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
-            List<MachineDroneStation> ____allDroneStations,
-            List<Drone> ____droneFleet,
+            HashSet<MachineDroneStation> ____allDroneStations,
+            HashSet<Drone> ____droneFleet,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories
         )
@@ -75,10 +74,7 @@ namespace CheatInventoryStacking
             var timer = Stopwatch.StartNew();
             var totalTimer = Stopwatch.StartNew();
 
-            UpdateInventoryOwnerCache();
             inventoryGroupIsFull.Clear();
-
-            Log("  LogisticManager::SetLogisticTasks Owners cached. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             var frameSkipCount = 0;
             
@@ -98,12 +94,17 @@ namespace CheatInventoryStacking
                     var isFull = IsFullStackedOfInventory(demandInventory, demandGroup.id);
                     var fullKey = demandInventory.GetId() + " " + demandGroup.id;
                     inventoryGroupIsFull[fullKey] = isFull;
+                    var demandLE = demandInventory.GetLogisticEntity();
 
-                    if (!isFull)
+                    if (!isFull && demandLE.GetWorldObject() != null)
                     {
                         foreach (var supplyInventory in ____supplyInventories)
                         {
-                            if (demandInventory != supplyInventory && supplyInventory.GetLogisticEntity().GetSupplyGroups().Contains(demandGroup))
+                            var supplyLE = supplyInventory.GetLogisticEntity();
+                            if (demandInventory != supplyInventory
+                                && supplyLE.GetWorldObject() != null
+                                && supplyLE.GetPlanetHash() == demandLE.GetPlanetHash()
+                                && supplyLE.GetSupplyGroups().Contains(demandGroup))
                             {
                                 foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
                                 {
@@ -113,7 +114,7 @@ namespace CheatInventoryStacking
                                         {
                                             CreateNewTaskForWorldObject(
                                                 supplyInventory, demandInventory, supplyWo,
-                                                ____allLogisticTasks, inventoryOwnerCache);
+                                                ____allLogisticTasks);
                                         }
                                     }
                                 }
@@ -124,6 +125,7 @@ namespace CheatInventoryStacking
                         {
                             if (wo.GetGroup() == demandGroup
                                 && wo.GetPosition() != Vector3.zero
+                                && wo.GetPlanetHash() == demandLE.GetPlanetHash()
                             )
                             {
                                 var go = wo.GetGameObject();
@@ -136,7 +138,7 @@ namespace CheatInventoryStacking
                                         {
                                             CreateNewTaskForWorldObjectForSpawnedObject(
                                                 demandInventory, wo,
-                                                ____allLogisticTasks, inventoryOwnerCache);
+                                                ____allLogisticTasks);
                                         }
                                     }
                                 }
@@ -158,9 +160,11 @@ namespace CheatInventoryStacking
             Log("  LogisticManager::SetLogisticTasks Demand-Supply matching done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             taskKeysToRemove.Clear();
-            nonAttributedTasksCache.Clear();
+            nonAttributedTasksCacheAllPlanets.Clear();
             allTasksFrameCache.Clear();
             allTasksFrameCache.AddRange(____allLogisticTasks.Keys);
+
+            Dictionary<int, int> nextNonAttributedTaskIndices = [];
 
             foreach (var taskEntry in allTasksFrameCache)
             {
@@ -186,7 +190,14 @@ namespace CheatInventoryStacking
                     }
                     else if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
                     {
-                        nonAttributedTasksCache.Add(task);
+                        var planetHash = task.GetPlanetHash();
+                        if (!nonAttributedTasksCacheAllPlanets.TryGetValue(planetHash, out var perPlanetNonAttributedList))
+                        {
+                            perPlanetNonAttributedList = [];
+                            nonAttributedTasksCacheAllPlanets[planetHash] = perPlanetNonAttributedList;
+                            nextNonAttributedTaskIndices[planetHash] = 0;
+                        }
+                        perPlanetNonAttributedList.Add(task);
                     }
                 }
                 if (timer.Elapsed.TotalMilliseconds >= frametimeLimit)
@@ -207,75 +218,113 @@ namespace CheatInventoryStacking
 
             Log("  LogisticManager::SetLogisticTasks Task removals done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
+            droneFleetCache.Clear();
+            droneFleetCache.AddRange(____droneFleet);
 
-            int nextNonAttributedTaskIndex = 0;
-
-            foreach (var drone in ____droneFleet)
+            for (int i = 0; i < droneFleetCache.Count; i++)
             {
-                if (nextNonAttributedTaskIndex >= nonAttributedTasksCache.Count)
+                var drone = droneFleetCache[i];
+                if (drone != null && drone.GetLogisticTask() == null)
                 {
-                    break;
+                    var planetHash = drone.GetDronePlanetHash();
+                    if (!nextNonAttributedTaskIndices.TryGetValue(planetHash, out var nextNonAttributedTaskIndex))
+                    {
+                        nextNonAttributedTaskIndex = 0;
+                        nextNonAttributedTaskIndices[planetHash] = 0;
+                    }
+                    if (nonAttributedTasksCacheAllPlanets.TryGetValue(planetHash, out var nonAttributedTaskList))
+                    {
+                        if (nextNonAttributedTaskIndex < nonAttributedTaskList.Count)
+                        {
+                            var taskToAttribute = nonAttributedTaskList[nextNonAttributedTaskIndex];
+                            nextNonAttributedTaskIndices[planetHash] = nextNonAttributedTaskIndex + 1;
+                            drone.SetLogisticTask(taskToAttribute);
+                        }
+                    }
                 }
-                if (drone.GetLogisticTask() == null)
+
+                if (timer.Elapsed.TotalMilliseconds >= frametimeLimit)
                 {
-                    drone.SetLogisticTask(nonAttributedTasksCache[nextNonAttributedTaskIndex++]);
+                    yield return null;
+                    timer.Restart();
+                    frameSkipCount++;
+                    Log("    LogisticManager::SetLogisticTasks timeout active drones task assignments");
                 }
             }
 
             Log("  LogisticManager::SetLogisticTasks Active drones task attribution done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
-            for (int i = nextNonAttributedTaskIndex; i < nonAttributedTasksCache.Count; i++)
+            // Log("    LogisticManager::SetLogisticTasks nextNonAttributedTaskIndices " + nextNonAttributedTaskIndices.Count);
+            foreach (var planetAndIndex in nextNonAttributedTaskIndices)
             {
-                var task = nonAttributedTasksCache[i];
-                if (task.GetTaskState() != LogisticData.TaskState.NotAttributed)
-                {
-                    continue;
-                }
+                var planetHash = planetAndIndex.Key;
+                var nextNonAttributedTaskIndex = planetAndIndex.Value;
+                // Log("      LogisticManager::SetLogisticTasks planet " + planetHash + " index " + nextNonAttributedTaskIndex);
 
-                Vector3 supplyPosition = Vector3.zero;
-                if (task.GetIsSpawnedObject())
+                if (nonAttributedTasksCacheAllPlanets.TryGetValue(planetHash, out var nonAttributedTasksList))
                 {
-                    supplyPosition = task.GetWorldObjectToMove().GetPosition();
-                }
-                else
-                {
-                    var supplyWo = task.GetSupplyInventoryWorldObject();
-                    if (supplyWo != null)
+                    for (int i = nextNonAttributedTaskIndex; i < nonAttributedTasksList.Count; i++)
                     {
-                        supplyPosition = supplyWo.GetPosition();
-                    }
-                }
-                if (supplyPosition != Vector3.zero)
-                {
-                    stationDistancesCache.Clear();
+                        var task = nonAttributedTasksList[i];
 
-                    foreach (var station in ____allDroneStations)
-                    {
-                        var dist = Mathf.RoundToInt(Vector3.Distance(station.transform.position, supplyPosition));
-                        stationDistancesCache.Add(new(station, dist)); 
-                    }
-
-                    stationDistancesCache.Sort();
-
-                    foreach (var dist in stationDistancesCache)
-                    {
-                        var go = dist.GetMachineDroneStation().TryToReleaseOneDrone();
-                        if (go != null && go.TryGetComponent<Drone>(out var drone))
+                        if (task.GetTaskState() != LogisticData.TaskState.NotAttributed)
                         {
-                            drone.SetLogisticTask(task);
-                            break;
+                            continue;
+                        }
+
+                        Vector3 supplyPosition = Vector3.zero;
+                        if (task.GetIsSpawnedObject())
+                        {
+                            supplyPosition = task.GetWorldObjectToMove().GetPosition();
+                        }
+                        else
+                        {
+                            var supplyWo = task.GetSupplyInventoryWorldObject();
+                            if (supplyWo != null)
+                            {
+                                supplyPosition = supplyWo.GetPosition();
+                            }
+                        }
+                        if (supplyPosition != Vector3.zero)
+                        {
+                            stationDistancesCacheCurrentPlanet.Clear();
+
+                            foreach (var station in ____allDroneStations)
+                            {
+                                if (station.GetPlanetHash() == planetHash)
+                                {
+                                    var dist = Mathf.RoundToInt(Vector3.Distance(station.transform.position, supplyPosition));
+                                    stationDistancesCacheCurrentPlanet.Add(new(station, dist));
+                                }
+                            }
+
+                            // Log("      LogisticManager::SetLogisticTasks station candidates: " + stationDistancesCacheCurrentPlanet.Count);
+
+                            stationDistancesCacheCurrentPlanet.Sort();
+
+                            foreach (var dist in stationDistancesCacheCurrentPlanet)
+                            {
+                                var go = dist.GetMachineDroneStation().TryToReleaseOneDrone();
+                                // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
+                                if (go != null && go.TryGetComponent<Drone>(out var drone))
+                                {
+                                    drone.SetLogisticTask(task);
+                                    break;
+                                }
+                            }
+                        }
+                        var elaps1 = timer.Elapsed.TotalMilliseconds;
+                        if (elaps1 >= frametimeLimit)
+                        {
+                            yield return null;
+                            timer.Restart();
+                            frameSkipCount++;
+                            Log("    LogisticManager::SetLogisticTasks timeout on new drone attribution: "
+                                + elaps1.ToString("0.000") + " ms, Start: " + nextNonAttributedTaskIndex + ", Curr: " + i + ", Count: " + nonAttributedTasksList.Count);
                         }
                     }
                 }
-                var elaps1 = timer.Elapsed.TotalMilliseconds;
-                if (elaps1 >= frametimeLimit)
-                {
-                    yield return null;
-                    timer.Restart();
-                    frameSkipCount++;
-                    Log("    LogisticManager::SetLogisticTasks timeout on new drone attribution: " 
-                        + elaps1.ToString("0.000") + " ms, Start: " + nextNonAttributedTaskIndex + ", Curr: " + i + ", Count: " + nonAttributedTasksCache.Count);
-                }
+
             }
 
             Log("  LogisticManager::SetLogisticTasks New drone attribution done.");
@@ -289,24 +338,6 @@ namespace CheatInventoryStacking
 
             fLogisticManagerUpdatingLogisticTasks(__instance) = false;
         }
-
-        static void UpdateInventoryOwnerCache()
-        {
-            inventoryOwnerCache.Clear();
-            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
-            {
-                var iid = wo.GetLinkedInventoryId();
-                if (iid != 0)
-                {
-                    inventoryOwnerCache[iid] = wo;
-                }
-                foreach (var iid2 in wo.GetSecondaryInventoriesId())
-                {
-                    inventoryOwnerCache[iid2] = wo;
-                }
-            }
-        }
-
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "FindDemandForDroneOrDestroyContent")]
@@ -360,8 +391,7 @@ namespace CheatInventoryStacking
             Inventory supplyInventory, 
             Inventory demandInventory, 
             WorldObject worldObject,
-            Dictionary<int, LogisticTask> _allLogisticTasks,
-            Dictionary<int, WorldObject> inventoryOwner = null
+            Dictionary<int, LogisticTask> _allLogisticTasks
         )
         {
             if (_allLogisticTasks.ContainsKey(worldObject.GetId()))
@@ -369,34 +399,8 @@ namespace CheatInventoryStacking
                 return null;
             }
 
-            WorldObject supplyWorldObject = null;
-            WorldObject demandWorldObject = null;
-            if (inventoryOwner != null)
-            {
-                inventoryOwner.TryGetValue(supplyInventory.GetId(), out supplyWorldObject);
-                inventoryOwner.TryGetValue(demandInventory.GetId(), out demandWorldObject);
-            }
-            else
-            {
-                foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
-                {
-                    if (OwnsInventory(wo, supplyInventory.GetId()))
-                    {
-                        supplyWorldObject = wo;
-                    }
-                    else
-                    if (OwnsInventory(wo, demandInventory.GetId()))
-                    {
-                        demandWorldObject = wo;
-                    }
-
-                    if (supplyWorldObject != null && demandWorldObject != null)
-                    {
-                        break;
-                    }
-
-                }
-            }
+            WorldObject supplyWorldObject = supplyInventory.GetLogisticEntity().GetWorldObject();
+            WorldObject demandWorldObject = demandInventory.GetLogisticEntity().GetWorldObject();
             if (supplyWorldObject == null || demandWorldObject == null)
             {
                 return null;
@@ -432,15 +436,18 @@ namespace CheatInventoryStacking
         static LogisticTask CreateNewTaskForWorldObjectForSpawnedObject(
             Inventory demandInventory,
             WorldObject worldObject,
-            Dictionary<int, LogisticTask> _allLogisticTasks,
-            Dictionary<int, WorldObject> inventoryOwner)
+            Dictionary<int, LogisticTask> _allLogisticTasks)
         {
-            if (_allLogisticTasks.ContainsKey(worldObject.GetId())
-                || !inventoryOwner.TryGetValue(demandInventory.GetId(), out var demandWorldObject))
+            if (_allLogisticTasks.ContainsKey(worldObject.GetId()))
             {
                 return null;
             }
-
+            var demandWorldObject = demandInventory.GetLogisticEntity().GetWorldObject();
+            if (demandWorldObject == null)
+            {
+                return null;
+            }
+            // Log("CreateNewTaskForWorldObjectForSpawnedObject: " + worldObject.GetId() + " (" + worldObject.GetGroup().GetId() + ")");
             var task = new LogisticTask(worldObject, null, demandInventory, null, demandWorldObject, _isSpawnedObject: true);
             _allLogisticTasks[worldObject.GetId()] = task;
             return task;
@@ -456,43 +463,37 @@ namespace CheatInventoryStacking
             }
         }
 
+        static readonly List<MachineDroneStation> candidateDroneStationsPerPlanet = [];
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Drone), "SetClosestAvailableDroneStation")]
         static bool Patch_Drone_SetClosestAvailableDroneStation(
+            Drone __instance,
             ref MachineDroneStation ____associatedDroneStation,
             GameObject ____droneRoot,
             WorldObject ____droneWorldObject,
-            List<MachineDroneStation> allDroneStations
+            HashSet<MachineDroneStation> allDroneStations
         )
         {
             if (stackSize.Value <= 1 || !stackDroneStation.Value)
             {
-                return false;
+                return true;
             }
 
             var droneGroupId = ____droneWorldObject?.GetGroup().id;
 
-            if (droneGroupId != null )
+            if (droneGroupId != null)
             {
-                if (allDroneStations.Count == 1)
-                {
-                    var onlyDroneStation = allDroneStations[0];
-                    var inv = onlyDroneStation.GetDroneStationInventory();
-                    if (!IsFullStackedOfInventory(inv, droneGroupId))
-                    {
-                        ____associatedDroneStation = onlyDroneStation;
-                        return false;
-                    }
-                }
-
+                var dronePlanet = __instance.GetDronePlanetHash();
                 var maxDistance = float.MaxValue;
                 var pos = ____droneRoot.transform.position;
 
                 foreach (var ds in allDroneStations)
                 {
                     var inv = ds.GetDroneStationInventory();
-                    if (!IsFullStackedOfInventory(inv, droneGroupId))
+                    if (ds.GetPlanetHash() == dronePlanet && !IsFullStackedOfInventory(inv, droneGroupId))
                     {
+                        candidateDroneStationsPerPlanet.Add(ds);
                         var dist = Vector3.Distance(ds.gameObject.transform.position, pos);
                         if (dist < maxDistance)
                         {
@@ -501,12 +502,15 @@ namespace CheatInventoryStacking
                         }
                     }
                 }
+
+                if (____associatedDroneStation == null && candidateDroneStationsPerPlanet.Count != 0)
+                {
+                    var rng = UnityEngine.Random.Range(0, candidateDroneStationsPerPlanet.Count);
+                    ____associatedDroneStation = candidateDroneStationsPerPlanet[rng];
+                }
             }
 
-            if (____associatedDroneStation == null && allDroneStations.Count != 0)
-            {
-                ____associatedDroneStation = allDroneStations[UnityEngine.Random.Range(0, allDroneStations.Count)];
-            }
+            candidateDroneStationsPerPlanet.Clear();
 
             return false;
         }

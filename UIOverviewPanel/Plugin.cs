@@ -16,7 +16,6 @@ using Unity.Netcode;
 using System.Collections;
 using static SpaceCraft.DataConfig;
 using LibCommon;
-using System.Linq;
 
 namespace UIOverviewPanel
 {
@@ -47,6 +46,9 @@ namespace UIOverviewPanel
         static readonly HashSet<string> uniqueFrog = [];
 
         static Coroutine statisticsUpdater;
+
+        static readonly RollingWindowUpdater systemTiUpdater = new();
+        const float systemTiHorizon = 10f;
 
         private void Awake()
         {
@@ -105,13 +107,12 @@ namespace UIOverviewPanel
                 entries.Clear();
 
                 AddTextRow(Translate("OverviewPanel_Mode"), CreateMode());
+                AddTextRow(Translate("OverviewPanel_Planet"), CreatePlanet());
 
                 AddTextRow("", () => "");
 
 
                 AddTextRow(Translate("OverviewPanel_Power"), CreateEnergyProduction());
-                AddTextRow(Translate("OverviewPanel_Power_Demand"), CreateEnergyDemand());
-                AddTextRow(Translate("OverviewPanel_Power_Excess"), CreateEnergyExcess());
 
                 AddTextRow("", () => "");
 
@@ -152,24 +153,16 @@ namespace UIOverviewPanel
 
                 AddTextRow("", () => "");
 
+                AddTextRow(Translate("OverviewPanel_NextSysTIStage"), CreateNextSysTiStage());
+                AddTextRow(Translate("OverviewPanel_Growth"), CreateWorldUnitChangeValue(WorldUnitType.SystemTerraformation));
+                AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.SystemTerraformation));
+                AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.SystemTerraformation));
+
+                AddTextRow("", () => "");
+
                 AddTextRow(Translate("OverviewPanel_MicrochipsUnlocked"), CreateMicrochipUnlock());
 
-                var pd = Managers.GetManager<PlanetLoader>()?.GetPlanetData();
-
-                if (pd != null && pd.id == "Humble")
-                {
-                    AddTextRow(Translate("OverviewPanel_StarformChestsFound"), CreateIdCounter(
-                        104938870, 108185956, 101338958, 106708099, 105547336,
-                        108239106, 109729201, 102343794, 105829268, 106518600,
-                        102636198, 104222068, 101449629, 108725859, 102829376,
-                        109796680, 108708926, 108621657, 105301774, 109034442,
-                        101606525, 109173923, 104503750
-                    ));
-                }
-                else
-                {
-                    AddTextRow(Translate("OverviewPanel_GoldenChestsFound"), CreateSceneCounter(26, "GoldenContainer"));
-                }
+                AddTextRow(Translate("OverviewPanel_ChestsFound"), CreateChestsFound());
 
                 AddTextRow(Translate("OverviewPanel_UniqueLarvaeFound"), CreateButterflyCount());
 
@@ -186,6 +179,8 @@ namespace UIOverviewPanel
                 ));
 
                 backgroundRectTransform.sizeDelta = new Vector2(Screen.width / 4, Screen.height / 4); // we'll resize this later
+
+                systemTiUpdater.Clear();
             }
         }
 
@@ -208,23 +203,16 @@ namespace UIOverviewPanel
             {
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(unitType);
-
-                return string.Format("{0:#,##0.00} {1}", wut.GetCurrentValuePersSec(), 
+                var speed = wut.GetCurrentValuePersSec();
+                if (unitType == WorldUnitType.SystemTerraformation)
+                {
+                    speed = systemTiUpdater.CalculateSpeed();
+                }
+                return string.Format("{0:#,##0.00} {1}", speed,
                     Translate("OverviewPanel_PerSecond"));
             };
         }
 
-        Func<string> CreateEnergyDemand()
-        {
-            return () =>
-            {
-                var wu = Managers.GetManager<WorldUnitsHandler>();
-                var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
-
-                return string.Format("{0:#,##0.00} {1}", Math.Abs(wut.GetDecreaseValuePersSec()), 
-                    Translate("OverviewPanel_PerHour"));
-            };
-        }
         Func<string> CreateMode()
         {
             return () =>
@@ -245,6 +233,15 @@ namespace UIOverviewPanel
             };
         }
 
+        Func<string> CreatePlanet()
+        {
+            return () =>
+            {
+                var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
+                return Translate("Planet_" + pd?.id ?? "Unknown");
+            };
+        }
+
         Func<string> CreateEnergyProduction()
         {
             return () =>
@@ -252,20 +249,18 @@ namespace UIOverviewPanel
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
 
-                return string.Format("{0:#,##0.00} {1}", wut.GetIncreaseValuePersSec(), 
-                    Translate("OverviewPanel_PerHour"));
-            };
-        }
+                var excess = wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec();
+                var demand = Math.Abs(wut.GetDecreaseValuePersSec());
 
-        Func<string> CreateEnergyExcess()
-        {
-            return () =>
-            {
-                var wu = Managers.GetManager<WorldUnitsHandler>();
-                var wut = wu.GetUnit(DataConfig.WorldUnitType.Energy);
-
-                return string.Format("{0:#,##0.00} {1}", wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec(),
-                    Translate("OverviewPanel_PerHour"));
+                return string.Format(
+                    "{0:#,##0.00} {1} = {2:#,##0.00} {1} {3} {4:#,##0.00} {5} {1}",
+                    wut.GetIncreaseValuePersSec(),
+                    Translate("OverviewPanel_PerHour"),
+                    demand,
+                    excess < 0 ? " - <color=#FF8080>" : " + <color=#80FF80>",
+                    Math.Abs(excess),
+                    "</color>"
+                );
             };
         }
 
@@ -334,8 +329,8 @@ namespace UIOverviewPanel
             {
                 UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-                var prevUnlocks = unlock.GetUnlockableGroupsUnderUnit(unitType);
-                var nextUnlocks = unlock.GetUnlockableGroupsOverUnit(unitType);
+                var prevUnlocks = unlock.GetUnlockableGroupsUnderUnit(unitType, unitType != WorldUnitType.SystemTerraformation);
+                var nextUnlocks = unlock.GetUnlockableGroupsOverUnit(unitType, unitType != WorldUnitType.SystemTerraformation);
 
                 var str = "[ " + prevUnlocks.Count + " / " + (prevUnlocks.Count + nextUnlocks.Count) + " ]";
 
@@ -345,19 +340,24 @@ namespace UIOverviewPanel
                 }
                 else
                 {
+                    // FIXME units sometimes double now!!!
                     var prevValue = 0f;
                     if (prevUnlocks.Count != 0)
                     {
-                        prevValue = prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
+                        prevValue = (float)prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
                     }
 
                     var nextUnlock = nextUnlocks[0];
-                    var value = nextUnlock.GetUnlockingInfos().GetUnlockingValue();
+                    var value = (float)nextUnlock.GetUnlockingInfos().GetUnlockingValue();
 
                     var wu = Managers.GetManager<WorldUnitsHandler>();
                     var wut = wu.GetUnit(unitType);
-                    var remaining = Mathf.InverseLerp(prevValue, value, wut.GetValue()) * 100;
+                    var remaining = Mathf.InverseLerp(prevValue, value, (float)wut.GetValue()) * 100;
                     var speed = wut.GetCurrentValuePersSec();
+                    if (unitType == WorldUnitType.SystemTerraformation)
+                    {
+                        speed = systemTiUpdater.CalculateSpeed();
+                    }
                     var gameSettings = Managers.GetManager<GameSettingsHandler>();
                     if (gameSettings != null)
                     {
@@ -368,7 +368,11 @@ namespace UIOverviewPanel
                     if (speed > 0)
                     {
                         var t = (value - wut.GetValue()) / speed;
-                        if (t >= 60 * 60)
+                        if (t > 365d * 24 * 60 * 60)
+                        {
+                            eta = Translate("OverviewPanel_YearPlus");
+                        }
+                        else if (t >= 60d * 60)
                         {
                             eta = string.Format("{0}:{1:00}:{2:00}", (int)(t) / 60 / 60, ((int)(t) / 60) % 60, (int)t % 60);
                         }
@@ -389,7 +393,7 @@ namespace UIOverviewPanel
             {
                 UnlockingHandler unlock = Managers.GetManager<UnlockingHandler>();
 
-                var nextUnlocks = unlock.GetUnlockableGroupsOverUnit(unitType);
+                var nextUnlocks = unlock.GetUnlockableGroupsOverUnit(unitType, unitType != WorldUnitType.SystemTerraformation);
 
                 var str = "";
 
@@ -424,9 +428,9 @@ namespace UIOverviewPanel
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(DataConfig.WorldUnitType.Terraformation);
 
-                var cstart = curr.GetStageStartValue();
-                var nstart = next.GetStageStartValue();
-                var sperc = Mathf.InverseLerp(cstart, nstart, wut.GetValue());
+                var cstart = (float)curr.GetStageStartValue(); // FIXME units now double in some API
+                var nstart = (float)next.GetStageStartValue();
+                var sperc = Mathf.InverseLerp(cstart, nstart, (float)wut.GetValue());
 
                 var value = nstart;
                 var speed = wut.GetCurrentValuePersSec();
@@ -456,7 +460,33 @@ namespace UIOverviewPanel
             };
         }
 
-        Func<String> CreateIdCounter(params int[] ids)
+        Func<string> CreateNextSysTiStage()
+        {
+            return () =>
+            {
+                var wu = Managers.GetManager<WorldUnitsHandler>();
+                var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
+
+                return string.Format("{0:#,##0} SysTi", wut.GetValue());
+            };
+        }
+
+        float GetCurrentSysTi()
+        {
+            var wu = Managers.GetManager<WorldUnitsHandler>();
+            if (wu == null)
+            {
+                return 0f;
+            }
+            var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
+            if (wut == null)
+            {
+                return 0f;
+            }
+            return (float)wut.GetValue();
+        }
+
+        Func<string> CreateIdCounter(params int[] ids)
         {
             return () =>
             {
@@ -470,6 +500,23 @@ namespace UIOverviewPanel
                     };
                 }
                 return csum + " / " + ids.Length + " (" + string.Format("{0:##0.00}", 100f * csum / ids.Length) + " %)";
+            };
+        }
+
+        Func<string> CreateChestsFound()
+        {
+            var starform = CreateIdCounter(
+                        104938870, 108185956, 101338958, 106708099, 105547336,
+                        108239106, 109729201, 102343794, 105829268, 106518600,
+                        102636198, 104222068, 101449629, 108725859, 102829376,
+                        109796680, 108708926, 108621657, 105301774, 109034442,
+                        101606525, 109173923, 104503750
+                    );
+            var golden = CreateSceneCounter(26, "GoldenContainer");
+            return () =>
+            {
+                return Translate("OverviewPanel_ChestsFound_Golden") + golden()
+                + " | " + Translate("OverviewPanel_ChestsFound_Starform") + starform();
             };
         }
 
@@ -614,6 +661,7 @@ namespace UIOverviewPanel
                 me.StopCoroutine(statisticsUpdater);
                 statisticsUpdater = null;
             }
+            systemTiUpdater.Clear();
         }
 
         [HarmonyPrefix]
@@ -622,7 +670,6 @@ namespace UIOverviewPanel
         {
             UiWindowPause_OnQuit();
         }
-
 
         class OverviewEntry
         {
@@ -666,6 +713,7 @@ namespace UIOverviewPanel
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             txt.horizontalOverflow = HorizontalWrapMode.Overflow;
             txt.alignment = TextAnchor.MiddleCenter;
+            txt.supportRichText = true;
 
             var rectTransform = go.GetComponent<RectTransform>();
             rectTransform.localPosition = new Vector3(0, 0, 0);
@@ -690,6 +738,9 @@ namespace UIOverviewPanel
             }
 
             float t = Time.time;
+
+            systemTiUpdater.Update(Time.time, GetCurrentSysTi(), systemTiHorizon);
+
             if (parent.activeSelf && t - lastUpdate >= 0.5f)
             {
                 lastUpdate = t;
@@ -751,6 +802,7 @@ namespace UIOverviewPanel
             if (___localizationDictionary.TryGetValue("hungarian", out var dict))
             {
                 dict["OverviewPanel_Mode"] = "Játékmód";
+                dict["OverviewPanel_Planet"] = "Bolygó";
                 dict["OverviewPanel_Power"] = "Energia";
                 dict["OverviewPanel_Power_Demand"] = "- (igény)";
                 dict["OverviewPanel_Power_Excess"] = "- (többlet)";
@@ -764,11 +816,15 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Rovarok";
                 dict["OverviewPanel_Animals"] = "Állatok";
                 dict["OverviewPanel_NextTIStage"] = "Következő TI szakasz";
+                dict["OverviewPanel_NextSysTIStage"] = "Rendszer TI";
                 dict["OverviewPanel_Growth"] = "- (növekedés)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Mikrocsipek feloldva";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform láda megtalálva";
                 dict["OverviewPanel_GoldenChestsFound"] = "Aranyláda megtalálva";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Egyedi lepke lárva megtalálva";
+                dict["OverviewPanel_ChestsFound"] = "Láda megtalálva";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Arany:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueFishFound"] = "Egyedi halikra megtalálva";
                 dict["OverviewPanel_UniqueFrogFound"] = "Egyedi békalárva megtalálva";
                 dict["OverviewPanel_TradeTokens"] = "Kereskedelmi tokenek";
@@ -784,10 +840,12 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_TotalAcquired"] = "Összesen beszerzett";
                 dict["OverviewPanel_FullyUnlocked"] = " < teljesen feloldva >";
                 dict["OverviewPanel_NA"] = "N/A";
+                dict["OverviewPanel_YearPlus"] = "Év+";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
                 dict["OverviewPanel_Mode"] = "Game mode";
+                dict["OverviewPanel_Planet"] = "Planet";
                 dict["OverviewPanel_Power"] = "Power";
                 dict["OverviewPanel_Power_Demand"] = "- (demand)";
                 dict["OverviewPanel_Power_Excess"] = "- (excess)";
@@ -801,10 +859,14 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Insects";
                 dict["OverviewPanel_Animals"] = "Animals";
                 dict["OverviewPanel_NextTIStage"] = "Next TI Stage";
+                dict["OverviewPanel_NextSysTIStage"] = "System TI";
                 dict["OverviewPanel_Growth"] = "- (growth)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Microchips unlocked";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform chests found";
                 dict["OverviewPanel_GoldenChestsFound"] = "Golden chests found";
+                dict["OverviewPanel_ChestsFound"] = "Chests found";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Golden:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Unique larvae found";
                 dict["OverviewPanel_UniqueFishFound"] = "Unique fish found";
                 dict["OverviewPanel_UniqueFrogFound"] = "Unique frog found";
@@ -820,10 +882,12 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_TotalAcquired"] = "Total acquired";
                 dict["OverviewPanel_FullyUnlocked"] = " < fully unlocked >";
                 dict["OverviewPanel_NA"] = "N/A";
+                dict["OverviewPanel_YearPlus"] = "Year+";
             }
             if (___localizationDictionary.TryGetValue("russian", out dict))
             {
                 dict["OverviewPanel_Mode"] = "Режим";
+                dict["OverviewPanel_Planet"] = "Планета";
                 dict["OverviewPanel_Power"] = "Энергия";
                 dict["OverviewPanel_Power_Demand"] = "- (требуется)";
                 dict["OverviewPanel_Power_Excess"] = "- (доступно)";
@@ -837,10 +901,14 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Insects"] = "Насекомые";
                 dict["OverviewPanel_Animals"] = "Животные";
                 dict["OverviewPanel_NextTIStage"] = "Следующий этап";
+                dict["OverviewPanel_NextSysTIStage"] = "Системная терраформация";
                 dict["OverviewPanel_Growth"] = "- (рост)";
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Микрочипов расшифровано";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform найдено коробок";
                 dict["OverviewPanel_GoldenChestsFound"] = "Найдено золотых ящиков";
+                dict["OverviewPanel_ChestsFound"] = "Сундуки найдены";
+                dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Золотой:</color> ";
+                dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Найдено уникальных личинок";
                 dict["OverviewPanel_UniqueFishFound"] = "Найдено уникальных рыб";
                 dict["OverviewPanel_UniqueFrogFound"] = "Найдено уникальных лягушек";
@@ -856,6 +924,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_TotalAcquired"] = "Всего нажито";
                 dict["OverviewPanel_FullyUnlocked"] = " < полностью разблокирован >";
                 dict["OverviewPanel_NA"] = "нет в наличии";
+                dict["OverviewPanel_YearPlus"] = "Год+";
             }
         }
 
@@ -870,6 +939,52 @@ namespace UIOverviewPanel
         static string Translate(string code)
         {
             return Localization.GetLocalizedString(code);
+        }
+
+        internal class RollingWindowUpdater
+        {
+            readonly List<(float, float)> samples = [];
+
+            internal void Update(float time, float value, float horizon)
+            {
+                samples.Add((time, value));
+
+                var min = time - horizon;
+                int j = samples.Count;
+                for (int i = 0; i < samples.Count; i++)
+                {
+                    var s = samples[i];
+                    if (s.Item1 >= min)
+                    {
+                        j = i;
+                        break;
+                    }
+                }
+                if (j > 0)
+                {
+                    samples.RemoveRange(0, j);
+                }
+            }
+
+            internal float CalculateSpeed()
+            {
+                if (samples.Count != 0)
+                {
+                    var first = samples[0];
+                    var last = samples[^1];
+                    var dt = last.Item1 - first.Item1;
+                    if (dt > 0)
+                    {
+                        return (last.Item2 - first.Item2) / dt;
+                    }
+                }
+                return 0f;
+            }
+
+            internal void Clear()
+            {
+                samples.Clear();
+            }
         }
     }
 }

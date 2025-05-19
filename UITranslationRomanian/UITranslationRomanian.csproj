@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UITranslationRomanian</AssemblyName>
     <Description>(UI) Romanian Translation</Description>
-    <Version>1.0.0.22</Version>
+    <Version>1.0.0.23</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

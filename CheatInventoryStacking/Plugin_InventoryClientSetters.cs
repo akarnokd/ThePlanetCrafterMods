@@ -28,13 +28,13 @@ namespace CheatInventoryStacking
             {
                 try
                 {
-                    if (__instance.TryGetComponent<MachineGrower>(out _))
+                    if (__instance.TryGetComponent<MachineGrowerVegetationHarvestable>(out var mgvh))
                     {
-                        Patch_MachineGrower_SetGrowerInventory(inventory);
+                        Patch_MachineGrowerVegetationHarvestable_SetGrowerInventory(mgvh, inventory);
                     }
-                    if (__instance.TryGetComponent<MachineOutsideGrower>(out _))
+                    if (__instance.TryGetComponent<MachineGrowerVegetationStatic>(out _))
                     {
-                        Patch_MachineOutsideGrower_SetGrowerInventory(inventory);
+                        Patch_MachineGrowerVegetationStatic_SetGrowerInventory(inventory);
                     }
                     if (__instance.TryGetComponent<MachineGenerator>(out var mgn))
                     {
@@ -52,9 +52,9 @@ namespace CheatInventoryStacking
                     {
                         Patch_MachineAutoCrafter_SetAutoCrafterInventory(inventory);
                     }
-                    if (__instance.TryGetComponent<MachineTradePlatform>(out _))
+                    if (__instance.TryGetComponent<MachineRocketBackAndForth>(out var mrbaf))
                     {
-                        Patch_MachineTradePlatform_SetInventoryTradePlatform(inventory);
+                        Patch_MachineRocketBackAndForth_SetInventoryRocketBackAndForth(mrbaf, inventory);
                     }
                     if (__instance.TryGetComponent<MachineDestructInventoryIfFull>(out _))
                     {
@@ -67,6 +67,10 @@ namespace CheatInventoryStacking
                     if (__instance.TryGetComponent<MachineDisintegrator>(out _))
                     {
                         Patch_MachineDisintegrator_SetDisintegratorInventory(inventory);
+                    }
+                    if (!stackPlanetaryDepots.Value && (wo?.GetGroup()?.GetId().StartsWith("PlanetaryDeliveryDepot") ?? false))
+                    {
+                        noStackingInventories.Add(inventory.GetId());
                     }
                 }
                 finally

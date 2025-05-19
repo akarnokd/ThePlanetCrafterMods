@@ -42,7 +42,9 @@ namespace FeatSpaceCows
 
         static Coroutine cowChecker;
 
-        static AccessTools.FieldRef<WorldObjectsHandler, List<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
+        static AccessTools.FieldRef<WorldObjectsHandler, HashSet<WorldObject>> fWorldObjectsHandlerItemsPickablesWorldObjects;
+
+        static bool oncePerSave;
 
         private void Awake()
         {
@@ -64,7 +66,7 @@ namespace FeatSpaceCows
 
                 cow1 = LoadPNG(Path.Combine(dir, "SpaceCow1.png"));
 
-                fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, List<WorldObject>>("_itemsPickablesWorldObjects");
+                fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, HashSet<WorldObject>>("_itemsPickablesWorldObjects");
 
                 LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -109,6 +111,7 @@ namespace FeatSpaceCows
                     str += ", \"" + txt + "\"";
                 }
                 str += ", " + (wo.GetIsPlaced() ? wo.GetPosition() : "");
+                str += ", " + wo.GetPlanetHash();
                 return str;
             }
             return "null";
@@ -150,7 +153,7 @@ namespace FeatSpaceCows
                     found.Add(id);
                     if (!cowAroundSpreader.ContainsKey(id))
                     {
-                        CreateCow(wo, allSpreaders);
+                        CreateCow(wo);
                     }
                 }
 
@@ -200,47 +203,17 @@ namespace FeatSpaceCows
             return false;
         }
 
-        void CreateCow(WorldObject wo, List<WorldObject> allSpreaders)
+        void CreateCow(WorldObject wo)
         {
-            int tries = 100;
-            while (tries-- > 0)
-            {
-                var positionRng = OnCircle(UnityEngine.Random.Range(3, 6), UnityEngine.Random.Range(0, Mathf.PI * 2));
+            Log("Adding SpaceCow around " + DebugWorldObject(wo));
+            SpaceCow cow = SpaceCow.CreateCow(cow1, Color.white);
+            cow.parent = wo;
 
-                var positionCandidate = wo.GetPosition() + new Vector3(positionRng.x, 0, positionRng.y);
+            SetupInventory(cow);
 
-                if (CheckCollisions(positionCandidate, allSpreaders))
-                {
-                    continue;
-                }
+            cowAroundSpreader[wo.GetId()] = cow;
+            SendAddSpaceCow(cow);
 
-                Vector3 positionCandidateAbove = positionCandidate + new Vector3(0, 6, 0);
-                Vector3 downward = new(0, -1, 0);
-                float scanDown = 10f;
-                int ignoredLayers = ~LayerMask.GetMask([.. GameConfig.commonIgnoredLayers, GameConfig.layerWaterName ]);
-
-                if (Physics.Raycast(new Ray(positionCandidateAbove, downward), out var raycastHit, scanDown, ignoredLayers))
-                {
-
-                    var lookTowards = (wo.GetPosition() - raycastHit.point).normalized;
-                    var rot = Quaternion.LookRotation(lookTowards) * Quaternion.Euler(0, 90, 0);
-
-                    Log("Adding SpaceCow around " + DebugWorldObject(wo));
-                    SpaceCow cow = SpaceCow.CreateCow(cow1, Color.white);
-                    cow.parent = wo;
-                    cow.SetPosition(raycastHit.point, rot);
-                    Log("       SpaceCow at " + raycastHit.point + " radius " + positionRng.magnitude);
-
-                    SetupInventory(cow);
-
-                    cowAroundSpreader[wo.GetId()] = cow;
-
-                    SendAddSpaceCow(cow);
-
-                    return;
-                }
-            }
-            Log("Adding SpaceCow around failed, no valid spawn position found" + DebugWorldObject(wo));
         }
 
         void RemoveCow(SpaceCow cow)
@@ -252,9 +225,9 @@ namespace FeatSpaceCows
             
             if (cow.inventory != null)
             {
-                InventoriesHandler.Instance.DestroyInventory(cow.inventory.GetId());
+                InventoriesHandler.Instance.DestroyInventory(cow.inventory.GetId(), false);
             }
-            cow.Destroy();
+            cow.Destroy(me);
         }
 
         void SetupInventory(SpaceCow cow)
@@ -266,7 +239,7 @@ namespace FeatSpaceCows
                 Inventory inv = InventoriesHandler.Instance.GetInventoryById(invId);
                 if (inv != null)
                 {
-                    Log("       Using exiting inventory: " + inv.GetId());
+                    Log("       Using existing inventory: " + inv.GetId());
                     LinkInventory(inv, false);
                     return;
                 }
@@ -294,7 +267,8 @@ namespace FeatSpaceCows
                     SaveCowInventoryMapping(mapping);
                 }
 
-                invAssoc.StartCoroutine(SpaceCowGeneratorLoop(productionSpeed, cow, inv));
+                cow.cowGrowthCoroutine = me.StartCoroutine(SpaceCowGeneratorLoop(productionSpeed, cow, inv));
+                cow.cowVisibleCoroutine = me.StartCoroutine(SpaceCowVisibilityLoop(1f, cow));
             }
         }
 
@@ -335,6 +309,98 @@ namespace FeatSpaceCows
             }
         }
 
+        IEnumerator SpaceCowVisibilityLoop(float delay, SpaceCow cow)
+        {
+            for (; ; )
+            {
+                yield return new WaitForSeconds(delay);
+                if (cow.body == null)
+                {
+                    yield break;
+                }
+                var currentPlanetHash = 0;
+                var pl = Managers.GetManager<PlanetLoader>();
+                if (pl != null)
+                {
+                    var cp = pl.GetCurrentPlanetData();
+                    if (cp != null)
+                    {
+                        currentPlanetHash = cp.GetPlanetHash();
+                    }
+                }
+                var newState = cow.parent.GetPlanetHash() == currentPlanetHash;
+
+                if (newState != cow.body.activeSelf)
+                {
+                    Log("Cow " + cow.parent.GetId() + " on planet " + cow.parent.GetPlanetHash()  + " visibility changed to " + newState);
+                    if (newState)
+                    {
+                        cow.placementFailed = true;
+                    }
+                }
+
+                cow.body.SetActive(newState);
+                if (cow.placementFailed && (NetworkManager.Singleton?.IsServer ?? true))
+                {
+                    TryPlaceCow(cow);
+                }
+            }
+        }
+
+        void TryPlaceCow(SpaceCow cow)
+        {
+            var wo = cow.parent;
+            List<WorldObject> allSpreaders = [];
+            var currentPlanetHash = 0;
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl != null)
+            {
+                var cp = pl.GetCurrentPlanetData(); 
+                if (cp != null)
+                {
+                    currentPlanetHash = cp.GetPlanetHash();
+                }
+            }
+
+            foreach (var wo1 in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            {
+                if (wo1.GetGroup().GetId() == "GrassSpreader1" && wo1.GetPlanetHash() == currentPlanetHash)
+                {
+                    allSpreaders.Add(wo1);
+                }
+            }
+
+            int tries = 100;
+            while (tries-- > 0)
+            {
+                var positionRng = OnCircle(UnityEngine.Random.Range(3, 6), UnityEngine.Random.Range(0, Mathf.PI * 2));
+
+                var positionCandidate = wo.GetPosition() + new Vector3(positionRng.x, 0, positionRng.y);
+
+                if (CheckCollisions(positionCandidate, allSpreaders))
+                {
+                    continue;
+                }
+
+                Vector3 positionCandidateAbove = positionCandidate + new Vector3(0, 6, 0);
+                Vector3 downward = new(0, -1, 0);
+                float scanDown = 10f;
+                int ignoredLayers = ~LayerMask.GetMask([.. GameConfig.commonIgnoredLayers, GameConfig.layerWaterName]);
+
+                if (Physics.Raycast(new Ray(positionCandidateAbove, downward), out var raycastHit, scanDown, ignoredLayers))
+                {
+                    var lookTowards = (wo.GetPosition() - raycastHit.point).normalized;
+                    var rot = Quaternion.LookRotation(lookTowards) * Quaternion.Euler(0, 90, 0);
+
+                    cow.SetPosition(raycastHit.point, rot);
+                    Log("SpaceCow at " + raycastHit.point + " radius " + positionRng.magnitude + " for " + DebugWorldObject(wo));
+                    cow.placementFailed = false;
+                    return;
+                }
+            }
+            Log("Adding SpaceCow around failed, no valid spawn position found " + DebugWorldObject(wo));
+        }
+
         void SpaceCowGenerate(SpaceCow cow, Inventory inv)
         {
             Log("SpaceCow Generator for " + DebugWorldObject(cow.parent));
@@ -346,7 +412,7 @@ namespace FeatSpaceCows
                 AddToInventory(inv, "astrofood");
                 AddToInventory(inv, "MethanCapsule1");
             }
-            AddToWorldUnit(DataConfig.WorldUnitType.Animals, DataConfig.WorldUnitType.Biomass, DataConfig.WorldUnitType.Terraformation);
+            AddToWorldUnit(cow.parent.GetPlanetHash(), DataConfig.WorldUnitType.Animals, DataConfig.WorldUnitType.Biomass, DataConfig.WorldUnitType.Terraformation);
 
             // Drones can't access a cow because it is not a WorldObject
             // Instead, once we detect the cow's inventory has supply settings
@@ -363,6 +429,8 @@ namespace FeatSpaceCows
                             {
                                 var inst = WorldObjectsHandler.Instance;
 
+                                content.SetPlanetHash(cow.parent.GetPlanetHash());
+
                                 inst.DropOnFloor(content,
                                     cow.body.transform.position
                                     + cow.body.transform.forward * (UnityEngine.Random.value < 0.5f ? -2 : 2)
@@ -376,22 +444,33 @@ namespace FeatSpaceCows
             }
         }
 
-        void AddToWorldUnit(params DataConfig.WorldUnitType[] wut)
+        void AddToWorldUnit(int planetHash, params DataConfig.WorldUnitType[] wut)
         {
-            var wuh = Managers.GetManager<WorldUnitsHandler>();
-            if (wuh != null)
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl == null)
             {
-                foreach (var w in wut)
-                {
-                    var wu = wuh.GetUnit(w);
+                return;
+            }
+            var planet = pl.planetList.GetPlanetFromIdHash(planetHash);
+            if (planet == null)
+            {
+                return;
+            }
+            var wuh = Managers.GetManager<WorldUnitsHandler>();
+            if (wuh == null)
+            {
+                return;
+            }
+            foreach (var w in wut)
+            {
+                var wu = wuh.GetUnit(w, planet.id);
 
-                    var before = wu.GetValue();
-                    var after = before + animalUnitsPerTick;
+                var before = wu.GetValue();
+                var after = before + animalUnitsPerTick;
 
-                    Log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
+                Log("         Producing WorldUnit(" + w + "): " + before + " -> " + after);
 
-                    wu.SetCurrentTotalValue(after);
-                }
+                wu.SetCurrentTotalValue((float)after);
             }
         }
 
@@ -434,6 +513,10 @@ namespace FeatSpaceCows
 
         static void PlanetLoader_HandleDataAfterLoad()
         {
+            if (!oncePerSave)
+            {
+                oncePerSave = true;
+            }
             if (cowChecker != null)
             {
                 me.StopCoroutine(cowChecker);
@@ -471,6 +554,7 @@ namespace FeatSpaceCows
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
+            oncePerSave = false;
             if (cowChecker != null)
             {
                 me.StopCoroutine(cowChecker);
@@ -513,10 +597,11 @@ namespace FeatSpaceCows
                     position = cow.rawPosition,
                     rotation = cow.rawRotation,
                     color = cow.color,
-                    added = true
+                    added = true,
+                    visible = cow.body.activeSelf
                 };
 
-                Log("SpaceCow: Sending New " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                Log("SpaceCow: Sending New " + msg.parentId + " on planet " + cow.parent.GetPlanetHash() + " (" + cow.parent.GetPosition() + ")");
                 ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
         }
@@ -535,10 +620,11 @@ namespace FeatSpaceCows
                         position = cow.rawPosition,
                         rotation = cow.rawRotation,
                         color = cow.color,
-                        added = true
+                        added = true,
+                        visible = cow.body.activeSelf
                     };
 
-                    Log("SpaceCow: Sending " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                    Log("SpaceCow: Sending " + msg.parentId + " on planet " + cow.parent.GetPlanetHash() + " (" + cow.parent.GetPosition() + ")");
 
                     ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
                 }
@@ -555,7 +641,7 @@ namespace FeatSpaceCows
                     inventoryId = cow.inventory.GetId()
                 };
 
-                Log("SpaceCow: Removing at " + msg.parentId + " (" + cow.parent.GetPosition() + ")");
+                Log("SpaceCow: Removing at " + msg.parentId + " on planet " + cow.parent.GetPlanetHash() + " (" + cow.parent.GetPosition() + ")");
 
                 ModNetworking.SendAllClients(funcAddRemoveSpaceCow, msg.ToString());
             }
@@ -576,7 +662,7 @@ namespace FeatSpaceCows
         void ReceiveMessageAddRemoveSpaceCow(MessageAddRemoveSpaceCow msg)
         {
             bool isServer = NetworkManager.Singleton?.IsServer ?? true;
-            Log("ReceiveMEssageAddRemoveSpaceCow: isServer = " + isServer);
+            Log("ReceiveMessageAddRemoveSpaceCow: isServer = " + isServer);
             if (!isServer)
             {
                 Log("ReceiveMessageAddRemoveSpaceCow: " + msg.ToString());
@@ -584,14 +670,19 @@ namespace FeatSpaceCows
                 {
                     if (!cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
                     {
-                        Log("SpaceCow: Creating for " + msg.parentId + " at " + msg.position);
+                        Log("ReceiveMessageAddRemoveSpaceCow: Creating for " + msg.parentId + " at " + msg.position);
                         cow = SpaceCow.CreateCow(cow1, msg.color);
+                        cow.parent = WorldObjectsHandler.Instance.GetWorldObjectViaId(msg.parentId);
+                        if (cow.parent == null)
+                        {
+                            Log("ReceiveMessageAddRemoveSpaceCow: Unable to find parent on client: " + msg.parentId);
+                        }
 
                         var invAssoc = cow.body.AddComponent<InventoryAssociated>();
 
                         void onInventory(Inventory inv)
                         {
-                            Log("Spacecow: Preparing inventory " + inv.GetId());
+                            Log("ReceiveMessageAddRemoveSpaceCow: Preparing inventory " + inv.GetId() + " for " + msg.parentId);
                             invAssoc.SetInventory(inv);
                             cow.inventory = inv;
 
@@ -601,8 +692,6 @@ namespace FeatSpaceCows
 
                             var aop = cow.body.AddComponent<SpaceCowActionOpenable>();
                             aop.inventory = inv;
-
-                            
                         }
 
                         var invExist = InventoriesHandler.Instance.GetInventoryById(msg.inventoryId);
@@ -612,16 +701,19 @@ namespace FeatSpaceCows
                         }
                         else
                         {
-                            Log("Spacecow: Inventory Found: " + invExist.GetId());
+                            Log("ReceiveMessageAddRemoveSpaceCow: Inventory Found: " + invExist.GetId());
                             onInventory(invExist);
                         }
 
                         cowAroundSpreader[msg.parentId] = cow;
                     }
 
-                    Log("SpaceCow: Updating position of " + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " + msg.color);
+                    Log("ReceiveMessageAddRemoveSpaceCow: Updating position of " 
+                        + msg.parentId + " at " + msg.position + ", " + msg.rotation + ", Color = " 
+                        + msg.color + ", Visible: " + msg.visible);
                     cow.SetPosition(msg.position, msg.rotation);
                     cow.SetColor(msg.color);
+                    cow.body.SetActive(msg.visible);
 
                     if (cow.inventory != null)
                     {
@@ -638,8 +730,8 @@ namespace FeatSpaceCows
                 {
                     if (cowAroundSpreader.TryGetValue(msg.parentId, out var cow))
                     {
-                        logger.LogInfo("SpaceCow: Removing of " + msg.parentId);
-                        cow.Destroy();
+                        logger.LogInfo("ReceiveMessageAddRemoveSpaceCow: Removing of " + msg.parentId);
+                        cow.Destroy(me);
                         cowAroundSpreader.Remove(msg.parentId);
                     }
                 }

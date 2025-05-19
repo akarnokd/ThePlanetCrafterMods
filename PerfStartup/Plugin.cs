@@ -93,11 +93,11 @@ namespace PerfStartup
             return true;
         }
 
-        static void LoadMetadata(string fileName, out string modeLabel, out WorldUnit ti, 
+        static void LoadMetadata(string fileName, out string modeLabel, out JsonablePlanetState ws, 
             out bool corrupt, out JsonableGameState state)
         {
             corrupt = false;
-            ti = null;
+            ws = null;
             modeLabel = "";
             state = ScriptableObject.CreateInstance<JsonableGameState>();
             try
@@ -111,41 +111,63 @@ namespace PerfStartup
                 }
                 var tiLine = sr.ReadLine() ?? throw new IOException("File does not have the Ti information: " + fileName);
 
-                var ws = new JsonableWorldState();
+
+                ws = new JsonablePlanetState();
                 tiLine = tiLine.Replace("unitBiomassLevel", "unitPlantsLevel");
 
-                JsonUtility.FromJsonOverwrite(tiLine, ws);
+                var isOldFileFormat = tiLine.Contains("unitOxygenLevel");
 
-                ti = new WorldUnit(["Ti", "kTi", "MTi", "GTi", "TTi", "PTi", "ETi", "ZTi", "YTi"],
-                    DataConfig.WorldUnitType.Terraformation);
-                ti.Init(ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel
-                        + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel);
-                ti.SetCurrentLabelIndex();
+                int section = 1;
+                if (isOldFileFormat)
+                {
+                    JsonUtility.FromJsonOverwrite(tiLine, ws);
+                }
 
-                // now skip over 7 @ sections
-                int sections = 7;
+                // now skip over several @ sections till the custom save name info
                 for (; ; )
                 {
-                    var line = sr.ReadLine() ?? throw new IOException("File ends before the mode section: " + fileName);
+                    var line = sr.ReadLine();
+                    if (line == null)
+                    {
+                        modeLabel = Readable.GetModeLabel(DataConfig.GameSettingMode.Standard);
+                        state.saveDisplayName = "";
+                        state.gameMode = DataConfig.GameSettingMode.Standard;
+                        state.gameStartLocation = "Standard";
+                        state.gameDyingConsequences = DataConfig.GameSettingDyingConsequences.DropSomeItems;
+                        state.dyingConsequencesLabel = "DropSomeItems";
+                        state.startLocationLabel = "Standard";
+                        state.preInterplanetarySave = true;
+                        break;
+                    }
                     if (line.StartsWith("@"))
                     {
-                        if (--sections == 0)
+                        section++;
+                    } 
+                    else 
+                    { 
+                        if (!isOldFileFormat && section == 2)
                         {
-                            line = sr.ReadLine();
-                            if (line == null)
-                            {
-                                throw new IOException("File ends just before the mode section: " + fileName);
-                            }
+                            JsonablePlanetState wsTemp = new();
+                            JsonUtility.FromJsonOverwrite(
+                                line.Replace("unitBiomassLevel", "unitPlantsLevel")
+                                .Replace("}|", "}"), 
+                                wsTemp);
+
+                            AddPlanetStates(ws, wsTemp);
+                        }
+                        else
+                        if (section == (isOldFileFormat ? 8 : 9))
+                        {
                             JsonUtility.FromJsonOverwrite(line, state);
+                            state.preInterplanetarySave = isOldFileFormat;
                             modeLabel = Readable.GetModeLabel((DataConfig.GameSettingMode)Enum.Parse(typeof(DataConfig.GameSettingMode), state.mode));
                             break;
                         }
                     }
                 }
-
-                if (sections != 0)
+                if (string.IsNullOrWhiteSpace(state.planetId))
                 {
-                    throw new IOException("File ends with missing sections" + fileName + " (" + sections + " to go)");
+                    state.planetId = "Prime";
                 }
             } 
             catch (Exception ex)
@@ -155,11 +177,14 @@ namespace PerfStartup
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.CreateNewSaveFile))]
-        static void JSONExport_CreateNewSaveFile(ref List<JsonableProceduralInstance> ___proceduralInstances)
+        static void AddPlanetStates(JsonablePlanetState dest, JsonablePlanetState src)
         {
-            ___proceduralInstances ??= [];
+            dest.unitOxygenLevel += src.unitOxygenLevel;
+            dest.unitHeatLevel += src.unitHeatLevel;
+            dest.unitPressureLevel += src.unitPressureLevel;
+            dest.unitPlantsLevel += src.unitPlantsLevel;
+            dest.unitInsectsLevel += src.unitInsectsLevel;
+            dest.unitAnimalsLevel += src.unitAnimalsLevel;
         }
 
     }
