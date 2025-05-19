@@ -18,7 +18,8 @@ namespace CheatInventoryStacking
             WorldObject ____worldObject,
             List<GroupData> ___groupDatasTerraStage,
             ref WorldUnitsHandler ____worldUnitsHandler,
-            TerraformStage ____terraStage
+            ref TerraformStage ____terraStage,
+            string ___terraStageNameInPlanetData
         )
         {
             if (stackSize.Value > 1)
@@ -35,6 +36,11 @@ namespace CheatInventoryStacking
                 {
                     return false;
                 }
+                if (____terraStage == null && !string.IsNullOrEmpty(___terraStageNameInPlanetData))
+                {
+                    ____terraStage = typeof(PlanetData).GetField(___terraStageNameInPlanetData).GetValue(Managers.GetManager<PlanetLoader>().GetCurrentPlanetData()) as TerraformStage;
+                }
+
 
                 Log("    begin ore search");
 
