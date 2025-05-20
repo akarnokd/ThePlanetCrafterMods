@@ -33,7 +33,9 @@ namespace FeatTechniciansExile
         static readonly Dictionary<string, Vector3> technicianDropLocationPerPlanet = new() {
             { "",  new Vector3(1995, 68.8f, 1073) },
             { "Prime",  new Vector3(1995, 68.8f, 1073) },
-            { "Humble", new Vector3(1327, 347.6f, -333) }
+            { "Humble", new Vector3(1327, 347.6f, -333) },
+            { "Selenea", new Vector3(-580, 212, 525) },
+            { "Aqualis", new Vector3(0, 0, 0) }
         };
 
         static TechnicianAvatar avatar;
@@ -117,10 +119,26 @@ namespace FeatTechniciansExile
                 msg2.yearSent = "Today";
                 msg2.messageType = DataConfig.MessageType.FromWorld;
             };
+            var msg3 = ScriptableObject.CreateInstance<MessageData>();
+            {
+                msg3.stringId = "TechniciansExile_Message_Selenea";
+                msg3.senderStringId = "TechniciansExile_Name";
+                msg3.yearSent = "Today";
+                msg3.messageType = DataConfig.MessageType.FromWorld;
+            };
+            var msg4 = ScriptableObject.CreateInstance<MessageData>();
+            {
+                msg4.stringId = "TechniciansExile_Message_Aqualis";
+                msg4.senderStringId = "TechniciansExile_Name";
+                msg4.yearSent = "Today";
+                msg4.messageType = DataConfig.MessageType.FromWorld;
+            }
 
             technicianMessageDict[""] = msg1;
             technicianMessageDict["Prime"] = msg1;
             technicianMessageDict["Humble"] = msg2;
+            technicianMessageDict["Selenea"] = msg3;
+            technicianMessageDict["Aqualis"] = msg4;
 
             technicianMessage2 = ScriptableObject.CreateInstance<MessageData>();
             {
@@ -996,7 +1014,10 @@ namespace FeatTechniciansExile
                     questPhase = QuestPhase.Initial_Help;
 
                     var msh = Managers.GetManager<MessagesHandler>();
-                    msh.AddNewReceivedMessage(technicianMessageDict[pid], true);
+                    if (technicianMessageDict.TryGetValue(pid, out var mess))
+                    {
+                        msh.AddNewReceivedMessage(mess, true);
+                    }
 
                     ShowChoice(dialogChoices["WhoAreYou"]);
                     SaveState();
