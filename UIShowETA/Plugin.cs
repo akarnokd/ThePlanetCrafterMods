@@ -147,7 +147,7 @@ namespace UIShowETA
             }
             if (___localizationDictionary.TryGetValue("russian", out dict))
             {
-                dict["ShowETA_ETA"] = "ост.";
+                dict["ShowETA_ETA"] = "осталось";
                 dict["ShowETA_Infinite"] = "Бесконечность";
                 dict["ShowETA_Year"] = "года+";
                 dict["ShowETA_Now"] = "Сейчас";
