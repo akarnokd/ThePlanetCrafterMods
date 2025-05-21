@@ -12,12 +12,14 @@ using System.Collections;
 using BepInEx.Logging;
 using System.Linq;
 using Unity.Netcode;
+using LibCommon;
 
 namespace CheatAutoStore
 {
-    [BepInPlugin("akarnokd.theplanetcraftermods.cheatautostore", "(Cheat) Auto Store", PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(modCheatAutoStoreGuid, "(Cheat) Auto Store", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatAutoStoreGuid = "akarnokd.theplanetcraftermods.cheatautostore";
 
         static ConfigEntry<bool> modEnabled;
 
@@ -51,6 +53,12 @@ namespace CheatAutoStore
 
         static ManualLogSource logger;
 
+        static AccessTools.FieldRef<WorldObject, int> fWorldObjectPlanetHash;
+
+        const string funcGetWorldObjectPlanetHash = "AutoStoreGetWorldObjectPlanetHash";
+        const string funcSetWorldObjectPlanetHash = "AutoStoreSetWorldObjectPlanetHash";
+        static readonly Queue<System.Action<int, int>> onPlanetHashCallback = [];
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -74,6 +82,8 @@ namespace CheatAutoStore
             storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
             keepList = Config.Bind("General", "KeepList", "", "A comma separated list of itemId:amount elements to keep a minimum amount of that item. itemId is case sensitive. Example: WaterBottle1:5,OxygenCapsule1:5 to keep 5 water bottles and oxygen capsules in the backpack");
 
+            fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
+
             if (!key.Value.Contains("<"))
             {
                 key.Value = "<Keyboard>/" + key.Value;
@@ -82,7 +92,14 @@ namespace CheatAutoStore
             storeAction.Enable();
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            Harmony.CreateAndPatchAll(typeof(Plugin));
+            var h = Harmony.CreateAndPatchAll(typeof(Plugin));
+
+            ModNetworking.Init(modCheatAutoStoreGuid, logger);
+            ModNetworking.Patch(h);
+            ModNetworking._debugMode = debugMode.Value;
+            ModNetworking.RegisterFunction(funcGetWorldObjectPlanetHash, OnGetWorldObjectPlanetHash);
+            ModNetworking.RegisterFunction(funcSetWorldObjectPlanetHash, OnSetWorldObjectPlanetHash);
+
         }
 
         static void Log(object message)
@@ -163,7 +180,20 @@ namespace CheatAutoStore
                 {
                     counter[0]++;
                     n++;
-                    invp.GetInventory((inv, wo) => counter[0]--);
+                    invp.GetInventory((inv, wo) =>
+                    {
+                        var pid = fWorldObjectPlanetHash(wo);
+                        if (pid == 0)
+                        {
+                            Log("    Requesting planet hash for world object " + wo.GetId() + " (" + wo.GetGroup().id + ")");
+                            onPlanetHashCallback.Enqueue((id, h) => counter[0]--);
+                            ModNetworking.SendHost(funcGetWorldObjectPlanetHash, wo.GetId().ToString());
+                        }
+                        else
+                        {
+                            counter[0]--;
+                        }
+                    });
                 }
             }
             Log("    Waiting for " + n + " objects");
@@ -220,7 +250,7 @@ namespace CheatAutoStore
                             candidateInventoryIds.Add((
                                 wo.GetLinkedInventoryId(),
                                 woTxt,
-                                wo.GetPlanetHash()
+                                fWorldObjectPlanetHash(wo)
                             ));
                         }
                         else
@@ -250,7 +280,7 @@ namespace CheatAutoStore
             {
                 var fwo = wo;
                 InventoriesHandler.Instance.GetWorldObjectInventory(wo.Item1, 
-                    responseInv => candidateInv.Add((responseInv, fwo.Item2, fwo.Item1.GetPlanetHash()))
+                    responseInv => candidateInv.Add((responseInv, fwo.Item2, fWorldObjectPlanetHash(fwo.Item1)))
                 );
             }
 
@@ -451,6 +481,50 @@ namespace CheatAutoStore
             Log("  Done.");
             inventoryStoringActive = false;
             Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("", 5f, "Auto Store: " + deposited + " / " + (backpackWos.Count + kept) + " deposited. " + excluded + " excluded. " + kept + " kept.");
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
+        }
+
+        void OnGetWorldObjectPlanetHash(ulong sender, string parameters)
+        {
+            if (int.TryParse(parameters, out var id))
+            {
+                var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo != null)
+                {
+                    ModNetworking.SendClient(sender, funcSetWorldObjectPlanetHash, id + "," + wo.GetPlanetHash());
+                }
+            }
+        }
+
+        void OnSetWorldObjectPlanetHash(ulong sender, string parameters)
+        {
+            var idHash = parameters.Split(',');
+            if (idHash.Length == 2)
+            {
+                if (int.TryParse(idHash[0], out var id) && int.TryParse(idHash[1], out var hash))
+                {
+                    var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                    if (wo != null)
+                    {
+                        wo.SetPlanetHash(hash);
+                        Log("OnSetWorldObjectPlanetHash: " + id + " set to " + hash);
+                        if (onPlanetHashCallback.TryDequeue(out var action))
+                        {
+                            action(id, hash);
+                        }
+                    }
+                    else
+                    {
+                        Log("OnSetWorldObjectPlanetHash: " + id + " not found for " + hash);
+                    }
+                    return;
+                }
+            }
+            Log("OnSetWorldObjectPlanetHash: format error: " + parameters);
         }
 
         internal class TransferCompletionHandler
