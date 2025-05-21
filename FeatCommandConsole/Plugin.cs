@@ -1469,11 +1469,12 @@ namespace FeatCommandConsole
                 var wup = go1.GetComponent<WorldUnitPositioning>();
 
                 //LogInfo("WorldUnitPositioning-Before: " + wup.transform.position);
-
-                worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
-                worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
-                wup.UpdateEvolutionPositioning();
-
+                if (wup != null)
+                {
+                    worldUnitsPositioningWorldUnitsHandler.SetValue(wup, wuh);
+                    worldUnitsPositioningHasMadeFirstInit.SetValue(wup, false);
+                    wup.UpdateEvolutionPositioning();
+                }
                 //LogInfo("WorldUnitPositioning-After: " + wup.transform.position);
             }
             return result;

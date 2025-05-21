@@ -13,6 +13,7 @@ using System;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using BepInEx.Logging;
+using BepInEx.Configuration;
 
 namespace UIContinue
 {
@@ -31,6 +32,8 @@ namespace UIContinue
         static string lastSaveInfoText;
         static string lastSaveDateText;
 
+        static ConfigEntry<float> fontSize;
+
         internal static ManualLogSource logger;
 
         public void Awake()
@@ -41,6 +44,8 @@ namespace UIContinue
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            fontSize = Config.Bind("General", "FontSize", 32f, "The font size for the latest save labels");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -314,26 +319,38 @@ namespace UIContinue
 
         static void RepositionInfoAndDate()
         {
+            if (lastSaveInfo == null || lastSaveDate == null)
+            {
+                return;
+            }
             var txtInfo = lastSaveInfo.GetComponentInChildren<TextMeshProUGUI>();
             var txtDate = lastSaveDate.GetComponentInChildren<TextMeshProUGUI>();
             var buttonsRect = continueButton.transform.parent.gameObject.GetComponent<RectTransform>();
             var lastSaveInfoRect = lastSaveInfo.GetComponent<RectTransform>();
             var lastSaveDateRect = lastSaveDate.GetComponent<RectTransform>();
 
-            lastSaveInfoRect.localPosition = buttonsRect.localPosition + new Vector3(0 * Mathf.Abs(buttonsRect.sizeDelta.x) + 1 * txtInfo.preferredWidth / 2 + 40, 0, 0);
-            lastSaveDateRect.localPosition = buttonsRect.localPosition + new Vector3(0 * Mathf.Abs(buttonsRect.sizeDelta.x) + 1 * txtDate.preferredWidth / 2 + 40, -50, 0);
-            /*
-            var i = 100;
-            do
-            {
-                lastSaveInfoRect.localPosition += new Vector3(20f, 0, 0);
-            }
-            while (lastSaveInfoRect.Overlaps(buttonsRect, true) && (--i) > 0)
-            ;
-            lastSaveInfoRect.localPosition += new Vector3(40f, 0, 0);
-            */
-            lastSaveDateRect.localPosition = new Vector3(lastSaveInfoRect.localPosition.x - txtInfo.preferredWidth / 2 + txtDate.preferredWidth / 2, lastSaveDateRect.localPosition.y, 0);
+            txtInfo.fontSize = fontSize.Value;
+            txtDate.fontSize = fontSize.Value;
+
+            lastSaveInfoRect.localPosition = buttonsRect.localPosition 
+                + new Vector3(txtInfo.preferredWidth / 2 + 40, 0, 0);
+            lastSaveDateRect.localPosition = buttonsRect.localPosition 
+                + new Vector3(txtDate.preferredWidth / 2 + 40, -fontSize.Value - 16, 0);
+            lastSaveDateRect.localPosition = new Vector3(lastSaveInfoRect.localPosition.x - txtInfo.preferredWidth / 2 + txtDate.preferredWidth / 2, 
+                lastSaveDateRect.localPosition.y, 0);
+
+            var rt1 = lastSaveInfo.transform.Find("ContinueLastSaveInfoBackground").GetComponent<RectTransform>();
+            rt1.sizeDelta = new Vector2(txtInfo.preferredWidth + 20, txtInfo.preferredHeight);
+
+            var rt2 = lastSaveDate.transform.Find("ContinueLastSaveDateBackground").GetComponent<RectTransform>();
+            rt2.sizeDelta = new Vector2(txtDate.preferredWidth + 20, txtDate.preferredHeight);
         }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            RepositionInfoAndDate();
+        }
+
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
@@ -435,48 +452,5 @@ namespace UIContinue
             }
         }
 
-    }
-
-    public static class RectTransformExtensions
-    {
-
-        public static bool Overlaps(this RectTransform a, RectTransform b)
-        {
-            return a.WorldRect().Overlaps(b.WorldRect());
-        }
-        public static bool Overlaps(this RectTransform a, RectTransform b, bool allowInverse)
-        {
-            return a.WorldRect().Overlaps(b.WorldRect(), allowInverse);
-        }
-
-        public static Rect WorldRect(this RectTransform rectTransform)
-        {
-            Vector3[] v = new Vector3[4];
-            rectTransform.GetWorldCorners(v);
-
-            float x0 = Mathf.Min(v[0].x, v[1].x, v[2].x, v[3].x);
-            float y0 = Mathf.Min(v[0].y, v[1].y, v[2].y, v[3].y);
-
-            float x1 = Mathf.Max(v[0].x, v[1].x, v[2].x, v[3].x);
-            float y1 = Mathf.Max(v[0].y, v[1].y, v[2].y, v[3].y);
-
-            var r = new Rect(x0, y0, x1 - x0, y1 - y0);
-            Plugin.logger.LogInfo(r);
-            return r;
-
-            /*
-            Vector2 sizeDelta = rectTransform.sizeDelta;
-
-            float rectTransformWidth = sizeDelta.x * rectTransform.lossyScale.x;
-            float rectTransformHeight = sizeDelta.y * rectTransform.lossyScale.y;
-
-            //With this it works even if the pivot is not at the center
-            Vector3 position = rectTransform.TransformPoint(rectTransform.rect.center);
-            float x = position.x - rectTransformWidth * 0.5f;
-            float y = position.y - rectTransformHeight * 0.5f;
-
-            return new Rect(x, y, rectTransformWidth, rectTransformHeight);
-            */
-        }
     }
 }

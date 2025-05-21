@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.22
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.10
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.21
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.22
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -69,7 +69,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.16
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.20
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.27
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.28
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.16
 # (UI) Prevent Accidental Deconstruct
