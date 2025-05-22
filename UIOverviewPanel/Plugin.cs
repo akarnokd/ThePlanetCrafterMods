@@ -203,10 +203,15 @@ namespace UIOverviewPanel
             {
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(unitType);
-                var speed = wut.GetCurrentValuePersSec();
+                var speed = (double)wut.GetCurrentValuePersSec();
                 if (unitType == WorldUnitType.SystemTerraformation)
                 {
                     speed = systemTiUpdater.CalculateSpeed();
+                }
+                if (speed > 1e15)
+                {
+                    return string.Format("{0:0.000000000e+0} {1}", speed,
+                        Translate("OverviewPanel_PerSecond"));
                 }
                 return string.Format("{0:#,##0.00} {1}", speed,
                     Translate("OverviewPanel_PerSecond"));
@@ -341,19 +346,32 @@ namespace UIOverviewPanel
                 else
                 {
                     // FIXME units sometimes double now!!!
-                    var prevValue = 0f;
+                    var prevValue = 0d;
                     if (prevUnlocks.Count != 0)
                     {
-                        prevValue = (float)prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
+                        prevValue = prevUnlocks[^1].GetUnlockingInfos().GetUnlockingValue();
                     }
 
                     var nextUnlock = nextUnlocks[0];
-                    var value = (float)nextUnlock.GetUnlockingInfos().GetUnlockingValue();
+                    var value = nextUnlock.GetUnlockingInfos().GetUnlockingValue();
 
                     var wu = Managers.GetManager<WorldUnitsHandler>();
                     var wut = wu.GetUnit(unitType);
-                    var remaining = Mathf.InverseLerp(prevValue, value, (float)wut.GetValue()) * 100;
-                    var speed = wut.GetCurrentValuePersSec();
+                    var remaining = 0d;
+                    if (prevValue != value)
+                    {
+                        remaining = (wut.GetValue() - prevValue) / (value - prevValue);
+                        if (remaining < 0d)
+                        {
+                            remaining = 0d;
+                        }
+                        else if (remaining > 1d)
+                        {
+                            remaining = 1d;
+                        }
+                    }
+                    remaining *= 100;
+                    var speed = (double)wut.GetCurrentValuePersSec();
                     if (unitType == WorldUnitType.SystemTerraformation)
                     {
                         speed = systemTiUpdater.CalculateSpeed();
@@ -381,8 +399,13 @@ namespace UIOverviewPanel
                             eta = string.Format("{0}:{1:00}", (int)(t) / 60, (int)(t) % 60);
                         }
                     }
-
-                    str += string.Format(" @ {0:#,##0} ({1:##0.00} %, {3} {2})", value, remaining, eta, Translate("OverviewPanel_ETA"));
+                    if (value > 1e15)
+                    {
+                        str += string.Format(" @ {0:0.000000000e+0} ({1:##0.00} %, {3} {2})", value, remaining, eta, Translate("OverviewPanel_ETA"));
+                    }
+                    else {
+                        str += string.Format(" @ {0:#,##0} ({1:##0.00} %, {3} {2})", value, remaining, eta, Translate("OverviewPanel_ETA"));
+                    }
                 }
                 return str;
             };
@@ -466,24 +489,28 @@ namespace UIOverviewPanel
             {
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
-
+                var v = wut.GetValue();
+                if (v > 1E15)
+                {
+                    return string.Format("{0:0.000000000e+0} SysTi", wut.GetValue());
+                }
                 return string.Format("{0:#,##0} SysTi", wut.GetValue());
             };
         }
 
-        float GetCurrentSysTi()
+        double GetCurrentSysTi()
         {
             var wu = Managers.GetManager<WorldUnitsHandler>();
             if (wu == null)
             {
-                return 0f;
+                return 0d;
             }
             var wut = wu.GetUnit(DataConfig.WorldUnitType.SystemTerraformation);
             if (wut == null)
             {
-                return 0f;
+                return 0d;
             }
-            return (float)wut.GetValue();
+            return wut.GetValue();
         }
 
         Func<string> CreateIdCounter(params int[] ids)
@@ -943,9 +970,9 @@ namespace UIOverviewPanel
 
         internal class RollingWindowUpdater
         {
-            readonly List<(float, float)> samples = [];
+            readonly List<(float, double)> samples = [];
 
-            internal void Update(float time, float value, float horizon)
+            internal void Update(float time, double value, float horizon)
             {
                 samples.Add((time, value));
 
@@ -966,7 +993,7 @@ namespace UIOverviewPanel
                 }
             }
 
-            internal float CalculateSpeed()
+            internal double CalculateSpeed()
             {
                 if (samples.Count != 0)
                 {
