@@ -3047,6 +3047,84 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/list-golden-crams", "Lists all loaded-in golden crams.")]
+        public void ListGoldenCrams(List<string> args)
+        {
+            int range = 0;
+            if (args.Count > 1)
+            {
+                range = int.Parse(args[1]);
+            }
+
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var player = pm.transform.position;
+
+            int i = 0;
+            var found = new List<WorldObjectFromScene>();
+            foreach (var wos in FindObjectsByType<WorldObjectFromScene>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var gd = wos.GetGroupData();
+                if (gd.id == "ContainerGoldenAqualis")
+                {
+                    if (i == 0)
+                    {
+                        AddLine("<margin=1em>Golden Crams found:");
+                    }
+                    var p = wos.transform.position;
+                    var d = Vector3.Distance(player, p);
+                    if (range == 0 || d <= range)
+                    {
+                        found.Add(wos);
+                    }
+                    i++;
+                }
+            }
+            found.Sort((a, b) =>
+            {
+                var p1 = a.transform.position;
+                var d1 = Vector3.Distance(player, p1);
+
+                var p2 = b.transform.position;
+                var d2 = Vector3.Distance(player, p2);
+
+                return d1.CompareTo(d2);
+            });
+
+            var j = 0;
+            foreach (var wos in found)
+            {
+                var p = wos.transform.position;
+                var d = Vector3.Distance(player, p);
+                AddLine(string.Format("<margin=2em>{0:00} @ {1}, Range: {2}, Id: {3}, [{4}]", j, p, (int)d, wos.GetUniqueId(), wos.gameObject.activeSelf));
+                j++;
+            }
+
+            if (i == 0)
+            {
+                AddLine("<margin=1em>No containers found.");
+            }
+        }
+
+        [Command("/load-all-sectors", "Loads all sectors of the world.")]
+        public void LoadAllSectors(List<string> _)
+        {
+            var sectors = FindObjectsByType<Sector>(FindObjectsSortMode.None);
+            AddLine("Sector count: " + sectors.Length);
+            foreach (Sector sector in sectors)
+            {
+                if (sector == null || sector.gameObject == null)
+                {
+                    continue;
+                }
+                string name = sector.gameObject.name;
+                AddLine("<margin=1em>Sector <color=#00FFFF>" + name);
+
+                SceneManager.LoadScene(name, LoadSceneMode.Additive);
+            }
+
+            AddLine("<color=#FF8080>Warning! You may want to reload this save to avoid game issues.");
+        }
+
         [Command("/save-stats", "Display save statistics.")]
         public void SaveStats(List<string> _)
         {
