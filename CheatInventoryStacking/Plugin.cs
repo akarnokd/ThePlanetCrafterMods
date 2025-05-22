@@ -65,8 +65,6 @@ namespace CheatInventoryStacking
         static ConfigEntry<float> groupListOffsetX;
         static ConfigEntry<float> groupListOffsetY;
 
-        static ConfigEntry<bool> savePerfFix;
-
         static string expectedGroupIdToAdd;
         static bool isLastSlotOccupiedMode;
 
@@ -169,8 +167,6 @@ namespace CheatInventoryStacking
 
             offsetX = Config.Bind("General", "OffsetX", 0.0f, "Move the stack count display horizontally (- left, + right)");
             offsetY = Config.Bind("General", "OffsetY", 0.0f, "Move the stack count display vertically (- down, + up)");
-
-            savePerfFix = Config.Bind("General", "SavePerformanceFix", true, "If enabled, saves with million items should load much faster.");
 
             groupListEnabled = Config.Bind("GroupList", "Enabled", true, "Enable stacking on the Interplanetary exchange screen's item preview list.");
             groupListFontSize = Config.Bind("GroupList", "FontSize", 15, "The font size for the stack amount on the Interplanetary exchange screen's item preview list.");
