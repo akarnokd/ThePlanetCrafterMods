@@ -548,7 +548,7 @@ namespace UIOverviewPanel
                  109405033, 109147878, 103884010, 103854789, 109614299,
                  106785344, 101896178, 106518009
                 );
-            var cram = CreateIdCounter(
+            var clam = CreateIdCounter(
                 105660430, 105901098, 101457828, 106751818, 106998888,
                 104169290, 101166643, 108177977, 102931249, 103579240,
                 101629406
@@ -557,7 +557,7 @@ namespace UIOverviewPanel
             {
                 return Translate("OverviewPanel_ChestsFound_Golden") + golden()
                 + " | " + Translate("OverviewPanel_ChestsFound_Starform") + starform()
-                + " | " + Translate("OverviewPanel_ChestsFound_Cram") + cram();
+                + " | " + Translate("OverviewPanel_ChestsFound_Clam") + clam();
             };
         }
 
@@ -866,7 +866,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_ChestsFound"] = "Láda megtalálva";
                 dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Arany:</color> ";
                 dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
-                dict["OverviewPanel_ChestsFound_Cram"] = "<color=#FFCC00>Kagyló:</color> ";
+                dict["OverviewPanel_ChestsFound_Clam"] = "<color=#FFCC00>Kagyló:</color> ";
                 dict["OverviewPanel_UniqueFishFound"] = "Egyedi halikra megtalálva";
                 dict["OverviewPanel_UniqueFrogFound"] = "Egyedi békalárva megtalálva";
                 dict["OverviewPanel_TradeTokens"] = "Kereskedelmi tokenek";
@@ -909,7 +909,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_ChestsFound"] = "Chests found";
                 dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Golden:</color> ";
                 dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
-                dict["OverviewPanel_ChestsFound_Cram"] = "<color=#FFCC00>Cram:</color> ";
+                dict["OverviewPanel_ChestsFound_Clam"] = "<color=#FFCC00>Clam:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Unique larvae found";
                 dict["OverviewPanel_UniqueFishFound"] = "Unique fish found";
                 dict["OverviewPanel_UniqueFrogFound"] = "Unique frog found";
@@ -952,7 +952,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_ChestsFound"] = "Сундуков найдено";
                 dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Золотой:</color> ";
                 dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
-                dict["OverviewPanel_ChestsFound_Cram"] = "<color=#FFCC00>Крам:</color> ";
+                dict["OverviewPanel_ChestsFound_Clam"] = "<color=#FFCC00>Моллюск:</color> ";
                 dict["OverviewPanel_UniqueLarvaeFound"] = "Найдено уникальных личинок";
                 dict["OverviewPanel_UniqueFishFound"] = "Найдено уникальных рыб";
                 dict["OverviewPanel_UniqueFrogFound"] = "Найдено уникальных лягушек";
