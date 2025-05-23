@@ -949,7 +949,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_MicrochipsUnlocked"] = "Микрочипов расшифровано";
                 dict["OverviewPanel_StarformChestsFound"] = "Starform найдено коробок";
                 dict["OverviewPanel_GoldenChestsFound"] = "Найдено золотых ящиков";
-                dict["OverviewPanel_ChestsFound"] = "Сундуки найдены";
+                dict["OverviewPanel_ChestsFound"] = "Сундуков найдено";
                 dict["OverviewPanel_ChestsFound_Golden"] = "<color=#FFCC00>Золотой:</color> ";
                 dict["OverviewPanel_ChestsFound_Starform"] = "<color=#CCFFCC>Starform:</color> ";
                 dict["OverviewPanel_ChestsFound_Cram"] = "<color=#FFCC00>Крам:</color> ";
