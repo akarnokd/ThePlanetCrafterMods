@@ -374,7 +374,9 @@ namespace UIModConfigMenu
             if (!enterMainMenu)
             {
                 // after the first create, the offsets go way off for some reason, fix it here
-                otherOptionsX = 1370;
+                // otherOptionsX = 1370;
+                otherOptionsX = modScrollContent.GetComponent<RectTransform>().rect.width / 2;
+
             }
             for (int i = modScrollContent.transform.childCount - 1; i >= 0; i--)
             {
