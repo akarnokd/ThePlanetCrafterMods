@@ -291,6 +291,7 @@ namespace CheatMinimap
                         || (go.name.Contains("Warden") && showAltars.Value)
                         || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
                         || go.name.Contains("WorldWardrobe")
+                        || go.name.Contains("Satellite")
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
