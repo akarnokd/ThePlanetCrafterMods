@@ -292,7 +292,7 @@ DebugMode = false
 
 Automatically sequences DNA in the Sequencer or Incubator by collecting ingredients
 from marked container(s), starting the sequencing process, then depositing the product
-into marked container(s).
+into marked container(s). It can also extract DNA Traits automatically via the DNA Extractor.
 
 One marks a container by changing its text field to something specific. By default, the
 following naming convention is used (can be changed in the config file):
@@ -306,6 +306,7 @@ On the recipe side:
 - `*Phytoplankton` - where the various *Phytoplankton* ingredients are searched for.
 - `*Bacteria` - where the *Bacteria* ingredient is searched for.
 - `*FrogEgg` - where the *Frog Eggs* ingredients are searched for.
+- `*ExtractFrom*` - where to look for items to extract DNA traits from.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
@@ -314,6 +315,7 @@ On the product side:
 - `*TreeSeed` - where to deposit the created *Tree Seed*s (all kinds).
 - `*Fish` - where to deposit the created *Fish* (all kinds).
 - `*FrogEgg` - where to deposit the created *Frog Eggs* (all kinds).
+- `*ExtractInto` - where to deposit the extracted DNA traits.
 
 (Note. Unlike other similar mods, you don't need to start the naming with the star `*` character. The defaults shown are just a convention I use.)
 
@@ -323,22 +325,53 @@ it will search the next container. If a destination container is full, it will s
 The *Sequencer* and *Incubator* both require *Mutagen* and you can name different or the same containers where
 they would both get their ingredients from.
 
+You can disable the products in individual sequencers and incubators by opening its recipe screen then clicking on the item to show a big red X.
+
 ### Configuration
 
 <details><summary>akarnokd.theplanetcraftermods.cheatautosequencedna.cfg</summary>
 
 ```
+[Extractor]
+
+## Should the automatic DNA extraction happen?
+# Setting type: Boolean
+# Default value: true
+Enabled = false
+
+## The name of the container to look for items to extract DNA from
+# Setting type: String
+# Default value: *ExtractFrom
+Input = *ExtractFrom
+
+## The name of the container to put the extracted DNA Sequences into
+# Setting type: String
+# Default value: *ExtractInto
+Output = *ExtractInto
+
+## How many items to process per cycle.
+# Setting type: Int32
+# Default value: 5
+Count = 5
+
 [General]
 
 ## Enable debugging with detailed logs (chatty!).
 # Setting type: Boolean
 # Default value: false
-DebugMode = false
+DebugMode = true
 
 ## The maximum distance to look for the named containers. 0 means unlimited.
 # Setting type: Int32
 # Default value: 30
 Range = 30
+
+## Fix for the vanilla bug with switching planets stopping sequencers/incubators
+# Setting type: Boolean
+# Default value: true
+FixPlanetSwitch = true
+
+FontSize = 32
 
 [Incubator]
 
@@ -397,12 +430,17 @@ FrogEgg = *FrogEgg
 # Default value: *Bacteria
 Bacteria = *Bacteria
 
+## Unhide the alternative recipes and outputs.
+# Setting type: Boolean
+# Default value: true
+Unhide = true
+
 [Sequencer]
 
 ## Should the Tree-sequencer auto sequence?
 # Setting type: Boolean
 # Default value: true
-Enabled = true
+Enabled = false
 
 ## The name of the container(s) where to look for fertilizer.
 # Setting type: String
@@ -433,6 +471,11 @@ Phytoplankton = *Phytoplankton
 # Setting type: String
 # Default value: *Fertilizer
 Fertilizer = *Fertilizer
+
+## Unhide the alternative recipes and outputs.
+# Setting type: Boolean
+# Default value: true
+Unhide = true
 ```
 </details>
 

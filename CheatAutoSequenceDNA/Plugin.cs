@@ -2,18 +2,22 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
 using BepInEx.Configuration;
-using System.Collections;
-using System;
-using UnityEngine;
-using System.Collections.Generic;
 using BepInEx.Logging;
+using HarmonyLib;
+using LibCommon;
+using SpaceCraft;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
-using static SpaceCraft.DataConfig;
-using Unity.Netcode;
 using System.Reflection;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using static SpaceCraft.AchievementsData;
+using static SpaceCraft.DataConfig;
 
 namespace CheatAutoSequenceDNA
 {
@@ -62,6 +66,17 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<bool> debugMode;
 
+        static ConfigEntry<bool> extractorEnabled;
+
+        static ConfigEntry<string> extractorInput;
+
+        static ConfigEntry<string> extractorOutput;
+
+        static ConfigEntry<int> extractorCount;
+
+        static ConfigEntry<bool> incubatorUnhide;
+        static ConfigEntry<bool> sequencerUnhide;
+
         static ManualLogSource logger;
 
         static Plugin me;
@@ -72,6 +87,16 @@ namespace CheatAutoSequenceDNA
         static AccessTools.FieldRef<MachineGrowerIfLinkedGroup, GrowthProxy> fMachineGrowerIfLinkedGroupGrowthProxy;
         static AccessTools.FieldRef<MachineConvertRecipe, LinkedGroupsProxy> fMachineConvertRecipeLinkedGroupsProxy;
         static AccessTools.FieldRef<MachineConvertRecipe, GrowthProxy> fMachineConvertRecipeGrowthProxy;
+
+        static AccessTools.FieldRef<EventHoverShowGroup, Group> fEventHoverShowGroupAssociatedGroup;
+        static Font font;
+
+        static readonly Dictionary<int, HashSet<string>> disabledDNA = [];
+        static readonly int shadowContainerId = 700300000;
+
+        const string funcSetEnabled = "AutoSequenceDNASetEnabled";
+        const string funcSetAll = "AutoSequenceDNASetAll";
+        static AccessTools.FieldRef<UiWindowCraft, ActionCrafter> fUiWindowCraftActionCrafter;
 
         public void Awake()
         {
@@ -91,6 +116,7 @@ namespace CheatAutoSequenceDNA
             sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
             sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
+            sequencerUnhide = Config.Bind("Sequencer", "Unhide", true, "Unhide the alternative recipes and outputs.");
 
             incubatorEnabled = Config.Bind("Incubator", "Enabled", true, "Should the Incubator auto sequence?");
             incubatorFertilizerId = Config.Bind("Incubator", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
@@ -103,6 +129,12 @@ namespace CheatAutoSequenceDNA
             incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
             incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
             incubatorBacteriaId = Config.Bind("Incubator", "Bacteria", "*Bacteria", "The name of the container(s) where to to look for bacteria samples.");
+            incubatorUnhide = Config.Bind("Incubator", "Unhide", true, "Unhide the alternative recipes and outputs.");
+
+            extractorEnabled = Config.Bind("Extractor", "Enabled", true, "Should the automatic DNA extraction happen?");
+            extractorInput = Config.Bind("Extractor", "Input", "*ExtractFrom", "The name of the container to look for items to extract DNA from");
+            extractorOutput = Config.Bind("Extractor", "Output", "*ExtractInto", "The name of the container to put the extracted DNA Sequences into");
+            extractorCount = Config.Bind("Extractor", "Count", 5, "How many items to process per cycle.");
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debugging with detailed logs (chatty!).");
             range = Config.Bind("General", "Range", 30, "The maximum distance to look for the named containers. 0 means unlimited.");
@@ -115,9 +147,21 @@ namespace CheatAutoSequenceDNA
             fMachineConvertRecipeGrowthProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, GrowthProxy>("_growthProxy");
             fMachineConvertRecipeLinkedGroupsProxy = AccessTools.FieldRefAccess<MachineConvertRecipe, LinkedGroupsProxy>("_lgProxy");
 
+            fEventHoverShowGroupAssociatedGroup = AccessTools.FieldRefAccess<EventHoverShowGroup, Group>("_associatedGroup");
+
+            fUiWindowCraftActionCrafter = AccessTools.FieldRefAccess<UiWindowCraft, ActionCrafter>("sourceCrafter");
+
+            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoSequenceDNAGuid, _ => PlanetLoader_HandleDataAfterLoad());
+
+            ModNetworking.Init(modCheatAutoSequenceDNAGuid, logger);
+            ModNetworking.Patch(harmony);
+            ModNetworking._debugMode = debugMode.Value;
+            ModNetworking.RegisterFunction(funcSetEnabled, OnSetEnabled);
+            ModNetworking.RegisterFunction(funcSetAll, OnSetAll);
 
             StartCoroutine(SequencerCheckLoop(2.5f));
         }
@@ -132,6 +176,11 @@ namespace CheatAutoSequenceDNA
         static void PlanetLoader_HandleDataAfterLoad()
         {
             LibCommon.SaveModInfo.Save();
+            RestoreDNASettings();
+            if (!(NetworkManager.Singleton?.IsServer ?? true))
+            {
+                ModNetworking.SendHost(funcSetAll, "");
+            }
         }
 
         IEnumerator SequencerCheckLoop(float delay)
@@ -157,6 +206,10 @@ namespace CheatAutoSequenceDNA
                                     if (sequencerEnabled.Value)
                                     {
                                         HandleSequencers();
+                                    }
+                                    if (extractorEnabled.Value)
+                                    {
+                                        HandleExtractors();
                                     }
                                 }
                             }
@@ -255,6 +308,7 @@ namespace CheatAutoSequenceDNA
                 foreach (var incubator in incubatorList)
                 {
                     Log("  Incubator: " + DebugWorldObject(incubator));
+                    var machineId = incubator.GetId();
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
                     int incubatorPlanetHash = incubator.GetPlanetHash();
@@ -306,7 +360,7 @@ namespace CheatAutoSequenceDNA
                     {
                         Log("    Picking Recipe");
 
-                        var candidates = GetCandidates(DataConfig.CraftableIn.CraftIncubatorT1);
+                        var candidates = GetCandidates(DataConfig.CraftableIn.CraftIncubatorT1, machineId);
                         Shuffle(candidates);
                         var found = false;
                         foreach (var spawnTarget in candidates)
@@ -567,6 +621,7 @@ namespace CheatAutoSequenceDNA
                 foreach (var sequencer in sequencerList)
                 {
                     Log("  Sequencer: " + DebugWorldObject(sequencer));
+                    var machineId = sequencer.GetId();
                     // Try to deposit finished products first
                     Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
                     int sequencerPlanetHash = sequencer.GetPlanetHash();
@@ -593,7 +648,7 @@ namespace CheatAutoSequenceDNA
 
                     if (sequencer.GetGrowth() == 0)
                     {
-                        var candidates = GetCandidates(CraftableIn.CraftGeneticT1);
+                        var candidates = GetCandidates(CraftableIn.CraftGeneticT1, machineId);
 
                         if (candidates.Count != 0)
                         {
@@ -637,12 +692,14 @@ namespace CheatAutoSequenceDNA
             Log("Done<Sequencers>");
         }
 
-        List<GroupItem> GetCandidates(DataConfig.CraftableIn craftableIn)
+        List<GroupItem> GetCandidates(DataConfig.CraftableIn craftableIn, int machineId)
         {
             List<GroupItem> candidates = [];
             foreach (var gi in GroupsHandler.GetGroupsItem())
             {
-                if (gi.CanBeCraftedIn(craftableIn) && gi.GetUnlockingInfos().GetIsUnlocked())
+                if (gi.CanBeCraftedIn(craftableIn) 
+                    && gi.GetUnlockingInfos().GetIsUnlocked()
+                    && IsDNAEnabled(machineId, gi.id))
                 {
                     candidates.Add(gi);
                 }
@@ -668,6 +725,134 @@ namespace CheatAutoSequenceDNA
                 }
             }
             Log("        Into      : Failed - no target containers found");
+        }
+
+        void HandleExtractors()
+        {
+            List<WorldObject> extractors = [];
+            List<WorldObject> inputs = [];
+            List<WorldObject> outputs = [];
+            var inputName = extractorInput.Value;
+            var outputName = extractorOutput.Value;
+            var maxDistance = range.Value;
+            var woh = WorldObjectsHandler.Instance;
+            var gth = GeneticTraitHandler.Instance;
+            var invh = InventoriesHandler.Instance;
+            var remaining = extractorCount.Value;
+
+            Log("Begin<Extractors>");
+            foreach (var wo in woh.GetConstructedWorldObjects())
+            {
+                var gr = wo.GetGroup().id;
+
+                if (gr == "GeneticExtractor1")
+                {
+                    extractors.Add(wo);
+                }
+                else
+                if (gr == "Container1" || gr == "Container2" || gr == "Container3")
+                {
+                    var nm = wo.GetText() ?? "";
+                    if (nm.Contains(inputName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        inputs.Add(wo);
+                    }
+                    if (nm.Contains(outputName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        outputs.Add(wo);
+                    }
+                }
+            }
+            Log("    Extractors Found: " + extractors.Count);
+            Log("    Inputs Found    : " + inputs.Count);
+            Log("    Outputs Found   : " + outputs.Count);
+
+            foreach (var extractor in extractors)
+            {
+                Log("  Extractor: " + DebugWorldObject(extractor));
+
+                var p = extractor.GetPosition();
+                var hash = extractor.GetPlanetHash();
+
+                var anyInput = false;
+
+                foreach (var input in inputs)
+                {
+                    var d = Vector3.Distance(input.GetPosition(), p);
+                    if (hash == input.GetPlanetHash() && (maxDistance <= 0 || d <= maxDistance))
+                    {
+                        anyInput = true;
+                        var inv = invh.GetInventoryById(input.GetLinkedInventoryId());
+                        var content = inv.GetInsideWorldObjects();
+                        Log("  - Checking input " + input.GetId() + " with " + inv.GetId() + " at " + d + ", Count: " + content.Count);
+                        for (var i = content.Count - 1; i >= 0; i--)
+                        {
+                            var wo = content[i];
+                            var gr = wo.GetGroup();
+                            if (gr is GroupItem gi)
+                            {
+                                var trait = gth.GetGeneticTraitExtractedFromGroup(gi);
+                                if (trait != null)
+                                {
+                                    var traitWo = gth.CreateNewTraitWorldObject(trait, true);
+                                    traitWo.SetPositionAndRotation(new Vector3(0.1f, 0.1f, 0.1f), Quaternion.identity);
+                                    Log("    Item: " + inv.GetId() + " / " + wo.GetId() + " (" + gr.id + ") -> Trait: " + trait.traitType + ", " + trait.traitColor + ", " + trait.traitValue);
+
+                                    var found = false;
+                                    foreach (var outWo in outputs)
+                                    {
+                                        var outInv = invh.GetInventoryById(outWo.GetLinkedInventoryId());
+                                        var d2 = Vector2.Distance(outWo.GetPosition(), p);
+                                        Log("    - Checking output " + outWo.GetId()+ " with " + outInv.GetId() + " at " + d2);
+                                        if (hash == outWo.GetPlanetHash() && (maxDistance <= 0 || d2 <= maxDistance))
+                                        {
+                                            var wasSuccess = false;
+                                            invh.AddWorldObjectToInventory(traitWo, outInv, false, success =>
+                                            {
+                                                wasSuccess = success;
+                                            });
+
+                                            if (wasSuccess)
+                                            {
+                                                Log("      Inventory: " + outInv.GetId() + " deposited");
+                                                found = true;
+                                                remaining--;
+                                                invh.RemoveItemFromInventory(wo, inv, true);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (!found)
+                                    {
+                                        Log("      Inventory: Not found or all full");
+                                        WorldObjectsHandler.Instance.DestroyWorldObject(traitWo);
+                                    }
+                                    else
+                                    {
+                                        if (remaining <= 0)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Log("    Item: " + inv.GetId() + " / " + wo.GetId() + " (" + gr.id + ") -> No trait");
+                                }
+                            }
+                        }
+                        if (remaining <= 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+                if (!anyInput)
+                {
+                    Log("    No input inventories in range.");
+                }
+            }
+            Log("Done<Extractors>");
         }
 
         class IngredientSource
@@ -827,9 +1012,267 @@ namespace CheatAutoSequenceDNA
 
                     gd.associatedGameObject.AddComponent<OffPlanetUpdater>();
                 }
+
+                if (gd is GroupDataItem gdi && gdi.hideInCrafter 
+                    && (
+                        (sequencerUnhide.Value && gdi.craftableInList.Contains(CraftableIn.CraftGeneticT1))
+                        || (incubatorUnhide.Value && gdi.craftableInList.Contains(CraftableIn.CraftIncubatorT1))
+                        )) {
+                    Log("Unhiding " + gd.id);
+                    gd.hideInCrafter = false;
+                }
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowCraft), "CreateGrid")]
+        static void UiWindowCraft_CreateGrid(GridLayoutGroup ___grid, 
+            ActionCrafter ___sourceCrafter)
+        {
+            if (___sourceCrafter.GetCrafterIdentifier() != CraftableIn.CraftGeneticT1
+                && ___sourceCrafter.GetCrafterIdentifier() != CraftableIn.CraftIncubatorT1) {
+                return;
+            }
+
+            var wo = ___sourceCrafter.GetComponentInParent<WorldObjectAssociated>(true).GetWorldObject();
+
+            foreach (Transform tr in ___grid.transform)
+            {
+                var parent = tr.gameObject.transform;
+                var ehg = tr.gameObject.GetComponent<EventHoverShowGroup>();
+                var rt = tr.gameObject.GetComponent<RectTransform>();
+                if (ehg != null)
+                {
+                    if (fEventHoverShowGroupAssociatedGroup(ehg) is GroupItem gi)
+                    {
+                        var go = new GameObject("DisableAutoDNA");
+                        go.transform.SetParent(parent, false);
+
+                        var text = go.AddComponent<Text>();
+                        text.font = font;
+                        text.color = new Color(1f, 0f, 0f, 1f);
+                        text.fontSize = (int)rt.sizeDelta.x;
+                        text.text = "X";
+                        text.resizeTextForBestFit = false;
+                        text.verticalOverflow = VerticalWrapMode.Overflow;
+                        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+                        text.alignment = TextAnchor.MiddleCenter;
+
+                        go.SetActive(!IsDNAEnabled(wo.GetId(), gi.id));
+                    }
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowCraft), "OnImageClicked")]
+        static bool UiWindowCraft_OnImageClicked(
+            EventTriggerCallbackData _eventTriggerCallbackData,
+            ActionCrafter ___sourceCrafter)
+        {
+            if ((___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftGeneticT1 
+                || ___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftIncubatorT1) 
+                && _eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
+            {
+                var wo = ___sourceCrafter.GetComponentInParent<WorldObjectAssociated>(true).GetWorldObject();
+                var gr = _eventTriggerCallbackData.group;
+
+                var enabled = IsDNAEnabled(wo.GetId(), gr.id);
+                // Log(gr.id + " currently " + enabled);
+                SetDNAEnabled(wo.GetId(), gr.id, !enabled);
+                SaveDNASettings();
+
+                var go = _eventTriggerCallbackData.pointerEventData.pointerPress;
+                go.transform.Find("DisableAutoDNA").gameObject.SetActive(enabled);
+
+                var msg = wo.GetId() + "," + gr.id + "," + (enabled ? 0 : 1);
+                if (NetworkManager.Singleton?.IsServer ?? true)
+                {
+                    ModNetworking.SendAllClients(funcSetEnabled, msg);
+                }
+                else
+                {
+                    ModNetworking.SendHost(funcSetEnabled, msg);
+                }
+
+                return false;
+            }
+            return true;
+        }
+
+        static bool IsDNAEnabled(int machineId, string groupId)
+        {
+            return !(disabledDNA.TryGetValue(machineId, out var set) && set.Contains(groupId));
+        }
+
+        static void SetDNAEnabled(int machineId, string groupId, bool state)
+        {
+            if (state)
+            {
+                if (disabledDNA.TryGetValue(machineId, out var set))
+                {
+                    set.Remove(groupId);
+                    if (set.Count == 0)
+                    {
+                        disabledDNA.Remove(machineId);
+                    }
+                }
+            } else
+            {
+                if (!disabledDNA.TryGetValue(machineId, out var set))
+                {
+                    set = [];
+                    disabledDNA.Add(machineId, set);
+                }
+                set.Add(groupId);
+            }
+        }
+
+        static WorldObject EnsureHiddenContainer()
+        {
+            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(shadowContainerId);
+            if (wo == null)
+            {
+                wo = WorldObjectsHandler.Instance.CreateNewWorldObject(GroupsHandler.GetGroupViaId("Iron"), shadowContainerId);
+                wo.SetText("");
+            }
+            wo.SetDontSaveMe(false);
+            return wo;
+        }
+
+        static void SaveDNASettings()
+        {
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                var str = disabledDNA.Join(e => e.Key.ToString() + "=" + string.Join(",", e.Value), ";");
+                var wo = EnsureHiddenContainer();
+                wo.SetText(str);
+            }
+        }
+
+        static void RestoreDNASettings()
+        {
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                var wo = EnsureHiddenContainer();
+                ParseDNASettings(wo.GetText());
+            }
+        }
+
+        static void ParseDNASettings(string str)
+        {
+            disabledDNA.Clear();
+            if (str == null || str.Length == 0)
+            {
+                return;
+            }
+            foreach (var idSet in str.Split(';'))
+            {
+                var idAndSet = idSet.Split('=');
+                if (idAndSet.Length == 2)
+                {
+                    var set = idAndSet[1].Split(',');
+                    if (int.TryParse(idAndSet[0], out var id))
+                    {
+                        foreach (var s in set)
+                        {
+                            SetDNAEnabled(id, s, false);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            ModNetworking._debugMode = debugMode.Value;
+        }
+
+        static void OnSetEnabled(ulong sender, string parameters)
+        {
+            var idAndSet = parameters.Split(',');
+            if (idAndSet.Length == 3)
+            {
+                if (int.TryParse(idAndSet[0], out var id))
+                {
+                    SetDNAEnabled(id, idAndSet[1], "1" == idAndSet[2]);
+                    SaveDNASettings();
+                    UpdateCraftWindow(id);
+
+                    if (NetworkManager.Singleton?.IsServer ?? true)
+                    {
+                        ModNetworking.SendAllClients(funcSetEnabled, parameters);
+                    }
+                }
+            }
+        }
+        static void OnSetAll(ulong sender, string parameters)
+        {
+            if (NetworkManager.Singleton?.IsServer ?? true)
+            {
+                var str = disabledDNA.Join(e => e.Key.ToString() + "=" + string.Join(",", e.Value), ";");
+                ModNetworking.SendClient(sender, funcSetAll, str);
+            }
+            else
+            {
+                ParseDNASettings(parameters);
+
+                foreach (var mc in disabledDNA.Keys)
+                {
+                    UpdateCraftWindow(mc);
+                }
+            }
+        }
+
+        static void UpdateCraftWindow(int machineId)
+        {
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh == null)
+            {
+                return;
+            }
+            var win = wh.GetOpenedUi();
+            if (win != UiType.Craft)
+            {
+                return;
+            }
+            var ui = (UiWindowCraft)wh.GetWindowViaUiId(win);
+
+            var crafter = fUiWindowCraftActionCrafter(ui);
+
+            var machine = crafter.GetComponentInParent<WorldObjectAssociated>(true).GetWorldObject();
+
+            if (machine.GetId() != machineId)
+            {
+                return;
+            }
+
+            foreach (Transform tr in ui.grid.transform)
+            {
+                var ehg = tr.gameObject.GetComponent<EventHoverShowGroup>();
+                var gr = fEventHoverShowGroupAssociatedGroup(ehg);
+                var x = tr.Find("DisableAutoDNA");
+
+                if (gr is GroupItem && x != null)
+                {
+                    x.gameObject.SetActive(!IsDNAEnabled(machineId, gr.id));
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            disabledDNA.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
         internal class OffPlanetUpdater : MonoBehaviour
         {
             internal void Awake()
