@@ -443,7 +443,7 @@ namespace UIOverviewPanel
                 var curr = terraformStages.GetCurrentGlobalStage();
                 var next = terraformStages.GetNextGlobalStage();
 
-                if (next == null)
+                if (next == null || next == curr)
                 {
                     return Readable.GetTerraformStageName(curr);
                 }

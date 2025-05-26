@@ -33,8 +33,9 @@ namespace UIShowETA
             TextMeshProUGUI ___percentageProcess, 
             TerraformStagesHandler ___terraformStagesHandler)
         {
+            var currentStage = ___terraformStagesHandler.GetCurrentGlobalStage();
             TerraformStage nextGlobalStage = ___terraformStagesHandler.GetNextGlobalStage();
-            if (nextGlobalStage == null)
+            if (nextGlobalStage == null || currentStage == nextGlobalStage)
             {
                 ___percentageProcess.text = "<br><color=#FFFF00>" 
                     + Localization.GetLocalizedString("ShowETA_ETA") 
