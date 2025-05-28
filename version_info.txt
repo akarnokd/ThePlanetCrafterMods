@@ -37,7 +37,7 @@ akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
 akarnokd.theplanetcraftermods.featspacecows=1.0.0.29
 # (Feat) Technicians Exile
-akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.35
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.36
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.54
 # (Item) Rods

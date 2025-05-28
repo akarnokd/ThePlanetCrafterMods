@@ -1423,6 +1423,14 @@ namespace FeatTechniciansExile
                 }
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineGrowerVegetationHarvestable), "OnInventoryModified")]
+        static bool Patch_MachineGrowerVegetationHarvestable_OnInventoryModified(Inventory ____secondInventory)
+        {
+            return ____secondInventory != null;
+        }
+
         internal class ConversationEntry
         {
             internal string owner;
