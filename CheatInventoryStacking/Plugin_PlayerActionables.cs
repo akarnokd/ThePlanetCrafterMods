@@ -62,67 +62,6 @@ namespace CheatInventoryStacking
             isLastSlotOccupiedMode = false;
         }
 
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ActionDeconstructible), nameof(ActionDeconstructible.RetrieveResources))]
-        static bool Patch_ActionDeconstructible_RetrieveResources(
-            GameObject ___gameObjectRoot,
-            Inventory playerInventory,
-            out List<int> dropped,
-            out List<int> stored)
-        {
-            if (stackSize.Value <= 1 || !stackBackpack.Value)
-            {
-                dropped = null;
-                stored = null;
-                return true;
-            }
-
-            dropped = [];
-            stored = [];
-
-            var woa = ___gameObjectRoot.GetComponent<WorldObjectAssociated>();
-
-            if (woa == null || woa.GetWorldObject() == null || woa.GetWorldObject().GetGroup() == null)
-            {
-                return false;
-            }
-
-            if (Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft())
-            {
-                return false;
-            }
-
-            var ingredients = new List<Group>(woa.GetWorldObject().GetGroup().GetRecipe().GetIngredientsGroupInRecipe());
-
-            var panels = ___gameObjectRoot.GetComponentsInChildren<Panel>();
-            foreach (var panel in panels)
-            {
-                var pconstr = panel.GetPanelGroupConstructible();
-                if (pconstr != null)
-                {
-                    ingredients.AddRange(pconstr.GetRecipe().GetIngredientsGroupInRecipe());
-                }
-            }
-
-            foreach (var gr in ingredients)
-            {
-                if (playerInventory == null || IsFullStackedOfInventory(playerInventory, gr.id))
-                {
-                    WorldObjectsHandler.Instance.CreateAndDropOnFloor(gr, ___gameObjectRoot.transform.position + new Vector3(0f, 1f, 0f));
-                    dropped.Add(gr.stableHashCode);
-                }
-                else
-                {
-                    InventoriesHandler.Instance.AddItemToInventory(gr, playerInventory);
-                    stored.Add(gr.stableHashCode);
-                }
-            }
-
-            return false;
-        }
-        */
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionPanelDeconstruct), "Deconstruct")]
         static bool Patch_ActionPanelDeconstruct_Deconstruct(
@@ -207,6 +146,20 @@ namespace CheatInventoryStacking
             }
 
             return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PetProxy), "ActionPetServerRpc")]
+        static void Patch_PetProxy_ActionPetServerRpc_Pre()
+        {
+            isLastSlotOccupiedMode = true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(PetProxy), "ActionPetServerRpc")]
+        static void Patch_PetProxy_ActionPetServerRpc_Post()
+        {
+            isLastSlotOccupiedMode = false;
         }
     }
 }

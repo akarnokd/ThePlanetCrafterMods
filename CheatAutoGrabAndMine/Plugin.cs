@@ -2,21 +2,26 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
-using UnityEngine;
-using System.Collections;
 using BepInEx.Logging;
-using System.Linq;
+using HarmonyLib;
 using LibCommon;
+using SpaceCraft;
+using System;
+using System.Collections;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace CheatAutoGrabAndMine
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.cheatautograbandmine", "(Cheat) Auto Grab and Mine", PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency(modCheatInventoryStackingGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
+        const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
+        
         static Plugin me;
 
         static ConfigEntry<bool> modEnabled;
@@ -49,11 +54,18 @@ namespace CheatAutoGrabAndMine
 
         static ConfigEntry<bool> grabRods;
 
+        static ConfigEntry<bool> keyToggleMode;
+
+        static ConfigEntry<bool> petAnimals;
+
         static InputAction toggleAction;
 
         static ManualLogSource logger;
 
         static Coroutine scanningCoroutine;
+
+        static AccessTools.FieldRef<PetProxy, float> fPetProxyPetDelay;
+        static Func<Inventory, int> apiGetStackCountInventory;
 
         public void Awake()
         {
@@ -69,6 +81,7 @@ namespace CheatAutoGrabAndMine
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging? Chatty!");
             range = Config.Bind("General", "Range", 20, "The range to look for items within.");
             key = Config.Bind("General", "Key", "<Keyboard>/V", "The input action shortcut to toggle automatic scanning and taking.");
+            keyToggleMode = Config.Bind("General", "KeyToggleMode", true, "If true, pressing the Key will toggle auto scan and Ctrl+Key to do a one-time scan. If false, pressing the key will do a one-time scan and pressing Ctrl+Key will toggle auto-scan"); ;
             scanPeriod = Config.Bind("General", "Period", 3, "How often scan the surroundings for items go grab or mine. Seconds");
             scanEnabled = Config.Bind("General", "Scanning", false, "If true, the mod is actively scanning for items to take.");
 
@@ -84,12 +97,28 @@ namespace CheatAutoGrabAndMine
             mineMinerals = Config.Bind("General", "Minerals", true, "If true, nearby minerals can be mined. Subject to Include/Exclude though.");
             grabRods = Config.Bind("General", "Rods", true, "If true, nearby rods can be grabbed. Subject to Include/Exclude though.");
 
+            petAnimals = Config.Bind("General", "Animals", false, "If true, nearby animals will be pet.");
+
+            fPetProxyPetDelay = AccessTools.FieldRefAccess<PetProxy, float>("_petDelay");
+
             if (!key.Value.Contains("<"))
             {
                 key.Value = "<Keyboard>/" + key.Value;
             }
             toggleAction = new InputAction(name: "Toggle periodic scan & grab", binding: key.Value);
             toggleAction.Enable();
+
+            if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var info))
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " found, using its services.");
+                var modType = info.Instance.GetType();
+                apiGetStackCountInventory = (Func<Inventory, int>)AccessTools.Field(modType, "apiGetStackCountInventory").GetValue(null);
+            }
+            else
+            {
+                Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
+                apiGetStackCountInventory = inv => inv.GetInsideWorldObjects().Count;
+            }
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -118,7 +147,8 @@ namespace CheatAutoGrabAndMine
             }
             if (toggleAction.WasPressedThisFrame())
             {
-                if (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed)
+                var modifierHeld = Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed;
+                if (modifierHeld == keyToggleMode.Value)
                 {
                     Managers.GetManager<BaseHudHandler>()
                         ?.DisplayCursorText("", 3f, "Auto Grab And Mine: Scanning Now");
@@ -260,7 +290,54 @@ namespace CheatAutoGrabAndMine
                 Log("- Minerals [disabled]");
             }
 
-            Log("Done");
+            // ============================================================================================================================
+
+            if (petAnimals.Value)
+            {
+                Log("- Pet Animals");
+                if (apiGetStackCountInventory(backpackInv) < backpackInv.GetSize())
+                {
+                    foreach (var pet in FindObjectsByType<PetProxy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        if (Vector3.Distance(pos, pet.transform.position) <= range.Value)
+                        {
+                            WorldObject worldObject = pet.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                            if (worldObject != null)
+                            {
+                                var _petDelay = fPetProxyPetDelay(pet);
+                                var next = Time.time - worldObject.GetPetTime();
+                                if (worldObject.GetPetTime() != 0 && next <= _petDelay)
+                                {
+                                    Log("    Petting " + pet.transform.position + " failed: timeout, eta " + (_petDelay - next));
+                                }
+                                else if (worldObject.GetHunger() < 0)
+                                {
+                                    Log("    Petting " + pet.transform.position + " failed: hungry");
+                                }
+                                else
+                                {
+                                    Log("    Petting " + pet.transform.position + " success");
+                                    pet.ActionPet();
+                                }
+                            }
+                            else
+                            {
+                                Log("    Petting " + pet.transform.position + " failed: worldobject");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Log("    Backpack is full");
+                }
+            }
+            else
+            {
+                Log("- Pet Animals [disabled]");
+            }
+
+                Log("Done");
 
             void AddToInventoryFiltered(WorldObject wo, Actionnable ag)
             {

@@ -22,7 +22,7 @@ namespace CheatInventoryStacking
 
         /// <summary>
         /// Given an Inventory, return the number of stacks it's contents would coalesce into.
-        /// The inventory is checked if it does allows stacking or not.
+        /// The inventory is checked if it does allow stacking or not.
         /// </summary>
         public static readonly Func<Inventory, int> apiGetStackCountInventory = GetStackCountOfInventory;
 
