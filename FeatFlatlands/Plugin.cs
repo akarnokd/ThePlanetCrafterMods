@@ -173,7 +173,12 @@ namespace FeatFlatlands
             Log("  Hiding /World/OreVeins");
             world.transform.Find("OreVeins").gameObject.SetActive(false);
             Log("  Hiding /World/OnlyOnMap");
-            world.transform.Find("OnlyOnMap").gameObject.SetActive(false);
+            var onlyOnMap = world.transform.Find("OnlyOnMap").gameObject;
+            onlyOnMap.SetActive(false);
+            if (onlyOnMap.GetComponent<DisableParent>() == null)
+            {
+                onlyOnMap.AddComponent<DisableParent>();
+            }
             Log("  Hiding /World/WorldVegetation");
             world.transform.Find("WorldVegetation").gameObject.SetActive(false);
             Log("  Hiding /World/WorldMarkers");
@@ -250,6 +255,14 @@ namespace FeatFlatlands
             {
                 dict["Planet_Flatlands"] = "Flatlands";
                 dict["Planet_Desc_Flatlands"] = "The entire planet is flat. No mountains, no water. Creative mode recommended.";
+            }
+        }
+
+        class DisableParent : MonoBehaviour
+        {
+            void OnEnable()
+            {
+                gameObject.SetActive(false);
             }
         }
     }
