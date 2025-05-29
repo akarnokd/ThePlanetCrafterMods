@@ -2,28 +2,28 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
-using UnityEngine;
-using System.Collections.Generic;
-using BepInEx.Logging;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using TMPro;
+using BepInEx.Logging;
+using HarmonyLib;
+using LibCommon;
+using SpaceCraft;
 using System;
-using System.Text.RegularExpressions;
-using System.Reflection;
-using System.Threading;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using UnityEngine.SceneManagement;
 using System.Linq;
-using System.Collections;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using TMPro;
 using Unity.Netcode;
-using BepInEx.Bootstrap;
-using LibCommon;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace FeatCommandConsole
 {
@@ -52,6 +52,8 @@ namespace FeatCommandConsole
         static ConfigEntry<string> fontName;
         static ConfigEntry<float> transparency;
         static ConfigEntry<string> onLoadCommand;
+        static ConfigEntry<bool> unstuckDirectional;
+        static ConfigEntry<float> unstuckDistance;
 
         static GameObject canvas;
         static GameObject background;
@@ -93,6 +95,8 @@ namespace FeatCommandConsole
         static Func<Inventory, string, bool> InventoryCanAdd;
 
         static int worldLoadCount;
+
+        static float noClipBaseSpeed;
 
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
@@ -144,6 +148,9 @@ namespace FeatCommandConsole
             fontName = Config.Bind("General", "FontName", "arial.ttf", "The font name in the console");
             transparency = Config.Bind("General", "Transparency", 0.98f, "How transparent the console background should be (0..1).");
             onLoadCommand = Config.Bind("General", "OnLoadCommand", "", "The command to execute after the player loads into a world. Use a # prefix to 'comment out' the command.");
+
+            unstuckDirectional = Config.Bind("General", "UnstuckDirectional", false, "If true, pressing F4 will teleport up, Shift+F4 will teleport down, Ctrl+F4 will teleport forward, each the distance in UnstuckDistance amount.");
+            unstuckDistance = Config.Bind("General", "UnstuckDistance", 2.5f, "The distance to teleport when using F4, Shift+F4 and Ctrl+F4");
 
             if (!toggleKey.Value.Contains("<"))
             {
@@ -631,28 +638,6 @@ namespace FeatCommandConsole
             return [.. Regex.Split(text, "\\s+")];
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(WindowsHandler), nameof(WindowsHandler.CloseAllWindows))]
-        static bool WindowsHandler_CloseAllWindows()
-        {
-            // by default, Enter toggles any UI. prevent this while our console is open
-            return background == null;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UiWindowTextInput), nameof(UiWindowTextInput.OnClose))]
-        static void UiWindowTextInput_OnClose()
-        {
-            suppressCommandConsoleKey = true;
-            me.StartCoroutine(ConsoleKeyUnlocker());
-        }
-
-        static IEnumerator ConsoleKeyUnlocker()
-        {
-            yield return new WaitForSecondsRealtime(0.25f);
-            suppressCommandConsoleKey = false;
-        }
-
         static void AddLine(string line)
         {
             consoleText.Add(line);
@@ -822,10 +807,15 @@ namespace FeatCommandConsole
                     else if (g is not GroupItem)
                     {
                         AddLine("<margin=1em><color=#FF0000>This item can't be spawned.");
+                        if (g is GroupConstructible)
+                        {
+                            AddLine("<margin=1em>Use <color=#FFFF00>/build " + g.id + "</color> instead.");
+                        }
                     }
                     else if (g.id == "DNASequence")
                     {
-                        AddLine("<margin=1em><color=#FF0000>Use /spawn-dna for this type of item.");
+                        AddLine("<margin=1em><color=#FF0000>This item can't be spawned with /spawn.");
+                        AddLine("<margin=1em>Use <color=#FFFF00>/spawn-dna</color> for this type of item.");
                     }
                     else
                     {
@@ -1739,14 +1729,24 @@ namespace FeatCommandConsole
 
         SpaceCraft.Group FindGroup(string gid)
         {
+            List<SpaceCraft.Group> groupByName = [];
             foreach (var gr in GroupsHandler.GetAllGroups())
             {
                 var gci = gr.GetId().ToLower(CultureInfo.InvariantCulture);
                 if (gci == gid && !gci.StartsWith("spacemultiplier"))
                 {
                     return gr;
-
                 }
+                var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + gr.GetId());
+                if (nameLocalized.Contains(gid, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    groupByName.Add(gr);
+                }
+
+            }
+            if (groupByName.Count == 1)
+            {
+                return groupByName[0];
             }
             return null;
         }
@@ -2371,6 +2371,17 @@ namespace FeatCommandConsole
                     else if (g is not GroupConstructible)
                     {
                         AddLine("<color=#FF0000>This item can't be built.");
+                        if (g is GroupItem)
+                        {
+                            if (g.id == "DNASequence")
+                            {
+                                AddLine("Use <color=#FFFF00>/spawn-dna</color> for this type of item.");
+                            }
+                            else
+                            {
+                                AddLine("Use <color=#FFFF00>/spawn " + g.id + "</color> instead.");
+                            }
+                        }
                     }
                     else
                     {
@@ -2922,13 +2933,6 @@ namespace FeatCommandConsole
                     }
                 }
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
-        static void MachineRocketBackAndForth_SetInventoryRocketBackAndForth(ref float ___updateGrowthEvery)
-        {
-            ___updateGrowthEvery = tradePlatformDelay;
         }
 
         [Command("/list-golden-containers", "Lists all loaded-in golden containers.")]
@@ -4523,6 +4527,233 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/open", "Opens a chest or machine the player is looking at")]
+        public void Open(List<string> args)
+        {
+            var range = 30f;
+            if (args.Count >= 2)
+            {
+                range = float.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            if (pm != null)
+            {
+                var ac = pm.GetAimController();
+                if (ac != null)
+                {
+                    var pt = ac.GetAimRay();
+
+                    var hits = Physics.RaycastAll(pt, range, ~LayerMask.GetMask(GameConfig.commonIgnoredAndWater));
+
+                    foreach (var hit in hits)
+                    {
+                        var go = hit.transform.gameObject;
+
+                        var ao = go.GetComponentInParent<ActionOpenable>() ?? go.GetComponentInChildren<ActionOpenable>();
+
+                        if (ao != null)
+                        {
+                            Close(args);
+                            ao.OnAction();
+                            return;
+                        }
+                    }
+                }
+            }
+            AddLine("<margin=1em><color=#FF0000>No openable object in sight in range (" + range + "m)");
+        }
+
+        [Command("/open-inventory", "Opens an inventory by its id or owner world object id")]
+        public void OpenInventory(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Opens an inventory by its id or owner world object id");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/open-inventory identifier [index]</color> open the inventory by its id or world object id");
+                AddLine("<margin=3em>The optional index parameter indicates which sub-inventory to open if present. 0 - main, 1 - first secondary, etc.");
+                AddLine("<margin=1em>See also <color=#FFFF00>/list-items-nearby</color> for world objects");
+                return;
+            }
+
+            int id = int.Parse(args[1]);
+            int index = 0;
+            if (args.Count >= 3)
+            {
+                index = int.Parse(args[2]);
+            }
+
+            var wo = default(WorldObject);
+            var inv = InventoriesHandler.Instance.GetInventoryById(id);
+            if (inv == null) 
+            {
+                wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+                if (wo == null)
+                {
+                    AddLine("<margin=1em><color=#FF0000>Inventory or WorldObject not found.");
+                    return;
+                }
+                var secondaries = wo.GetSecondaryInventoriesId();
+                if (index > 0 && secondaries != null && secondaries.Count != 0)
+                {
+                    int secId = Math.Min(index - 1, secondaries.Count - 1);
+                    inv = InventoriesHandler.Instance.GetInventoryById(secondaries[secId]);
+                }
+                else
+                {
+                    inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
+                }
+            }
+            if (inv == null)
+            {
+                AddLine("<margin=1em><color=#FF0000>World object found but not its inventory.");
+                return;
+            }
+            wo ??= WorldObjectsHandler.Instance.GetWorldObjectForInventory(inv);
+            if (wo != null)
+            {
+                var go = wo.GetGameObject();
+                if (go != null)
+                {
+                    foreach (var ao in go.GetComponentsInChildren<ActionOpenable>(true))
+                    {
+                        var aof = ao;
+                        var ia = ao.GetComponentInParent<InventoryAssociated>();
+                        var iap = ao.GetComponentInParent<InventoryAssociatedProxy>();
+                        if (ia != null && iap == null)
+                        {
+                            ia.GetInventory(delegate (Inventory inventory)
+                            {
+                                if (inventory != null && inventory.GetId() == inv.GetId())
+                                {
+                                    Close(args);
+                                    aof.OnAction();
+                                }
+                            });
+                        }
+                        else 
+                        if (iap != null)
+                        {
+                            iap.GetInventory((inventory, worldobject) =>
+                            {
+                                if (inventory != null && inventory.GetId() == inv.GetId())
+                                {
+                                    Close(args);
+                                    aof.OnAction();
+                                }
+                            });
+                        }
+                    }
+                    return;
+                }
+                AddLine("<margin=1em><color=#FF0000>Unable to open inventory, gameobject not found");
+            }
+            AddLine("<margin=1em><color=#FF0000>Unable to open inventory, worldobject not found");
+        }
+
+        [Command("/list-inventories", "Lists all inventory identifiers of a world object")]
+        public void ListInventory(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Lists all inventory identifiers of a world object");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/list-inventories identifier</color> lists all inventory identifiers associated with the given world object identifier");
+                AddLine("<margin=1em>See also <color=#FFFF00>/list-items-nearby</color> for world objects");
+                return;
+            }
+
+            var id = int.Parse(args[1]);
+
+            var wo = WorldObjectsHandler.Instance.GetWorldObjectViaId(id);
+            if (wo != null)
+            {
+                var mainId = wo.GetLinkedInventoryId();
+                if (mainId <= 0)
+                {
+                    AddLine("<margin=1em>No inventory");
+                    return;
+                }
+                AddLine("<margin=1em>00. Inventory Id: " + mainId);
+                var secIds = wo.GetSecondaryInventoriesId() ?? [];
+                var i = 1;
+                foreach (var id2 in secIds)
+                {
+                    AddLine(string.Format("{0:00}. Inventory Id: {1}", i, id2));
+                    i++;
+                }
+            }
+            else
+            {
+                AddLine("<margin=1em><color=#FF0000>Unknown world object.");
+            }
+        }
+
+        [Command("/fly", "Toggles fly mode on or off")]
+        public void Fly(List<string> _)
+        {
+            var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var pmm = pm.GetPlayerMovable();
+            pmm.SetFlyMode(!pmm.GetFlyMode());
+            AddLine("<margin=1em>Fly mode is " + (pmm.GetFlyMode() ? "ON" : "OFF"));
+        }
+
+        [Command("/noclip", "Toggles no clipping on or off with optional movement speed override.")]
+        public void NoClip(List<string> args)
+        {
+            if (args.Count >= 2)
+            {
+                noClipBaseSpeed = float.Parse(args[1], CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                noClipBaseSpeed = 0;
+            }
+
+            PlayerMovable pmm = Managers.GetManager<PlayersManager>()
+                    .GetActivePlayerController()
+                    .GetPlayerMovable();
+            var cc = pmm
+                .GetComponent<CharacterController>();
+            cc.detectCollisions = !cc.detectCollisions;
+            cc.enabled = !cc.enabled;
+            AddLine("<margin=1em>Noclip is " + (cc.detectCollisions ? "OFF" : "ON"));
+        }
+
+        // ***********************************************************************************************
+        // Hooks
+        // ***********************************************************************************************
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WindowsHandler), nameof(WindowsHandler.CloseAllWindows))]
+        static bool WindowsHandler_CloseAllWindows()
+        {
+            // by default, Enter toggles any UI. prevent this while our console is open
+            return background == null;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowTextInput), nameof(UiWindowTextInput.OnClose))]
+        static void UiWindowTextInput_OnClose()
+        {
+            suppressCommandConsoleKey = true;
+            me.StartCoroutine(ConsoleKeyUnlocker());
+        }
+
+        static IEnumerator ConsoleKeyUnlocker()
+        {
+            yield return new WaitForSecondsRealtime(0.25f);
+            suppressCommandConsoleKey = false;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(MachineRocketBackAndForth), nameof(MachineRocketBackAndForth.SetInventoryRocketBackAndForth))]
+        static void MachineRocketBackAndForth_SetInventoryRocketBackAndForth(ref float ___updateGrowthEvery)
+        {
+            ___updateGrowthEvery = tradePlatformDelay;
+        }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
@@ -4597,6 +4828,7 @@ namespace FeatCommandConsole
         static void UiWindowPause_OnQuit()
         {
             worldLoadCount = 0;
+            noClipBaseSpeed = 0;
         }
 
         [HarmonyPrefix]
@@ -4604,6 +4836,87 @@ namespace FeatCommandConsole
         static void BlackScreen_DisplayLogoStudio()
         {
             UiWindowPause_OnQuit();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.InputOnUnstuck))]
+        static bool PlayerMovable_InputOnUnstuck(PlayerMovable __instance, ref float ___m_Fall)
+        {
+            if (!unstuckDirectional.Value)
+            {
+                return true;
+            }
+
+            var pm = __instance.gameObject.GetComponent<PlayerMainController>();
+            ___m_Fall = 0f;
+
+            if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
+            {
+                pm.SetPlayerPlacement(__instance.transform.position - Vector3.up * unstuckDistance.Value, __instance.transform.rotation, false);
+            }
+            else
+            if (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed)
+            {
+                pm.SetPlayerPlacement(__instance.transform.position + Camera.main.transform.forward * unstuckDistance.Value, __instance.transform.rotation, false);
+            }
+            else
+            {
+                pm.SetPlayerPlacement(__instance.transform.position + Vector3.up * unstuckDistance.Value, __instance.transform.rotation, false);
+            }
+
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
+        static bool PlayerMovable_UpdatePlayerMovement(
+            PlayerMovable __instance,
+            CharacterController ___m_Controller,
+            PlayerCanAct ___playerCanAct,
+            Vector2 ___lastMoveAxis,
+            float ___moveSpeedChangePercentage,
+            float ___runActionValue,
+            bool ___autoForward)
+        {
+            if (___m_Controller.detectCollisions)
+            {
+                return true;
+            }
+
+            if (!___playerCanAct.GetCanMove())
+            {
+                return false;
+            }
+
+            var vector = Camera.main.transform.forward;
+            float num = __instance.RunSpeed;
+            var moveSpeed = __instance.MoveSpeed;
+            if (noClipBaseSpeed > 0f)
+            {
+                moveSpeed = noClipBaseSpeed;
+            }
+            if (__instance.flyMode)
+            {
+                num = 250f;
+            }
+            if (__instance.GetComponent<PlayerEffects>()
+                .GetActiveFirstEffectOfType(DataConfig.EffectOnPlayerType.IncreaseSpeed) != null)
+            {
+                num *= 1.5f;
+            }
+            Vector2 vector2 = ___lastMoveAxis;
+            if (___autoForward)
+            {
+                vector2.y = 1f;
+            }
+            float num6 = num + num * ___moveSpeedChangePercentage / 100f;
+            float num7 = ((___runActionValue > 0f) ? num6 : moveSpeed);
+            Vector3 vector3 = (vector * vector2.y + __instance.transform.right * vector2.x) * num7;
+
+            __instance.GetComponent<PlayerMainController>()
+                .SetPlayerPlacement(__instance.transform.position + vector3 * Time.deltaTime, __instance.transform.rotation, false);
+
+            return false;
         }
 
 
@@ -4655,9 +4968,17 @@ namespace FeatCommandConsole
             List<string> result = [];
             foreach (var text in texts)
             {
-                if (text.ToLowerInvariant().Contains(userText))
+                if (text.Contains(userText, StringComparison.InvariantCultureIgnoreCase))
                 {
                     result.Add(text);
+                }
+                else
+                {
+                    var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + text);
+                    if (nameLocalized.Contains(userText, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        result.Add(text);
+                    }
                 }
             }
             return result;
