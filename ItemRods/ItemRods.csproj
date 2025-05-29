@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>ItemRods</AssemblyName>
     <Description>(Item) Rods</Description>
-    <Version>1.0.0.7</Version>
+    <Version>1.0.0.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -33,8 +33,10 @@
 	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(Destination1)" />
 	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(Destination1)" />
       <Copy SourceFiles="$(SourceDir)images\Obsidian.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Phosphorus.png" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\Selenium.png" DestinationFolder="$(Destination1)" />
 
-      <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Cobalt.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Emission.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Iron.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -45,8 +47,10 @@
 	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\Obsidian.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Selenium.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Phosphorus.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
 
-      <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Aluminium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Cobalt.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Emission.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Iron.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
@@ -57,8 +61,10 @@
 	  <Copy SourceFiles="$(SourceDir)images\Titanium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\Zeolite.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\Obsidian.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Selenium.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(SourceDir)images\Phosphorus.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 
-      <ZipDirectory
+	  <ZipDirectory
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />

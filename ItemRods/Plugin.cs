@@ -24,7 +24,8 @@ namespace ItemRods
         static readonly List<string> ores = [
             "Iron", "Sulfur", "Titanium", 
             "Silicon", "Cobalt", "Magnesium", 
-            "Aluminium", "Zeolite", "Obsidian"];
+            "Aluminium", "Zeolite", "Obsidian",
+            "Phosphorus", "Selenium"];
 
         static readonly Dictionary<string, Color> oreColors = new()
         {
@@ -63,6 +64,14 @@ namespace ItemRods
             {
                 "Obsidian",
                 new Color(0.1333f, 0.1333f, 0.1333f, 1f)
+            },
+            {
+                "Phosphorus",
+                new Color(177f/255, 245f/255, 245f/255, 1f)
+            },
+            {
+                "Selenium",
+                new Color(15f/255, 84f/255, 66f/255, 1f)
             },
         };
 

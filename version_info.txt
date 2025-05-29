@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.36
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.54
 # (Item) Rods
-akarnokd.theplanetcraftermods.itemrods=1.0.0.7
+akarnokd.theplanetcraftermods.itemrods=1.0.0.8
 # (Lathrey) Auto Move
 akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.14
 # (Lathrey) Disable Build Constraints
