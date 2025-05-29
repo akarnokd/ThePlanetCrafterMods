@@ -32,12 +32,14 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.22
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.10
 # (Feat) Command Console
 akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.24
+# (Feat) Flatlands
+akarnokd.theplanetcraftermods.featflatlands=1.0.0.0
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
 akarnokd.theplanetcraftermods.featspacecows=1.0.0.29
 # (Feat) Technicians Exile
-akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.36
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.37
 # (Fix) Unofficial Patches
 akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.54
 # (Item) Rods

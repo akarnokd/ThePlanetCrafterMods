@@ -999,7 +999,10 @@ namespace FeatTechniciansExile
                         questPhase = QuestPhase.Initial_Help;
 
                         var msh = Managers.GetManager<MessagesHandler>();
-                        msh.AddNewReceivedMessage(technicianMessageDict[pid], true);
+                        if (technicianMessageDict.TryGetValue(pid, out var msg))
+                        {
+                            msh.AddNewReceivedMessage(msg, true);
+                        }
 
                         ShowChoice(dialogChoices["WhoAreYou"]);
                         SaveState();
