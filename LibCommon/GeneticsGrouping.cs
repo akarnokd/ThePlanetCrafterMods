@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 
 using SpaceCraft;
+using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -36,7 +38,9 @@ namespace LibCommon
                 if (inv != null)
                 {
                     sb.Append(grid);
-                    foreach (var wo2 in inv.GetInsideWorldObjects())
+                    List<WorldObject> traits = [.. inv.GetInsideWorldObjects()];
+                    traits.Sort(traitSorter);
+                    foreach (var wo2 in traits)
                     {
                         sb.Append('_');
                         AppendTraitInfo(wo2.GetGeneticTraitType(), wo2.GetGeneticTraitValue(), wo2.GetColor(), sb);
@@ -106,5 +110,7 @@ namespace LibCommon
                 sb.Append(value);
             }
         }
+
+        static readonly Comparison<WorldObject> traitSorter = (a, b) => a.GetGeneticTraitType().CompareTo(b.GetGeneticTraitType());
     }
 }

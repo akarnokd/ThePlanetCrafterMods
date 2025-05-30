@@ -4894,6 +4894,7 @@ namespace FeatCommandConsole
             if (noClipBaseSpeed > 0f)
             {
                 moveSpeed = noClipBaseSpeed;
+                num = noClipBaseSpeed * 1.5f;
             }
             if (__instance.flyMode)
             {
