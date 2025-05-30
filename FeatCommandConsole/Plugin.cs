@@ -4680,7 +4680,7 @@ namespace FeatCommandConsole
                 var i = 1;
                 foreach (var id2 in secIds)
                 {
-                    AddLine(string.Format("{0:00}. Inventory Id: {1}", i, id2));
+                    AddLine(string.Format("<margin=1em>{0:00}. Inventory Id: {1}", i, id2));
                     i++;
                 }
             }
