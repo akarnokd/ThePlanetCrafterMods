@@ -219,8 +219,15 @@ namespace UIShowCrash
 
                         for (int j = i + 1; j < data.Count; j++)
                         {
-                            var er = data[j];
-                            if (er.Trim().StartsWith("at ") || er.Trim().StartsWith("--- "))
+                            var er = data[j].Trim();
+                            if (er.StartsWith("at ") 
+                                || er.StartsWith("Rethrow as ")
+                                || er.Length == 0
+                                || er.StartsWith("Unity.")
+                                || er.StartsWith("UnityEngine.")
+                                || er.StartsWith("SpaceCraft.")
+                                || er.StartsWith("UnityEngineInternal.")
+                                || er.StartsWith("--- "))
                             {
                                 errorLines.Add(er);
                             }
