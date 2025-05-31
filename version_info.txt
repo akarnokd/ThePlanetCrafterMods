@@ -77,7 +77,7 @@ akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.16
 # (UI) Prevent Accidental Deconstruct
 akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.17
 # (UI) Hotbar
-akarnokd.theplanetcraftermods.uihotbar=1.0.0.35
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.36
 # (UI) Inventory Move Multiple Items
 akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.13
 # (UI) Logistic Select All
@@ -103,7 +103,7 @@ akarnokd.theplanetcraftermods.uishoweta=1.0.0.17
 # (UI) Show Grab N Mine Count
 akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.17
 # (UI) Show MultiTool Mode
-akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.15
+akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.16
 # (UI) Show Player Inventory Counts
 akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.18
 # (UI) Show Player Tooltip Item Count

@@ -58,6 +58,9 @@ namespace UIHotbar
         const string funcSetLoadout = "SetLoadout";
         const string funcReceiveLoadout = "ReceiveLoadout";
 
+        static GameObject hud;
+        static bool visualToggleState;
+
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -272,6 +275,12 @@ namespace UIHotbar
                 {
                     nearbyInventoriesChecker = StartCoroutine(UpdateNearbyInventories());
                 }
+
+                if (hud == null)
+                {
+                    hud = GameObject.Find("MainScene/BaseStack/UI/HUD");
+                }
+                visualToggleState = true;
             }
         }
 
@@ -293,6 +302,7 @@ namespace UIHotbar
                 StopCoroutine(nearbyInventoriesChecker);
                 nearbyInventoriesChecker = null;
             }
+            visualToggleState = true;
         }
 
         IEnumerator UpdateNearbyInventories()
@@ -328,6 +338,10 @@ namespace UIHotbar
         {
             bool isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+
+            parent.SetActive((hud == null 
+                || !hud.TryGetComponent<CanvasGroup>(out var cg) 
+                || cg.alpha > 0.99) && visualToggleState);
 
             int oldActiveSlot = activeSlot;
 
@@ -652,6 +666,7 @@ namespace UIHotbar
         {
             bool active = ___uisToHide[0].activeSelf;
             parent?.SetActive(active);
+            visualToggleState = active;
         }
 
         static WorldObject EnsureHiddenContainer()
