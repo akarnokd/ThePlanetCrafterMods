@@ -33,7 +33,7 @@ akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.10
 # (Feat) Command Console
 akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.26
 # (Feat) Flatlands
-akarnokd.theplanetcraftermods.featflatlands=1.0.0.1
+akarnokd.theplanetcraftermods.featflatlands=1.0.0.2
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.29
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.37
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.54
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.55
 # (Item) Rods
 akarnokd.theplanetcraftermods.itemrods=1.0.0.8
 # (Lathrey) Auto Move

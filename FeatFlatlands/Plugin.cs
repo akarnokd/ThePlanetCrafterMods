@@ -102,6 +102,25 @@ namespace FeatFlatlands
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(SpacePlanetView), nameof(SpacePlanetView.InitPlanetSpaceView))]
+        static void SpacePlanetView_InitPlanetSpaceView(PlanetList ____planetList)
+        {
+            // make sure planetlist is initialized
+            if (____planetList != null)
+            {
+                ____planetList.GetPlanetList(true);
+            }
+            else
+            {
+                var pl = Managers.GetManager<PlanetLoader>();
+                if (pl != null)
+                {
+                    pl.planetList.GetPlanetList(true);
+                }
+            }
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(PlanetLoader), "HandleDataAfterLoad")]
         static void PlanetLoader_HandleDataAfterLoad(PlanetData ____selectedPlanet)
         {

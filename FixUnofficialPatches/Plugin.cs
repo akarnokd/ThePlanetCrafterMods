@@ -147,5 +147,20 @@ namespace FixUnofficialPatches
         {
             return ___startTerraformStage != null;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnAutoForwardDispatcher))]
+        static bool PlayerInputDispatcher_OnAutoForwardDispatcher(PlayerInputDispatcher __instance)
+        {
+            var wh = Managers.GetManager<WindowsHandler>();
+            if (wh != null)
+            {
+                var dialog = wh.GetOpenedUi();
+                return dialog != DataConfig.UiType.Feedback
+                    && dialog != DataConfig.UiType.TextInput
+                    && dialog != DataConfig.UiType.Chat;
+            }
+            return true;
+        }
     }
 }
