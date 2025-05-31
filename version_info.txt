@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.22
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.10
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.25
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.26
 # (Feat) Flatlands
 akarnokd.theplanetcraftermods.featflatlands=1.0.0.1
 # (Feat) Multiplayer

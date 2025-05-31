@@ -1737,7 +1737,7 @@ namespace FeatCommandConsole
                 {
                     return gr;
                 }
-                var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + gr.GetId());
+                var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + gr.GetId()) ?? "";
                 if (nameLocalized.Contains(gid, StringComparison.InvariantCultureIgnoreCase))
                 {
                     groupByName.Add(gr);
@@ -4975,7 +4975,7 @@ namespace FeatCommandConsole
                 }
                 else
                 {
-                    var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + text);
+                    var nameLocalized = Localization.GetLocalizedString(GameConfig.localizationGroupNameId + text) ?? "";
                     if (nameLocalized.Contains(userText, StringComparison.InvariantCultureIgnoreCase))
                     {
                         result.Add(text);
