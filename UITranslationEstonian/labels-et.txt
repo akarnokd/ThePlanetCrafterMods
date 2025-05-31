@@ -1690,5 +1690,5 @@ GROUP_NAME_Skin-21=Skafander Sunsio
 Message_aqualis_ending=Palju õnne! Oled maasarnastanud ookeani planeedi tüüpi taevakeha. Sinu saavutused andsid meile häid andmeid sellist tüüpi kuu maasarnastamise kohta. See tõstab potentsiaalselt üle galaktikate vangide edumäära. Järgnevate kuude jooksul me jätkame sinu sektori skaneerimist, et näha, kas seal on veel potentsiaalseid maasarnastamiseks sobivaid planeete.
 Message_selenea_ending=Palju õnne! Oled maasarnastanud ühe kuu. Tänu Sentinel Corp tehnoloogiale, on see viimaks nii kerge. Vaatamata teiste edevate korporatsioonide väidetele, on ainus planeetide ja kuude maasarnastamise viis inimeste abil.  Aitäh "Parema elu" programmis osalemise eest.
 Ui_TitleScreen_NewUpdate=Kuude uuendus on välja antud! <br>Lisainfo lugemiseks vajuta siia.
-
+TERRASTAGE_Complete=Maasarnastamine lõppenud.
 
