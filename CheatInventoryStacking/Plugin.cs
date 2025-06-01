@@ -811,7 +811,7 @@ namespace CheatInventoryStacking
                 return true;
             }
             var content = inventory.GetInsideWorldObjects();
-            var text = new StringBuilder(content.Count * 9);
+            var text = new StringBuilder(content.Count * 10 + 1);
 
             foreach (var wo in content)
             {
