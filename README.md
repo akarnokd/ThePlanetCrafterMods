@@ -118,6 +118,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Quick Save](#save-quick-save)
 - [Startup Performance](#perf-startup)
 - [Unofficial Patches](#fix-unofficial-patches)
+- [Async Save](#save-async-save)
 
 ### Mods from former Modders
 
@@ -3066,5 +3067,29 @@ Aluminium = true
 # Setting type: Boolean
 # Default value: true
 Zeolite = true
+```
+</details>
+
+## (Save) Async Save
+
+Optimizes the game's save routine to perform its work faster, thereby reducing the pause while playing the game.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.saveasyncsave.cfg</summary>
+
+```
+[General]
+
+## Is this mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable detailed logging (chatty!)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
 ```
 </details>

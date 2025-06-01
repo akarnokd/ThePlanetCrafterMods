@@ -19,6 +19,7 @@ using System.Collections;
 using LibCommon;
 using Unity.Netcode;
 using System.Diagnostics;
+using System.Text;
 
 namespace CheatInventoryStacking
 {
@@ -797,6 +798,38 @@ namespace CheatInventoryStacking
                 jsonableInventory.priority
             );
 
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JsonablesHelper), nameof(JsonablesHelper.InventoryToJsonable))]
+        static bool JsonablesHelper_InventoryToJsonable(Inventory inventory,
+            ref JsonableInventory __result)
+        {
+            if (stackSize.Value <= 1)
+            {
+                return true;
+            }
+            var content = inventory.GetInsideWorldObjects();
+            var text = new StringBuilder(content.Count * 9);
+
+            foreach (var wo in content)
+            {
+                text.Append(wo.GetId());
+                text.Append(",");
+            }
+            if (content.Count != 0)
+            {
+                text.Remove(text.Length - 1, 1);
+            }
+            __result = new JsonableInventory(
+                inventory.GetId(),
+                text.ToString(),
+                inventory.GetSize(),
+                GroupsHandler.GetGroupsStringIds(inventory.GetLogisticEntity().GetDemandGroups()),
+                GroupsHandler.GetGroupsStringIds(inventory.GetLogisticEntity().GetSupplyGroups()),
+                inventory.GetLogisticEntity().GetPriority()
+            );
             return false;
         }
     }
