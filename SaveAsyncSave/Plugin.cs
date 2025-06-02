@@ -27,7 +27,7 @@ namespace SaveAsyncSave
 
         static ConfigEntry<bool> debugMode;
 
-        static int mainThreadId;
+        static volatile int mainThreadId;
 
         public void Awake()
         {
