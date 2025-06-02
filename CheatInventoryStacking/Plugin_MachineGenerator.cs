@@ -177,6 +177,13 @@ namespace CheatInventoryStacking
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
+                else if (gid.StartsWith("Ecosystem"))
+                {
+                    if (!stackEcosystems.Value)
+                    {
+                        noStackingInventories.Add(inventory.GetId());
+                    }
+                }
             }
         }
     }
