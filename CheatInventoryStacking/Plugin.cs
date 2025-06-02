@@ -816,7 +816,7 @@ namespace CheatInventoryStacking
             foreach (var wo in content)
             {
                 text.Append(wo.GetId());
-                text.Append(",");
+                text.Append(',');
             }
             if (content.Count != 0)
             {

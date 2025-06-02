@@ -9,7 +9,7 @@ akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.36
 # (Cheat) Auto Launch Rockets
 akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.13
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.28
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.29
 # (Cheat) Auto Store
 akarnokd.theplanetcraftermods.cheatautostore=1.0.0.15
 # (Cheat) Craft From Nearby Containers
@@ -99,7 +99,7 @@ akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.21
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.21
 # (UI) Show Crash
-akarnokd.theplanetcraftermods.uishowcrash=1.0.0.14
+akarnokd.theplanetcraftermods.uishowcrash=1.0.0.15
 # (UI) Show ETA
 akarnokd.theplanetcraftermods.uishoweta=1.0.0.17
 # (UI) Show Grab N Mine Count
@@ -119,7 +119,7 @@ akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.11
 # (UI) Czech Translation
 akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.26
 # (UI) Estonian Translation
-akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.29
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.30
 # (UI) Hungarian Translation
 akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.6
 # (UI) Italian Translation

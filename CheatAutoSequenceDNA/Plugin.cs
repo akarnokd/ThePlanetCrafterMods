@@ -52,6 +52,8 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> sequencerTreeSeedId;
 
+        static ConfigEntry<string> sequencerVegetableId;
+
         static ConfigEntry<string> sequencerPhytoplanktonId;
 
         static ConfigEntry<string> sequencerFertilizerId;
@@ -116,6 +118,7 @@ namespace CheatAutoSequenceDNA
             sequencerTreeSeedId = Config.Bind("Sequencer", "TreeSeed", "*TreeSeed", "The name of the container(s) where to deposit the spawned tree seeds.");
             sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
+            sequencerVegetableId = Config.Bind("Sequencer", "Vegetable", "*Vegetable", "The name of the container(s) where to look for vegetables.");
             sequencerUnhide = Config.Bind("Sequencer", "Unhide", true, "Unhide the alternative recipes and outputs.");
 
             incubatorEnabled = Config.Bind("Incubator", "Enabled", true, "Should the Incubator auto sequence?");
@@ -573,6 +576,10 @@ namespace CheatAutoSequenceDNA
             {
                 return "Bacteria";
             }
+            else if (ingredientGroupId.StartsWith("Vegetable") && ingredientGroupId.EndsWith("Growable"))
+            {
+                return "Vegetable";
+            }
             return "";
         }
 
@@ -588,6 +595,7 @@ namespace CheatAutoSequenceDNA
                 { "TreeSeed", sequencerTreeSeedId.Value },
                 { "Phytoplankton", sequencerPhytoplanktonId.Value },
                 { "Fertilizer", sequencerFertilizerId.Value },
+                { "Vegetable", sequencerVegetableId.Value },
             };
 
             // List of world objects per category (containers, machines)

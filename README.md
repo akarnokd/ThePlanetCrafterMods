@@ -308,6 +308,7 @@ On the recipe side:
 - `*Bacteria` - where the *Bacteria* ingredient is searched for.
 - `*FrogEgg` - where the *Frog Eggs* ingredients are searched for.
 - `*ExtractFrom*` - where to look for items to extract DNA traits from.
+- `*Vegetable` - where to look for *Vegetable*s.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
