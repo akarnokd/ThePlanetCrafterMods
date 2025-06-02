@@ -29,6 +29,8 @@ namespace SaveAsyncSave
 
         static volatile int mainThreadId;
 
+        static readonly object gate = new();
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -80,26 +82,29 @@ namespace SaveAsyncSave
             {
                 Task.Factory.StartNew(() =>
                 {
-                    try
+                    lock (gate)
                     {
-                        JSONExport.SaveToJson(
-                            _saveFileName,
-                            _worldState,
-                            _planetState,
-                            _playerState,
-                            _playerStats,
-                            _gameSate,
-                            _worldObjects,
-                            _inventories,
-                            _messages,
-                            _storyEvents,
-                            _terrainLayers,
-                            _proceduralInstances
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex);
+                        try
+                        {
+                            JSONExport.SaveToJson(
+                                _saveFileName,
+                                _worldState,
+                                _planetState,
+                                _playerState,
+                                _playerStats,
+                                _gameSate,
+                                _worldObjects,
+                                _inventories,
+                                _messages,
+                                _storyEvents,
+                                _terrainLayers,
+                                _proceduralInstances
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex);
+                        }
                     }
                 });
                 return false;
