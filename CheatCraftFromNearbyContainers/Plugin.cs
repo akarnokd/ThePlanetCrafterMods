@@ -94,12 +94,7 @@ namespace CheatCraftFromNearbyContainers
             includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
             currentPlanetOnly = Config.Bind("General", "CurrentPlanetOnly", true, "If true, only containers from the current planet are considered.");
 
-            if (!key.Value.Contains("<"))
-            {
-                key.Value = "<Keyboard>/" + key.Value;
-            }
-            toggleAction = new InputAction(name: "Toggle the ranged crafting", binding: key.Value);
-            toggleAction.Enable();
+            UpdateKeyBindings();
 
             fCraftManagerCrafting = AccessTools.FieldRefAccess<bool>(typeof(CraftManager), "_crafting");
             mPlayerInputDispatcherIsTyping = AccessTools.Method(typeof(PlayerInputDispatcher), "IsTyping")
@@ -1251,6 +1246,7 @@ namespace CheatCraftFromNearbyContainers
         public static void OnModConfigChanged(ConfigEntryBase _)
         {
             ModNetworking._debugMode = debugMode.Value;
+            UpdateKeyBindings();
         }
 
         void OnGetWorldObjectPlanetHash(ulong sender, string parameters)
@@ -1286,6 +1282,16 @@ namespace CheatCraftFromNearbyContainers
                 }
             }
             Log("OnSetWorldObjectPlanetHash: format error: " + parameters);
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!key.Value.Contains("<"))
+            {
+                key.Value = "<Keyboard>/" + key.Value;
+            }
+            toggleAction = new InputAction(name: "Toggle the ranged crafting", binding: key.Value);
+            toggleAction.Enable();
         }
     }
 }

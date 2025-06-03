@@ -47,12 +47,7 @@ namespace MultiPlayerLocator
             toggleKey = Config.Bind("General", "Key", "H", "The input action shortcut to toggle the player locator overlay.");
             fontSize = Config.Bind("General", "FontSize", 20, "The font size used");
 
-            if (!toggleKey.Value.Contains("<"))
-            {
-                toggleKey.Value = "<Keyboard>/" + toggleKey.Value;
-            }
-            playerLocatorAction = new InputAction(name: "Toggle Player Locator", binding: toggleKey.Value);
-            playerLocatorAction.Enable();
+            UpdateKeyBindings();
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -386,5 +381,19 @@ namespace MultiPlayerLocator
             playerLocatorOverlay?.SetActive(active);
         }
 
+        static void UpdateKeyBindings()
+        {
+            if (!toggleKey.Value.Contains("<"))
+            {
+                toggleKey.Value = "<Keyboard>/" + toggleKey.Value;
+            }
+            playerLocatorAction = new InputAction(name: "Toggle Player Locator", binding: toggleKey.Value);
+            playerLocatorAction.Enable();
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            UpdateKeyBindings();
+        }
     }
 }

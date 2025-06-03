@@ -84,12 +84,7 @@ namespace CheatAutoStore
 
             fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
 
-            if (!key.Value.Contains("<"))
-            {
-                key.Value = "<Keyboard>/" + key.Value;
-            }
-            storeAction = new InputAction(name: "Store Items", binding: key.Value);
-            storeAction.Enable();
+            UpdateKeyBindings();
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -486,6 +481,7 @@ namespace CheatAutoStore
         public static void OnModConfigChanged(ConfigEntryBase _)
         {
             ModNetworking._debugMode = debugMode.Value;
+            UpdateKeyBindings();
         }
 
         void OnGetWorldObjectPlanetHash(ulong sender, string parameters)
@@ -525,6 +521,16 @@ namespace CheatAutoStore
                 }
             }
             Log("OnSetWorldObjectPlanetHash: format error: " + parameters);
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!key.Value.Contains("<"))
+            {
+                key.Value = "<Keyboard>/" + key.Value;
+            }
+            storeAction = new InputAction(name: "Store Items", binding: key.Value);
+            storeAction.Enable();
         }
 
         internal class TransferCompletionHandler

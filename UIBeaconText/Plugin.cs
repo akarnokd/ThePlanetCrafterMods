@@ -55,12 +55,7 @@ namespace UIBeaconText
             fontName = Config.Bind("General", "Font", "Arial.ttf", "The built-in font name, including its extesion.");
             hideVanillaHexagon = Config.Bind("General", "HideVanillaHexagon", false, "If true, the vanilla hexagon is hidde. Toggle via Ctrl+Shift+<toggle key>.");
 
-            if (!displayModeToggle.Value.StartsWith("<Keyboard>/"))
-            {
-                displayModeToggle.Value = "<Keyboard>/" + displayModeToggle.Value;
-            }
-            toggleAction = new InputAction("DisplayModeToggleKey", binding: displayModeToggle.Value);
-            toggleAction.Enable();
+            UpdateKeyBindings();
 
             font = Resources.GetBuiltinResource<Font>(fontName.Value);
 
@@ -279,6 +274,17 @@ namespace UIBeaconText
                     }
                 }
             }
+            UpdateKeyBindings();
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!displayModeToggle.Value.StartsWith("<"))
+            {
+                displayModeToggle.Value = "<Keyboard>/" + displayModeToggle.Value;
+            }
+            toggleAction = new InputAction("DisplayModeToggleKey", binding: displayModeToggle.Value);
+            toggleAction.Enable();
         }
 
         internal class BeaconTextHolder : MonoBehaviour

@@ -33,13 +33,7 @@ namespace SaveQuickSave
             modEnabled = Config.Bind("General", "Enabled", true, "Is this mod enabled?");
             shortcutKey = Config.Bind("General", "ShortcutKey", "F5", "The shortcut key for quick saving.");
 
-            if (!shortcutKey.Value.StartsWith("<Keyboard>/"))
-            {
-                shortcutKey.Value = "<Keyboard>/" + shortcutKey.Value;
-            }
-            quickSaveAction = new InputAction(name: "QuickSave", binding: shortcutKey.Value);
-            quickSaveAction.Enable();
-
+            UpdateKeyBindings();
         }
 
         public void Update()
@@ -74,6 +68,21 @@ namespace SaveQuickSave
                     }
                 }
             }
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!shortcutKey.Value.StartsWith("<"))
+            {
+                shortcutKey.Value = "<Keyboard>/" + shortcutKey.Value;
+            }
+            quickSaveAction = new InputAction(name: "QuickSave", binding: shortcutKey.Value);
+            quickSaveAction.Enable();
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            UpdateKeyBindings();
         }
     }
 }

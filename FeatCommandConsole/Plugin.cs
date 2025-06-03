@@ -152,19 +152,7 @@ namespace FeatCommandConsole
             unstuckDirectional = Config.Bind("General", "UnstuckDirectional", false, "If true, pressing F4 will teleport up, Shift+F4 will teleport down, Ctrl+F4 will teleport forward, each the distance in UnstuckDistance amount.");
             unstuckDistance = Config.Bind("General", "UnstuckDistance", 2.5f, "The distance to teleport when using F4, Shift+F4 and Ctrl+F4");
 
-            if (!toggleKey.Value.Contains("<"))
-            {
-                toggleKey.Value = "<Keyboard>/" + toggleKey.Value;
-            }
-            toggleAction = new InputAction(name: "Open console", binding: toggleKey.Value);
-            toggleAction.Enable();
-
-            if (!toggleKeyController.Value.Contains("<"))
-            {
-                toggleKeyController.Value = "<Gamepad>/" + toggleKey.Value;
-            }
-            toggleActionController = new InputAction(name: "Open console via controller", binding: toggleKeyController.Value);
-            toggleActionController.Enable();
+            UpdateKeyBindings();
 
             Log("   Get resource");
             Font osFont = null;
@@ -243,6 +231,28 @@ namespace FeatCommandConsole
             {
                 logger.LogInfo(o);
             }
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!toggleKey.Value.Contains("<"))
+            {
+                toggleKey.Value = "<Keyboard>/" + toggleKey.Value;
+            }
+            toggleAction = new InputAction(name: "Open console", binding: toggleKey.Value);
+            toggleAction.Enable();
+
+            if (!toggleKeyController.Value.Contains("<"))
+            {
+                toggleKeyController.Value = "<Gamepad>/" + toggleKey.Value;
+            }
+            toggleActionController = new InputAction(name: "Open console via controller", binding: toggleKeyController.Value);
+            toggleActionController.Enable();
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            UpdateKeyBindings();
         }
 
         static void CreateWelcomeText()

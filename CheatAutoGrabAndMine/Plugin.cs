@@ -101,12 +101,7 @@ namespace CheatAutoGrabAndMine
 
             fPetProxyPetDelay = AccessTools.FieldRefAccess<PetProxy, float>("_petDelay");
 
-            if (!key.Value.Contains("<"))
-            {
-                key.Value = "<Keyboard>/" + key.Value;
-            }
-            toggleAction = new InputAction(name: "Toggle periodic scan & grab", binding: key.Value);
-            toggleAction.Enable();
+            UpdateKeyBindings();
 
             if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var info))
             {
@@ -167,12 +162,23 @@ namespace CheatAutoGrabAndMine
 
         public static void OnModConfigChanged(ConfigEntryBase _)
         {
+            UpdateKeyBindings();
             if (scanningCoroutine != null)
             {
                 me.StopCoroutine(scanningCoroutine);
                 scanningCoroutine = null;
             }
             scanningCoroutine = me.StartCoroutine(ScanLoop());
+        }
+
+        static void UpdateKeyBindings()
+        {
+            if (!key.Value.Contains("<"))
+            {
+                key.Value = "<Keyboard>/" + key.Value;
+            }
+            toggleAction = new InputAction(name: "Toggle periodic scan & grab", binding: key.Value);
+            toggleAction.Enable();
         }
 
         static IEnumerator ScanLoop()
