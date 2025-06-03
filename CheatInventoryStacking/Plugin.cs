@@ -109,7 +109,7 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, bool> fMachineAutoCrafterHasEnergy;
         static AccessTools.FieldRef<MachineAutoCrafter, Inventory> fMachineAutoCrafterInventory;
         static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterTimeHasCrafted;
-        static AccessTools.FieldRef<MachineAutoCrafter, float> fMachineAutoCrafterInstancedAutocrafters;
+        static AccessTools.FieldRef<MachineAutoCrafter, int> fMachineAutoCrafterInstancedAutocrafters;
         static MethodInfo mMachineAutoCrafterSetItemsInRange;
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
@@ -128,6 +128,8 @@ namespace CheatInventoryStacking
         static readonly Version requiredStorageBuffer = new(1, 0, 1);
 
         static Func<Inventory, WorldObject, Inventory, WorldObject, WorldObject, bool> Api_1_AllowBufferLogisticsTaskEx;
+
+        static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
 
         void Awake()
         {
@@ -187,7 +189,7 @@ namespace CheatInventoryStacking
             fMachineAutoCrafterHasEnergy = AccessTools.FieldRefAccess<MachineAutoCrafter, bool>("_hasEnergy");
             fMachineAutoCrafterInventory = AccessTools.FieldRefAccess<MachineAutoCrafter, Inventory>("_autoCrafterInventory");
             fMachineAutoCrafterTimeHasCrafted = AccessTools.FieldRefAccess<MachineAutoCrafter, float>("_timeHasCrafted");
-            fMachineAutoCrafterInstancedAutocrafters = AccessTools.FieldRefAccess<float>(typeof(MachineAutoCrafter), "_instancedAutocrafters"); ;
+            fMachineAutoCrafterInstancedAutocrafters = AccessTools.FieldRefAccess<int>(typeof(MachineAutoCrafter), "_instancedAutocrafters"); ;
 
             mMachineAutoCrafterSetItemsInRange = AccessTools.Method(typeof(MachineAutoCrafter), "SetItemsInRange");
             mMachineAutoCrafterCraftIfPossible = AccessTools.Method(typeof(MachineAutoCrafter), "CraftIfPossible");
@@ -258,6 +260,8 @@ namespace CheatInventoryStacking
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             fMachineGrowerVegetationHarvestableSecondInventory = AccessTools.FieldRefAccess<MachineGrowerVegetationHarvestable, Inventory>("_secondInventory");
+
+            fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
