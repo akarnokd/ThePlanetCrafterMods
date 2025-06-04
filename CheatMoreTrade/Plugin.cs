@@ -25,6 +25,7 @@ namespace CheatMoreTrade
             { "BlueprintT1", 3000 }
         };
 
+        static ConfigEntry<bool> isEnabled;
         static ConfigEntry<string> customUnlocks;
 
         static ManualLogSource logger;
@@ -39,6 +40,7 @@ namespace CheatMoreTrade
 
             var str = string.Join(",", tradeValues.Select(kv => kv.Key + "=" + kv.Value));
 
+            isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             customUnlocks = Config.Bind("General", "Custom", str, "Comma separated list of id=value to modify to add to the tradeable list.");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
@@ -49,6 +51,10 @@ namespace CheatMoreTrade
         [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
         static void StaticDataHandler_LoadStaticData(ref List<GroupData> ___groupsData)
         {
+            if (!isEnabled.Value)
+            {
+                return;
+            }
             tradeValues.Clear();
             foreach (var kv in customUnlocks.Value.Split(','))
             {
