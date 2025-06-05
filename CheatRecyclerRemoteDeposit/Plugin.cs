@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
@@ -49,6 +49,8 @@ namespace CheatRecyclerRemoteDeposit
 
         static bool calledFromOnHoverOut;
 
+        static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
+
         private void Awake()
         {
             me = this;
@@ -66,6 +68,8 @@ namespace CheatRecyclerRemoteDeposit
             customDepositAliases = Config.Bind("General", "CustomDepositAliases", "", "Comma separated list of resource_id:alias to deposit into such named containers");
             autoRecyclePeriod = Config.Bind("General", "AutoRecyclePeriod", 5, "How often to auto-recycle, seconds. Zero means no auto-recycle.");
             maxRange = Config.Bind("General", "MaxRange", 20, "The maximum range to look for containers within. Zero means unlimited range.");
+
+            fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
 
             ParseAliasConfig();
 
@@ -531,18 +535,43 @@ namespace CheatRecyclerRemoteDeposit
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineDisintegrator), "SetSecondInventory")]
-        static void MachineDisintegrator_SetSecondInventory(
-            MachineDisintegrator __instance,
-            Inventory inventory)
+        [HarmonyPatch(typeof(MachineDisintegrator), nameof(MachineDisintegrator.SetDisintegratorInventory))]
+        static void Patch_MachineDisintegrator_SetDisintegratorInventory(
+            MachineDisintegrator __instance
+        )
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
             if (wo.GetGroup().GetId().StartsWith("RecyclingMachine", StringComparison.InvariantCulture))
             {
                 var planetHash = wo.GetPlanetHash();
-                StartClearMachineInventory(inventory, planetHash, wo.GetPosition());
+                me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance, planetHash, wo.GetPosition()));
             }
         }
+
+        static IEnumerator MachineDisintegrator_WaitForSecondInventory(
+            MachineDisintegrator __instance, int planetHash, Vector3 pos)
+        {
+            bool requesting = false;
+            while (fMachineDisintegratorSecondInventory(__instance) == null)
+            {
+                if (__instance.secondInventoryAssociatedProxy.IsSpawned)
+                {
+                    if (!requesting)
+                    {
+                        requesting = true;
+                        __instance.secondInventoryAssociatedProxy.GetInventory((inv, _) =>
+                        {
+                            fMachineDisintegratorSecondInventory(__instance) = inv;
+                        });
+                    }
+                }
+                yield return null;
+            }
+
+            var inv = fMachineDisintegratorSecondInventory(__instance);
+            StartClearMachineInventory(inv, planetHash, pos);
+        }
+
         static void StartClearMachineInventory(Inventory inventory, int planetHash, Vector3 center)
         {
             StopClearMachineInventory(inventory);

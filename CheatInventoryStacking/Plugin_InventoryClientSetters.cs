@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
 using HarmonyLib;
@@ -64,9 +64,9 @@ namespace CheatInventoryStacking
                     {
                         Patch_MachineOptimizer_SetOptimizerInventory(inventory);
                     }
-                    if (__instance.TryGetComponent<MachineDisintegrator>(out _))
+                    if (__instance.TryGetComponent<MachineDisintegrator>(out var mds))
                     {
-                        Patch_MachineDisintegrator_SetDisintegratorInventory(inventory);
+                        Patch_MachineDisintegrator_SetDisintegratorInventory(mds, inventory);
                     }
                     if (!stackPlanetaryDepots.Value && (wo?.GetGroup()?.GetId().StartsWith("PlanetaryDeliveryDepot") ?? false))
                     {

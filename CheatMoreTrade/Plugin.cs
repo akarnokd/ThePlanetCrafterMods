@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
@@ -25,6 +25,7 @@ namespace CheatMoreTrade
             { "BlueprintT1", 3000 }
         };
 
+        static ConfigEntry<bool> isEnabled;
         static ConfigEntry<string> customUnlocks;
 
         static ManualLogSource logger;
@@ -39,17 +40,8 @@ namespace CheatMoreTrade
 
             var str = string.Join(",", tradeValues.Select(kv => kv.Key + "=" + kv.Value));
 
+            isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             customUnlocks = Config.Bind("General", "Custom", str, "Comma separated list of id=value to modify to add to the tradeable list.");
-
-            tradeValues.Clear();
-            foreach (var kv in customUnlocks.Value.Split(','))
-            {
-                var kv1 = kv.Split('=');
-                if (kv1.Length == 2)
-                {
-                    tradeValues[kv1[0].Trim()] = int.Parse(kv1[1].Trim());
-                }
-            }
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -59,6 +51,24 @@ namespace CheatMoreTrade
         [HarmonyPatch(typeof(StaticDataHandler), "LoadStaticData")]
         static void StaticDataHandler_LoadStaticData(ref List<GroupData> ___groupsData)
         {
+            if (!isEnabled.Value)
+            {
+                return;
+            }
+            tradeValues.Clear();
+            foreach (var kv in customUnlocks.Value.Split(','))
+            {
+                var kv1 = kv.Split('=');
+                if (kv1.Length == 2)
+                {
+                    if (int.TryParse(kv1[1].Trim(), out var n))
+                    {
+                        tradeValues[kv1[0].Trim()] = n;
+                    }
+                }
+            }
+            HashSet<string> found = [];
+
             foreach (var gr in ___groupsData)
             {
                 if (gr != null && gr.associatedGameObject != null)
@@ -68,7 +78,16 @@ namespace CheatMoreTrade
                         gr.tradeCategory = DataConfig.TradeCategory.tier1;
                         gr.tradeValue = value;
                         logger.LogInfo(gr.id + " now tradeable at " + value + " tt");
+                        found.Add(gr.id);
                     }
+                }
+            }
+
+            foreach (var tv in tradeValues)
+            {
+                if (!found.Contains(tv.Key))
+                {
+                    logger.LogWarning(tv.Key + " (" + tv.Value + ") GroupData not found");
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
 using HarmonyLib;
@@ -54,7 +54,7 @@ namespace CheatInventoryStacking
 
         static IEnumerator MachineAutoCrafterTryToCraftOverride(MachineAutoCrafter __instance, float timeRepeat)
         {
-            yield return new WaitForSeconds(fMachineAutoCrafterInstancedAutocrafters() / 10f);
+            yield return new WaitForSeconds((fMachineAutoCrafterInstancedAutocrafters() % 50) / 10f);
 
             var wait = new WaitForSeconds(timeRepeat);
 

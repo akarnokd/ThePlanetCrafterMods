@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022-2024, David Karnok & Contributors
+﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
@@ -1078,8 +1078,8 @@ namespace CheatAutoSequenceDNA
             EventTriggerCallbackData _eventTriggerCallbackData,
             ActionCrafter ___sourceCrafter)
         {
-            if ((___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftGeneticT1 
-                || ___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftIncubatorT1) 
+            if (((___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftGeneticT1 && sequencerEnabled.Value)
+                || (___sourceCrafter.GetCrafterIdentifier() == CraftableIn.CraftIncubatorT1 && incubatorEnabled.Value)) 
                 && _eventTriggerCallbackData.pointerEventData.button == PointerEventData.InputButton.Left)
             {
                 var wo = ___sourceCrafter.GetComponentInParent<WorldObjectAssociated>(true).GetWorldObject();
