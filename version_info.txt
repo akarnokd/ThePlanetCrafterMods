@@ -3,7 +3,7 @@ akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.18
 # (Cheat) Auto Consume Oxygen-Water-Food
 akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.20
 # (Cheat) Auto Grab and Mine
-akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.17
+akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.18
 # (Cheat) Automatically Harvest Food n Algae
 akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.36
 # (Cheat) Auto Launch Rockets
@@ -19,7 +19,7 @@ akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.90
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.37
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.60
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.61
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.12
 # (Cheat) Highlight Nearby Resources

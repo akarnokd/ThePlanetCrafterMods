@@ -44,6 +44,8 @@ namespace CheatMinimap
         Texture2D humbleLush;
         Texture2D seleneaBarren;
         Texture2D seleneaLush;
+        Texture2D aqualisBarren;
+        Texture2D aqualisLush;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -56,7 +58,7 @@ namespace CheatMinimap
         ConfigEntry<int> autoScanForChests;
         ConfigEntry<int> fixedRotation;
         ConfigEntry<float> alphaBlend;
-        
+
         static ConfigEntry<bool> showLadders;
         static ConfigEntry<bool> showServers;
         static ConfigEntry<bool> showSafes;
@@ -77,21 +79,28 @@ namespace CheatMinimap
 
         static Plugin self;
 
-        const int primeMapMinX = -2000;
-        const int primeMapMinY = -2000;
-        const int primeMapMaxX = 3000;
-        const int primeMapMaxY = 3000;
+        static readonly Dictionary<string, RectMinMax> mapRects = new()
+        {
+            { "Prime", new RectMinMax(-2000, -2000, 3000, 3000) },
+            { "Humble", new RectMinMax(-2300, -2300, 2700, 2700) },
+            { "Selenea", new RectMinMax(-2000, -2000, 3000, 3000) },
+            { "Aqualis", new RectMinMax(-3000, -3000, 4000, 4000) },
+        };
 
-        const int humbleMapMinY = -2300;
-        const int humbleMapMinX = -2300;
-        const int humbleMapMaxY = 2700;
-        const int humbleMapMaxX = 2700;
-
-        const int seleneaMapMinY = -2000;
-        const int seleneaMapMinX = -2000;
-        const int seleneaMapMaxY = 3000;
-        const int seleneaMapMaxX = 3000;
-
+        internal class RectMinMax
+        {
+            internal int minX;
+            internal int maxX;
+            internal int minY;
+            internal int maxY;
+            internal RectMinMax(int minX, int minY, int maxX, int maxY)
+            {
+                this.minX = minX;
+                this.maxX = maxX;
+                this.minY = minY;
+                this.maxY = maxY;
+            }
+        }
 
         private void Awake()
         {
@@ -126,6 +135,8 @@ namespace CheatMinimap
             humbleLush = LoadPNG(Path.Combine(dir, "humble_lush.png"));
             seleneaBarren = LoadPNG(Path.Combine(dir, "selenea_barren.png"));
             seleneaLush = LoadPNG(Path.Combine(dir, "selenea_lush.png"));
+            aqualisBarren = LoadPNG(Path.Combine(dir, "aqualis_barren.png"));
+            aqualisLush = LoadPNG(Path.Combine(dir, "aqualis_lush.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -422,21 +433,28 @@ namespace CheatMinimap
 
                     Texture2D theMap = grid;
 
-                    // calibrated to the given map
-                    float playerCenterX = (primeMapMaxX + primeMapMinX) / 2;
-                    float playerCenterY = (primeMapMaxY + primeMapMinY) / 2;
-                    float mapWidth = primeMapMaxX - primeMapMinX;
-                    float mapHeight = primeMapMaxY - primeMapMinY;
-
                     var pd = Managers.GetManager<PlanetLoader>()?.GetCurrentPlanetData();
 
+                    RectMinMax mapMinMax = default;
+                    if (pd == null || !mapRects.TryGetValue(pd.id, out mapMinMax))
+                    {
+                        mapMinMax = mapRects["Prime"];
+                    }
                     var isPrime = pd != null && (pd.id == "" || pd.id == "Prime");
+
+                    // calibrated to the given map
+                    float playerCenterX = (mapMinMax.maxX + mapMinMax.minX) / 2;
+                    float playerCenterY = (mapMinMax.maxY + mapMinMax.minY) / 2;
+                    float mapWidth = mapMinMax.maxX - mapMinMax.minX;
+                    float mapHeight = mapMinMax.maxY - mapMinMax.minY;
+
+
                     if (isPrime)
                     {
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
                             var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
                             if (currT >= 425000000000f)
                             {
                                 theMap = endgame;
@@ -457,16 +475,12 @@ namespace CheatMinimap
                     }
                     if (pd != null && pd.id == "Humble")
                     {
-                        playerCenterX = (humbleMapMaxX + humbleMapMinX) / 2;
-                        playerCenterY = (humbleMapMaxY + humbleMapMinY) / 2;
-                        mapWidth = humbleMapMaxX - humbleMapMinX;
-                        mapHeight = humbleMapMaxY - humbleMapMinY;
                         theMap = humbleBarren;
 
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
                             var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
                             if (currT >= minT)
                             {
                                 theMap = humbleLush;
@@ -475,19 +489,29 @@ namespace CheatMinimap
                     }
                     if (pd != null && pd.id == "Selenea")
                     {
-                        playerCenterX = (seleneaMapMaxX + seleneaMapMinX) / 2;
-                        playerCenterY = (seleneaMapMaxY + seleneaMapMinY) / 2;
-                        mapWidth = seleneaMapMaxX - seleneaMapMinX;
-                        mapHeight = seleneaMapMaxY - seleneaMapMinY;
                         theMap = seleneaBarren;
 
                         if (achievementsHandler != null && worldUnitsHandler != null)
                         {
                             var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
-                            var minT = achievementsHandler.stageMoss.GetStageStartValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
                             if (currT >= minT)
                             {
                                 theMap = seleneaLush;
+                            }
+                        }
+                    }
+                    if (pd != null && pd.id == "Aqualis")
+                    {
+                        theMap = aqualisBarren;
+
+                        if (achievementsHandler != null && worldUnitsHandler != null)
+                        {
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
+                            if (currT >= minT)
+                            {
+                                theMap = aqualisLush;
                             }
                         }
                     }

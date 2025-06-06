@@ -67,6 +67,8 @@ namespace CheatAutoGrabAndMine
         static AccessTools.FieldRef<PetProxy, float> fPetProxyPetDelay;
         static Func<Inventory, int> apiGetStackCountInventory;
 
+        static float audioLockout;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -114,6 +116,8 @@ namespace CheatAutoGrabAndMine
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
                 apiGetStackCountInventory = inv => inv.GetInsideWorldObjects().Count;
             }
+
+            audioLockout = Time.realtimeSinceStartup;
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -425,7 +429,13 @@ namespace CheatAutoGrabAndMine
                         ?.AddInformation(2f, Readable.GetGroupName(group) + " + 1  (" + CountInInventory(backpackInv, group) + ")",
                             DataConfig.UiInformationsType.InInventory, group.GetImage());
 
-                        ac.GetPlayerAudio().PlayGrab();
+                        var t = Time.realtimeSinceStartup;
+                        var delta = t - audioLockout;
+                        if (delta >= 3)
+                        {
+                            audioLockout = t;
+                            ac.GetPlayerAudio().PlayGrab();
+                        }
                         Managers.GetManager<DisplayersHandler>()
                             ?.GetItemWorldDisplayer()
                             ?.Hide();
