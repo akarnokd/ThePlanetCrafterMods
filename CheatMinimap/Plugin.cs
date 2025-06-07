@@ -504,7 +504,8 @@ namespace CheatMinimap
                 {
                     if (showServers.Value)
                     {
-                        if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
+                        if (id.transform.parent != null 
+                            && id.transform.parent.name.Contains("WreckServer"))
                         {
                             chests.Add(id.transform.parent.gameObject);
                         }
@@ -529,8 +530,8 @@ namespace CheatMinimap
                             chests.Add(tr.gameObject);
                             break;
                         }
-                        if (showWreckPoster.Value
-                            && name1.StartsWith("Poster")
+                        if (showServers.Value
+                            && name1.StartsWith("Server")
                             && ih != null && ih.IsInsideAnInstance(tr.position, false)
                         )
                         {
@@ -785,7 +786,7 @@ namespace CheatMinimap
                                     chestW = 10;
                                     chestH = 20;
                                 }
-                                else if (nm.Contains("WreckServer"))
+                                else if (nm.Contains("WreckServer") || nm.StartsWith("Server"))
                                 {
                                     img = server;
                                     chestW = 10;
