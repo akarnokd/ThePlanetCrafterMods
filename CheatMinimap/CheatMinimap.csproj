@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatMinimap</AssemblyName>
     <Description>(Cheat) Minimap</Description>
-    <Version>1.0.0.61</Version>
+    <Version>1.0.0.62</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -50,6 +50,9 @@
 	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
@@ -76,6 +79,9 @@
 	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -101,6 +107,9 @@
       <Copy SourceFiles="$(SourceDir)images\altar.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
 	  <Copy SourceFiles="$(SourceDir)images\stair.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\drone.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />

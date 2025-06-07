@@ -14,6 +14,7 @@ using System.Collections;
 using UnityEngine.InputSystem.Controls;
 using Unity.Netcode;
 using Tessera;
+using UnityEngine.UI;
 
 namespace CheatMinimap
 {
@@ -40,6 +41,9 @@ namespace CheatMinimap
         Texture2D altar;
         Texture2D stair;
         Texture2D drone;
+        Texture2D wreck;
+        Texture2D furniture;
+        Texture2D poster;
         Texture2D humbleBarren;
         Texture2D humbleLush;
         Texture2D seleneaBarren;
@@ -65,12 +69,21 @@ namespace CheatMinimap
         static ConfigEntry<bool> showAltars;
         static ConfigEntry<bool> showStairs;
         static ConfigEntry<bool> showDrones;
+        static ConfigEntry<bool> showWreckDeconstructibles;
+        static ConfigEntry<bool> showWreckFurniture;
+        static ConfigEntry<bool> showWreckPoster;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
 
         static ConfigEntry<string> outOfBoundsColor;
         static string lastOutOfBoundsColor;
+
+        static ConfigEntry<string> toggleXRay;
+        static ConfigEntry<bool> xRay;
+        static ConfigEntry<int> xRayRange;
+        static Font xRayFont;
+        static InputAction xRayAction;
 
         static bool mapVisible = true;
         static int autoScanEnabled = 0;
@@ -106,6 +119,8 @@ namespace CheatMinimap
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
+            self = this;
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -137,6 +152,9 @@ namespace CheatMinimap
             seleneaLush = LoadPNG(Path.Combine(dir, "selenea_lush.png"));
             aqualisBarren = LoadPNG(Path.Combine(dir, "aqualis_barren.png"));
             aqualisLush = LoadPNG(Path.Combine(dir, "aqualis_lush.png"));
+            wreck = LoadPNG(Path.Combine(dir, "wreck.png"));
+            furniture = LoadPNG(Path.Combine(dir, "furniture.png"));
+            poster = LoadPNG(Path.Combine(dir, "poster.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -159,8 +177,21 @@ namespace CheatMinimap
             showAltars = Config.Bind("General", "ShowAltars", true, "Show the Warden Altars?");
             showStairs = Config.Bind("General", "ShowStairs", true, "Show the stairs in procedural wrecks?");
             showDrones = Config.Bind("General", "ShowDrones", true, "Show the lootable drones?");
+            showWreckDeconstructibles = Config.Bind("General", "ShowWreckDeconstructibles", true, "Show all deconstructibles inside wrecks?");
+            showWreckFurniture = Config.Bind("General", "ShowWreckFurniture", true, "Show wreck furniture?");
+            showWreckPoster = Config.Bind("General", "ShowWreckPoster", true, "Show wreck posters?");
+            toggleXRay = Config.Bind("General", "ToggleXRay", "<Keyboard>/comma", "The key to toggle an overlay showing items of interest through walls/terrain.");
+            xRay = Config.Bind("General", "XRay", false, "Is the XRay mode on, an overlay showing items of interest through walls/terrain?");
+            xRayRange = Config.Bind("General", "XRayRange", 50, "The range to look for items in XRay mode");
+            
+            xRayFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-            self = this;
+            if (!toggleXRay.Value.StartsWith("<")) {
+                toggleXRay.Value = "<Keyboard>/" + toggleXRay.Value;
+            }
+
+            xRayAction = new InputAction("Toggle XRay Mode", binding: toggleXRay.Value);
+            xRayAction.Enable();
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -203,7 +234,8 @@ namespace CheatMinimap
             PlayersManager pm = Managers.GetManager<PlayersManager>();
             PlayerMainController player = pm?.GetActivePlayerController();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
-            if (player != null && wh != null && !wh.GetHasUiOpen())
+            var windowNotOpen = wh != null && !wh.GetHasUiOpen();
+            if (player != null && windowNotOpen)
             {
                 if (!coroutineRunning)
                 {
@@ -277,11 +309,98 @@ namespace CheatMinimap
                 }
             }
             UpdatePhoto();
+            UpdateXRay(player, windowNotOpen);
+        }
+
+        static GameObject xrayCanvas;
+
+
+        void UpdateXRay(PlayerMainController player, bool windowNotOpen)
+        {
+            if (xRayAction.WasPressedThisFrame())
+            {
+                xRay.Value = !xRay.Value;
+            }
+            if (!xRay.Value || player == null)
+            {
+                if (xrayCanvas != null)
+                {
+                    Destroy(xrayCanvas);
+                    xrayCanvas = null;
+                }
+                return;
+            }
+
+            if (xrayCanvas == null)
+            {
+                xrayCanvas = new GameObject("Minimap_XRay");
+                var canvas = xrayCanvas.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 500;
+            }
+
+            xrayCanvas.SetActive(windowNotOpen);
+
+            List<GameObject> chestsInRange = [];
+            foreach (var chest in chests)
+            {
+                if (Vector3.Distance(chest.transform.position, player.transform.position) <= xRayRange.Value)
+                {
+                    chestsInRange.Add(chest);
+                }
+            }
+
+            while (xrayCanvas.transform.childCount < chestsInRange.Count)
+            {
+                var entry = new GameObject("XRayElement");
+                entry.SetActive(false);
+                entry.transform.SetParent(xrayCanvas.transform, false);
+                var text = entry.AddComponent<Text>();
+                text.fontSize = fontSize.Value;
+                text.font = xRayFont;
+                text.color = Color.white;
+                text.supportRichText = true;
+                text.alignment = TextAnchor.MiddleCenter;
+
+                var outline = entry.AddComponent<Outline>();
+                outline.effectColor = Color.black;
+                outline.effectDistance = new Vector2(1, -1);
+            }
+            for (int i = xrayCanvas.transform.childCount - 1; i >= chestsInRange.Count; i--)
+            {
+                Destroy(xrayCanvas.transform.GetChild(i).gameObject);
+            }
+
+            for (int i = 0; i < chestsInRange.Count; i++)
+            {
+                GameObject chest = chestsInRange[i];
+                var xrayChild = xrayCanvas.transform.GetChild(i).gameObject;
+                var text = xrayChild.GetComponent<Text>();
+
+                var pos = chest.transform.position;
+                text.text = chest.name.Replace("(Clone)", "") + "\n(" + ((int)Vector3.Distance(player.transform.position, pos)) + " m)";
+
+                var xy = Camera.main.WorldToScreenPoint(pos) - new Vector3(Screen.width / 2, Screen.height / 2, 0);
+                var heading = pos - Camera.main.transform.position;
+                var behind = Vector3.Dot(Camera.main.transform.forward, heading) < 0;
+
+                if (!behind)
+                {
+                    var rt = text.GetComponent<RectTransform>();
+                    rt.localPosition = xy;
+                    rt.sizeDelta = new Vector2(text.preferredWidth, text.preferredHeight);
+                }
+
+                xrayChild.SetActive(!behind);
+            }
+
         }
 
         void FindChests()
         {
             chests.Clear();
+
+            var ih = ProceduralInstancesHandler.Instance;
 
             foreach (ActionOpenable ia in FindObjectsByType<ActionOpenable>(FindObjectsSortMode.None))
             {
@@ -378,13 +497,47 @@ namespace CheatMinimap
                     }
                 }
             }
-            if (showServers.Value)
+            if (showServers.Value || showWreckDeconstructibles.Value)
             {
                 foreach (var id in FindObjectsByType<ActionDeconstructible>(FindObjectsSortMode.None))
                 {
-                    if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
+                    if (showServers.Value)
                     {
-                        chests.Add(id.transform.parent.gameObject);
+                        if (id.transform.parent != null && id.transform.parent.name.Contains("WreckServer"))
+                        {
+                            chests.Add(id.transform.parent.gameObject);
+                        }
+                    }
+                    var tr = id.transform;
+
+                    while (tr != null)
+                    {
+
+                        string name1 = tr.gameObject.name;
+                        if (showWreckDeconstructibles.Value
+                            && name1.Contains("WreckPilar"))
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
+                        if (showWreckFurniture.Value
+                            && (IsFurniture(name1))
+                            && ih != null && ih.IsInsideAnInstance(tr.position, false)
+                        )
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
+                        if (showWreckPoster.Value
+                            && name1.StartsWith("Poster")
+                            
+                            && ih != null && ih.IsInsideAnInstance(tr.position, false)
+                        )
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
+                        tr = tr.parent;
                     }
                 }
             }
@@ -409,6 +562,25 @@ namespace CheatMinimap
                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, 
                     string.Format(Localization.GetLocalizedString("Minimap_FoundChestAutoScan"), chests.Count));
             }
+        }
+
+        static bool IsFurniture(string name1)
+        {
+            return name1.StartsWith("Table")
+                                || name1.StartsWith("Chair")
+                                || name1.StartsWith("Counter")
+                                || name1.StartsWith("Fridge")
+                                || name1.StartsWith("Trashcan")
+                                || name1.StartsWith("Faucet")
+                                || name1.StartsWith("Desktop")
+                                || name1.StartsWith("ExerciseBike")
+                                || name1.StartsWith("FlowerPot")
+                                || name1.StartsWith("Library")
+                                || name1.StartsWith("PlanetViewer")
+                                || name1.StartsWith("Pooltable")
+                                || name1.StartsWith("Shelves")
+                                || name1.StartsWith("Threadmill")
+                                || name1.StartsWith("TreePlanter");
         }
 
         void OnGUI()
@@ -633,6 +805,24 @@ namespace CheatMinimap
                                 else if (nm.Contains("Drone"))
                                 {
                                     img = drone;
+                                    chestW = 16;
+                                    chestH = 16;
+                                }
+                                else if (nm.Contains("WreckPilar"))
+                                {
+                                    img = wreck;
+                                    chestW = 16;
+                                    chestH = 16;
+                                }
+                                else if (IsFurniture(nm))
+                                {
+                                    img = furniture;
+                                    chestW = 16;
+                                    chestH = 16;
+                                }
+                                else if (nm.Contains("Poster"))
+                                {
+                                    img = poster;
                                     chestW = 16;
                                     chestH = 16;
                                 }
