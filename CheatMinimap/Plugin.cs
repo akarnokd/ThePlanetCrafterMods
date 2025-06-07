@@ -542,6 +542,14 @@ namespace CheatMinimap
                             chests.Add(tr.gameObject);
                             break;
                         }
+                        if (showSafes.Value
+                            && name1.StartsWith("Vault")
+                            && ih != null && ih.IsInsideAnInstance(tr.position, false)
+                        )
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
                         tr = tr.parent;
                     }
                 }
@@ -614,7 +622,7 @@ namespace CheatMinimap
                                 || name1.StartsWith("PlanetViewer")
                                 || name1.StartsWith("Pooltable")
                                 || name1.StartsWith("Shelves")
-                                || name1.StartsWith("Threadmill")
+                                || name1.StartsWith("Treadmill")
                                 || name1.StartsWith("TreePlanter");
         }
 
@@ -813,7 +821,7 @@ namespace CheatMinimap
                                 {
                                     img = starform;
                                 }
-                                else if (nm.Contains("WreckSafe") || nm.Contains("WorldSafe"))
+                                else if (nm.Contains("WreckSafe") || nm.Contains("WorldSafe") || nm.StartsWith("Vault"))
                                 {
                                     img = safe;
                                     chestW = 16;
