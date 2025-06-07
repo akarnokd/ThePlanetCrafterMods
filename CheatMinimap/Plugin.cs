@@ -497,7 +497,8 @@ namespace CheatMinimap
                     }
                 }
             }
-            if (showServers.Value || showWreckDeconstructibles.Value)
+            if (showServers.Value || showWreckDeconstructibles.Value
+                || showWreckFurniture.Value)
             {
                 foreach (var id in FindObjectsByType<ActionDeconstructible>(FindObjectsSortMode.None))
                 {
@@ -530,7 +531,6 @@ namespace CheatMinimap
                         }
                         if (showWreckPoster.Value
                             && name1.StartsWith("Poster")
-                            
                             && ih != null && ih.IsInsideAnInstance(tr.position, false)
                         )
                         {
@@ -541,6 +541,27 @@ namespace CheatMinimap
                     }
                 }
             }
+            if (showWreckPoster.Value)
+            {
+                foreach (var id in FindObjectsByType<ActionGrabable>(FindObjectsSortMode.None))
+                {
+                    var tr = id.transform;
+
+                    while (tr != null)
+                    {
+                        string name1 = tr.gameObject.name;
+                        if (name1.StartsWith("Poster")
+                            && ih != null && ih.IsInsideAnInstance(tr.position, false)
+                        )
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
+                        tr = tr.parent;
+                    }
+                }
+            }
+            
             foreach (var p in FindObjectsByType<MachinePortal>(FindObjectsSortMode.None))
             {
                 chests.Add(p.gameObject);
