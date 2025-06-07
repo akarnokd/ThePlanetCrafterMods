@@ -344,7 +344,7 @@ namespace CheatMinimap
             List<GameObject> chestsInRange = [];
             foreach (var chest in chests)
             {
-                if (Vector3.Distance(chest.transform.position, player.transform.position) <= xRayRange.Value)
+                if (chest != null && Vector3.Distance(chest.transform.position, player.transform.position) <= xRayRange.Value)
                 {
                     chestsInRange.Add(chest);
                 }
@@ -742,12 +742,12 @@ namespace CheatMinimap
 
                     float mapLeft = playerCenterX - mapWidth / 2;
                     float mapTop = playerCenterY + mapHeight / 2;
-                    foreach (GameObject go in new List<GameObject>(chests))
+                    for (int i = chests.Count - 1; i >= 0; i--)
                     {
-                        
+                        GameObject go = chests[i];
                         try
                         {
-                            if (go.activeSelf)
+                            if (go != null && go.activeSelf)
                             {
                                 Vector3 vec = go.transform.position;
 
@@ -847,12 +847,12 @@ namespace CheatMinimap
                             }
                             else
                             {
-                                chests.Remove(go);
+                                chests.RemoveAt(i);
                             }
                         } 
                         catch
                         {
-                            chests.Remove(go);
+                            chests.RemoveAt(i);
                         }
 
                     }
