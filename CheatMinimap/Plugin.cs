@@ -44,6 +44,7 @@ namespace CheatMinimap
         Texture2D wreck;
         Texture2D furniture;
         Texture2D poster;
+        Texture2D animal;
         Texture2D humbleBarren;
         Texture2D humbleLush;
         Texture2D seleneaBarren;
@@ -72,6 +73,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showWreckDeconstructibles;
         static ConfigEntry<bool> showWreckFurniture;
         static ConfigEntry<bool> showWreckPoster;
+        static ConfigEntry<bool> showWreckAnimalEffigie;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -155,6 +157,7 @@ namespace CheatMinimap
             wreck = LoadPNG(Path.Combine(dir, "wreck.png"));
             furniture = LoadPNG(Path.Combine(dir, "furniture.png"));
             poster = LoadPNG(Path.Combine(dir, "poster.png"));
+            animal = LoadPNG(Path.Combine(dir, "animal.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -180,6 +183,7 @@ namespace CheatMinimap
             showWreckDeconstructibles = Config.Bind("General", "ShowWreckDeconstructibles", true, "Show all deconstructibles inside wrecks?");
             showWreckFurniture = Config.Bind("General", "ShowWreckFurniture", true, "Show wreck furniture?");
             showWreckPoster = Config.Bind("General", "ShowWreckPoster", true, "Show wreck posters?");
+            showWreckAnimalEffigie = Config.Bind("General", "ShowWreckAnimalEffigie", true, "Show wreck animal effigies?");
             toggleXRay = Config.Bind("General", "ToggleXRay", "<Keyboard>/comma", "The key to toggle an overlay showing items of interest through walls/terrain.");
             xRay = Config.Bind("General", "XRay", false, "Is the XRay mode on, an overlay showing items of interest through walls/terrain?");
             xRayRange = Config.Bind("General", "XRayRange", 50, "The range to look for items in XRay mode");
@@ -542,7 +546,7 @@ namespace CheatMinimap
                     }
                 }
             }
-            if (showWreckPoster.Value)
+            if (showWreckPoster.Value || showWreckAnimalEffigie.Value)
             {
                 foreach (var id in FindObjectsByType<ActionGrabable>(FindObjectsSortMode.None))
                 {
@@ -551,7 +555,16 @@ namespace CheatMinimap
                     while (tr != null)
                     {
                         string name1 = tr.gameObject.name;
-                        if (name1.StartsWith("Poster")
+                        if (showWreckPoster.Value 
+                            && name1.StartsWith("Poster")
+                            && ih != null && ih.IsInsideAnInstance(tr.position, false)
+                        )
+                        {
+                            chests.Add(tr.gameObject);
+                            break;
+                        }
+                        if (showWreckAnimalEffigie.Value 
+                            && name1.StartsWith("AnimalEffigie")
                             && ih != null && ih.IsInsideAnInstance(tr.position, false)
                         )
                         {
@@ -845,6 +858,12 @@ namespace CheatMinimap
                                 else if (nm.Contains("Poster"))
                                 {
                                     img = poster;
+                                    chestW = 16;
+                                    chestH = 16;
+                                }
+                                else if (nm.StartsWith("AnimalEffigie"))
+                                {
+                                    img = animal;
                                     chestW = 16;
                                     chestH = 16;
                                 }

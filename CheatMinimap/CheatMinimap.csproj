@@ -53,6 +53,7 @@
       <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\animal.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
@@ -82,6 +83,7 @@
       <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\animal.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\selenea_barren.png" DestinationFolder="$(TargetDir)\$(AssemblyName)\akarnokd - $(Description)" />
@@ -110,6 +112,7 @@
       <Copy SourceFiles="$(SourceDir)images\wreck.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\furniture.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\poster.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
+      <Copy SourceFiles="$(SourceDir)images\animal.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\map_grid.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_barren.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
       <Copy SourceFiles="$(SourceDir)images\humble_lush.png" DestinationFolder="$(OutputPath)\..\..\..\..\akarnokd-all\akarnokd - $(Description)" />
