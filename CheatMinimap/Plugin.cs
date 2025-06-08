@@ -623,7 +623,8 @@ namespace CheatMinimap
                                 || name1.StartsWith("Pooltable")
                                 || name1.StartsWith("Shelves")
                                 || name1.StartsWith("Treadmill")
-                                || name1.StartsWith("TreePlanter");
+                                || name1.StartsWith("TreePlanter")
+                                || name1.StartsWith("Ivy");
         }
 
         void OnGUI()
