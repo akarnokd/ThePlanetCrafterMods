@@ -383,14 +383,13 @@ namespace CheatMachineRemoteDeposit
                                 return candidateInventory;
                             }
                         }
-                        else if (txt.Contains(dumpContainerName, StringComparison.InvariantCultureIgnoreCase))
+                        else if (dumpInventory == null && txt.Contains(dumpContainerName, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            dumpInventory = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
-                            dumpInventoryName = txt;
-                            if (dumpInventory != null && !InventoryCanAdd(dumpInventory, oreId))
+                            var invDummy = InventoriesHandler.Instance.GetInventoryById(constructs.GetLinkedInventoryId());
+                            if (invDummy != null && InventoryCanAdd(invDummy, oreId))
                             {
-                                dumpInventory = null;
-                                dumpInventoryName = "";
+                                dumpInventory = invDummy;
+                                dumpInventoryName = txt;
                             }
                         }
                     }

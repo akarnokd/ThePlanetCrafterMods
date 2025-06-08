@@ -27,7 +27,7 @@ namespace CheatNearbyResourcesHighlight
         /// <summary>
         /// Key used for cycling resources.
         /// </summary>
-        private static ConfigEntry<string> cycleResourceKey;
+        private static ConfigEntry<string> scanKey;
         /// <summary>
         /// List of comma-separated resource ids to look for.
         /// </summary>
@@ -72,6 +72,8 @@ namespace CheatNearbyResourcesHighlight
 
         static readonly List<GameObjectTTL> scannerImageList = [];
 
+        static InputAction scanInput;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -82,12 +84,14 @@ namespace CheatNearbyResourcesHighlight
             radius = Config.Bind("General", "Radius", 30, "Specifies how far to look for resources.");
             stretchY = Config.Bind("General", "StretchY", 1, "Specifies how high the resource image to stretch.");
             resourceSetStr = Config.Bind("General", "ResourceSet", StandardResourceSets.defaultOres, "List of comma-separated resource ids to look for.");
-            cycleResourceKey = Config.Bind("General", "CycleResourceKey", "X", "Key used for cycling resources from the set");
+            scanKey = Config.Bind("General", "CycleResourceKey", "<Keyboard>/X", "Key used for cycling resources from the set");
             larvaeSetStr = Config.Bind("General", "LarvaeSet", StandardResourceSets.defaultLarvae, "List of comma-separated larvae ids to look for.");
             fishSetStr = Config.Bind("General", "FishSet", StandardResourceSets.defaultFish, "List of comma-separated fish ids to look for.");
             frogSetStr = Config.Bind("General", "FrogSet", StandardResourceSets.defaultFrogs, "List of comma-separated frog ids to look for.");
             lineIndicatorLength = Config.Bind("General", "LineIndicatorLength", 5f, "If nonzero, a thin white bar will appear and point to the resource");
             timeToLive = Config.Bind("General", "TimeToLive", 15f, "How long the resource indicators should remain visible, in seconds.");
+
+            UpdateKeyBinding();
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -102,15 +106,8 @@ namespace CheatNearbyResourcesHighlight
                 var wh = Managers.GetManager<WindowsHandler>();
                 if (pm != null && !wh.GetHasUiOpen())
                 {
-                    PropertyInfo pi = typeof(Key).GetProperty(cycleResourceKey.Value.ToString().ToUpper());
-                    Key k = Key.X;
-                    if (pi != null)
-                    {
-                        k = (Key)pi.GetRawConstantValue();
-                    }
-
                     //
-                    if (Keyboard.current[k].wasPressedThisFrame)
+                    if (scanInput.WasPressedThisFrame())
                     {
                         List<string> scanSetList =
                         [
@@ -120,7 +117,11 @@ namespace CheatNearbyResourcesHighlight
                             .. frogSetStr.Value.Split(','),
                         ];
 
-                        if (Keyboard.current[Key.LeftShift].isPressed)
+                        if (Keyboard.current[Key.LeftCtrl].isPressed && Keyboard.current[Key.LeftShift].isPressed)
+                        {
+                            currentResource = null;
+                        }
+                        else if (Keyboard.current[Key.LeftShift].isPressed)
                         {
                             if (currentResource == null)
                             {
@@ -158,6 +159,8 @@ namespace CheatNearbyResourcesHighlight
                                 }
                             }
                         }
+                        
+                            
                         ScanForResourcesNow();
                     }
 
@@ -322,5 +325,21 @@ namespace CheatNearbyResourcesHighlight
             }
             Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, "Found resources: " + c + " x " + (currentResource ?? "any"));
         }
+
+        static void UpdateKeyBinding()
+        {
+            if (!scanKey.Value.StartsWith("<"))
+            {
+                scanKey.Value = "<Keyboard>/" + scanKey.Value;
+            }
+            scanInput = new InputAction("Scan and highlight resources", binding: scanKey.Value);
+            scanInput.Enable();
+        }
+
+        public static void OnModConfigChanged(ConfigEntryBase _)
+        {
+            UpdateKeyBinding();
+        }
+
     }
 }
