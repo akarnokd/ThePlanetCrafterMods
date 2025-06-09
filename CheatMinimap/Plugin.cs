@@ -519,7 +519,8 @@ namespace CheatMinimap
                     if (showServers.Value)
                     {
                         if (id.transform.parent != null 
-                            && id.transform.parent.name.Contains("WreckServer"))
+                            && (id.transform.parent.name.Contains("WreckServer")
+                            || id.transform.parent.name.Contains("WorldServer")))
                         {
                             chests.Add(id.transform.parent.gameObject);
                         }
@@ -832,7 +833,7 @@ namespace CheatMinimap
                                     chestW = 10;
                                     chestH = 20;
                                 }
-                                else if (nm.Contains("WreckServer") || nm.StartsWith("Server"))
+                                else if (nm.Contains("WreckServer") || nm.StartsWith("Server") || nm.StartsWith("WorldServer"))
                                 {
                                     img = server;
                                     chestW = 10;
