@@ -44,6 +44,7 @@ namespace CheatMinimap
         Texture2D wreck;
         Texture2D furniture;
         Texture2D poster;
+        Texture2D fusion;
         Texture2D animal;
         Texture2D humbleBarren;
         Texture2D humbleLush;
@@ -74,6 +75,7 @@ namespace CheatMinimap
         static ConfigEntry<bool> showWreckFurniture;
         static ConfigEntry<bool> showWreckPoster;
         static ConfigEntry<bool> showWreckAnimalEffigie;
+        static ConfigEntry<bool> showWreckFusion;
 
         static ConfigEntry<bool> mapManualVisible;
         static ConfigEntry<int> fontSize;
@@ -158,6 +160,7 @@ namespace CheatMinimap
             furniture = LoadPNG(Path.Combine(dir, "furniture.png"));
             poster = LoadPNG(Path.Combine(dir, "poster.png"));
             animal = LoadPNG(Path.Combine(dir, "animal.png"));
+            fusion = LoadPNG(Path.Combine(dir, "fusion.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -184,6 +187,7 @@ namespace CheatMinimap
             showWreckFurniture = Config.Bind("General", "ShowWreckFurniture", true, "Show wreck furniture?");
             showWreckPoster = Config.Bind("General", "ShowWreckPoster", true, "Show wreck posters?");
             showWreckAnimalEffigie = Config.Bind("General", "ShowWreckAnimalEffigie", true, "Show wreck animal effigies?");
+            showWreckFusion = Config.Bind("General", "ShowWreckFusion", true, "Show wreck fusion generators?");
             toggleXRay = Config.Bind("General", "ToggleXRay", "<Keyboard>/comma", "The key to toggle an overlay showing items of interest through walls/terrain.");
             xRay = Config.Bind("General", "XRay", false, "Is the XRay mode on, an overlay showing items of interest through walls/terrain?");
             xRayRange = Config.Bind("General", "XRayRange", 50, "The range to look for items in XRay mode");
@@ -430,10 +434,12 @@ namespace CheatMinimap
                         || go.name.Contains("WorldWardrobe")
                         || go.name.Contains("Satellite")
                         || (go.name.Contains("WorldContainer") && parentName.StartsWith("WorldRoverWithContainer"))
+                        || (go.name.StartsWith("WorldFusionGenerator") && showWreckFusion.Value)
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
                         var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
+                        var hideWhenFull = go.name.StartsWith("WorldFusionGenerator");
 
                         if (invAssoc != null && (invAssocProxy == null || (NetworkManager.Singleton?.IsServer ?? false)))
                         {
@@ -441,7 +447,7 @@ namespace CheatMinimap
                             if (id > 0)
                             {
                                 var inv = InventoriesHandler.Instance.GetInventoryById(id);
-                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                if (ShouldShowIfNonEmptyOrNotFull(inv, hideWhenFull))
                                 {
                                     chests.Add(go);
                                 }
@@ -451,7 +457,7 @@ namespace CheatMinimap
                                 if (go.TryGetComponent<WorldUniqueId>(out var wuid))
                                 {
                                     var inv = InventoriesHandler.Instance.GetInventoryById(wuid.GetWorldUniqueId());
-                                    if (inv == null || inv.GetInsideWorldObjects().Count != 0)
+                                    if (inv == null || ShouldShowIfNonEmptyOrNotFull(inv, hideWhenFull))
                                     {
                                         chests.Add(go);
                                     }
@@ -467,7 +473,7 @@ namespace CheatMinimap
                             var go1 = go;
                             invAssocProxy.GetInventory((inv, wo) =>
                             {
-                                if (inv != null && inv.GetInsideWorldObjects().Count != 0)
+                                if (ShouldShowIfNonEmptyOrNotFull(inv, hideWhenFull))
                                 {
                                     chests.Add(go1);
                                 }
@@ -609,6 +615,20 @@ namespace CheatMinimap
                 Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 2f, 
                     string.Format(Localization.GetLocalizedString("Minimap_FoundChestAutoScan"), chests.Count));
             }
+        }
+
+        static bool ShouldShowIfNonEmptyOrNotFull(Inventory inv, bool checkFull)
+        {
+            if (inv == null)
+            {
+                return false;
+            }
+            int n = inv.GetInsideWorldObjects().Count;
+            if (!checkFull)
+            {
+                return n != 0;
+            }
+            return n != inv.GetSize();
         }
 
         static bool IsFurniture(string name1)
@@ -877,6 +897,12 @@ namespace CheatMinimap
                                 else if (nm.StartsWith("AnimalEffigie"))
                                 {
                                     img = animal;
+                                    chestW = 16;
+                                    chestH = 16;
+                                }
+                                else if (nm.StartsWith("WorldFusionGenerator"))
+                                {
+                                    img = fusion;
                                     chestW = 16;
                                     chestH = 16;
                                 }
