@@ -15,6 +15,7 @@ using System;
 using TMPro;
 using Steamworks;
 using Unity.Netcode;
+using System.Text;
 
 namespace FixUnofficialPatches
 {
@@ -161,6 +162,39 @@ namespace FixUnofficialPatches
                     && dialog != DataConfig.UiType.Chat;
             }
             return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(TextHelpers), nameof(TextHelpers.AddLineBreaksOnText))]
+        static bool TextHelpers_AddLineBreaksOnText(
+            string textToLineBreak,
+            ref string __result)
+        {
+            if (textToLineBreak.Contains("<br>"))
+            {
+                __result = textToLineBreak;
+            } 
+            else
+            {
+                var sentences = textToLineBreak.Split(". ");
+                var sb = new StringBuilder(textToLineBreak.Length + 8 * sentences.Length + 10);
+
+                for (int i = 0; i < sentences.Length; i++)
+                {
+                    sb.Append(sentences[i]);
+                    if (i < sentences.Length - 1)
+                    {
+                        sb.Append(". ");
+                        if (i % 2 == 0)
+                        {
+                            sb.Append("<br><br>");
+                        }
+                    }
+                }
+
+                __result = sb.ToString();
+            }
+            return false;
         }
     }
 }
