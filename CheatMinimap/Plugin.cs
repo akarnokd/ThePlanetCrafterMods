@@ -434,12 +434,12 @@ namespace CheatMinimap
                         || go.name.Contains("WorldWardrobe")
                         || go.name.Contains("Satellite")
                         || (go.name.Contains("WorldContainer") && parentName.StartsWith("WorldRoverWithContainer"))
-                        || (go.name.StartsWith("WorldFusionGenerator") && showWreckFusion.Value)
+                        || (go.name.Contains("FusionGenerator") && showWreckFusion.Value)
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
                         var invAssocProxy = go.GetComponentInParent<InventoryAssociatedProxy>();
-                        var hideWhenFull = go.name.StartsWith("WorldFusionGenerator");
+                        var hideWhenFull = go.name.Contains("FusionGenerator");
 
                         if (invAssoc != null && (invAssocProxy == null || (NetworkManager.Singleton?.IsServer ?? false)))
                         {
@@ -900,7 +900,7 @@ namespace CheatMinimap
                                     chestW = 16;
                                     chestH = 16;
                                 }
-                                else if (nm.StartsWith("WorldFusionGenerator"))
+                                else if (nm.Contains("FusionGenerator"))
                                 {
                                     img = fusion;
                                     chestW = 16;
