@@ -19,7 +19,7 @@ akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.90
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.38
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.63
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.64
 # (Cheat) More Trade
 akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.12
 # (Cheat) Highlight Nearby Resources
@@ -121,7 +121,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.26
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.30
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.6
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.7
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.29
 # (UI) Korean Translation

@@ -411,13 +411,16 @@ namespace CheatMinimap
                 try
                 {
                     var go = ia.gameObject;
-                    if (go.name.Contains("WorldContainer") 
+                    var parentName = go.transform.parent != null ? go.transform.parent.name : "";
+
+                    if ((go.name.Contains("WorldContainer") && !parentName.StartsWith("WorldRoverWithContainer"))
                         || go.name.Contains("GoldenContainer") 
                         || go.name.Contains("WorldCanister")
                         || go.name.Contains("WreckContainer")
                         || go.name.Contains("WreckCanister")
                     )
                     {
+
                         chests.Add(go);
                     }
                     else if (
@@ -426,6 +429,7 @@ namespace CheatMinimap
                         || (showDrones.Value && (!go.name.Contains("Clone") && go.name.StartsWith("Drone") && go.name.Length > 5))
                         || go.name.Contains("WorldWardrobe")
                         || go.name.Contains("Satellite")
+                        || (go.name.Contains("WorldContainer") && parentName.StartsWith("WorldRoverWithContainer"))
                     )
                     {
                         var invAssoc = go.GetComponentInParent<InventoryAssociated>();
@@ -521,7 +525,7 @@ namespace CheatMinimap
 
                         string name1 = tr.gameObject.name;
                         if (showWreckDeconstructibles.Value
-                            && name1.Contains("WreckPilar"))
+                            && (name1.Contains("WreckPilar") || name1.Contains("WorldPilar")))
                         {
                             chests.Add(tr.gameObject);
                             break;
