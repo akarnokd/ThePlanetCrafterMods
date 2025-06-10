@@ -62,23 +62,6 @@ namespace CheatInventoryStacking
         /// </summary>
         public static readonly Func<int, bool> apiCanStack = CanStack;
 
-        /// <summary>
-        /// Overwrite this function from other mod(s) to indicate that mod
-        /// is ready to provide a reasonable result in the <see cref="FindInventoryForGroupID"/> call.
-        /// I.e., if the mod's functionality is currently disabled, return false here
-        /// and <see cref="FindInventoryForGroupID"/> won't be called. In the relevant methods,
-        /// the default inventory for that particular case will be used instead.
-        /// </summary>
-        public static Func<bool> IsFindInventoryForGroupIDEnabled;
-
-        /// <summary>
-        /// Overwrite this function from other mod(s) to modify the deposition logic
-        /// of MachineGenerator::GenerateAnObject. Return null if no inventory can be found.
-        /// Use <see cref="IsFindInventoryForGroupIDEnabled"/> to indicate if this method
-        /// should be called at all or not.
-        /// </summary>
-        public static Func<string, int, Inventory> FindInventoryForGroupID;
-
         // -------------------------------------------------------------------------------------------------------------
         // API: pointed to by the delegates. Please use the delegates instead of doing reflective method calls on these.
         // -------------------------------------------------------------------------------------------------------------

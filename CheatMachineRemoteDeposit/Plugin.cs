@@ -22,7 +22,7 @@ namespace CheatMachineRemoteDeposit
         const string modCheatInventoryStackingGuid = "akarnokd.theplanetcraftermods.cheatinventorystacking";
         const string modCheatMachineRemoteDepositGuid = "akarnokd.theplanetcraftermods.cheatmachineremotedeposit";
 
-        static readonly Version stackingMinVersion = new(1, 0, 1, 75);
+        static readonly Version stackingMinVersion = new(1, 0, 1, 92);
 
         static ManualLogSource logger;
 
@@ -37,27 +37,19 @@ namespace CheatMachineRemoteDeposit
         /// </summary>
         static Func<Inventory, string, bool> InventoryCanAdd;
 
-        /// <summary>
-        /// If set, the <see cref="MachineGenerator_GenerateAnObject(List{GroupData}, bool, WorldObject, List{GroupData}, ref WorldUnitsHandler, TerraformStage)"/>
-        /// won't be executed because the business logic has been taken care of by the stacking mod.
-        /// </summary>
-        static bool stackingOverridden;
-
-        /// <summary>
-        /// We need to know if the stackSize > 1 because otherwise stacking does nothing and we have to do it in
-        /// GenerateAnObject.
-        /// </summary>
-        static ConfigEntry<int> stackSize;
-
         static ConfigEntry<string> aliases;
 
         static ConfigEntry<string> dumpName;
+
+        static ConfigEntry<int> period;
 
         static Plugin me;
 
         static readonly Dictionary<int, Coroutine> clearCoroutines = [];
 
         static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
+
+        static long coroutineIndex;
 
         void Awake()
         {
@@ -76,6 +68,8 @@ namespace CheatMachineRemoteDeposit
             aliases = Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C");
 
             dumpName = Config.Bind("General", "DumpName", "*Dump", "The name of the container to default deposit ores if no specific container was found.");
+
+            period = Config.Bind("General", "Period", 5, "How often should the machines be emptied?");
 
             ProcessAliases(aliases);
 
@@ -104,20 +98,10 @@ namespace CheatMachineRemoteDeposit
 
                 var modType = info.Instance.GetType();
 
-                // make sure stacking knowns when this mod is enabled before calling that callback
-                AccessTools.Field(modType, "IsFindInventoryForGroupIDEnabled")
-                    .SetValue(null, new Func<bool>(() => modEnabled.Value));
-                // tell stacking to use this callback to find an inventory for a group id
-                AccessTools.Field(modType, "FindInventoryForGroupID")
-                    .SetValue(null, new Func<string, int, Inventory>(FindInventoryForOre));
-
                 // get the function that can tell if an inventory can't take one item of a provided group id
                 var apiIsFullStackedInventory = (Func<Inventory, string, bool>)AccessTools.Field(modType, "apiIsFullStackedInventory").GetValue(null);
                 // we need to logically invert it as we need it as "can-do"
                 InventoryCanAdd = (inv, gid) => !apiIsFullStackedInventory(inv, gid);
-
-                stackSize = (ConfigEntry<int>)AccessTools.Field(modType, "stackSize").GetValue(null);
-                stackingOverridden = true;
             }
             else
             {
@@ -167,120 +151,6 @@ namespace CheatMachineRemoteDeposit
             }
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineGenerator), "GenerateAnObject")]
-        static bool MachineGenerator_GenerateAnObject(
-            List<GroupData> ___groupDatas,
-            bool ___setGroupsDataViaLinkedGroup,
-            WorldObject ____worldObject,
-            List<GroupData> ___groupDatasTerraStage,
-            ref WorldUnitsHandler ____worldUnitsHandler,
-            ref TerraformStage ____terraStage,
-            string ___terraStageNameInPlanetData
-        )
-        {
-            if (!modEnabled.Value)
-            {
-                return true;
-            }
-            if (stackingOverridden && stackSize.Value > 1)
-            {
-                return true;
-            }
-
-            var sw = Stopwatch.StartNew();
-            Log("GenerateAnObject start " + ____worldObject.GetId() + " (" + ____worldObject.GetGroup().GetId() + ") " + ____worldObject.GetPlanetHash());
-
-            if (____worldUnitsHandler == null)
-            {
-                ____worldUnitsHandler = Managers.GetManager<WorldUnitsHandler>();
-            }
-            if (____worldUnitsHandler == null)
-            {
-                return false;
-            }
-            if (____terraStage == null && !string.IsNullOrEmpty(___terraStageNameInPlanetData))
-            {
-                ____terraStage = typeof(PlanetData).GetField(___terraStageNameInPlanetData).GetValue(Managers.GetManager<PlanetLoader>().GetCurrentPlanetData()) as TerraformStage;
-            }
-
-            Log("    begin ore search");
-
-            Group group = null;
-            if (___setGroupsDataViaLinkedGroup)
-            {
-                List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
-                if (linkedGroups != null && linkedGroups.Count != 0)
-                {
-                    group = linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
-                }
-            }
-            else if (___groupDatas.Count != 0)
-            {
-                List<GroupData> list = [.. ___groupDatas];
-                List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
-                if (linkedGroups != null)
-                {
-                    foreach (var linkedGroup in linkedGroups)
-                    {
-                        list.Add(linkedGroup.GetGroupData());
-                    }
-                }
-
-                var planetId = Managers.GetManager<PlanetLoader>()
-                    .planetList
-                    .GetPlanetFromIdHash(____worldObject.GetPlanetHash())
-                    .GetPlanetId();
-
-                if (___groupDatasTerraStage.Count != 0 
-                    && ____worldUnitsHandler.IsWorldValuesAreBetweenStages(____terraStage, null, planetId))
-                {
-                    list.AddRange(___groupDatasTerraStage);
-                }
-                group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
-            }
-
-            // deposit the ore
-
-            if (group != null)
-            {
-                string oreId = group.id;
-
-                Log("    ore: " + oreId);
-
-                var inventory = FindInventoryForOre(oreId, ____worldObject.GetPlanetHash());                
-
-                if (inventory != null)
-                {
-                    InventoriesHandler.Instance.AddItemToInventory(group, inventory, (success, id) =>
-                    {
-                        if (!success)
-                        {
-                            Log("GenerateAnObject: Machine " + ____worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
-                            if (id != 0)
-                            {
-                                WorldObjectsHandler.Instance.DestroyWorldObject(id);
-                            }
-                        } else
-                        {
-                            Log("GenerateAnObject: Machine " + ____worldObject.GetId() + " ore " + oreId + " added to inventory " + inventory.GetId());
-                        }
-                    });
-                }
-                else
-                {
-                    Log("    No suitable inventory found, ore ignored");
-                }
-            }
-            else
-            {
-                Log("    ore: none");
-            }
-
-            Log("GenerateAnObject end. " + sw.Elapsed.TotalMilliseconds + " ms");
-            return false;
-        }
-
         /// <summary>
         /// When the vanilla sets up a Machine Generator, we have to launch
         /// the inventory cleaning routine to unclog it.
@@ -292,11 +162,10 @@ namespace CheatMachineRemoteDeposit
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.SetGeneratorInventory))]
         static void MachineGenerator_SetGeneratorInventory(
-            MachineGenerator __instance, 
             Inventory inventory,
             WorldObject ____worldObject)
         {
-            StartClearMachineInventory(inventory, __instance.spawnEveryXSec, ____worldObject.GetPlanetHash());
+            StartClearMachineInventory(inventory, ____worldObject.GetPlanetHash());
         }
 
         /// <summary>
@@ -309,45 +178,55 @@ namespace CheatMachineRemoteDeposit
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineGenerator), nameof(MachineGenerator.AddToGenerationSpeedMultiplier))]
         static void MachineGenerator_AddToGenerationSpeedMultiplier(
-            MachineGenerator __instance,
             Inventory ____inventory,
             WorldObject ____worldObject
         )
         {
             StartClearMachineInventory(
-                ____inventory, __instance.spawnEveryXSec, ____worldObject.GetPlanetHash());
+                ____inventory, ____worldObject.GetPlanetHash());
         }
 
-        static IEnumerator ClearMachineInventory(Inventory _inventory, int delay, int planetHash)
+        static IEnumerator ClearMachineInventory(Inventory _inventory, int planetHash)
         {
-            var wait = new WaitForSeconds(delay);
+            long n = ++coroutineIndex % 60;
+            while (--n > 0)
+            {
+                yield return null;
+            }
             while (true)
             {
                 // Server side is responsible for the transfer.
                 if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
-                    var sw = Stopwatch.StartNew();
-                    Log("ClearMachineInventory begin: " + _inventory.GetId() + " on " + planetHash);
                     var items = _inventory.GetInsideWorldObjects();
-
-                    for (int i = items.Count - 1; i >= 0; i--)
+                    var originalCount = items.Count;
+                    if (originalCount != 0)
                     {
-                        if (i < items.Count)
+                        var sw = Stopwatch.StartNew();
+                        Log("ClearMachineInventory begin: " + _inventory.GetId() + " on " + planetHash + " count " + originalCount);
+
+                        for (int i = items.Count - 1; i >= 0; i--)
                         {
-                            var item = items[i];
-                            var oreId = item.GetGroup().GetId();
-                            var candidateInv = FindInventoryForOre(oreId, planetHash);
-                            if (candidateInv != null)
+                            if (i < items.Count)
                             {
-                                Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
-                                InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
+                                var item = items[i];
+                                var oreId = item.GetGroup().GetId();
+                                var candidateInv = FindInventoryForOre(oreId, planetHash);
+                                if (candidateInv != null)
+                                {
+                                    Log("    Transfer of " + item.GetId() + " (" + item.GetGroup().GetId() + ") from " + _inventory.GetId() + " to " + candidateInv.GetId());
+                                    InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
+                                }
+                            }
+                            if (i != 0)
+                            {
+                                yield return null;
                             }
                         }
-                        yield return null;
+                        Log("ClearMachineInventory end: " + _inventory.GetId() + " on " + planetHash + " count " + originalCount + ", elapsed " + sw.Elapsed.TotalMilliseconds);
                     }
-                    Log("ClearMachineInventory end: " + _inventory.GetId() + " on " + planetHash + ", elapsed " + sw.Elapsed.TotalMilliseconds);
                 }
-                yield return wait;
+                yield return new WaitForSeconds(period.Value);
             }
         }
 
@@ -440,15 +319,15 @@ namespace CheatMachineRemoteDeposit
             }
 
             var inv = fMachineDisintegratorSecondInventory(__instance);
-            StartClearMachineInventory(inv, 4, planetHash);
+            StartClearMachineInventory(inv, planetHash);
         }
 
-        static void StartClearMachineInventory(Inventory inventory, int delay, int planetHash)
+        static void StartClearMachineInventory(Inventory inventory, int planetHash)
         {
             StopClearMachineInventory(inventory);
-            var coroutine = me.StartCoroutine(ClearMachineInventory(inventory, delay, planetHash));
+            var coroutine = me.StartCoroutine(ClearMachineInventory(inventory, planetHash));
             clearCoroutines[inventory.GetId()] = coroutine;
-            Log("StartClearMachineInventory: " + inventory.GetId() + ", delay " + delay + ", planet " + planetHash);
+            Log("StartClearMachineInventory: " + inventory.GetId() + ", delay " + period.Value + ", planet " + planetHash);
         }
 
         static void StopClearMachineInventory(Inventory inventory) 

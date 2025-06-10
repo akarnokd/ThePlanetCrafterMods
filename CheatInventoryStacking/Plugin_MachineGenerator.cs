@@ -89,10 +89,6 @@ namespace CheatInventoryStacking
                     LogMG("    ore: " + oreId);
 
                     var inventory = ____inventory;
-                    if ((IsFindInventoryForGroupIDEnabled?.Invoke() ?? false) && FindInventoryForGroupID != null)
-                    {
-                        inventory = FindInventoryForGroupID(oreId, ____worldObject.GetPlanetHash());
-                    }
 
                     if (inventory != null)
                     {

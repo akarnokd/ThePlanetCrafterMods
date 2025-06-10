@@ -5,8 +5,6 @@ using BepInEx;
 using SpaceCraft;
 using BepInEx.Logging;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
-using Unity.Netcode;
 using HarmonyLib;
 using System.Threading;
 using System.Collections.Generic;
