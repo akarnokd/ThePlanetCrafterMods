@@ -83,6 +83,8 @@ namespace CheatInventoryStacking
         // API: pointed to by the delegates. Please use the delegates instead of doing reflective method calls on these.
         // -------------------------------------------------------------------------------------------------------------
 
+        static Dictionary<string, int> groupCounts = [];
+
         /// <summary>
         /// Returns the number of stacks in the given list (inventory content).
         /// </summary>
@@ -90,7 +92,7 @@ namespace CheatInventoryStacking
         /// <returns>The number of stacks occupied by the list of items.</returns>
         static int GetStackCount(IEnumerable<WorldObject> items)
         {
-            Dictionary<string, int> groupCounts = [];
+            groupCounts.Clear();
 
             int n = stackSize.Value;
             int stacks = 0;
@@ -113,7 +115,7 @@ namespace CheatInventoryStacking
         /// <returns>True if the Inventory would occupy more slots than inventorySize.</returns>
         static bool IsFullStacked(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
         {
-            Dictionary<string, int> groupCounts = [];
+            groupCounts.Clear();
 
             int n = stackSize.Value;
             int stacks = 0;
@@ -133,7 +135,7 @@ namespace CheatInventoryStacking
 
         static bool IsLastSlotOccupied(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
         {
-            Dictionary<string, int> groupCounts = [];
+            groupCounts.Clear();
 
             int n = stackSize.Value;
             int stacks = 0;

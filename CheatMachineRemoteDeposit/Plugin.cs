@@ -188,7 +188,8 @@ namespace CheatMachineRemoteDeposit
                 return true;
             }
 
-            Log("GenerateAnObject start");
+            var sw = Stopwatch.StartNew();
+            Log("GenerateAnObject start " + ____worldObject.GetId() + " (" + ____worldObject.GetGroup().GetId() + ") " + ____worldObject.GetPlanetHash());
 
             if (____worldUnitsHandler == null)
             {
@@ -276,7 +277,7 @@ namespace CheatMachineRemoteDeposit
                 Log("    ore: none");
             }
 
-            Log("GenerateAnObject end");
+            Log("GenerateAnObject end. " + sw.Elapsed.TotalMilliseconds + " ms");
             return false;
         }
 

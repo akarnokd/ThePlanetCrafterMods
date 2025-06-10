@@ -4,6 +4,7 @@
 using HarmonyLib;
 using SpaceCraft;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CheatInventoryStacking
 {
@@ -26,7 +27,8 @@ namespace CheatInventoryStacking
             {
                 // TODO these below are mostly duplicated within (Cheat) Machine Deposit Into Remote Containers
                 //      eventually it would be great to get it factored out in some fashion...
-                Log("GenerateAnObject start");
+                var sw = Stopwatch.StartNew();
+                Log("GenerateAnObject start " + ____worldObject.GetId() + " (" + ____worldObject.GetGroup().GetId() + ") " + ____worldObject.GetPlanetHash());
 
                 if (____worldUnitsHandler == null)
                 {
@@ -116,7 +118,7 @@ namespace CheatInventoryStacking
                     Log("    ore: none");
                 }
 
-                Log("GenerateAnObject end");
+                Log("GenerateAnObject end. " + sw.Elapsed.TotalMilliseconds + " ms");
                 return false;
             }
             return true;

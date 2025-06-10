@@ -90,7 +90,7 @@ namespace CheatInventoryStacking
                         }
                     }
 
-                    Dictionary<string, int> groupCounts = [];
+                    groupCounts.Clear();
 
                     int n = stackSize.Value;
                     int stacks = 0;
