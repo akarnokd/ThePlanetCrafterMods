@@ -97,7 +97,7 @@ namespace CheatInventoryStacking
                 var demandLE = demandInventory.GetLogisticEntity();
                 var supplyCounter = 0;
 
-                var sw1 = Stopwatch.StartNew();
+                // var sw1 = Stopwatch.StartNew();
                 foreach (var demandGroup in demandLE.GetDemandGroups())
                 {
                     var isFull = IsFullStackedOfInventory(demandInventory, demandGroup.id);

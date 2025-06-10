@@ -392,7 +392,7 @@ namespace CheatInventoryStacking
             {
                 List<WorldObject> toDrop = [];
 
-                while (IsFullStacked(____worldObjectsInInventory, ____inventorySize))
+                while (IsFullStacked(____worldObjectsInInventory, ____inventorySize, null))
                 {
                     int lastIdx = ____worldObjectsInInventory.Count - 1;
                     WorldObject worldObject = ____worldObjectsInInventory[lastIdx];

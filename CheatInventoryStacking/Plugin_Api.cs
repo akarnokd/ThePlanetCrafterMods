@@ -96,7 +96,7 @@ namespace CheatInventoryStacking
         /// <param name="inventorySize">The inventory size in number of stacks.</param>
         /// <param name="gid">The optional item group id to check if it can be added or not.</param>
         /// <returns>True if the Inventory would occupy more slots than inventorySize.</returns>
-        static bool IsFullStacked(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
+        static bool IsFullStacked(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
             groupCounts.Clear();
 
@@ -157,7 +157,7 @@ namespace CheatInventoryStacking
         /// <param name="inventory">The target inventory.</param>
         /// <param name="gid">The optional item group id to check if it can be added or not.</param>
         /// <returns>True if the list is full.</returns>
-        static bool IsFullStackedOfInventory(Inventory inventory, string gid = null)
+        static bool IsFullStackedOfInventory(Inventory inventory, string gid)
         {
             if (!CanStack(inventory.GetId()))
             {
