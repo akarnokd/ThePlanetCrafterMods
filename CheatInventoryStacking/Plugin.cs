@@ -55,6 +55,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackEcosystems;
 
         static ConfigEntry<bool> debugMode;
+        static ConfigEntry<bool> debugModeLogMachineGenerator;
         static ConfigEntry<int> networkBufferScaling;
         static ConfigEntry<int> logisticsTimeLimit;
         static ConfigEntry<bool> debugOverrideLogisticsAnyway;
@@ -143,6 +144,7 @@ namespace CheatInventoryStacking
 
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
             debugOverrideLogisticsAnyway = Config.Bind("General", "DebugOverrideLogisticsAnyway", false, "If true, the custom logistics code still runs on StackSize <= 1");
+            debugModeLogMachineGenerator = Config.Bind("General", "DebugModeMachineGenerator", false, "Produce detailed logs for the machine generators? (chatty)");
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
@@ -277,6 +279,14 @@ namespace CheatInventoryStacking
         static void Log(string s)
         {
             if (debugMode.Value)
+            {
+                logger.LogInfo(s);
+            }
+        }
+
+        static void LogMG(string s)
+        {
+            if (debugModeLogMachineGenerator.Value)
             {
                 logger.LogInfo(s);
             }

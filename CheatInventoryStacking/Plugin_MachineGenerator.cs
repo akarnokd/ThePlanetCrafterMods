@@ -28,7 +28,7 @@ namespace CheatInventoryStacking
                 // TODO these below are mostly duplicated within (Cheat) Machine Deposit Into Remote Containers
                 //      eventually it would be great to get it factored out in some fashion...
                 var sw = Stopwatch.StartNew();
-                Log("GenerateAnObject start " + ____worldObject.GetId() + " (" + ____worldObject.GetGroup().GetId() + ") " + ____worldObject.GetPlanetHash());
+                LogMG("GenerateAnObject start " + ____worldObject.GetId() + " (" + ____worldObject.GetGroup().GetId() + ") " + ____worldObject.GetPlanetHash());
 
                 if (____worldUnitsHandler == null)
                 {
@@ -44,7 +44,7 @@ namespace CheatInventoryStacking
                 }
 
 
-                Log("    begin ore search");
+                LogMG("    begin ore search");
 
                 Group group = null;
                 if (___setGroupsDataViaLinkedGroup)
@@ -86,7 +86,7 @@ namespace CheatInventoryStacking
                 {
                     string oreId = group.id;
 
-                    Log("    ore: " + oreId);
+                    LogMG("    ore: " + oreId);
 
                     var inventory = ____inventory;
                     if ((IsFindInventoryForGroupIDEnabled?.Invoke() ?? false) && FindInventoryForGroupID != null)
@@ -100,7 +100,7 @@ namespace CheatInventoryStacking
                         {
                             if (!success)
                             {
-                                Log("GenerateAnObject: Machine " + ____worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
+                                LogMG("GenerateAnObject: Machine " + ____worldObject.GetId() + " could not add " + oreId + " to inventory " + inventory.GetId());
                                 if (id != 0)
                                 {
                                     WorldObjectsHandler.Instance.DestroyWorldObject(id);
@@ -110,15 +110,15 @@ namespace CheatInventoryStacking
                     }
                     else
                     {
-                        Log("    No suitable inventory found, ore ignored");
+                        LogMG("    No suitable inventory found, ore ignored");
                     }
                 }
                 else
                 {
-                    Log("    ore: none");
+                    LogMG("    ore: none");
                 }
 
-                Log("GenerateAnObject end. " + sw.Elapsed.TotalMilliseconds + " ms");
+                LogMG("GenerateAnObject end. " + sw.Elapsed.TotalMilliseconds + " ms");
                 return false;
             }
             return true;

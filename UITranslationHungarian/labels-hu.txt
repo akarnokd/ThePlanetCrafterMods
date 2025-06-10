@@ -1695,3 +1695,4 @@ GROUP_NAME_Skin-21=Sunsio Űrruha
 Message_aqualis_ending=Gratulálunk, terraformált egy óceán típusú égitestet. Az eredményessége hasznos adatokat eredményezett az efféle holdak terraformálásáról. Ez valószínűleg javíani fogja az elítéltek sikerességi arányát a különféle galaxisokban. Az elkövetkező hónapokban folytatjuk a szektorának vizsgálatát további potenciális terraformálható bolygók után.
 Message_selenea_ending=Gratulálunk, sikeresen terraformált egy holdat. Ismételten, köszönhetően a Sentinel Vállalat technológiájának, a terraformálás sosem volt még ennyire könnyű. Más díszes vállalatok igényeivel szemben ismét bebizonyosodott, hogy az egyedüli mód bolygók és holdak terraformálására emberi munkát követel. Köszönjük, hogy részt vett a ""Jobb Élet"" programban. A részvételét rögzítettük a bűnügyi aktájában.
 Ui_TitleScreen_NewUpdate=A Holdak frissítés megjelent! <br>Kattints ide a részletekhez.
+Menu_Options_SaveDelay=Automatikus mentés intervallum (perc)

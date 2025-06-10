@@ -83,6 +83,8 @@ namespace CheatInventoryStacking
             Log("  LogisticManager::SetLogisticTasks demand    " + ____demandInventories.Count);
             Log("  LogisticManager::SetLogisticTasks supply    " + ____supplyInventories.Count);
 
+            var inventoryActualSupplyGroups = new Dictionary<int, HashSet<string>>();
+
             for (int i = 0; i < ____demandInventories.Count; i++)
             {
                 Inventory demandInventory = ____demandInventories[i];
@@ -94,6 +96,8 @@ namespace CheatInventoryStacking
                 var demandCount = demandInventory.GetInsideWorldObjects().Count;
                 var demandLE = demandInventory.GetLogisticEntity();
                 var supplyCounter = 0;
+
+                var sw1 = Stopwatch.StartNew();
                 foreach (var demandGroup in demandLE.GetDemandGroups())
                 {
                     var isFull = IsFullStackedOfInventory(demandInventory, demandGroup.id);
@@ -110,51 +114,34 @@ namespace CheatInventoryStacking
                                 && supplyLE.GetPlanetHash() == demandLE.GetPlanetHash()
                                 && supplyLE.GetSupplyGroups().Contains(demandGroup))
                             {
-                                foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
-                                {
-                                    supplyCounter++;
-                                    if (supplyWo.GetGroup() == demandGroup)
-                                    {
-                                        if (demandCount + demandLE.waitingDemandSlots < demandInventorySize)
-                                        {
-                                            CreateNewTaskForWorldObject(
-                                                supplyInventory, demandInventory, supplyWo,
-                                                ____allLogisticTasks);
-                                        } 
-                                    }
-                                    if (demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
+                                var isCached = inventoryActualSupplyGroups.TryGetValue(supplyInventory.GetId(), out var hasGroups);
 
-                            if (demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
-                            {
-                                break;
-                            }
-                        }
-
-                        foreach (var wo in pickables)
-                        {
-                            supplyCounter++;
-                            if (wo.GetGroup() == demandGroup
-                                && wo.GetPosition() != Vector3.zero
-                                && wo.GetPlanetHash() == demandLE.GetPlanetHash()
-                                && !____allLogisticTasks.ContainsKey(wo.GetId())
-                            )
-                            {
-                                if (demandCount + demandLE.waitingDemandSlots < demandInventorySize)
+                                if (hasGroups == null || hasGroups.Contains(demandGroup.id))
                                 {
-                                    var go = wo.GetGameObject();
-                                    if (go != null)
+                                    foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
                                     {
-                                        var ag = go.GetComponentInChildren<ActionGrabable>();
-                                        if (ag != null && !LibCommon.GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
+                                        supplyCounter++;
+                                        if (supplyWo.GetGroup() == demandGroup)
                                         {
-                                            CreateNewTaskForWorldObjectForSpawnedObject(
-                                                demandInventory, wo,
-                                                ____allLogisticTasks);
+                                            if (demandCount + demandLE.waitingDemandSlots < demandInventorySize)
+                                            {
+                                                CreateNewTaskForWorldObject(
+                                                    supplyInventory, demandInventory, supplyWo,
+                                                    ____allLogisticTasks);
+                                            }
+                                        }
+                                        if (hasGroups == null)
+                                        {
+                                            hasGroups = [];
+                                            inventoryActualSupplyGroups[supplyInventory.GetId()] = hasGroups;
+                                        }
+                                        if (!isCached)
+                                        {
+                                            hasGroups.Add(supplyWo.GetGroup().id);
+                                        }
+                                        if (isCached && demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
+                                        {
+                                            break;
                                         }
                                     }
                                 }
@@ -164,16 +151,84 @@ namespace CheatInventoryStacking
                             {
                                 break;
                             }
+                        }
 
+                        var isCachedPick = inventoryActualSupplyGroups.TryGetValue(0, out var hasGroupsPick);
+
+                        if (hasGroupsPick == null || hasGroupsPick.Contains(demandGroup.id))
+                        {
+                            foreach (var wo in pickables)
+                            {
+                                supplyCounter++;
+                                if (wo.GetGroup() == demandGroup
+                                    && wo.GetPosition() != Vector3.zero
+                                    && wo.GetPlanetHash() == demandLE.GetPlanetHash()
+                                    && !____allLogisticTasks.ContainsKey(wo.GetId())
+                                )
+                                {
+                                    if (demandCount + demandLE.waitingDemandSlots < demandInventorySize)
+                                    {
+                                        var go = wo.GetGameObject();
+                                        if (go != null)
+                                        {
+                                            var ag = go.GetComponentInChildren<ActionGrabable>();
+                                            if (ag != null && !LibCommon.GrabChecker.IsOnDisplay(ag) && ag.GetCanGrab())
+                                            {
+                                                CreateNewTaskForWorldObjectForSpawnedObject(
+                                                    demandInventory, wo,
+                                                    ____allLogisticTasks);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (hasGroupsPick == null)
+                                {
+                                    hasGroupsPick = [];
+                                    inventoryActualSupplyGroups[0] = hasGroupsPick;
+                                }
+                                if (!isCachedPick)
+                                {
+                                    hasGroupsPick.Add(wo.GetGroup().id);
+                                }
+
+                                if (isCachedPick && demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
+                                {
+                                    break;
+                                }
+
+                            }
                         }
                     }
                 }
+                /*
+                if (sw1.Elapsed.TotalMilliseconds > 17)
+                {
+                    Log("    LogisticManager::SetLogisticTasks: Inventory " + demandInventory.GetId() + " on " + demandLE.GetPlanetHash() + " took " + sw1.Elapsed.TotalMilliseconds + " ms");
+                    foreach (var demandGroup in demandLE.GetDemandGroups())
+                    {
+                        foreach (var supplyInventory in ____supplyInventories)
+                        {
+                            var supplyLE = supplyInventory.GetLogisticEntity();
+                            if (demandInventory != supplyInventory
+                                && supplyLE.GetWorldObject() != null
+                                && supplyLE.GetPlanetHash() == demandLE.GetPlanetHash()
+                                && supplyLE.GetSupplyGroups().Contains(demandGroup)
+                                && inventoryActualSupplyGroups.TryGetValue(supplyInventory.GetId(), out var hasGroup) && hasGroup.Contains(demandGroup.id)) 
+                            {
+                                Log("      Supply " + demandGroup.id + " from " + supplyInventory.GetId() + " count " + supplyInventory.GetInsideWorldObjects().Count);
+                            }
+                        }
+                    }
+                }
+                */
                 var elaps0 = timer.Elapsed.TotalMilliseconds;
                 if (elaps0 >= frametimeLimit)
                 {
                     yield return null;
                     timer.Restart();
                     frameSkipCount++;
+                    inventoryActualSupplyGroups.Clear();
                     Log("    LogisticManager::SetLogisticTasks Timeout on demand discovery. "
                         + elaps0.ToString("0.000") + " ms, Curr: " + i + ", Count: " + ____demandInventories.Count + ", SupplyCount: " + supplyCounter);
                 }

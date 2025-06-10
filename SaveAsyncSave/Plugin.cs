@@ -15,6 +15,9 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Linq;
+using UnityEngine;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace SaveAsyncSave
 {
@@ -163,6 +166,56 @@ namespace SaveAsyncSave
         static void SavedDataHandler_SetAndGetInventories_Post(ref Stopwatch __state)
         {
             Log("SavedDataHandler_SetAndGetInventories: " + __state.Elapsed.TotalMilliseconds);
+        }
+
+        static string GetWorldStateSaveFilePath(string _saveFileName)
+        {
+            return $"{Application.persistentDataPath}/{_saveFileName}.json";
+        }
+
+        static string CleanSaveStringOfVariables(string finalSaveString)
+        {
+            finalSaveString = Regex.Replace(finalSaveString, ",\"gameMode\":[0-9]", "");
+            finalSaveString = Regex.Replace(finalSaveString, ",\"gameDyingConsequences\":[0-9]", "");
+            finalSaveString = Regex.Replace(finalSaveString, ",\"gameStartLocation\":[0-9]", "");
+            return finalSaveString;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JSONExport), "SaveStringsInFile")]
+        static void SaveStringsInFile(
+            string _saveFileName, 
+            List<string> _saveStrings,
+            char ___chunckDelimiter,
+            in char ___listDelimiter
+        )
+        {
+            string text = "";
+            foreach (string _saveString in _saveStrings)
+            {
+                string text2 = "\r" + _saveString.Replace(___listDelimiter.ToString(), ___listDelimiter + "\n") + "\r";
+                text = text + text2 + ___chunckDelimiter;
+            }
+
+            UnityEngine.Debug.Log("Saving in : " + GetWorldStateSaveFilePath(_saveFileName));
+            text = text.Replace(",\"demandGrps\":\"\",\"supplyGrps\":\"\",\"priority\":0", "");
+            text = text.Replace(",\"set\":0", "");
+            text = text.Replace(",\"grwth\":0", "");
+            text = text.Replace(",\"hunger\":0.0", "");
+            text = text.Replace(",\"trtVal\":0", "");
+            text = text.Replace(",\"trtInd\":0", "");
+            text = text.Replace(",\"siIds\":\"\"", "");
+            text = text.Replace(",\"pnls\":\"\"", "");
+            text = text.Replace(",\"color\":\"\"", "");
+            text = text.Replace(",\"text\":\"\"", "");
+            text = text.Replace(",\"liGrps\":\"\"", "");
+            text = text.Replace(",\"liId\":0", "");
+            text = text.Replace(",\"pos\":\"0,0,0\"", "");
+            text = text.Replace(",\"rot\":\"0,0,0,0\"", "");
+            text = text.Replace(",\"planet\":0", "");
+            text = text.Replace(",\"liPlanet\":0", "");
+            text = CleanSaveStringOfVariables(text);
+            File.WriteAllText(GetWorldStateSaveFilePath(_saveFileName), text);
         }
     }
 }

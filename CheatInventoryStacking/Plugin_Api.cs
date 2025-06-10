@@ -83,7 +83,7 @@ namespace CheatInventoryStacking
         // API: pointed to by the delegates. Please use the delegates instead of doing reflective method calls on these.
         // -------------------------------------------------------------------------------------------------------------
 
-        static Dictionary<string, int> groupCounts = [];
+        static readonly Dictionary<string, int> groupCounts = [];
 
         /// <summary>
         /// Returns the number of stacks in the given list (inventory content).
