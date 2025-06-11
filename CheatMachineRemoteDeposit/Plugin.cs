@@ -51,6 +51,8 @@ namespace CheatMachineRemoteDeposit
 
         static ConfigEntry<bool> sortSources;
 
+        static ConfigEntry<int> maxItems;
+
         static Plugin me;
 
         static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
@@ -84,6 +86,8 @@ namespace CheatMachineRemoteDeposit
             balance = Config.Bind("General", "Balance", false, "If true, the inventory with the least items in it will receive the produce, resulting in somewhat uniform filling of multiple inventories.");
 
             sortSources = Config.Bind("General", "SortSources", true, "If true, the machine's own inventory gets sorted before the deposition commences");
+
+            maxItems = Config.Bind("General", "MaxItems", 30, "The maximum number of items per source inventory to consider.");
 
             ProcessAliases(aliases);
 
@@ -220,6 +224,7 @@ namespace CheatMachineRemoteDeposit
                     var transferFailures = new Dictionary<Inventory, HashSet<string>>();
 
                     var clearCopy = new List<Inventory>(clearInventoryAndPlanetHash.Keys);
+                    clearCopy.Sort(balancedSorter);
                     foreach (var _inventory in clearCopy)
                     {
                         if (invh == null || invh.GetInventoryById(_inventory.GetId()) == null)
@@ -238,10 +243,11 @@ namespace CheatMachineRemoteDeposit
                             {
                                 _inventory.AutoSort();
                             }
-                            if (sw.Elapsed.TotalMilliseconds > timeLimit)
+                            var elaps0 = sw.Elapsed.TotalMilliseconds;
+                            if (elaps0 > timeLimit)
                             {
                                 skips++;
-                                Log("      --- yield (inv) --- " + sw.Elapsed.TotalMilliseconds);
+                                Log("      --- yield (inv) --- " + elaps0);
                                 yield return null;
                                 transferFailures.Clear();
                                 sw.Restart();
@@ -254,14 +260,16 @@ namespace CheatMachineRemoteDeposit
                             var mainList = default(List<Inventory>);
                             var dumpList = default(List<Inventory>);
 
-                            for (int i = items.Count - 1; i >= 0; i--)
+                            int j = maxItems.Value;
+                            for (int i = items.Count - 1; i >= 0 && j >= 0; i--, j--)
                             {
                                 if (i < items.Count)
                                 {
-                                    if (sw.Elapsed.TotalMilliseconds > timeLimit)
+                                    var elaps1 = sw.Elapsed.TotalMilliseconds;
+                                    if (elaps1 > timeLimit)
                                     {
                                         skips++;
-                                        Log("      --- yield (item) --- " + sw.Elapsed.TotalMilliseconds);
+                                        Log("      --- yield (item) --- " + elaps1);
                                         yield return null;
                                         transferFailures.Clear();
                                         sw.Restart();
@@ -286,10 +294,11 @@ namespace CheatMachineRemoteDeposit
                                     {
                                         if (invh != null && invh.GetInventoryById(candidate.GetId()) != null)
                                         {
-                                            if (sw.Elapsed.TotalMilliseconds > timeLimit)
+                                            var elaps2 = sw.Elapsed.TotalMilliseconds;
+                                            if (elaps2 > timeLimit)
                                             {
                                                 skips++;
-                                                Log("      --- yield (candidate) --- " + sw.Elapsed.TotalMilliseconds);
+                                                Log("      --- yield (candidate) --- " + elaps2);
                                                 yield return null;
                                                 transferFailures.Clear();
                                                 sw.Restart();

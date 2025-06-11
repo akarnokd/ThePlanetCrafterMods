@@ -182,5 +182,15 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(inventory.GetId());
             }
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SessionController), "Start")]
+        static void Patch_SessionController_Start()
+        {
+            foreach (var gr in GroupsHandler.GetAllGroups())
+            {
+                gr.id = string.Intern(gr.id);
+            }
+        }
     }
 }
