@@ -23,15 +23,15 @@ namespace LibCommon
         /// <returns></returns>
         public static string GetStackId(WorldObject wo)
         {
-            var grid = wo.GetGroup().GetId();
-            if (grid == "GeneticTrait")
+            var grid = wo.GetGroup().id;
+            if (ReferenceEquals(grid, "GeneticTrait"))
             {
                 var sb = new StringBuilder(48);
                 sb.Append(grid).Append("_");
                 AppendTraitInfo(wo.GetGeneticTraitType(), wo.GetGeneticTraitValue(), wo.GetColor(), sb);
                 return sb.ToString();
             }
-            else if (grid == "DNASequence")
+            else if (ReferenceEquals(grid, "DNASequence"))
             {
                 var sb = new StringBuilder(128);
                 var inv = InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId());
@@ -48,7 +48,7 @@ namespace LibCommon
                 }
                 return sb.ToString();
             }
-            else if (grid == "BlueprintT1")
+            else if (ReferenceEquals(grid, "BlueprintT1"))
             {
                 var sb = new StringBuilder(128);
                 sb.Append(grid);
