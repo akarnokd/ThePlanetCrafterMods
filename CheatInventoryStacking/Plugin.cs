@@ -361,17 +361,41 @@ namespace CheatInventoryStacking
             int ____inventorySize, 
             int ____inventoryId)
         {
-            if (stackSize.Value > 1 && CanStack(____inventoryId))
+            var n = stackSize.Value;
+            if (n > 1)
             {
+                int count = ____worldObjectsInInventory.Count;
+                // we have less than the capacity number of items
+                // can't be full even with stacking
+                if (count < ____inventorySize)
+                {
+                    __result = false;
+                    return false;
+                }
+                // this inventory is not allowed to stack?
+                // check if count is equal or exceeds the capacity
+                if (!CanStack(____inventoryId))
+                {
+                    __result = count >= ____inventorySize;
+                    return false;
+                }
+                // check if the inventory is fully-full
+                // no need to calculate stacks
+                if (count >= ____inventorySize * n)
+                {
+                    __result = true;
+                    return false;
+                }
                 string gid = expectedGroupIdToAdd;
                 expectedGroupIdToAdd = null;
+
                 if (isLastSlotOccupiedMode && gid == null)
                 {
                     __result = IsLastSlotOccupied(____worldObjectsInInventory, ____inventorySize, gid);
                 }
                 else
                 {
-                    __result = IsFullStacked(____worldObjectsInInventory, ____inventorySize, gid);
+                    __result = IsFullStackedList(____worldObjectsInInventory, ____inventorySize, gid);
                 }
                 return false;
             }
@@ -381,18 +405,19 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Inventory), nameof(Inventory.DropObjectsIfNotEnoughSpace))]
         static bool Patch_Inventory_DropObjectsIfNotEnoughSpace(
-            ref List<WorldObject> __result, 
+            ref List<WorldObject> __result,
+            int ____inventoryId,
             List<WorldObject> ____worldObjectsInInventory, 
             int ____inventorySize,
             Vector3 dropPosition,
             bool removeOnly
         )
         {
-            if (stackSize.Value > 1)
+            if (stackSize.Value > 1 && CanStack(____inventoryId))
             {
                 List<WorldObject> toDrop = [];
 
-                while (IsFullStacked(____worldObjectsInInventory, ____inventorySize, null))
+                while (GetStackCountList(____worldObjectsInInventory) > ____inventorySize)
                 {
                     int lastIdx = ____worldObjectsInInventory.Count - 1;
                     WorldObject worldObject = ____worldObjectsInInventory[lastIdx];

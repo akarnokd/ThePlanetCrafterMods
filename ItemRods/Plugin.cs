@@ -258,6 +258,32 @@ namespace ItemRods
                     }
                 }
             }
+
+            if (___localizationDictionary.TryGetValue("russian", out dictionary))
+            {
+                dictionary["GROUP_NAME_Rod-iron"] = "Железный стержень";
+                dictionary["GROUP_DESC_Rod-iron"] = "Чрезвычайно концентрированное железо";
+                dictionary["GROUP_NAME_Rod-sulfur"] = "Серный стержень";
+                dictionary["GROUP_DESC_Rod-sulfur"] = "Чрезвычайно концентрированная сера";
+                dictionary["GROUP_NAME_Rod-titanium"] = "Титановый стержень";
+                dictionary["GROUP_DESC_Rod-titanium"] = "Чрезвычайно концентрированный титан";
+                dictionary["GROUP_NAME_Rod-silicon"] = "Кремниевый стержень";
+                dictionary["GROUP_DESC_Rod-silicon"] = "Чрезвычайно концентрированный кремний";
+                dictionary["GROUP_NAME_Rod-cobalt"] = "Кобальтовый стержень";
+                dictionary["GROUP_DESC_Rod-cobalt"] = "Чрезвычайно концентрированный кобальт";
+                dictionary["GROUP_NAME_Rod-magnesium"] = "Магниевый стержень";
+                dictionary["GROUP_DESC_Rod-magnesium"] = "Чрезвычайно концентрированный магний";
+                dictionary["GROUP_NAME_Rod-aluminium"] = "Алюминиевый стержень";
+                dictionary["GROUP_DESC_Rod-aluminium"] = "Чрезвычайно концентрированный алюминий";
+                dictionary["GROUP_NAME_Rod-zeolite"] = "Цеолитовый стержень";
+                dictionary["GROUP_DESC_Rod-zeolite"] = "Чрезвычайно концентрированный цеолит";
+                dictionary["GROUP_NAME_Rod-obsidian"] = "Обсидиановый стержень";
+                dictionary["GROUP_DESC_Rod-obsidian"] = "Чрезвычайно концентрированный обсидиан";
+                dictionary["GROUP_NAME_Rod-phosphorus"] = "Фосфорный стержень";
+                dictionary["GROUP_DESC_Rod-phosphorus"] = "Чрезвычайно концентрированный фосфор";
+                dictionary["GROUP_NAME_Rod-selenium"] = "Селеновый стержень";
+                dictionary["GROUP_DESC_Rod-selenium"] = "Чрезвычайно концентрированный селен";
+            }
         }
     }
 }
