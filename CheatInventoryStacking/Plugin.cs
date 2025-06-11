@@ -56,6 +56,7 @@ namespace CheatInventoryStacking
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<bool> debugModeLogMachineGenerator;
+        static ConfigEntry<bool> debugModeOptimizations1;
         static ConfigEntry<int> networkBufferScaling;
         static ConfigEntry<int> logisticsTimeLimit;
         static ConfigEntry<bool> debugOverrideLogisticsAnyway;
@@ -145,6 +146,7 @@ namespace CheatInventoryStacking
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
             debugOverrideLogisticsAnyway = Config.Bind("General", "DebugOverrideLogisticsAnyway", false, "If true, the custom logistics code still runs on StackSize <= 1");
             debugModeLogMachineGenerator = Config.Bind("General", "DebugModeMachineGenerator", false, "Produce detailed logs for the machine generators? (chatty)");
+            debugModeOptimizations1 = Config.Bind("General", "DebugModeOptimizations1", false, "Enables certain type of optimizations (experimental)!");
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
@@ -290,22 +292,6 @@ namespace CheatInventoryStacking
             {
                 logger.LogInfo(s);
             }
-        }
-
-        static void AddToStack(string gid, Dictionary<string, int> groupCounts, int n, ref int stacks)
-        {
-            groupCounts.TryGetValue(gid, out int count);
-
-            if (++count == 1)
-            {
-                stacks++;
-            }
-            if (count > n)
-            {
-                stacks++;
-                count = 1;
-            }
-            groupCounts[gid] = count;
         }
 
         static Action<EventTriggerCallbackData> CreateMouseCallback(MethodInfo mi, InventoryDisplayer __instance)

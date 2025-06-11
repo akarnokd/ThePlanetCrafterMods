@@ -90,19 +90,35 @@ namespace CheatInventoryStacking
                         }
                     }
 
-                    groupCounts.Clear();
-
                     int n = stackSize.Value;
                     int stacks = 0;
 
-                    foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
-                    {
-                        AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-                    }
+                    if (debugModeOptimizations1.Value) {
+                        groupCounts2.Clear();
 
-                    foreach (var candidate in candidates)
+                        foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
+                        {
+                            groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                        }
+
+                        foreach (var candidate in candidates)
+                        {
+                            groupCounts2.Update(candidate.GetId(), n, ref stacks);
+                        }
+                    }
+                    else 
                     {
-                        AddToStack(candidate.GetId(), groupCounts, n, ref stacks);
+                        groupCounts.Clear();
+
+                        foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
+                        {
+                            AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                        }
+
+                        foreach (var candidate in candidates)
+                        {
+                            AddToStackDict(candidate.GetId(), groupCounts, n, ref stacks);
+                        }
                     }
 
                     if (stacks <= ____secondInventory.GetSize())

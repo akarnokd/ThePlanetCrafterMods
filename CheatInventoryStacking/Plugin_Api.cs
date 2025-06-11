@@ -65,15 +65,46 @@ namespace CheatInventoryStacking
         /// </summary>
         static readonly Dictionary<string, int> groupCounts = [];
 
+        static readonly HashGroupCounter groupCounts2 = new(1024);
+
+        static void AddToStackDict(string gid, Dictionary<string, int> groupCounts, int n, ref int stacks)
+        {
+            groupCounts.TryGetValue(gid, out int count);
+
+            if (++count == 1)
+            {
+                stacks++;
+            }
+            if (count > n)
+            {
+                stacks++;
+                count = 1;
+            }
+            groupCounts[gid] = count;
+        }
+
+
         static int GetStackCountEnum(IEnumerable<WorldObject> items)
         {
-            groupCounts.Clear();
-
             int n = stackSize.Value;
             int stacks = 0;
-            foreach (WorldObject worldObject in items)
+
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                groupCounts2.Clear();
+                foreach (WorldObject worldObject in items)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+            }
+            else
+            {
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in items)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
             }
 
             return stacks;
@@ -81,13 +112,25 @@ namespace CheatInventoryStacking
 
         static int GetStackCountList(List<WorldObject> items)
         {
-            groupCounts.Clear();
-
             int n = stackSize.Value;
             int stacks = 0;
-            foreach (WorldObject worldObject in items)
+
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                groupCounts2.Clear();
+                foreach (WorldObject worldObject in items)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+            }
+            else
+            {
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in items)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
             }
 
             return stacks;
@@ -95,13 +138,25 @@ namespace CheatInventoryStacking
 
         static int GetStackCountColl(ReadOnlyCollection<WorldObject> items)
         {
-            groupCounts.Clear();
-
             int n = stackSize.Value;
             int stacks = 0;
-            foreach (WorldObject worldObject in items)
+
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                groupCounts2.Clear();
+                foreach (WorldObject worldObject in items)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+            }
+            else
+            {
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in items)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
             }
 
             return stacks;
@@ -109,19 +164,37 @@ namespace CheatInventoryStacking
 
         static bool IsFullStackedEnum(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
-            groupCounts.Clear();
 
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (WorldObject worldObject in worldObjectsInInventory)
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-            }
+                groupCounts2.Clear();
 
-            if (gid != null)
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    groupCounts2.Update(gid, n, ref stacks);
+                }
+            }
+            else
             {
-                AddToStack(gid, groupCounts, n, ref stacks);
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    AddToStackDict(gid, groupCounts, n, ref stacks);
+                }
             }
 
             return stacks > inventorySize;
@@ -129,19 +202,36 @@ namespace CheatInventoryStacking
 
         static bool IsFullStackedList(List<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
-            groupCounts.Clear();
-
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (WorldObject worldObject in worldObjectsInInventory)
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-            }
+                groupCounts2.Clear();
 
-            if (gid != null)
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    groupCounts2.Update(gid, n, ref stacks);
+                }
+            }
+            else
             {
-                AddToStack(gid, groupCounts, n, ref stacks);
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    AddToStackDict(gid, groupCounts, n, ref stacks);
+                }
             }
 
             return stacks > inventorySize;
@@ -149,19 +239,38 @@ namespace CheatInventoryStacking
 
         static bool IsFullStackedColl(ReadOnlyCollection<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
-            groupCounts.Clear();
+
 
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (WorldObject worldObject in worldObjectsInInventory)
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-            }
+                groupCounts2.Clear();
 
-            if (gid != null)
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    groupCounts2.Update(gid, n, ref stacks);
+                }
+            }
+            else
             {
-                AddToStack(gid, groupCounts, n, ref stacks);
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    AddToStackDict(gid, groupCounts, n, ref stacks);
+                }
             }
 
             return stacks > inventorySize;
@@ -169,19 +278,36 @@ namespace CheatInventoryStacking
 
         static bool IsLastSlotOccupied(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid = null)
         {
-            groupCounts.Clear();
-
             int n = stackSize.Value;
             int stacks = 0;
 
-            foreach (WorldObject worldObject in worldObjectsInInventory)
+            if (debugModeOptimizations1.Value)
             {
-                AddToStack(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-            }
+                groupCounts2.Clear();
 
-            if (gid != null)
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    groupCounts2.Update(gid, n, ref stacks);
+                }
+            }
+            else
             {
-                AddToStack(gid, groupCounts, n, ref stacks);
+                groupCounts.Clear();
+
+                foreach (WorldObject worldObject in worldObjectsInInventory)
+                {
+                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
+                }
+
+                if (gid != null)
+                {
+                    AddToStackDict(gid, groupCounts, n, ref stacks);
+                }
             }
 
             return stacks >= inventorySize;
