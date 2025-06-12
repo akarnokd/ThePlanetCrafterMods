@@ -158,6 +158,7 @@ namespace SaveAsyncSave
             __state = Stopwatch.StartNew();
             if (!modEnabled.Value)
             {
+                worldObjectCopy.Clear();
                 return true;
             }
 
@@ -212,6 +213,7 @@ namespace SaveAsyncSave
             __state = Stopwatch.StartNew();
             if (!modEnabled.Value)
             {
+                worldObjectCopy.Clear();
                 return true;
             }
 
