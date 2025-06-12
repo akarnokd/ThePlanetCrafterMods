@@ -9,7 +9,9 @@ using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 using static MonoMod.Cil.RuntimeILReferenceBag.FastDelegateInvokers;
@@ -27,6 +29,8 @@ namespace UIShowRocketCount
         static ManualLogSource logger;
 
         static Font font;
+
+        static readonly Dictionary<(int planetHash, string groupId), (Inventory inventory, bool missing)> rocketCache = [];
 
         void Awake()
         {
@@ -68,6 +72,39 @@ namespace UIShowRocketCount
         {
             __result = RefreshDisplayEnumerator(timeRepeat, __instance, ___textFields, ___correspondingUnit);
             return false;
+        }
+
+        static void GetRocketInventory(Group group, int planetHash, System.Action<Inventory> callback)
+        {
+            if (rocketCache.TryGetValue((planetHash, group.id), out var inventory))
+            {
+                callback(inventory.inventory);
+            }
+            else
+            {
+                InventoriesHandler.Instance.GetInventoryFromFirstWorldObjectOfGroup(group, planetHash, call =>
+                {
+                    rocketCache[(planetHash, group.id)] = (call, call == null);
+                    if (call != null)
+                    {
+                        if (!(NetworkManager.Singleton?.IsServer ?? true))
+                        {
+                            InventoriesHandler.Instance.BeginInventoryWatch(call);
+                        }
+                    }
+                    callback(call);
+                });
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ConstructibleProxy), "SendInSpaceClientRpc")]
+        static void ConstructibleProxy_SendInSpaceClientRpc()
+        {
+            rocketCache.Where(e => e.Value.missing)
+                .Select(e => e.Key)
+                .ToList()
+                .ForEach(e => rocketCache.Remove(e));
         }
 
         static IEnumerator RefreshDisplayEnumerator(
@@ -113,9 +150,9 @@ namespace UIShowRocketCount
                                 {
                                     Log("Found spaceGroup");
                                     found = true;
-                                    InventoriesHandler.Instance.GetInventoryFromFirstWorldObjectOfGroup(spaceGroup, planetId, inventory =>
+                                    GetRocketInventory(spaceGroup, planetId, inventory =>
                                     {
-                                        Log("Got fist world obejct inventory: " + (inventory?.GetId() ?? -1));
+                                        Log("Got fist world object inventory: " + (inventory?.GetId() ?? -1));
                                         int c = 0;
                                         if (inventory != null)
                                         {
@@ -209,7 +246,7 @@ namespace UIShowRocketCount
                                     if (spaceGroup != null)
                                     {
                                         Log("Found spaceGroup");
-                                        InventoriesHandler.Instance.GetInventoryFromFirstWorldObjectOfGroup(spaceGroup, planetId, inventory =>
+                                        GetRocketInventory(spaceGroup, planetId, inventory =>
                                         {
                                             Log("Got fist world obejct inventory: " + (inventory?.GetId() ?? -1));
                                             int c = 0;
@@ -246,6 +283,32 @@ namespace UIShowRocketCount
                     }
                 }
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            if (InventoriesHandler.Instance != null)
+            {
+                if (!(NetworkManager.Singleton?.IsServer ?? true)) {
+                    foreach (var (inventory, _) in rocketCache.Values)
+                    {
+                        if (inventory != null)
+                        {
+                            InventoriesHandler.Instance.StopInventoryWatch(inventory);
+                        }
+                    }
+                }
+            }
+            rocketCache.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
         }
 
     }

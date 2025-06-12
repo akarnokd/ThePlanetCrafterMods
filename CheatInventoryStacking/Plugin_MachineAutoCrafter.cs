@@ -5,6 +5,8 @@ using HarmonyLib;
 using SpaceCraft;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace CheatInventoryStacking
@@ -79,7 +81,16 @@ namespace CheatInventoryStacking
 
                                 if (!IsFullStackedOfInventory(inv, gr.id))
                                 {
+                                    recipeMap.Clear();
+                                    foreach (var g in gr.GetRecipe().GetIngredientsGroupInRecipe())
+                                    {
+                                        recipeMap.TryGetValue(g, out var c);
+                                        recipeMap[g] = c + 1;
+                                    }
                                     mSetItemsInRange();
+
+                                    recipeMap.Clear();
+
                                     mCraftIfPossible(gr);
                                 }
                             }
@@ -90,5 +101,92 @@ namespace CheatInventoryStacking
             }
         }
 
+        static readonly Dictionary<Group, int> recipeMap = [];
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), "GetInRange")]
+        static bool Patch_MachineAutoCrafter_GetInRange(
+            HashSet<WorldObject> ____worldObjectsInRange,
+            List<ValueTuple<GameObject, Group>> ____gosInRangeForListing,
+            List<InventoryAssociatedProxy> ____proxys,
+            GameObject go, Group group
+        )
+        {
+            if (stackSize.Value <= 1)
+            {
+                return true;
+            }
+
+
+            if (group is GroupItem)
+            {
+                if (NetworkManager.Singleton.IsServer && recipeMap.Count != 0)
+                {
+                    WorldObjectAssociated componentInChildren = go.GetComponentInChildren<WorldObjectAssociated>(true);
+                    if (componentInChildren == null || (componentInChildren.GetWorldObject().GetGrowth() > 0f && componentInChildren.GetWorldObject().GetGrowth() < 100f))
+                    {
+                        return false;
+                    }
+                    if (recipeMap.TryGetValue(group, out var c))
+                    {
+                        ____worldObjectsInRange.Add(componentInChildren.GetWorldObject());
+                        if (--c == 0)
+                        {
+                            recipeMap.Remove(group);
+                        }
+                        else
+                        {
+                            recipeMap[group] = c;
+                        }
+                    }
+                }
+                ____gosInRangeForListing.Add(new ValueTuple<GameObject, Group>(go, group));
+                return false;
+            }
+            if (group.GetLogisticInterplanetaryType() != DataConfig.LogisticInterplanetaryType.Disabled && (go.GetComponentInChildren<InventoryAssociated>(true) != null || go.GetComponentInChildren<InventoryAssociatedProxy>(true) != null))
+            {
+                ____gosInRangeForListing.Add(new ValueTuple<GameObject, Group>(go, group));
+                if (recipeMap.Count == 0)
+                {
+                    return false;
+                }
+                if (NetworkManager.Singleton.IsServer)
+                {
+                    ____proxys.Clear();
+                    go.GetComponentsInChildren<InventoryAssociatedProxy>(true, ____proxys);
+                    foreach (InventoryAssociatedProxy inventoryAssociatedProxy in ____proxys)
+                    {
+                        ValueTuple<WorldObject, int> requestedInventoryData = inventoryAssociatedProxy.GetRequestedInventoryData();
+                        if (group.GetLogisticInterplanetaryType() != DataConfig.LogisticInterplanetaryType.EnabledOnSecondaryInventories || inventoryAssociatedProxy.GetSecondaryInventoryIndex() != -1)
+                        {
+                            foreach (WorldObject worldObject in InventoriesHandler.Instance.GetInventoryById(requestedInventoryData.Item2).GetInsideWorldObjects())
+                            {
+                                if (!worldObject.GetIsPlaced() || worldObject.GetGrowth() == 100f)
+                                {
+                                    var itemGroup = worldObject.GetGroup();
+                                    if (recipeMap.TryGetValue(itemGroup, out var c))
+                                    {
+                                        ____worldObjectsInRange.Add(worldObject);
+                                        if (--c == 0)
+                                        {
+                                            recipeMap.Remove(itemGroup);
+                                            if (recipeMap.Count == 0)
+                                            {
+                                                return false;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            recipeMap[itemGroup] = c;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
     }
 }

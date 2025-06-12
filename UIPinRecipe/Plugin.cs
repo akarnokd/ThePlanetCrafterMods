@@ -101,32 +101,35 @@ namespace UIPinRecipe
         {
             for (; ; )
             {
-                nearbyInventories = [];
-                if (apiGetInventoriesInRange != null)
+                if (pinnedRecipes.Count != 0)
                 {
-                    var pm = Managers.GetManager<PlayersManager>();
-                    if (pm != null)
+                    nearbyInventories = [];
+                    if (apiGetInventoriesInRange != null)
                     {
-                        var ac = pm.GetActivePlayerController();
-                        if (ac != null)
+                        var pm = Managers.GetManager<PlayersManager>();
+                        if (pm != null)
                         {
-                            var callbackWaiter = new CallbackWaiter();
-                            apiGetInventoriesInRange(this, ac.transform.position, list =>
+                            var ac = pm.GetActivePlayerController();
+                            if (ac != null)
                             {
-                                nearbyInventories = list;
-                                callbackWaiter.Done();
-                            });
+                                var callbackWaiter = new CallbackWaiter();
+                                apiGetInventoriesInRange(this, ac.transform.position, list =>
+                                {
+                                    nearbyInventories = list;
+                                    callbackWaiter.Done();
+                                });
 
-                            while (!callbackWaiter.IsDone)
-                            {
-                                yield return null;
+                                while (!callbackWaiter.IsDone)
+                                {
+                                    yield return null;
+                                }
                             }
                         }
                     }
-                }
-                foreach (PinnedRecipe pr in pinnedRecipes)
-                {
-                    pr.UpdateState();
+                    foreach (PinnedRecipe pr in pinnedRecipes)
+                    {
+                        pr.UpdateState();
+                    }
                 }
                 yield return new WaitForSeconds(0.25f);
             }

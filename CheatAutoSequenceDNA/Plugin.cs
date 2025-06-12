@@ -198,27 +198,20 @@ namespace CheatAutoSequenceDNA
                         PlayerMainController player = playersManager.GetActivePlayerController();
                         if (player != null)
                         {
-                            try
+                            if (NetworkManager.Singleton?.IsServer ?? true)
                             {
-                                if (NetworkManager.Singleton?.IsServer ?? true)
+                                if (incubatorEnabled.Value)
                                 {
-                                    if (incubatorEnabled.Value)
-                                    {
-                                        HandleIncubators();
-                                    }
-                                    if (sequencerEnabled.Value)
-                                    {
-                                        HandleSequencers();
-                                    }
-                                    if (extractorEnabled.Value)
-                                    {
-                                        HandleExtractors();
-                                    }
+                                    yield return HandleIncubators();
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogError(ex);
+                                if (sequencerEnabled.Value)
+                                {
+                                    yield return HandleSequencers();
+                                }
+                                if (extractorEnabled.Value)
+                                {
+                                    HandleExtractors();
+                                }
                             }
                         }
                     }
@@ -252,7 +245,35 @@ namespace CheatAutoSequenceDNA
             return result;
         }
 
-        void HandleIncubators()
+        static void ContainerDiscovery(
+            Dictionary<string, string> keywordMapping,
+            Dictionary<string, List<WorldObject>> itemCategories,
+            string machineId, string machineCategoryId)
+        {
+            foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            {
+                var gid = wo.GetGroup().GetId();
+                var txt = wo.GetText() ?? "";
+                if (gid == "Container1" || gid == "Container2" || gid == "Container3")
+                {
+                    foreach (var kv in keywordMapping)
+                    {
+                        if (txt.Contains(kv.Value))
+                        {
+                            GetOrCreate(itemCategories, kv.Key).Add(wo);
+                            Log("    " + kv.Key + " <- " + DebugWorldObject(wo));
+                        }
+                    }
+                }
+                if (gid == machineId)
+                {
+                    GetOrCreate(itemCategories, machineCategoryId).Add(wo);
+                    Log("    "+ machineCategoryId + " <- " + DebugWorldObject(wo));
+                }
+            }
+        }
+
+        IEnumerator HandleIncubators()
         {
             Log("Begin<Incubators>");
             // Category keys for various source and target container names
@@ -274,37 +295,7 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories = [];
 
             Log("  Container discovery");
-            foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
-            {
-                var gid = wo.GetGroup().GetId();
-                var txt = wo.GetText() ?? "";
-                if (gid == "Container1" || gid == "Container2" || gid == "Container3")
-                {
-                    foreach (var kv in keywordMapping)
-                    {
-                        if (txt.Contains(kv.Value))
-                        {
-                            GetOrCreate(itemCategories, kv.Key).Add(wo);
-                            Log("    " + kv.Key + " <- " + DebugWorldObject(wo));
-                        }
-                    }
-                }
-                if (gid == "Incubator1")
-                {
-                    GetOrCreate(itemCategories, "Incubator").Add(wo);
-                    Log("    Incubator <- " + DebugWorldObject(wo));
-                }
-            }
-
-            Log("Find the maximum recipe size");
-            var minInventoryCapacity = 0;
-            foreach (var gi in GroupsHandler.GetGroupsItem())
-            {
-                if (gi.CanBeCraftedIn(CraftableIn.CraftIncubatorT1))
-                {
-                    minInventoryCapacity = Math.Max(minInventoryCapacity, gi.GetRecipe()?.GetIngredientsGroupInRecipe()?.Count ?? 0);
-                }
-            }
+            ContainerDiscovery(keywordMapping, itemCategories, "Incubator1", "Incubator");
 
             if (itemCategories.TryGetValue("Incubator", out var incubatorList))
             {
@@ -314,14 +305,11 @@ namespace CheatAutoSequenceDNA
                     var machineId = incubator.GetId();
                     // Try to deposit finished products first
                     Inventory incubatorInv = InventoriesHandler.Instance.GetInventoryById(incubator.GetLinkedInventoryId());
-                    int incubatorPlanetHash = incubator.GetPlanetHash();
-
-                    // Fix incubators that don't have enough slots for all ingredients.
-                    if (incubatorInv.GetSize() < minInventoryCapacity)
+                    if (incubatorInv == null)
                     {
-                        Log("    Updated inventory capacity from " + incubatorInv.GetSize() + " to " + minInventoryCapacity);
-                        incubatorInv.SetSize(minInventoryCapacity);
+                        continue;
                     }
+                    int incubatorPlanetHash = incubator.GetPlanetHash();
 
                     var currentItems = incubatorInv.GetInsideWorldObjects();
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
@@ -395,6 +383,7 @@ namespace CheatAutoSequenceDNA
                             InventoriesHandler.Instance.LockInventoryContent(incubatorInv, true, 0f, null);
                         }
                     }
+                    yield return null;
                 }
             }
             else
@@ -465,7 +454,7 @@ namespace CheatAutoSequenceDNA
                         ingredientSources = [];
                         sourcesPerCategory[cat] = ingredientSources;
                     }
-                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition(), machine.GetPlanetHash());
+                    FindIngredientsIn(m.id, itemCategories, cat, ingredientSources, machine.GetPosition(), machine.GetPlanetHash(), machineInventory.GetSize()); ;
                 }
 
                 foreach (var m in missing)
@@ -583,7 +572,7 @@ namespace CheatAutoSequenceDNA
             return "";
         }
 
-        void HandleSequencers()
+        IEnumerator HandleSequencers()
         {
             Log("Begin<Sequencers>");
             // Category keys for various source and target container names
@@ -602,27 +591,7 @@ namespace CheatAutoSequenceDNA
             Dictionary<string, List<WorldObject>> itemCategories = [];
 
             Log("  Container discovery");
-            foreach (WorldObject wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
-            {
-                var gid = wo.GetGroup().GetId();
-                var txt = wo.GetText() ?? "";
-                if (gid == "Container1" || gid == "Container2" || gid == "Container3")
-                {
-                    foreach (var kv in keywordMapping)
-                    {
-                        if (txt.Contains(kv.Value))
-                        {
-                            GetOrCreate(itemCategories, kv.Key).Add(wo);
-                            Log("    " + kv.Key + " <- " + DebugWorldObject(wo));
-                        }
-                    }
-                }
-                if (gid == "GeneticManipulator1")
-                {
-                    GetOrCreate(itemCategories, "Sequencer").Add(wo);
-                    Log("    Sequencer <- " + DebugWorldObject(wo));
-                }
-            }
+            ContainerDiscovery(keywordMapping, itemCategories, "GeneticManipulator1", "Sequencer");
 
             if (itemCategories.TryGetValue("Sequencer", out var sequencerList))
             {
@@ -632,6 +601,10 @@ namespace CheatAutoSequenceDNA
                     var machineId = sequencer.GetId();
                     // Try to deposit finished products first
                     Inventory sequencerInv = InventoriesHandler.Instance.GetInventoryById(sequencer.GetLinkedInventoryId());
+                    if (sequencerInv == null)
+                    {
+                        continue;
+                    }
                     int sequencerPlanetHash = sequencer.GetPlanetHash();
 
                     var currentItems = sequencerInv.GetInsideWorldObjects();
@@ -691,6 +664,7 @@ namespace CheatAutoSequenceDNA
                         }
 
                     }
+                    yield return null;
                 }
             }
             else
@@ -875,11 +849,13 @@ namespace CheatAutoSequenceDNA
             string itemKey, 
             List<IngredientSource> result,
             Vector3 incubatorDistance,
-            int incubatorPlanetHash)
+            int incubatorPlanetHash,
+            int maxResults)
         {
             var maxDistance = range.Value;
             if (itemCategories.TryGetValue(itemKey, out var containers))
             {
+                int found = 0;
                 foreach (var container in containers)
                 {
                     if (maxDistance > 0 && Vector3.Distance(container.GetPosition(), incubatorDistance) > maxDistance)
@@ -905,8 +881,17 @@ namespace CheatAutoSequenceDNA
                                     source = inv,
                                     wo = wo
                                 });
+                                found++;
+                                if (found >= maxResults)
+                                {
+                                    break;
+                                }
                             }
                         }
+                    }
+                    if (found >= maxResults)
+                    {
+                        break;
                     }
                 }
             }

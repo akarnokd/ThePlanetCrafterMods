@@ -192,30 +192,30 @@ namespace CheatAutoGrabAndMine
             {
                 if (scanEnabled.Value)
                 {
-                    DoScan();
+                    yield return DoScan();
                 }
                 yield return wait;
             }
         }
 
 
-        static void DoScan()
+        static IEnumerator DoScan()
         {
             if (!modEnabled.Value)
             {
-                return;
+                yield break;
             }
 
             var pm = Managers.GetManager<PlayersManager>();
             if (pm == null)
             {
-                return;
+                yield break;
             }
 
             var ac = pm.GetActivePlayerController();
             if (ac == null)
             {
-                return;
+                yield break;
             }
 
             Log("Begin");
@@ -273,6 +273,13 @@ namespace CheatAutoGrabAndMine
                 }
             }
 
+            yield return null;
+
+            if (ac == null || pm == null)
+            {
+                yield break;
+            }
+
             // ============================================================================================================================
 
             if (mineMinerals.Value)
@@ -298,6 +305,13 @@ namespace CheatAutoGrabAndMine
             else
             {
                 Log("- Minerals [disabled]");
+            }
+
+            yield return null;
+
+            if (ac == null || pm == null)
+            {
+                yield break;
             }
 
             // ============================================================================================================================
