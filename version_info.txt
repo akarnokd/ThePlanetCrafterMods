@@ -63,7 +63,7 @@ akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.9
 # (Perf) Startup
 akarnokd.theplanetcraftermods.perfstartup=1.0.0.18
 # (Save) Async Save
-akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.1
+akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.2
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.15
 # (Save) Auto Save
@@ -119,7 +119,7 @@ akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.11
 # (UI) Czech Translation
 akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.26
 # (UI) Estonian Translation
-akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.30
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.31
 # (UI) Hungarian Translation
 akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.7
 # (UI) Italian Translation

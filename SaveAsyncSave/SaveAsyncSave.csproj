@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>SaveAsyncSave</AssemblyName>
     <Description>(Save) Async Save</Description>
-    <Version>1.0.0.1</Version>
+    <Version>1.0.0.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,6 +14,7 @@
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
+        <Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
     </ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">

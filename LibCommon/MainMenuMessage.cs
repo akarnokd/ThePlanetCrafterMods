@@ -28,7 +28,7 @@ namespace LibCommon
             ShowDialog(text);
         }
 
-        static void ShowDialog(string message)
+        internal static void ShowDialog(string message)
         {
             if (GameObject.Find("MainMenuMessage_Notification") != null) 
             {

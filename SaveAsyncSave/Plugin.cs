@@ -16,6 +16,10 @@ using System.Linq;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Collections;
+using LibCommon;
+using Unity.Netcode;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 namespace SaveAsyncSave
 {
@@ -23,6 +27,8 @@ namespace SaveAsyncSave
     public class Plugin : BaseUnityPlugin
     {
         static ManualLogSource logger;
+
+        static Plugin me;
 
         static ConfigEntry<bool> modEnabled;
 
@@ -32,9 +38,15 @@ namespace SaveAsyncSave
 
         static readonly object gate = new();
 
+        static Task saveTask;
+
+        static bool quitDelayOnce;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+
+            me = this;
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -81,7 +93,7 @@ namespace SaveAsyncSave
             }
             if (mainThreadId == Thread.CurrentThread.ManagedThreadId)
             {
-                Task.Factory.StartNew(() =>
+                saveTask = Task.Factory.StartNew(() =>
                 {
                     lock (gate)
                     {
@@ -112,6 +124,7 @@ namespace SaveAsyncSave
             }
             return true;
         }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.SaveToJson))]
         static void JSONExport_SaveToJson_Post(Stopwatch __state)
@@ -166,54 +179,74 @@ namespace SaveAsyncSave
             Log("SavedDataHandler_SetAndGetInventories: " + __state.Elapsed.TotalMilliseconds);
         }
 
-        static string GetWorldStateSaveFilePath(string _saveFileName)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void Intro_Start()
         {
-            return $"{Application.persistentDataPath}/{_saveFileName}.json";
+            Application.wantsToQuit += WantsToQuit;
         }
 
-        static string CleanSaveStringOfVariables(string finalSaveString)
+        static bool WantsToQuit()
         {
-            finalSaveString = Regex.Replace(finalSaveString, ",\"gameMode\":[0-9]", "");
-            finalSaveString = Regex.Replace(finalSaveString, ",\"gameDyingConsequences\":[0-9]", "");
-            finalSaveString = Regex.Replace(finalSaveString, ",\"gameStartLocation\":[0-9]", "");
-            return finalSaveString;
+            if (saveTask == null || saveTask.IsCompleted)
+            {
+                return true;
+            }
+            Log("Can't just quit now.");
+            if (!quitDelayOnce)
+            {
+                quitDelayOnce = true;
+                me.StartCoroutine(SaveWaiter());
+            }
+            return false;
+        }
+
+        static IEnumerator SaveWaiter()
+        {
+            int n = 0;
+            yield return new WaitForSecondsRealtime(1);
+            while (saveTask != null && !saveTask.IsCompleted)
+            {
+                Log("Waiting for the save to complete...");
+                if (++n == 1)
+                {
+                    MainMenuMessage.ShowDialog("Saving in progress...\n\nGame will close afterwards.");
+                }
+                yield return new WaitForSecondsRealtime(1);
+            }
+            yield return new WaitForEndOfFrame();
+            quitDelayOnce = false;
+            Log("Quitting.");
+            Application.Quit();
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(JSONExport), "SaveStringsInFile")]
-        static void SaveStringsInFile(
-            string _saveFileName, 
-            List<string> _saveStrings,
-            char ___chunckDelimiter,
-            in char ___listDelimiter
-        )
+        [HarmonyPatch(typeof(MachineAutoCrafter), "SetItemsInRange")]
+        static bool MachineAutoCrafter_SetItemsInRange()
         {
-            string text = "";
-            foreach (string _saveString in _saveStrings)
-            {
-                string text2 = "\r" + _saveString.Replace(___listDelimiter.ToString(), ___listDelimiter + "\n") + "\r";
-                text = text + text2 + ___chunckDelimiter;
-            }
+            return !quitDelayOnce;
+        }
 
-            UnityEngine.Debug.Log("Saving in : " + GetWorldStateSaveFilePath(_saveFileName));
-            text = text.Replace(",\"demandGrps\":\"\",\"supplyGrps\":\"\",\"priority\":0", "");
-            text = text.Replace(",\"set\":0", "");
-            text = text.Replace(",\"grwth\":0", "");
-            text = text.Replace(",\"hunger\":0.0", "");
-            text = text.Replace(",\"trtVal\":0", "");
-            text = text.Replace(",\"trtInd\":0", "");
-            text = text.Replace(",\"siIds\":\"\"", "");
-            text = text.Replace(",\"pnls\":\"\"", "");
-            text = text.Replace(",\"color\":\"\"", "");
-            text = text.Replace(",\"text\":\"\"", "");
-            text = text.Replace(",\"liGrps\":\"\"", "");
-            text = text.Replace(",\"liId\":0", "");
-            text = text.Replace(",\"pos\":\"0,0,0\"", "");
-            text = text.Replace(",\"rot\":\"0,0,0,0\"", "");
-            text = text.Replace(",\"planet\":0", "");
-            text = text.Replace(",\"liPlanet\":0", "");
-            text = CleanSaveStringOfVariables(text);
-            File.WriteAllText(GetWorldStateSaveFilePath(_saveFileName), text);
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventorySpawnContent), "UpdateComponent")]
+        static bool InventorySpawnContent_UpdateComponent()
+        {
+            return !quitDelayOnce;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NetworkManager), "OnApplicationQuit")]
+        static bool NetworkManager_OnApplicationQuit()
+        {
+            // Log(Environment.StackTrace);
+            return !quitDelayOnce;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(NetworkUtils), "OnDestroy")]
+        static bool NetworkUtils_OnDestroy()
+        {
+            return !quitDelayOnce;
         }
     }
 }
