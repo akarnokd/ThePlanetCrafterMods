@@ -1403,7 +1403,7 @@ Message_humble_droneConstruct=Maasarnastamise ülesanne:  Valmistada planeet ett
 Message_humble_shipB=Missiooni vahekokkuvõte – eriti salajane. <br><br>See ülesanne peab olema täiesti salajane.<br>Starform Robotics rakendab sellel planeedil oma autonoomset maasarnastamise süsteemi. Nad kasutavad selleks mitmesuguseid droone ja tehnoloogiaid.<br>Sa pead mõistma, analüüsima ja leidma nende tehnoloogiat ja tegema, mis võimalik, et neid takistada. Ideaalsel juhul riku droonid ja muuda nad funktsionaalselt sobimatuks.<br><br>Lahku märkamatult planeedilt, kui kõik on tehtud.
 Message_humble_end=Palju õnne! Oled edukalt planeedi ära maasarnastanud.<br><br>Sinu pingutuste tõttu on Sentinel Corp nüüd seaduslikult planeedi Humble-IP168 omanik.<br><br>Vaata eelmisi kirju, et  näha, kuidas planeedilt ära saada.<br>
 GROUP_NAME_CosmicQuartz=Kosmiline kvarts
-GROUP_DESC_CosmicQuartz=Väga palju energiat sisaldav kvarts Sisesta see maak purustisse, et saada haruldasi kvartse.
+GROUP_DESC_CosmicQuartz=Väga palju energiat sisaldav kvarts.
 GROUP_NAME_Tree14Seed=Puu Malissea seeme
 GROUP_NAME_Seed7Humble=Seeme Snepea
 GROUP_NAME_Seed8Humble=Seeme Brelea
@@ -1690,5 +1690,5 @@ GROUP_NAME_Skin-21=Skafander Sunsio
 Message_aqualis_ending=Palju õnne! Oled maasarnastanud ookeani planeedi tüüpi taevakeha. Sinu saavutused andsid meile häid andmeid sellist tüüpi kuu maasarnastamise kohta. See tõstab potentsiaalselt üle galaktikate vangide edumäära. Järgnevate kuude jooksul me jätkame sinu sektori skaneerimist, et näha, kas seal on veel potentsiaalseid maasarnastamiseks sobivaid planeete.
 Message_selenea_ending=Palju õnne! Oled maasarnastanud ühe kuu. Tänu Sentinel Corp tehnoloogiale, on see viimaks nii kerge. Vaatamata teiste edevate korporatsioonide väidetele, on ainus planeetide ja kuude maasarnastamise viis inimeste abil.  Aitäh "Parema elu" programmis osalemise eest.
 Ui_TitleScreen_NewUpdate=Kuude uuendus on välja antud! <br>Lisainfo lugemiseks vajuta siia.
-
+Menu_Options_SaveDelay=Automaatsalvestuse intervall (minutit)
 
