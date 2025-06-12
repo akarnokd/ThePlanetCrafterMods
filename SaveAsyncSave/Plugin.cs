@@ -190,6 +190,7 @@ namespace SaveAsyncSave
         {
             if (saveTask == null || saveTask.IsCompleted)
             {
+                quitDelayOnce = false;
                 return true;
             }
             Log("Can't just quit now.");
