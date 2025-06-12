@@ -63,7 +63,7 @@ akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.9
 # (Perf) Startup
 akarnokd.theplanetcraftermods.perfstartup=1.0.0.18
 # (Save) Async Save
-akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.2
+akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.3
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.15
 # (Save) Auto Save

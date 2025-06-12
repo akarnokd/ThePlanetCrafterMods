@@ -11,15 +11,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 using System.Diagnostics;
-using System.Text;
-using System.Linq;
 using UnityEngine;
-using System.Text.RegularExpressions;
-using System.IO;
 using System.Collections;
 using LibCommon;
 using Unity.Netcode;
-using static UnityEngine.UIElements.UxmlAttributeDescription;
+using System.Text;
 
 namespace SaveAsyncSave
 {
@@ -93,10 +89,29 @@ namespace SaveAsyncSave
             }
             if (mainThreadId == Thread.CurrentThread.ManagedThreadId)
             {
+                var worldObjectCopyRef = worldObjectCopy;
+                var inventoryCopyRef = inventoryCopy;
                 saveTask = Task.Factory.StartNew(() =>
                 {
                     lock (gate)
                     {
+                        var sw = Stopwatch.StartNew();
+                        _worldObjects.Capacity = worldObjectCopyRef.Capacity + 1;
+                        foreach (var item in worldObjectCopyRef)
+                        {
+                            _worldObjects.Add(item.ToJsonable());
+                        }
+                        var el = sw.Elapsed.TotalMilliseconds;
+                        Log("Convert to JsonableWorldObject took " + el + " - " + (el / Math.Max(1, _worldObjects.Count)));
+                        sw.Restart();
+                        _inventories.Capacity = inventoryCopyRef.Capacity + 1;
+                        foreach (var item in inventoryCopyRef)
+                        {
+                            _inventories.Add(item.ToJsonable());
+                        }
+                        el = sw.Elapsed.TotalMilliseconds;
+                        Log("Convert to JsonableInventory took " + el + " - " + (el / Math.Max(1, _inventories.Count)));
+
                         try
                         {
                             JSONExport.SaveToJson(
@@ -132,6 +147,8 @@ namespace SaveAsyncSave
             Log(Thread.CurrentThread.ManagedThreadId + ": " + __state.Elapsed.TotalMilliseconds);
         }
 
+        static List<WorldObjectCopy> worldObjectCopy = [];
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetWorldObjects")]
         static bool SavedDataHandler_SetAndGetWorldObjects(
@@ -144,39 +161,96 @@ namespace SaveAsyncSave
                 return true;
             }
 
-            var worldObjects = WorldObjectsHandler.Instance.GetAllWorldObjects();
-            __result = new List<JsonableWorldObject>(worldObjects.Count + 1);
+            var worldObjects = WorldObjectsHandler.Instance.GetAllWorldObjects().Values;
+
+            __result = new(/* worldObjects.Count + 1 */);
+            if (saveTask == null || saveTask.IsCompleted)
+            {
+                worldObjectCopy.Clear();
+            }
+            else
+            {
+                worldObjectCopy = [];
+            }
+            int cap = worldObjects.Count + 1;
+            if (worldObjectCopy.Capacity < cap)
+            {
+                worldObjectCopy.Capacity = cap;
+            }
 
             foreach (var wo in worldObjects)
             {
-                if (!wo.Value.GetDontSaveMe())
+                if (!wo.GetDontSaveMe())
                 {
-                    __result.Add(JsonablesHelper.WorldObjectToJsonable(wo.Value));
+                    // __result.Add(JsonablesHelper.WorldObjectToJsonable(wo));
+                    worldObjectCopy.Add(new WorldObjectCopy(wo));
+                }
+            }
+            return false;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetWorldObjects")]
+        static void SavedDataHandler_SetAndGetWorldObjects_Post(
+            ref Stopwatch __state,
+            ref List<JsonableWorldObject> __result)
+        {
+            var el = __state.Elapsed.TotalMilliseconds;
+            int n = worldObjectCopy.Count + __result.Count;
+            Log("SavedDataHandler_SetAndGetWorldObjects: " + n + " in " + el + " - " + el / Math.Max(1, n));
+        }
+
+        static List<InventoryCopy> inventoryCopy = [];
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetInventories")]
+        static bool SavedDataHandler_SetAndGetInventories(
+            ref Stopwatch __state,
+            ref List<JsonableInventory> __result
+        )
+        {
+            __state = Stopwatch.StartNew();
+            if (!modEnabled.Value)
+            {
+                return true;
+            }
+
+            __result = new();
+            if (saveTask == null || saveTask.IsCompleted)
+            {
+                inventoryCopy.Clear();
+            }
+            else
+            {
+                inventoryCopy = [];
+            }
+            var allInventory = InventoriesHandler.Instance.GetAllInventories().Values;
+            int cap = allInventory.Count;
+            if (inventoryCopy.Capacity < cap)
+            {
+                inventoryCopy.Capacity = cap;
+            }
+
+            foreach (var inv in allInventory)
+            {
+                if (inv.GetId() >= 0)
+                {
+                    inventoryCopy.Add(new InventoryCopy(inv));
                 }
             }
 
             return false;
         }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetWorldObjects")]
-        static void SavedDataHandler_SetAndGetWorldObjects_Post(
-            ref Stopwatch __state)
-        {
-            Log("SavedDataHandler_SetAndGetWorldObjects: " + __state.Elapsed.TotalMilliseconds);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetInventories")]
-        static void SavedDataHandler_SetAndGetInventories(ref Stopwatch __state)
-        {
-            __state = Stopwatch.StartNew();
-        }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SavedDataHandler), "SetAndGetInventories")]
-        static void SavedDataHandler_SetAndGetInventories_Post(ref Stopwatch __state)
+        static void SavedDataHandler_SetAndGetInventories_Post(
+            ref Stopwatch __state,
+            ref List<JsonableInventory> __result)
         {
-            Log("SavedDataHandler_SetAndGetInventories: " + __state.Elapsed.TotalMilliseconds);
+            var el = __state.Elapsed.TotalMilliseconds;
+            int n = __result.Count + inventoryCopy.Count;
+            Log("SavedDataHandler_SetAndGetInventories: " + n + " in " + el + " - " + el / Math.Max(1, n));
         }
 
         [HarmonyPostfix]
@@ -249,5 +323,157 @@ namespace SaveAsyncSave
         {
             return !quitDelayOnce;
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void UiWindowPause_OnQuit()
+        {
+            worldObjectCopy.Clear();
+            inventoryCopy.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void BlackScreen_DisplayLogoStudio()
+        {
+            UiWindowPause_OnQuit();
+        }
     }
+
+    internal class WorldObjectCopy
+    {
+        internal int id;
+        internal string groupId;
+        internal int linkedInventoryId;
+        internal List<int> secondaryInventories;
+        internal List<Group> linkedGroups;
+        internal Vector3 position;
+        internal Quaternion rotation;
+        internal int planetHash;
+        internal int planetLinkedHash;
+        internal Color color;
+        internal string text;
+        internal List<int> panelIds;
+        internal int growth;
+        internal int setting;
+        internal int traitType;
+        internal int traitValue;
+        internal float hunger;
+        internal WorldObjectCopy(WorldObject worldObject)
+        {
+            id = worldObject.GetId();
+            groupId = worldObject.GetGroup().id;
+            linkedInventoryId = worldObject.GetLinkedInventoryId();
+            secondaryInventories = Copy(worldObject.GetSecondaryInventoriesId());
+            linkedGroups = Copy(worldObject.GetLinkedGroups());
+            position = worldObject.GetPosition();
+            rotation = worldObject.GetRotation();
+            planetHash = worldObject.GetPlanetHash();
+            planetLinkedHash = worldObject.GetPlanetLinkedHash();
+            color = worldObject.GetColor();
+            text = worldObject.GetText();
+            panelIds = Copy(worldObject.GetPanelsId());
+            growth = Mathf.RoundToInt(worldObject.GetGrowth());
+            setting = worldObject.GetSetting();
+            traitType = (int)worldObject.GetGeneticTraitType();
+            traitValue = worldObject.GetGeneticTraitValue();
+            hunger = worldObject.GetHunger();
+        }
+
+        internal JsonableWorldObject ToJsonable()
+        {
+            return new JsonableWorldObject(
+                id, groupId, linkedInventoryId,
+                DataTreatments.IntListToString(secondaryInventories),
+                GroupsHandler.GetGroupsStringIds(linkedGroups),
+                DataTreatments.Vector3ToString(position),
+                DataTreatments.QuaternionToString(rotation),
+                planetHash,
+                planetLinkedHash,
+                DataTreatments.ColorToString(color),
+                text,
+                DataTreatments.IntListToString(panelIds),
+                growth, setting,
+                traitType,
+                traitValue,
+                hunger);
+        }
+
+        List<int> Copy(List<int> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return EmptyInt;
+            }
+            return new(source);
+        }
+        List<Group> Copy(List<Group> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return EmptyGroup;
+            }
+            return new(source);
+        }
+
+        static readonly List<int> EmptyInt = [];
+        static readonly List<Group> EmptyGroup = [];
+    }
+
+    internal class InventoryCopy
+    {
+        internal int id;
+        internal List<WorldObject> content;
+        internal int size;
+        internal HashSet<Group> demandGroups;
+        internal HashSet<Group> supplyGroups;
+        internal int priority;
+
+        internal InventoryCopy(Inventory inventory)
+        {
+            id = inventory.GetId();
+            content = new(inventory.GetInsideWorldObjects());
+            size = inventory.GetSize();
+            LogisticEntity logisticEntity = inventory.GetLogisticEntity();
+            demandGroups = Copy(logisticEntity.GetDemandGroups());
+            supplyGroups = Copy(logisticEntity.GetSupplyGroups());
+            priority = logisticEntity.GetPriority();
+        }
+
+        internal JsonableInventory ToJsonable()
+        {
+            var text = new StringBuilder(content.Count * 10 + 1);
+
+            foreach (var wo in content)
+            {
+                text.Append(wo.GetId());
+                text.Append(',');
+            }
+            if (content.Count != 0)
+            {
+                text.Length--;
+            }
+            return new JsonableInventory(
+                id,
+                text.ToString(),
+                size,
+                GroupsHandler.GetGroupsStringIds(demandGroups),
+                GroupsHandler.GetGroupsStringIds(supplyGroups),
+                priority
+            );
+
+        }
+
+        HashSet<Group> Copy(HashSet<Group> source)
+        {
+            if (source == null || source.Count == 0)
+            {
+                return EmptyGroup;
+            }
+            return new(source);
+        }
+
+        static readonly HashSet<Group> EmptyGroup = [];
+    }
+
 }
