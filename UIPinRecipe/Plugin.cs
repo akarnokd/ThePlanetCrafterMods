@@ -155,7 +155,7 @@ namespace UIPinRecipe
         }
 
         static readonly DictionaryCounter inventoryCounts = new(1024);
-        static readonly DictionaryCounter recipeCounts = new(32);
+        static readonly DictionaryCounter equipmentCounts = new(32);
 
         static void UpdateCounters()
         {
@@ -185,16 +185,6 @@ namespace UIPinRecipe
             foreach (WorldObject wo in inventory.GetInsideWorldObjects())
             {
                 inventoryCounts.Update(wo.GetGroup().id);
-            }
-
-            if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
-            {
-            }
-            foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
-            {
-                string gid = wo.GetGroup().id;
-                inventoryCounts.TryGetValue(gid, out int c);
-                inventoryCounts[gid] = c + 1;
             }
 
             foreach (var inv in nearbyInventories)
@@ -244,10 +234,36 @@ namespace UIPinRecipe
 
             public void UpdateState()
             {
+                var pm = Managers.GetManager<PlayersManager>();
+                if (pm == null)
+                {
+                    return;
+                }
+                var player = pm.GetActivePlayerController();
+                if (player == null)
+                {
+                    return;
+                }
+                bool includeEquipment = false;
+                equipmentCounts.Clear();
+                if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
+                {
+                    includeEquipment = true;
+                    foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+                    {
+                        equipmentCounts.Update(wo.GetGroup().id);
+                    }
+                }
+
+
                 int craftableCount = int.MaxValue;
                 foreach (TextSpriteBackground comp in components)
                 {
-                    inventoryCounts.TryGetValue(comp.group.id, out int c);
+                    int c = inventoryCounts.CountOf(comp.group.id);
+                    if (includeEquipment) {
+                        c += equipmentCounts.CountOf(comp.group.id);
+                    }
+
                     comp.text.GetComponent<Text>().text = Readable.GetGroupName(comp.group) + " x " + comp.count + " ( " + c + " )";
 
                     craftableCount = Mathf.Min(craftableCount, c / comp.count);
@@ -257,7 +273,11 @@ namespace UIPinRecipe
                     craftableCount = 0;
                 }
 
-                inventoryCounts.TryGetValue(group.GetId(), out int productCount);
+                var productCount = inventoryCounts.CountOf(group.id);
+                if (includeEquipment)
+                {
+                    productCount += equipmentCounts.CountOf(group.id);
+                }
                 product.text.GetComponent<Text>().text =
                     Readable.GetGroupName(group) + " ( " + productCount + " ) < " + craftableCount + " >";
             }

@@ -33,7 +33,7 @@ namespace LibCommon
         {
             var entries = this.entries;
             var n = entries.Length;
-            int key = s.GetHashCode();
+            int key = s.GetHashCode() & 0x7FFF_FFFF;
             int m = MASK;
             for (int k = 0; k < n; k++)
             {
@@ -47,8 +47,35 @@ namespace LibCommon
                 }
                 if (e.hash == key && e.key == s)
                 {
-                    e.count = e.count + 1;
+                    e.count++;
                     return;
+                }
+            }
+            throw new InvalidOperationException(nameof(DictionaryCounter) + " overflow!");
+        }
+
+        internal bool DeduceIfPositive(string s)
+        {
+            var entries = this.entries;
+            var n = entries.Length;
+            int key = s.GetHashCode() & 0x7FFF_FFFF;
+            int m = MASK;
+            for (int k = 0; k < n; k++)
+            {
+                ref var e = ref entries[(k + key) & m];
+                if (e.key == null)
+                {
+                    return false;
+                }
+                if (e.hash == key && e.key == s)
+                {
+                    var c = e.count;
+                    if (c != 0)
+                    {
+                        e.count = c - 1;
+                        return true;
+                    }
+                    return false;
                 }
             }
             throw new InvalidOperationException(nameof(DictionaryCounter) + " overflow!");
@@ -58,7 +85,7 @@ namespace LibCommon
         {
             var entries = this.entries;
             var n = entries.Length;
-            int key = s.GetHashCode();
+            int key = s.GetHashCode() & 0x7FFF_FFFF;
             int m = MASK;
             for (int k = 0; k < n; k++)
             {

@@ -41,5 +41,27 @@ namespace MiscDebug
             __result = true;
             return false;
         }
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GroupsHandler), nameof(GroupsHandler.SetAllGroups))]
+        static void GroupsHandler_SetAllGroups(List<Group> groups)
+        {
+            Dictionary<int, string> hashes = [];
+
+            foreach (var g in groups)
+            {
+                var h = g.id.GetHashCode();
+                h = (h ^ (h >>> 16)) & 2047;
+                if (hashes.TryGetValue(h, out var s))
+                {
+                    logger.LogWarning("Collision: " + s + " <> " + g.id);
+                }
+                else
+                {
+                    hashes[h] = g.id;
+                }
+            }
+        }
+        */
     }
 }

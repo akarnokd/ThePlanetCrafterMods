@@ -17,7 +17,8 @@
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 		<Compile Include="..\LibCommon\ModNetworking.cs" Link="ModNetworking.cs" />
-	</ItemGroup>
+        <Compile Include="..\LibCommon\DictionaryCounter.cs" Link="DictionaryCounter.cs" />
+    </ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

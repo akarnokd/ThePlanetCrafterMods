@@ -19,6 +19,8 @@
 		<Compile Include="..\LibCommon\GrabChecker.cs" Link="GrabChecker.cs" />
 		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
         <Compile Include="..\LibCommon\DictionaryStackCounter.cs" Link="DictionaryStackCounter.cs" />
+        <Compile Include="..\LibCommon\DictionaryCounter.cs" Link="DictionaryCounter.cs" />
+        <Compile Include="..\LibCommon\HashSetFast.cs" Link="HashSetFast.cs" />
     </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">

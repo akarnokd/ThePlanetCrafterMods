@@ -19,6 +19,7 @@ using BepInEx.Bootstrap;
 using System.Collections;
 using LibCommon;
 using System.Text;
+using System.Runtime.Serialization.Json;
 
 namespace UIHotbar
 {
@@ -351,8 +352,17 @@ namespace UIHotbar
             Dictionary<string, int> inventoryCounts = [];
             CountInventory(player, inventoryCounts);
             */
-            inventoryCounts.Clear();
-            CountInventory(player);
+
+            foreach (var s in slots)
+            {
+                if (s.currentGroup != null)
+                {
+                    inventoryCounts.Clear();
+                    CountInventory(player);
+                    break;
+                }
+            }
+
 
             if (wh != null && !wh.GetHasUiOpen())
             {
@@ -664,10 +674,11 @@ namespace UIHotbar
         {
             if (!PlayerThirdPersonView_ShortcutEmote())
             {
+                var kc = Keyboard.current;
                 for (int i = 0; i < numberKeys.Length; i++)
                 {
                     Key k = numberKeys[i];
-                    if (Keyboard.current[k].wasPressedThisFrame)
+                    if (kc[k].wasPressedThisFrame)
                     {
                         return i;
                     }

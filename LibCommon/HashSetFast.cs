@@ -29,7 +29,7 @@ namespace LibCommon
             var n = entries.Length;
             var m = MASK;
 
-            var h = entry.GetHashCode();
+            var h = entry.GetHashCode() & 0x7FFF_FFFF;
 
             for (int i = 0; i < n; i++)
             {

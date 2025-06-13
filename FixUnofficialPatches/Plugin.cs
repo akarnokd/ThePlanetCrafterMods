@@ -196,5 +196,39 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+
+        static PlanetLoader planetLoaderCache;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldUnitsHandler), nameof(WorldUnitsHandler.GetPlanetUnits))]
+        static bool WorldUnitsHandler_GetPlanetUnits(
+                string planetId,
+                Dictionary<int, WorldUnitsPlanet> ____planetUnits,
+                ref WorldUnitsPlanet __result
+            )
+        {
+            var pid = planetId;
+            if (string.IsNullOrEmpty(pid))
+            {
+                if (planetLoaderCache == null)
+                {
+                    planetLoaderCache = Managers.GetManager<PlanetLoader>();
+                }
+                var currentPlanet = planetLoaderCache.GetCurrentPlanetData();
+                if (currentPlanet != null)
+                {
+                    pid = currentPlanet.id;
+                }
+            }
+            if (string.IsNullOrEmpty(pid))
+            {
+                __result = null;
+            }
+            else
+            {
+                ____planetUnits.TryGetValue(pid.GetStableHashCode(), out __result);
+            }
+            return false;
+        }
     }
 }

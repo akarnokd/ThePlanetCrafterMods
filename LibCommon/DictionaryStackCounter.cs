@@ -33,7 +33,7 @@ namespace LibCommon
         {
             var entries = this.entries;
             var n = entries.Length;
-            int key = s.GetHashCode();
+            int key = s.GetHashCode() & 0x7FFF_FFFF;
             int m = MASK;
             for (int k = 0; k < n; k++)
             {

@@ -1144,41 +1144,45 @@ namespace CheatCraftFromNearbyContainers
             var cw = new CallbackWaiter();
             for (; ; )
             {
-                var pm = Managers.GetManager<PlayersManager>();
-                if (pm != null)
+                if (___groupsAdded.Count != 0)
                 {
-                    var ac = pm.GetActivePlayerController();
-                    if (ac != null)
+                    var pm = Managers.GetManager<PlayersManager>();
+                    if (pm != null)
                     {
-                        var pos = ac.transform.position;
-
-                        cw.Reset();
-                        GetInventoriesInRange(__instance, pos, list =>
+                        var ac = pm.GetActivePlayerController();
+                        if (ac != null)
                         {
-                            try
-                            {
-                                candidateInventories = list;
+                            var pos = ac.transform.position;
 
-                                for (int i = 0; i < ___groupsAdded.Count; i++)
+                            cw.Reset();
+                            GetInventoriesInRange(__instance, pos, list =>
+                            {
+                                try
                                 {
-                                    var gr = ___groupsAdded[i];
-                                    var id = ___informationDisplayers[i];
+                                    candidateInventories = list;
+                                    UpdateCounters();
 
-                                    id.SetGroupListGroupsAvailability(
-                                        _inventory.ItemsContainsStatus(gr.GetRecipe().GetIngredientsGroupInRecipe())
-                                    );
+                                    for (int i = 0; i < ___groupsAdded.Count; i++)
+                                    {
+                                        var gr = ___groupsAdded[i];
+                                        var id = ___informationDisplayers[i];
+
+                                        id.SetGroupListGroupsAvailability(
+                                            GetRecipeStatus(gr.GetRecipe().GetIngredientsGroupInRecipe())
+                                        );
+                                    }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogError(ex);
-                            }
-                            cw.Done();
-                        });
+                                catch (Exception ex)
+                                {
+                                    logger.LogError(ex);
+                                }
+                                cw.Done();
+                            });
 
-                        while (!cw.IsDone)
-                        {
-                            yield return null;
+                            while (!cw.IsDone)
+                            {
+                                yield return null;
+                            }
                         }
                     }
                 }
@@ -1188,31 +1192,76 @@ namespace CheatCraftFromNearbyContainers
 
         }
 
-        /* Fixed in 1.002
-        // Workaround for the method as it may crash if the woId no longer exists.
-        // We temporarily restore an empty object for the duration of the method
-        // so it can see no inventory and respond accordingly.
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
-        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Pre(int woId, ref bool __state)
+        static readonly DictionaryCounter inventoryCounts = new(1024);
+        static readonly DictionaryCounter usedUp = new(32);
+
+        static List<bool> GetRecipeStatus(List<Group> recipe)
         {
-            if (!WorldObjectsHandler.Instance.GetAllWorldObjects().ContainsKey(woId))
+            var result = new List<bool>(recipe.Count);
+            usedUp.Clear();
+
+            foreach (var g in recipe)
             {
-                WorldObjectsHandler.Instance.GetAllWorldObjects()[woId] = new WorldObject(woId, null);
-                __state = true;
+                int c = inventoryCounts.CountOf(g.id);
+                int u = usedUp.CountOf(g.id);
+                if (c > u)
+                {
+                    result.Add(true);
+                    usedUp.Update(g.id);
+                }
+                else
+                {
+                    result.Add(false);
+                }
+            }
+
+            return result;
+        }
+
+
+        static void UpdateCounters()
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm == null)
+            {
+                return;
+            }
+            var player = pm.GetActivePlayerController();
+            if (player == null)
+            {
+                return;
+            }
+            var backpack = player.GetPlayerBackpack();
+            if (backpack == null)
+            {
+                return;
+            }
+            Inventory inventory = backpack.GetInventory();
+            if (inventory == null)
+            {
+                return;
+            }
+
+            inventoryCounts.Clear();
+
+            foreach (WorldObject wo in inventory.GetInsideWorldObjects())
+            {
+                inventoryCounts.Update(wo.GetGroup().id);
+            }
+
+            foreach (var inv in candidateInventories)
+            {
+                if (inv != null)
+                {
+                    foreach (var wo in inv.GetInsideWorldObjects())
+                    {
+                        inventoryCounts.Update(wo.GetGroup().id);
+                    }
+                }
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(InventoriesHandler), "GetOrCreateNewInventoryServerRpc", [typeof(int), typeof(ServerRpcParams)])]
-        static void InventoriesHandler_GetOrCreateNewInventoryServerRpc_Post(int woId, ref bool __state)
-        {
-            if (__state)
-            {
-                WorldObjectsHandler.Instance.GetAllWorldObjects().Remove(woId);
-            }
-        }
-        */
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWorldInstanceSelector), nameof(UiWorldInstanceSelector.SetValues))]

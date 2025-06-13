@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 
 using HarmonyLib;
+using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Runtime.ConstrainedExecution;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -104,91 +107,52 @@ namespace CheatInventoryStacking
         }
 
         /*
-        static readonly Dictionary<Group, int> recipeMap = [];
+        static DictionaryCounter usedUp = new(1024);
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineAutoCrafter), "GetInRange")]
-        static bool Patch_MachineAutoCrafter_GetInRange(
+        [HarmonyPatch(typeof(MachineAutoCrafter), "CraftIfPossible")]
+        static bool Patch_MachineAutoCrafter_CraftIfPossible(
+            MachineAutoCrafter __instance,
+            Group linkedGroup,
             HashSet<WorldObject> ____worldObjectsInRange,
-            List<ValueTuple<GameObject, Group>> ____gosInRangeForListing,
-            List<InventoryAssociatedProxy> ____proxys,
-            GameObject go, Group group
-        )
+            List<WorldObject> ____worldObjectsRecipe,
+            ReadOnlyCollection<WorldObject> ____worldObjectsRecipeRO,
+            Inventory ____autoCrafterInventory
+            )
         {
-            if (stackSize.Value <= 1)
+            usedUp.Clear();
+            var recipe = linkedGroup.GetRecipe().GetIngredientsGroupInRecipe();
+            foreach (var item in recipe)
             {
-                return true;
+                usedUp.Update(item.id);
             }
 
+            ____worldObjectsRecipe.Clear();
+            int remainingRecipe = recipe.Count;
+            foreach (var wo in ____worldObjectsInRange)
+            {
+                if (usedUp.DeduceIfPositive(wo.GetGroup().id))
+                {
+                    remainingRecipe--;
+                    ____worldObjectsRecipe.Add(wo);
+                }
+                if (remainingRecipe == 0)
+                {
+                    break;
+                }
+            }
 
-            if (group is GroupItem)
+            if (remainingRecipe == 0)
             {
-                if (NetworkManager.Singleton.IsServer && recipeMap.Count != 0)
+                WorldObjectsHandler.Instance.DestroyWorldObjects(____worldObjectsRecipeRO, true);
+                InventoriesHandler.Instance.AddItemToInventory(linkedGroup, ____autoCrafterInventory, null);
+                if (__instance.gameObject.activeInHierarchy)
                 {
-                    WorldObjectAssociated componentInChildren = go.GetComponentInChildren<WorldObjectAssociated>(true);
-                    if (componentInChildren == null || (componentInChildren.GetWorldObject().GetGrowth() > 0f && componentInChildren.GetWorldObject().GetGrowth() < 100f))
-                    {
-                        return false;
-                    }
-                    if (recipeMap.TryGetValue(group, out var c))
-                    {
-                        ____worldObjectsInRange.Add(componentInChildren.GetWorldObject());
-                        if (--c == 0)
-                        {
-                            recipeMap.Remove(group);
-                        }
-                        else
-                        {
-                            recipeMap[group] = c;
-                        }
-                    }
+                    __instance.CraftAnimation((GroupItem)linkedGroup, true);
                 }
-                ____gosInRangeForListing.Add(new ValueTuple<GameObject, Group>(go, group));
-                return false;
+                CraftManager.AddOneToTotalCraft();
             }
-            if (group.GetLogisticInterplanetaryType() != DataConfig.LogisticInterplanetaryType.Disabled && (go.GetComponentInChildren<InventoryAssociated>(true) != null || go.GetComponentInChildren<InventoryAssociatedProxy>(true) != null))
-            {
-                ____gosInRangeForListing.Add(new ValueTuple<GameObject, Group>(go, group));
-                if (recipeMap.Count == 0)
-                {
-                    return false;
-                }
-                if (NetworkManager.Singleton.IsServer)
-                {
-                    ____proxys.Clear();
-                    go.GetComponentsInChildren<InventoryAssociatedProxy>(true, ____proxys);
-                    foreach (InventoryAssociatedProxy inventoryAssociatedProxy in ____proxys)
-                    {
-                        ValueTuple<WorldObject, int> requestedInventoryData = inventoryAssociatedProxy.GetRequestedInventoryData();
-                        if (group.GetLogisticInterplanetaryType() != DataConfig.LogisticInterplanetaryType.EnabledOnSecondaryInventories || inventoryAssociatedProxy.GetSecondaryInventoryIndex() != -1)
-                        {
-                            foreach (WorldObject worldObject in InventoriesHandler.Instance.GetInventoryById(requestedInventoryData.Item2).GetInsideWorldObjects())
-                            {
-                                if (!worldObject.GetIsPlaced() || worldObject.GetGrowth() == 100f)
-                                {
-                                    var itemGroup = worldObject.GetGroup();
-                                    if (recipeMap.TryGetValue(itemGroup, out var c))
-                                    {
-                                        ____worldObjectsInRange.Add(worldObject);
-                                        if (--c == 0)
-                                        {
-                                            recipeMap.Remove(itemGroup);
-                                            if (recipeMap.Count == 0)
-                                            {
-                                                return false;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            recipeMap[itemGroup] = c;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+
             return false;
         }
         */
