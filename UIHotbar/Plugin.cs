@@ -334,6 +334,8 @@ namespace UIHotbar
             }
         }
 
+        static readonly DictionaryCounter inventoryCounts = new(1024);
+
         void UpdateRender(PlayerMainController player)
         {
             bool isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
@@ -345,8 +347,12 @@ namespace UIHotbar
 
             int oldActiveSlot = activeSlot;
 
+            /*
             Dictionary<string, int> inventoryCounts = [];
             CountInventory(player, inventoryCounts);
+            */
+            inventoryCounts.Clear();
+            CountInventory(player);
 
             if (wh != null && !wh.GetHasUiOpen())
             {
@@ -378,7 +384,7 @@ namespace UIHotbar
                                 GroupConstructible gc = (GroupConstructible)slots[k].currentGroup;
 
                                 // activate build mode for slot k
-                                if (isFreeCraft || BuildableCount(inventoryCounts, gc) > 0)
+                                if (isFreeCraft || BuildableCount(gc) > 0)
                                 {
                                     Log("Activating ghost for " + gc.GetId());
 
@@ -437,7 +443,7 @@ namespace UIHotbar
                 {
                     GroupConstructible gc = (GroupConstructible)slot.currentGroup;
 
-                    int buildableCount = BuildableCount(inventoryCounts, gc);
+                    int buildableCount = BuildableCount(gc);
 
                     Image image = slot.image.GetComponent<Image>();
                     Text text = slot.buildCount.GetComponent<Text>();
@@ -462,6 +468,7 @@ namespace UIHotbar
             }
         }
 
+        /*
         static void CountInventory(Inventory inv, Dictionary<string, int> counts)
         {
             foreach (WorldObject wo in inv.GetInsideWorldObjects())
@@ -471,8 +478,36 @@ namespace UIHotbar
                 counts[gid] = c + 1;
             }
         }
+        */
 
+        static void CountInventory(Inventory inv, DictionaryCounter counts)
+        {
+            foreach (WorldObject wo in inv.GetInsideWorldObjects())
+            {
+                counts.Update(wo.GetGroup().id);
+            }
+        }
+
+        /*
         static void CountInventory(PlayerMainController player, Dictionary<string, int> inventoryCounts)
+        {
+            // In multiplayer, these may be null for a few frames
+            if (player.GetPlayerBackpack() == null || player.GetPlayerBackpack().GetInventory() == null)
+            {
+                return;
+            }
+            CountInventory(player.GetPlayerBackpack().GetInventory(), inventoryCounts);
+            foreach (var inv in nearbyInventories)
+            {
+                if (inv != null)
+                {
+                    CountInventory(inv, inventoryCounts);
+                }
+            }
+        }
+        */
+
+        static void CountInventory(PlayerMainController player)
         {
             // In multiplayer, these may be null for a few frames
             if (player.GetPlayerBackpack() == null || player.GetPlayerBackpack().GetInventory() == null) 
@@ -489,6 +524,7 @@ namespace UIHotbar
             }
         }
 
+        /*
         static int BuildableCount(Dictionary<string, int> inventoryCounts, GroupConstructible gc)
         {
             List<Group> recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
@@ -506,6 +542,33 @@ namespace UIHotbar
             {
                 inventoryCounts.TryGetValue(comp.GetId(), out int inventoryCount);
                 recipeCounts.TryGetValue(comp.GetId(), out int recipeCount);
+
+                craftableCount = Mathf.Min(craftableCount, inventoryCount / recipeCount);
+            }
+            if (craftableCount == int.MaxValue)
+            {
+                craftableCount = 0;
+            }
+            return craftableCount;
+        }
+        */
+        static readonly DictionaryCounter recipeCounts = new(32);
+
+        static int BuildableCount(GroupConstructible gc)
+        {
+            List<Group> recipe = gc.GetRecipe().GetIngredientsGroupInRecipe();
+            // agregate recipe
+            recipeCounts.Clear();
+            foreach (Group group in recipe)
+            {
+                recipeCounts.Update(group.id);
+            }
+
+            int craftableCount = int.MaxValue;
+            foreach (Group comp in recipe)
+            {
+                int inventoryCount = inventoryCounts.CountOf(comp.id);
+                int recipeCount = recipeCounts.CountOf(comp.id);
 
                 craftableCount = Mathf.Min(craftableCount, inventoryCount / recipeCount);
             }

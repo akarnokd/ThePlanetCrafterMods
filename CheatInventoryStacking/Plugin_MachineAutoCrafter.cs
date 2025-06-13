@@ -81,15 +81,17 @@ namespace CheatInventoryStacking
 
                                 if (!IsFullStackedOfInventory(inv, gr.id))
                                 {
+                                    /*
                                     recipeMap.Clear();
                                     foreach (var g in gr.GetRecipe().GetIngredientsGroupInRecipe())
                                     {
                                         recipeMap.TryGetValue(g, out var c);
                                         recipeMap[g] = c + 1;
                                     }
+                                    */
                                     mSetItemsInRange();
 
-                                    recipeMap.Clear();
+                                    // recipeMap.Clear();
 
                                     mCraftIfPossible(gr);
                                 }
@@ -101,6 +103,7 @@ namespace CheatInventoryStacking
             }
         }
 
+        /*
         static readonly Dictionary<Group, int> recipeMap = [];
 
         [HarmonyPrefix]
@@ -188,5 +191,6 @@ namespace CheatInventoryStacking
             }
             return false;
         }
+        */
     }
 }

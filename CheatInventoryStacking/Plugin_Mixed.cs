@@ -3,6 +3,7 @@
 
 using HarmonyLib;
 using SpaceCraft;
+using System;
 using Unity.Netcode;
 
 namespace CheatInventoryStacking
@@ -177,7 +178,7 @@ namespace CheatInventoryStacking
                 return;
             }
             if (!stackPlanetaryDepots.Value 
-                && __instance.gameObject.name.StartsWith("PlanetaryDeliveryDepot"))
+                && __instance.gameObject.name.StartsWith("PlanetaryDeliveryDepot", StringComparison.Ordinal))
             {
                 noStackingInventories.Add(inventory.GetId());
             }

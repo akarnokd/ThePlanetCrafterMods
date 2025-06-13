@@ -378,7 +378,7 @@ namespace CheatMachineRemoteDeposit
                 foreach (var constructs in worldObjects)
                 {
                     if (constructs != null
-                        && constructs.GetGroup().GetId().StartsWith("Container")
+                        && constructs.GetGroup().GetId().StartsWith("Container", StringComparison.Ordinal)
                         && constructs.HasLinkedInventory()
                         && constructs.GetPlanetHash() == planetHash
                         )
@@ -411,7 +411,7 @@ namespace CheatMachineRemoteDeposit
         )
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-            if (wo.GetGroup().GetId().StartsWith("OreBreaker", StringComparison.InvariantCulture))
+            if (wo.GetGroup().GetId().StartsWith("OreBreaker", StringComparison.Ordinal))
             {
                 var planetHash = wo.GetPlanetHash();
 

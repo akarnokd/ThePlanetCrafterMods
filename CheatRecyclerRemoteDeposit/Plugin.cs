@@ -541,7 +541,7 @@ namespace CheatRecyclerRemoteDeposit
         )
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-            if (wo.GetGroup().GetId().StartsWith("RecyclingMachine", StringComparison.InvariantCulture))
+            if (wo.GetGroup().GetId().StartsWith("RecyclingMachine", StringComparison.Ordinal))
             {
                 var planetHash = wo.GetPlanetHash();
                 me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance, planetHash, wo.GetPosition()));

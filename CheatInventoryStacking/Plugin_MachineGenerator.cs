@@ -3,6 +3,7 @@
 
 using HarmonyLib;
 using SpaceCraft;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -133,49 +134,49 @@ namespace CheatInventoryStacking
             if (wo != null)
             {
                 var gid = wo.GetGroup().id;
-                if (gid.StartsWith("OreExtractor"))
+                if (gid.StartsWith("OreExtractor", StringComparison.Ordinal))
                 {
                     if (!stackOreExtractors.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("WaterCollector"))
+                else if (gid.StartsWith("WaterCollector", StringComparison.Ordinal))
                 {
                     if (!stackWaterCollectors.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("GasExtractor"))
+                else if (gid.StartsWith("GasExtractor", StringComparison.Ordinal))
                 {
                     if (!stackGasExtractors.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("Beehive"))
+                else if (gid.StartsWith("Beehive", StringComparison.Ordinal))
                 {
                     if (!stackBeehives.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("Biodome"))
+                else if (gid.StartsWith("Biodome", StringComparison.Ordinal))
                 {
                     if (!stackBiodomes.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("HarvestingRobot"))
+                else if (gid.StartsWith("HarvestingRobot", StringComparison.Ordinal))
                 {
                     if (!stackHarvestingRobots.Value)
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }
                 }
-                else if (gid.StartsWith("Ecosystem"))
+                else if (gid.StartsWith("Ecosystem", StringComparison.Ordinal))
                 {
                     if (!stackEcosystems.Value)
                     {

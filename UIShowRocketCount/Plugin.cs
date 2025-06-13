@@ -209,7 +209,7 @@ namespace UIShowRocketCount
                 {
                     if (fEventHoverShowGroupAssociatedGroup(ehg) is GroupItem gi)
                     {
-                        if (gi.id.StartsWith("Rocket") && !gi.id.StartsWith("RocketReactor"))
+                        if (gi.id.StartsWith("Rocket", StringComparison.Ordinal) && !gi.id.StartsWith("RocketReactor", StringComparison.Ordinal))
                         {
                             Log("Modifying cell for " + gi.id);
 

@@ -123,7 +123,7 @@ namespace UIContinue
                                 int section = 1;
                                 for (int j = 2; j < sf.Length; j++)
                                 {
-                                    if (sf[j].StartsWith("@"))
+                                    if (sf[j].StartsWith("@", StringComparison.Ordinal))
                                     {
                                         section++;
                                     }

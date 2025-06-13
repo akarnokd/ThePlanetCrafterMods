@@ -18,7 +18,8 @@
         <Compile Include="..\LibCommon\GeneticsGrouping.cs" Link="GeneticsGrouping.cs" />
 		<Compile Include="..\LibCommon\GrabChecker.cs" Link="GrabChecker.cs" />
 		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
-	</ItemGroup>
+        <Compile Include="..\LibCommon\DictionaryStackCounter.cs" Link="DictionaryStackCounter.cs" />
+    </ItemGroup>
 
   <Target Name="CopyDLLs" AfterTargets="Build">
 	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

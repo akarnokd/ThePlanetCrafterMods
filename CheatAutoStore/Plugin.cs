@@ -13,6 +13,7 @@ using BepInEx.Logging;
 using System.Linq;
 using Unity.Netcode;
 using LibCommon;
+using System;
 
 namespace CheatAutoStore
 {
@@ -238,7 +239,7 @@ namespace CheatAutoStore
                 {
                     var dist = Vector3.Distance(playerPos, woPos);
                     Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
-                    if (grid.StartsWith("Container") && dist <= range.Value)
+                    if (grid.StartsWith("Container", StringComparison.Ordinal) && dist <= range.Value)
                     {
                         if (wo.GetLinkedInventoryId() != 0)
                         {

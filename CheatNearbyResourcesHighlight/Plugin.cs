@@ -10,6 +10,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using LibCommon;
+using System;
 
 namespace CheatNearbyResourcesHighlight
 {
@@ -328,7 +329,7 @@ namespace CheatNearbyResourcesHighlight
 
         static void UpdateKeyBinding()
         {
-            if (!scanKey.Value.StartsWith("<"))
+            if (!scanKey.Value.StartsWith("<", StringComparison.Ordinal))
             {
                 scanKey.Value = "<Keyboard>/" + scanKey.Value;
             }

@@ -68,7 +68,7 @@ namespace CheatInventoryStacking
                     {
                         Patch_MachineDisintegrator_SetDisintegratorInventory(mds, inventory);
                     }
-                    if (!stackPlanetaryDepots.Value && (wo?.GetGroup()?.GetId().StartsWith("PlanetaryDeliveryDepot") ?? false))
+                    if (!stackPlanetaryDepots.Value && (wo?.GetGroup()?.GetId().StartsWith("PlanetaryDeliveryDepot", StringComparison.Ordinal) ?? false))
                     {
                         noStackingInventories.Add(inventory.GetId());
                     }

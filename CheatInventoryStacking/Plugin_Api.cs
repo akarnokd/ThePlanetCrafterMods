@@ -65,7 +65,7 @@ namespace CheatInventoryStacking
         /// </summary>
         static readonly Dictionary<string, int> groupCounts = [];
 
-        static readonly HashGroupCounter groupCounts2 = new(1024);
+        static readonly DictionaryStackCounter groupCounts2 = new(1024);
 
         static void AddToStackDict(string gid, Dictionary<string, int> groupCounts, int n, ref int stacks)
         {

@@ -2,16 +2,23 @@
 // Licensed under the Apache License, Version 2.0
 
 using System;
-using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using System.Text;
 
-namespace CheatInventoryStacking
+namespace LibCommon
 {
-    internal class HashGroupCounter
+    /// <summary>
+    /// Tracks how many stacks of items per type are in an inventory listing.
+    /// Uses linear-probing and direct field references to improve
+    /// performance over a traditional Dictionary string -> int counter.
+    /// Does not support resizing!
+    /// </summary>
+    internal class DictionaryStackCounter
     {
         readonly Entry[] entries;
         readonly int MASK;
 
-        internal HashGroupCounter(int N)
+        internal DictionaryStackCounter(int N)
         {
             entries = new Entry[N];
             MASK = N - 1;
@@ -24,9 +31,11 @@ namespace CheatInventoryStacking
 
         internal void Update(string s, int sizePerGroup, ref int groups)
         {
+            var entries = this.entries;
+            var n = entries.Length;
             int key = s.GetHashCode();
             int m = MASK;
-            for (int k = 0; k < entries.Length; k++)
+            for (int k = 0; k < n; k++)
             {
                 ref var e = ref entries[(k + key) & m];
                 if (e.key == null)
@@ -50,7 +59,7 @@ namespace CheatInventoryStacking
                     return;
                 }
             }
-            throw new InvalidOperationException("HashGroupCounter full?!");
+            throw new InvalidOperationException(nameof(DictionaryStackCounter) + " overflow!");
         }
 
         internal struct Entry

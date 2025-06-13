@@ -320,27 +320,27 @@ namespace CheatAutoSequenceDNA
                         {
                             WorldObject item = items[i];
                             var gid = item.GetGroup().GetId();
-                            if (gid.StartsWith("Butterfly"))
+                            if (gid.StartsWith("Butterfly", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Butterfly", incubatorPlanetHash);
                             }
-                            if (gid.StartsWith("Bee"))
+                            if (gid.StartsWith("Bee", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Bee", incubatorPlanetHash);
                             }
-                            if (gid.StartsWith("Silk"))
+                            if (gid.StartsWith("Silk", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Silk", incubatorPlanetHash);
                             }
-                            if (gid.StartsWith("Fish"))
+                            if (gid.StartsWith("Fish", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Fish", incubatorPlanetHash);
                             }
-                            if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
+                            if (gid.StartsWith("Frog", StringComparison.Ordinal) && gid.EndsWith("Eggs", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "FrogEgg", incubatorPlanetHash);
                             }
-                            if (gid.StartsWith("LarvaeBase"))
+                            if (gid.StartsWith("LarvaeBase", StringComparison.Ordinal))
                             {
                                 TryDeposit(incubatorInv, item, itemCategories, "Larvae", incubatorPlanetHash);
                             }
@@ -533,39 +533,39 @@ namespace CheatAutoSequenceDNA
 
         static string GetCategoryFor(string ingredientGroupId)
         {
-            if (ingredientGroupId.StartsWith("LarvaeBase"))
+            if (ingredientGroupId.StartsWith("LarvaeBase", StringComparison.Ordinal))
             {
                 return "Larvae";
             }
-            else if (ingredientGroupId.StartsWith("Mutagen"))
+            else if (ingredientGroupId.StartsWith("Mutagen", StringComparison.Ordinal))
             {
                 return "Mutagen";
             }
-            else if (ingredientGroupId.StartsWith("Fertilizer"))
+            else if (ingredientGroupId.StartsWith("Fertilizer", StringComparison.Ordinal))
             {
                 return "Fertilizer";
             }
-            else if (ingredientGroupId.StartsWith("Seed"))
+            else if (ingredientGroupId.StartsWith("Seed", StringComparison.Ordinal))
             {
                 return "FlowerSeed";
             }
-            else if (ingredientGroupId.StartsWith("TreeRoot"))
+            else if (ingredientGroupId.StartsWith("TreeRoot", StringComparison.Ordinal))
             {
                 return "TreeRoot";
             }
-            else if (ingredientGroupId.StartsWith("Phytoplankton"))
+            else if (ingredientGroupId.StartsWith("Phytoplankton", StringComparison.Ordinal))
             {
                 return "Phytoplankton";
             }
-            else if (ingredientGroupId.StartsWith("Frog") && ingredientGroupId.EndsWith("Eggs"))
+            else if (ingredientGroupId.StartsWith("Frog", StringComparison.Ordinal) && ingredientGroupId.EndsWith("Eggs", StringComparison.Ordinal))
             {
                 return "FrogEgg";
             }
-            else if (ingredientGroupId.StartsWith("Bacteria1"))
+            else if (ingredientGroupId.StartsWith("Bacteria1", StringComparison.Ordinal))
             {
                 return "Bacteria";
             }
-            else if (ingredientGroupId.StartsWith("Vegetable") && ingredientGroupId.EndsWith("Growable"))
+            else if (ingredientGroupId.StartsWith("Vegetable", StringComparison.Ordinal) && ingredientGroupId.EndsWith("Growable", StringComparison.Ordinal))
             {
                 return "Vegetable";
             }
@@ -616,11 +616,11 @@ namespace CheatAutoSequenceDNA
                         {
                             WorldObject item = items[i];
                             var gid = item.GetGroup().GetId();
-                            if (gid.StartsWith("Tree") && gid.EndsWith("Seed"))
+                            if (gid.StartsWith("Tree", StringComparison.Ordinal) && gid.EndsWith("Seed", StringComparison.Ordinal))
                             {
                                 TryDeposit(sequencerInv, item, itemCategories, "TreeSeed", sequencerPlanetHash);
                             }
-                            if (gid.StartsWith("Seed"))
+                            if (gid.StartsWith("Seed", StringComparison.Ordinal))
                             {
                                 TryDeposit(sequencerInv, item, itemCategories, "FlowerSeed", sequencerPlanetHash);
                             }

@@ -78,6 +78,8 @@ namespace CheatCraftFromNearbyContainers
 
         static AccessTools.FieldRef<WorldObject, int> fWorldObjectPlanetHash;
 
+        static string[] includeFilterArray = [];
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -94,6 +96,7 @@ namespace CheatCraftFromNearbyContainers
             includeFilter = Config.Bind("General", "IncludeFilter", "", "Comma-separated list of item id prefixes whose inventory should be included. Example: OreExtractor,OreBreaker");
             currentPlanetOnly = Config.Bind("General", "CurrentPlanetOnly", true, "If true, only containers from the current planet are considered.");
 
+            UpdateIncludeFilterList();
             UpdateKeyBindings();
 
             fCraftManagerCrafting = AccessTools.FieldRefAccess<bool>(typeof(CraftManager), "_crafting");
@@ -376,14 +379,18 @@ namespace CheatCraftFromNearbyContainers
             GetInventoriesInRangeSearch(parent, pos, onComplete);
         }
 
-        static List<string> GetPrefixes()
+        static void UpdateIncludeFilterList()
         {
             var v = includeFilter.Value;
             if (v.IsNullOrWhiteSpace())
             {
-                return [];
+                includeFilterArray = [];
             }
-            return [..v.Split(',')];
+            else
+            {
+                includeFilterArray = v.Split(',');
+            }
+            ;
         }
 
         static void GetInventoriesInRangeSearch(MonoBehaviour parent, Vector3 pos, Action<List<Inventory>> onComplete)
@@ -391,7 +398,6 @@ namespace CheatCraftFromNearbyContainers
             List<int> candidateInventoryIds = [];
             List<WorldObject> candidateGetInventoryOfWorldObject = [];
             HashSet<int> seen = [];
-            List<string> prefixes = GetPrefixes();
             var planetId = 0;
             var pl = Managers.GetManager<PlanetLoader>();
             if (pl != null)
@@ -424,9 +430,9 @@ namespace CheatCraftFromNearbyContainers
                 }
                 var dist = Vector3.Distance(pos, wpos);
 
-                if ((grid.StartsWith("Container", StringComparison.InvariantCulture) 
-                        || CheckGIDList(grid, prefixes))
-                    && dist <= range.Value
+                if (dist <= range.Value &&
+                    (grid.StartsWith("Container", StringComparison.Ordinal) 
+                        || CheckGIDList(grid))
                 )
                 {
                     var ph = fWorldObjectPlanetHash(wo);
@@ -462,23 +468,34 @@ namespace CheatCraftFromNearbyContainers
                 + candidateGetInventoryOfWorldObject.Count
                 + " = " + (candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count));
 
+            var invh = InventoriesHandler.Instance;
             var inventoryList = new List<Inventory>();
-            foreach (var iid in candidateInventoryIds)
+            if (isClient)
             {
-                InventoriesHandler.Instance.GetInventoryById(iid, inventoryList.Add);
+                foreach (var iid in candidateInventoryIds)
+                {
+                    invh.GetInventoryById(iid, inventoryList.Add);
+                }
+            }
+            else
+            {
+                foreach (var iid in candidateInventoryIds)
+                {
+                    inventoryList.Add(invh.GetInventoryById(iid));
+                }
             }
             foreach (var wo in candidateGetInventoryOfWorldObject)
             {
-                InventoriesHandler.Instance.GetWorldObjectInventory(wo, inventoryList.Add);
+                    invh.GetWorldObjectInventory(wo, inventoryList.Add);
             }
             parent.StartCoroutine(GetInventoriesInRangeWait(candidateInventoryIds.Count + candidateGetInventoryOfWorldObject.Count, inventoryList, onComplete));
         }
 
-        static bool CheckGIDList(string grid, List<string> prefixes)
+        static bool CheckGIDList(string grid)
         {
-            foreach (var prefix in prefixes)
+            foreach (var prefix in includeFilterArray)
             {
-                if (grid.StartsWith(prefix, StringComparison.InvariantCulture))
+                if (grid.StartsWith(prefix, StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -894,7 +911,6 @@ namespace CheatCraftFromNearbyContainers
                 var pos = Managers.GetManager<PlayersManager>().GetActivePlayerController().transform.position;
                 candidateInventories = [];
                 HashSet<int> seen = [];
-                List<string> prefixes = GetPrefixes();
 
                 var planetId = 0;
                 var pl = Managers.GetManager<PlanetLoader>();
@@ -927,8 +943,8 @@ namespace CheatCraftFromNearbyContainers
                     }
                     var dist = Vector3.Distance(pos, wpos);
 
-                    if ((grid.StartsWith("Container", StringComparison.InvariantCulture) 
-                        || CheckGIDList(grid, prefixes))
+                    if ((grid.StartsWith("Container", StringComparison.Ordinal) 
+                        || CheckGIDList(grid))
                         && dist <= range.Value
                     )
                     {
@@ -1246,6 +1262,7 @@ namespace CheatCraftFromNearbyContainers
         public static void OnModConfigChanged(ConfigEntryBase _)
         {
             ModNetworking._debugMode = debugMode.Value;
+            UpdateIncludeFilterList();
             UpdateKeyBindings();
         }
 

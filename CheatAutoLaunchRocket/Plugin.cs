@@ -10,6 +10,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using Unity.Netcode;
+using System;
 
 namespace CheatAutoLaunchRocket
 {
@@ -56,7 +57,7 @@ namespace CheatAutoLaunchRocket
         static void WorldObjectsHandler_StoreNewWorldObject(WorldObject worldObject)
         {
             var gid = worldObject.GetGroup().GetId();
-            if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+            if (gid.StartsWith("Rocket", StringComparison.Ordinal) && !gid.StartsWith("RocketReactor", StringComparison.Ordinal))
             {
                 rockets[worldObject.GetId()] = worldObject;
             }
@@ -70,7 +71,7 @@ namespace CheatAutoLaunchRocket
             if (!WorldObjectsIdHandler.IsWorldObjectFromScene(id))
             {
                 var gid = worldObject.GetGroup().GetId();
-                if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+                if (gid.StartsWith("Rocket", StringComparison.Ordinal) && !gid.StartsWith("RocketReactor", StringComparison.Ordinal))
                 {
                     rockets.Remove(id);
                 }
@@ -86,7 +87,7 @@ namespace CheatAutoLaunchRocket
             {
 
                 var gid = worldObject.GetGroup().GetId();
-                if (gid.StartsWith("Rocket") && gid != "RocketReactor")
+                if (gid.StartsWith("Rocket", StringComparison.Ordinal) && !gid.StartsWith("RocketReactor", StringComparison.Ordinal))
                 {
                     rockets.Remove(woId);
                 }

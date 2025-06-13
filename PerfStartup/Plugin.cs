@@ -139,7 +139,7 @@ namespace PerfStartup
                         state.preInterplanetarySave = true;
                         break;
                     }
-                    if (line.StartsWith("@"))
+                    if (line.StartsWith("@", StringComparison.Ordinal))
                     {
                         section++;
                     } 

@@ -40,10 +40,16 @@ namespace UIOverviewPanel
         static RectTransform backgroundRectTransform;
         static readonly List<OverviewEntry> entries = [];
         static float lastUpdate;
+        /*
         static readonly Dictionary<string, int> sceneCounts = [];
         static readonly HashSet<string> uniqueButterflies = [];
         static readonly HashSet<string> uniqueFish = [];
         static readonly HashSet<string> uniqueFrog = [];
+        */
+        static readonly DictionaryCounter sceneCounts = new(1024);
+        static readonly HashSetFast uniqueButterflies = new(64);
+        static readonly HashSetFast uniqueFish = new(64);
+        static readonly HashSetFast uniqueFrog = new(64);
 
         static Coroutine statisticsUpdater;
 
@@ -568,7 +574,8 @@ namespace UIOverviewPanel
                 int csum = 0;
                 foreach (var gid in groupIds)
                 {
-                    sceneCounts.TryGetValue(gid, out var c);
+                    //sceneCounts.TryGetValue(gid, out var c);
+                    var c = sceneCounts.CountOf(gid);
                     csum += c;
                 }
 
@@ -627,23 +634,32 @@ namespace UIOverviewPanel
                 */
 
                 var id = worldObject.GetId();
-                var gid = worldObject.GetGroup().GetId();
+                var gid = worldObject.GetGroup().id;
                 if (WorldObjectsIdHandler.IsWorldObjectFromScene(id))
                 {
+                    /*
                     sceneCounts.TryGetValue(gid, out var c);
                     sceneCounts[gid] = c + 1;
+                    */
+                    sceneCounts.Update(gid);
                 }
-                if (gid.StartsWith("Butterfly") && gid.EndsWith("Larvae"))
+                if (gid.StartsWith("Butterfly", StringComparison.Ordinal) 
+                    && gid.EndsWith("Larvae", StringComparison.Ordinal))
                 {
                     uniqueButterflies.Add(gid);
                 }
-                if (gid.StartsWith("Fish") && gid.EndsWith("Eggs"))
+                else
+                if (gid.EndsWith("Eggs", StringComparison.Ordinal))
                 {
-                    uniqueFish.Add(gid);
-                }
-                if (gid.StartsWith("Frog") && gid.EndsWith("Eggs"))
-                {
-                    uniqueFrog.Add(gid);
+                    if (gid.StartsWith("Fish", StringComparison.Ordinal))
+                    {
+                        uniqueFish.Add(gid);
+                    }
+                    else
+                    if (gid.StartsWith("Frog", StringComparison.Ordinal))
+                    {
+                        uniqueFrog.Add(gid);
+                    }
                 }
             }
         }
@@ -675,10 +691,13 @@ namespace UIOverviewPanel
 
             while (WorldObjectsHandler.Instance != null)
             {
-                ClearCounters();
-                foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects())
+                if (parent != null && parent.activeSelf)
                 {
-                    UpdateCounters(wo.Value);
+                    ClearCounters();
+                    foreach (var wo in WorldObjectsHandler.Instance.GetAllWorldObjects())
+                    {
+                        UpdateCounters(wo.Value);
+                    }
                 }
                 yield return wait;
             }
@@ -825,7 +844,7 @@ namespace UIOverviewPanel
 
             foreach (var g in grps)
             {
-                if (g.id.StartsWith(prefix) && g.id.EndsWith(suffix))
+                if (g.id.StartsWith(prefix, StringComparison.Ordinal) && g.id.EndsWith(suffix, StringComparison.Ordinal))
                 {
                     count++;
                 }

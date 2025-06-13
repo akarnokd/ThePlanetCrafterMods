@@ -126,6 +126,7 @@ namespace UIPinRecipe
                             }
                         }
                     }
+                    UpdateCounters();
                     foreach (PinnedRecipe pr in pinnedRecipes)
                     {
                         pr.UpdateState();
@@ -149,6 +150,61 @@ namespace UIPinRecipe
                 {
                     ClearPinnedRecipes();
                     SavePinnedRecipes();
+                }
+            }
+        }
+
+        static readonly DictionaryCounter inventoryCounts = new(1024);
+        static readonly DictionaryCounter recipeCounts = new(32);
+
+        static void UpdateCounters()
+        {
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm == null)
+            {
+                return;
+            }
+            var player = pm.GetActivePlayerController();
+            if (player == null)
+            {
+                return;
+            }
+            var backpack = player.GetPlayerBackpack();
+            if (backpack == null)
+            {
+                return;
+            }
+            Inventory inventory = backpack.GetInventory();
+            if (inventory == null)
+            {
+                return;
+            }
+
+            inventoryCounts.Clear();
+
+            foreach (WorldObject wo in inventory.GetInsideWorldObjects())
+            {
+                inventoryCounts.Update(wo.GetGroup().id);
+            }
+
+            if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
+            {
+            }
+            foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
+            {
+                string gid = wo.GetGroup().id;
+                inventoryCounts.TryGetValue(gid, out int c);
+                inventoryCounts[gid] = c + 1;
+            }
+
+            foreach (var inv in nearbyInventories)
+            {
+                if (inv != null)
+                {
+                    foreach (var wo in inv.GetInsideWorldObjects())
+                    {
+                        inventoryCounts.Update(wo.GetGroup().id);
+                    }
                 }
             }
         }
@@ -188,58 +244,6 @@ namespace UIPinRecipe
 
             public void UpdateState()
             {
-                var pm = Managers.GetManager<PlayersManager>();
-                if (pm == null)
-                {
-                    return;
-                }
-                var player = pm.GetActivePlayerController();
-                if (player == null)
-                {
-                    return;
-                }
-                var backpack = player.GetPlayerBackpack();
-                if (backpack == null)
-                {
-                    return;
-                }
-                Inventory inventory = backpack.GetInventory();
-                if (inventory == null)
-                {
-                    return;
-                }
-
-                Dictionary<string, int> inventoryCounts = [];
-                foreach (WorldObject wo in inventory.GetInsideWorldObjects())
-                {
-                    string gid = wo.GetGroup().GetId();
-                    inventoryCounts.TryGetValue(gid, out int c);
-                    inventoryCounts[gid] = c + 1;
-                }
-
-                if (group is GroupItem gi && gi.GetEquipableType() != DataConfig.EquipableType.Null)
-                {
-                    foreach (WorldObject wo in player.GetPlayerEquipment().GetInventory().GetInsideWorldObjects())
-                    {
-                        string gid = wo.GetGroup().GetId();
-                        inventoryCounts.TryGetValue(gid, out int c);
-                        inventoryCounts[gid] = c + 1;
-                    }
-                }
-
-                foreach (var inv in nearbyInventories)
-                {
-                    if (inv != null)
-                    {
-                        foreach (var wo in inv.GetInsideWorldObjects())
-                        {
-                            string gid = wo.GetGroup().GetId();
-                            inventoryCounts.TryGetValue(gid, out int c);
-                            inventoryCounts[gid] = c + 1;
-                        }
-                    }
-                }
-
                 int craftableCount = int.MaxValue;
                 foreach (TextSpriteBackground comp in components)
                 {

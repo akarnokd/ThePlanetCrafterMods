@@ -382,37 +382,37 @@ namespace CheatAutoGrabAndMine
                     return;
                 }
                 
-                if (IsLarvae(grid) && !grabLarvae.Value)
+                if (!grabLarvae.Value && IsLarvae(grid))
                 {
                     Log("    Grabbing larvae is disabled");
                     return;
                 }
-                else if (IsFishEggs(grid) && !grabFishEggs.Value)
+                else if (!grabFishEggs.Value && IsFishEggs(grid))
                 {
                     Log("    Grabbing fish eggs is disabled");
                     return;
                 }
-                else if (IsFrogEggs(grid) && !grabFrogEggs.Value)
+                else if (!grabFrogEggs.Value && IsFrogEggs(grid))
                 {
                     Log("    Grabbing frog eggs is disabled");
                     return;
                 }
-                else if (IsFood(grid) && !grabFood.Value)
+                else if (!grabFood.Value && IsFood(grid))
                 {
                     Log("    Grabbing food is disabled");
                     return;
                 }
-                else if (IsAlgae(grid) && !grabAlgae.Value)
+                else if (!grabAlgae.Value && IsAlgae(grid))
                 {
                     Log("    Grabbing algae is disabled");
                     return;
                 }
-                else if (IsGrabableOre(grid) && !mineMinerals.Value)
+                else if (!mineMinerals.Value && IsGrabableOre(grid))
                 {
                     Log("    Grabbing ore is disabled");
                     return;
                 }
-                else if (IsRod(grid) && !grabRods.Value)
+                else if (!grabRods.Value && IsRod(grid))
                 {
                     Log("    Grabbing rods is disabled");
                     return;
@@ -474,28 +474,32 @@ namespace CheatAutoGrabAndMine
 
         static bool IsLarvae(string grid)
         {
-            return grid.StartsWith("LarvaeBase") || (grid.StartsWith("Butterfly") && grid.EndsWith("Larvae"));
+            return grid.StartsWith("LarvaeBase", StringComparison.Ordinal) 
+                || (grid.StartsWith("Butterfly", StringComparison.Ordinal) 
+                    && grid.EndsWith("Larvae", StringComparison.Ordinal));
         }
 
         static bool IsFrogEggs(string grid)
         {
-            return grid.StartsWith("Frog") && grid.EndsWith("Eggs");
+            return grid.StartsWith("Frog", StringComparison.Ordinal) && grid.EndsWith("Eggs", StringComparison.Ordinal);
         }
 
         static bool IsFishEggs(string grid)
         {
-            return grid.StartsWith("Fish") && grid.EndsWith("Eggs");
+            return grid.StartsWith("Fish", StringComparison.Ordinal) && grid.EndsWith("Eggs", StringComparison.Ordinal);
         }
 
         static bool IsFood(string grid)
         {
-            return (grid.StartsWith("Vegetable") && grid.EndsWith("Growable"))
-                || (grid.StartsWith("Cook") && grid.EndsWith("Growable"));
+            return grid.EndsWith("Growable", StringComparison.Ordinal) && 
+                (grid.StartsWith("Vegetable", StringComparison.Ordinal) 
+                || grid.StartsWith("Cook", StringComparison.Ordinal)
+                );
         }
 
         static bool IsAlgae(string grid)
         {
-            return grid.StartsWith("Algae") && grid.EndsWith("Seed");
+            return grid.StartsWith("Algae", StringComparison.Ordinal) && grid.EndsWith("Seed", StringComparison.Ordinal);
         }
 
         static bool IsGrabTarget(string grid)
@@ -525,7 +529,7 @@ namespace CheatAutoGrabAndMine
 
         static bool IsRod(string grid)
         {
-            return grid.StartsWith("Rod-");
+            return grid.StartsWith("Rod-", StringComparison.Ordinal);
         }
     }
 }
