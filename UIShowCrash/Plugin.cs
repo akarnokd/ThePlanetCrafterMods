@@ -208,7 +208,11 @@ namespace UIShowCrash
                 for (int i = idx; i < data.Count; i++)
                 {
                     var line = data[i];
-                    if (line.Contains("Exception"))
+                    if (
+                        line.Contains("Exception")
+                        || line.StartsWith("[Warning:  HarmonyX]")
+                        || line.StartsWith("[Error  :  HarmonyX]")
+                    )
                     {
                         //logger.LogInfo("  Found on line " + i + "(" + Path.GetFileName(file) + ")");
                         List<string> errorLines = [
@@ -224,10 +228,14 @@ namespace UIShowCrash
                                 || er.StartsWith("Rethrow as ")
                                 || er.Length == 0
                                 || er.StartsWith("Unity.")
+                                || er.StartsWith("BepInEx.")
                                 || er.StartsWith("UnityEngine.")
                                 || er.StartsWith("SpaceCraft.")
                                 || er.StartsWith("UnityEngineInternal.")
-                                || er.StartsWith("--- "))
+                                || er.StartsWith("--- ")
+                                || er.Contains("Exception")
+                                || er.StartsWith("Parameter name:")
+                            )
                             {
                                 errorLines.Add(er);
                             }

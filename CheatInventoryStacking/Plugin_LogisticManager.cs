@@ -20,6 +20,11 @@ namespace CheatInventoryStacking
         static readonly Dictionary<string, bool> inventoryGroupIsFull = [];
         static readonly List<Drone> droneFleetCache = [];
 
+        static int pickablesVersion;
+        static int pickablesCacheVersion = -1;
+        static readonly List<WorldObject> pickablesCache = [];
+        static readonly HashSet<string> pickablesGroupsCache = [];
+
         static readonly Comparison<Inventory> CompareInventoryPriorityDesc =
             (x, y) => y.GetLogisticEntity().GetPriority().CompareTo(x.GetLogisticEntity().GetPriority());
 
@@ -78,12 +83,13 @@ namespace CheatInventoryStacking
 
             var frameSkipCount = 0;
             
-            var pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
+            ICollection<WorldObject> pickables = pickablesCache;
+
             Log("  LogisticManager::SetLogisticTasks pickables " + pickables.Count);
             Log("  LogisticManager::SetLogisticTasks demand    " + ____demandInventories.Count);
             Log("  LogisticManager::SetLogisticTasks supply    " + ____supplyInventories.Count);
 
-            var inventoryActualSupplyGroups = new Dictionary<int, HashSet<string>>();
+            var inventoryActualSupplyGroupsMain = new Dictionary<int, HashSet<string>>();
 
             for (int i = 0; i < ____demandInventories.Count; i++)
             {
@@ -114,7 +120,7 @@ namespace CheatInventoryStacking
                                 && supplyLE.GetPlanetHash() == demandLE.GetPlanetHash()
                                 && supplyLE.GetSupplyGroups().Contains(demandGroup))
                             {
-                                var isCached = inventoryActualSupplyGroups.TryGetValue(supplyInventory.GetId(), out var hasGroups);
+                                var isCached = inventoryActualSupplyGroupsMain.TryGetValue(supplyInventory.GetId(), out var hasGroups);
 
                                 if (hasGroups == null || hasGroups.Contains(demandGroup.id))
                                 {
@@ -133,7 +139,7 @@ namespace CheatInventoryStacking
                                         if (hasGroups == null)
                                         {
                                             hasGroups = [];
-                                            inventoryActualSupplyGroups[supplyInventory.GetId()] = hasGroups;
+                                            inventoryActualSupplyGroupsMain[supplyInventory.GetId()] = hasGroups;
                                         }
                                         if (!isCached)
                                         {
@@ -153,15 +159,38 @@ namespace CheatInventoryStacking
                             }
                         }
 
-                        var isCachedPick = inventoryActualSupplyGroups.TryGetValue(0, out var hasGroupsPick);
+                        /*
+                        var el = timer.Elapsed.TotalMilliseconds;
+                        if (el > frametimeLimit)
+                        {
+                            Log("    LogisticManager::SetLogisticTasks timeout on supply loop. "
+                                + el.ToString("0.000") + " ms, Curr: " + i + ", Count: " + ____demandInventories.Count + ", SupplyCount: " + supplyCounter);
+                        }
+                        */
 
-                        if (hasGroupsPick == null || hasGroupsPick.Contains(demandGroup.id))
+                        var el = timer.Elapsed.TotalMilliseconds;
+                        var doCachePickables = pickablesCacheVersion != pickablesVersion;
+                        if (doCachePickables)
+                        {
+                            pickablesCache.Clear();
+                            pickablesGroupsCache.Clear();
+                            pickables = WorldObjectsHandler.Instance.GetPickablesByDronesWorldObjects();
+                        }
+
+                        if (doCachePickables || pickablesGroupsCache.Contains(demandGroup.id))
                         {
                             foreach (var wo in pickables)
                             {
                                 supplyCounter++;
-                                if (wo.GetGroup() == demandGroup
-                                    && wo.GetPosition() != Vector3.zero
+                                var isPlaced = wo.GetPosition() != Vector3.zero;
+                                var gr = wo.GetGroup();
+                                if (doCachePickables && isPlaced)
+                                {
+                                    pickablesCache.Add(wo);
+                                    pickablesGroupsCache.Add(gr.id);
+                                }
+                                if (gr == demandGroup
+                                    && isPlaced
                                     && wo.GetPlanetHash() == demandLE.GetPlanetHash()
                                     && !____allLogisticTasks.ContainsKey(wo.GetId())
                                 )
@@ -181,54 +210,40 @@ namespace CheatInventoryStacking
                                         }
                                     }
                                 }
-
-                                if (hasGroupsPick == null)
-                                {
-                                    hasGroupsPick = [];
-                                    inventoryActualSupplyGroups[0] = hasGroupsPick;
-                                }
-                                if (!isCachedPick)
-                                {
-                                    hasGroupsPick.Add(wo.GetGroup().id);
-                                }
-
-                                if (isCachedPick && demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
+                                if (!doCachePickables && demandCount + demandLE.waitingDemandSlots >= demandInventorySize)
                                 {
                                     break;
                                 }
+                            }
 
-                            }
-                        }
-                    }
-                }
-                /*
-                if (sw1.Elapsed.TotalMilliseconds > 17)
-                {
-                    Log("    LogisticManager::SetLogisticTasks: Inventory " + demandInventory.GetId() + " on " + demandLE.GetPlanetHash() + " took " + sw1.Elapsed.TotalMilliseconds + " ms");
-                    foreach (var demandGroup in demandLE.GetDemandGroups())
-                    {
-                        foreach (var supplyInventory in ____supplyInventories)
-                        {
-                            var supplyLE = supplyInventory.GetLogisticEntity();
-                            if (demandInventory != supplyInventory
-                                && supplyLE.GetWorldObject() != null
-                                && supplyLE.GetPlanetHash() == demandLE.GetPlanetHash()
-                                && supplyLE.GetSupplyGroups().Contains(demandGroup)
-                                && inventoryActualSupplyGroups.TryGetValue(supplyInventory.GetId(), out var hasGroup) && hasGroup.Contains(demandGroup.id)) 
+                            if (doCachePickables)
                             {
-                                Log("      Supply " + demandGroup.id + " from " + supplyInventory.GetId() + " count " + supplyInventory.GetInsideWorldObjects().Count);
+                                int beforeCount = pickables.Count;
+                                int afterCount = pickablesCache.Count;
+                                int oldVersion = pickablesCacheVersion;
+                                pickablesCacheVersion = pickablesVersion;
+                                pickables = pickablesCache;
+                                Log("    LogisticManager::SetLogisticTasks pickables cached: " + beforeCount + " -> " + afterCount + " in " + (timer.Elapsed.TotalMilliseconds - el) + " [" + oldVersion + " -> " + pickablesVersion + " (" + (pickablesVersion - oldVersion) + ")]");
                             }
                         }
+                        /*
+                        el = timer.Elapsed.TotalMilliseconds;
+                        if (el > frametimeLimit)
+                        {
+                            Log("    LogisticManager::SetLogisticTasks timeout on pickables loop. "
+                                + el.ToString("0.000") + " ms, Curr: " + i + ", Count: " + ____demandInventories.Count + ", SupplyCount: " + supplyCounter);
+                        }
+                        */
                     }
                 }
-                */
+
                 var elaps0 = timer.Elapsed.TotalMilliseconds;
                 if (elaps0 >= frametimeLimit)
                 {
                     yield return null;
                     timer.Restart();
                     frameSkipCount++;
-                    inventoryActualSupplyGroups.Clear();
+                    inventoryActualSupplyGroupsMain.Clear();
                     Log("    LogisticManager::SetLogisticTasks Timeout on demand discovery. "
                         + elaps0.ToString("0.000") + " ms, Curr: " + i + ", Count: " + ____demandInventories.Count + ", SupplyCount: " + supplyCounter);
                 }
@@ -590,6 +605,55 @@ namespace CheatInventoryStacking
             candidateDroneStationsPerPlanet.Clear();
 
             return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "AddToSpecificLists")]
+        static void Patch_WorldObjectsHandler_AddToSpecificLists(
+            ref int __state,
+            HashSet<WorldObject> ____itemsPickablesWorldObjects)
+        {
+            __state = ____itemsPickablesWorldObjects.Count;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "AddToSpecificLists")]
+        static void Patch_WorldObjectsHandler_AddToSpecificLists_Post(
+            ref int __state,
+            HashSet<WorldObject> ____itemsPickablesWorldObjects)
+        {
+            if (__state != ____itemsPickablesWorldObjects.Count)
+            {
+                pickablesVersion++;
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "DestroyWorldObject", [typeof(WorldObject), typeof(bool)])]
+        static void Patch_WorldObjectsHandler_DestroyWorldObject(
+            ref int __state,
+            HashSet<WorldObject> ____itemsPickablesWorldObjects)
+        {
+            __state = ____itemsPickablesWorldObjects.Count;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "DestroyWorldObject", [typeof(WorldObject), typeof(bool)])]
+        static void Patch_WorldObjectsHandler_DestroyWorldObject_Post(
+            ref int __state,
+            HashSet<WorldObject> ____itemsPickablesWorldObjects)
+        {
+            if (__state != ____itemsPickablesWorldObjects.Count)
+            {
+                pickablesVersion++;
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "DropOnFloorImplentation")]
+        static void Patch_WorldObjectsHandler_DropOnFloorImplentation()
+        {
+            pickablesVersion++;
         }
     }
 }

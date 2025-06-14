@@ -15,7 +15,7 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.17
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.70
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.93
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.94
 # (Cheat) Machines Deposit Into Remote Containers
 akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.40
 # (Cheat) Minimap
@@ -55,7 +55,7 @@ akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.8
 # (Misc) Debug
 akarnokd.theplanetcraftermods.miscdebug=1.0.0.0
 # (Misc) Mod Enabler
-akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.13
+akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.14
 # (Misc) Plugin Update Checker
 akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.20
 # (Multi) Player Locator
@@ -99,7 +99,7 @@ akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.21
 # (UI) Show Container Content Info
 akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.21
 # (UI) Show Crash
-akarnokd.theplanetcraftermods.uishowcrash=1.0.0.15
+akarnokd.theplanetcraftermods.uishowcrash=1.0.0.16
 # (UI) Show ETA
 akarnokd.theplanetcraftermods.uishoweta=1.0.0.17
 # (UI) Show Grab N Mine Count

@@ -10,16 +10,29 @@ using System.Reflection;
 using System.IO;
 using System;
 using System.Globalization;
+using TMPro;
+using BepInEx.Bootstrap;
+using Galaxy.Api;
+using System.Net.Http.Headers;
+using System.Collections;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace MiscModEnabler
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.miscmodenabler", "(Misc) Mod Enabler", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        static bool displayMessage;
+
+        static Plugin self;
 
         public void Awake()
         {
+            self = this;
+
             LibCommon.BepInExLoggerFix.ApplyFix();
+
 
             // Plugin startup logic
             Logger.LogInfo("Checking for BepInEx.cfg HideManagerGameObject");
@@ -66,8 +79,7 @@ namespace MiscModEnabler
                             if (save)
                             {
                                 File.WriteAllLines(newdir, lines);
-                                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-                                Harmony.CreateAndPatchAll(typeof(Plugin));
+                                displayMessage = true;
                             }
                             else
                             {
@@ -89,16 +101,101 @@ namespace MiscModEnabler
             {
                 Logger.LogWarning("Could not locate BepInEx directory: " + dir);
             }
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            Harmony.CreateAndPatchAll(typeof(Plugin));
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Intro), "Awake")]
+        static void Intro_Awake(Intro __instance)
+        {
+            try
+            {
+                var logo = GameObject.Find("Canvases/CanvasBase/Logo");
+                var logoRt = logo.GetComponent<RectTransform>();
+
+                var subtitleTmp = logo.GetComponentInChildren<TextMeshProUGUI>(true);
+                var subtitleRt = subtitleTmp.GetComponent<RectTransform>();
+
+                var version = new GameObject("MiscModEnablerVersion");
+                version.transform.SetParent(logo.transform, false);
+
+                var txt = version.AddComponent<TextMeshProUGUI>();
+                txt.color = Color.yellow;
+                var str = "v" + Application.version;
+                try
+                {
+                    if (SteamManager.Initialized)
+                    {
+                        str += " - Steam";
+                        if (Steamworks.SteamApps.GetCurrentBetaName(out var text, 256))
+                        {
+                            str += " - " + text;
+                        }
+                    }
+                } catch (Exception exc)
+                {
+                    self.Logger.LogError(exc);
+                }
+
+                str += " - Modded (" + Chainloader.PluginInfos.Count + " mods)";
+                txt.text = str;
+                txt.font = subtitleTmp.font;
+                txt.fontSize = Math.Max(12, subtitleTmp.fontSize / 2);
+                txt.textWrappingMode = TextWrappingModes.NoWrap;
+
+                var rt = txt.rectTransform;
+                rt.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+                var dw = Math.Max(0, (logoRt.sizeDelta.x - rt.sizeDelta.x) / 2);
+
+                rt.localPosition = subtitleRt.localPosition + new Vector3(rt.sizeDelta.x / 2 + dw, -rt.sizeDelta.y, 0);
+            }
+            catch (Exception ex)
+            {
+                self.Logger.LogError(ex);
+            }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Intro), "Start")]
         static void Intro_Start()
         {
-            ShowDialog("Mods should now work properly.\n\nPlease restart the game.");
+            if (displayMessage)
+            {
+                ShowDialog("Mods should now work properly.\n\nPlease restart the game.", true);
+            }
+            try
+            {
+                var modVersionLog = Path.Combine(Application.persistentDataPath, "lastgameversion.txt");
+                if (File.Exists(modVersionLog))
+                {
+                    var log = File.ReadAllText(modVersionLog).Trim();
+                    if (log != Application.version)
+                    {
+                        ShowDialog("The game just updated from <color=#FFCC00>v"
+                            + log + "</color> to <color=#FFCC00>v" + Application.version + "</color> !"
+                            + "\n"
+                            + "\nIf you are experiencing problems,"
+                            + "\nplease update your mods as soon as possible."
+                            + "\n"
+                            + "\n=[ Press ESC / Gamepad-B to continue ]="
+                            , false);
+                        File.WriteAllText(modVersionLog, Application.version);
+                    }
+                }
+                else
+                {
+                    File.WriteAllText(modVersionLog, Application.version);
+                }
+            }
+            catch (Exception ex)
+            {
+                self.Logger.LogError(ex);
+            }
         }
 
-        static void ShowDialog(string message)
+        static void ShowDialog(string message, bool warning)
         {
             var panel = new GameObject("MiscModEnabler_Notification");
             var canvas = panel.AddComponent<Canvas>();
@@ -108,7 +205,14 @@ namespace MiscModEnabler
             var background = new GameObject("MiscModEnabler_Notification_Background");
             background.transform.SetParent(panel.transform, false);
             var img = background.AddComponent<Image>();
-            img.color = new Color(0.5f, 0, 0, 0.95f);
+            if (warning)
+            {
+                img.color = new Color(0.5f, 0, 0, 0.99f);
+            }
+            else
+            {
+                img.color = new Color(0, 0.4f, 0, 0.99f);
+            }
 
             var text = new GameObject("MiscModEnabler_Notification_Text");
             text.transform.SetParent(background.transform, false);
@@ -128,7 +232,22 @@ namespace MiscModEnabler
             trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
 
             var brect = background.GetComponent<RectTransform>();
-            brect.sizeDelta = trect.sizeDelta + new Vector2(10, 10);
+            brect.sizeDelta = trect.sizeDelta + new Vector2(30, 30);
+
+            panel.AddComponent<DialogCloser>();
+        }
+
+        class DialogCloser : MonoBehaviour
+        {
+            void Update()
+            {
+                var gamepad = Gamepad.current;
+                if (Keyboard.current[Key.Escape].wasPressedThisFrame
+                    || (gamepad != null && (gamepad[GamepadButton.B]?.wasPressedThisFrame ?? false)))
+                {
+                    Destroy(gameObject);
+                }
+            }
         }
     }
 }
