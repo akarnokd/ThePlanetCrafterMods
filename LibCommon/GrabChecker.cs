@@ -33,13 +33,14 @@ namespace LibCommon
             GameObject o = ag?.gameObject;
             while (o != null)
             {
-                if (o.name.Contains("VegetubeCrafter"))
+                if (o.name.Contains("VegetubeCrafter", System.StringComparison.Ordinal))
                 {
                     return true;
                 }
-                if (o.transform.parent != null)
+                var parent = o.transform.parent;
+                if (parent != null)
                 {
-                    o = o.transform.parent.gameObject;
+                    o = parent.gameObject;
                 }
                 else
                 {
