@@ -61,7 +61,7 @@ namespace CheatCraftFromNearbyContainers
 
         // Set from Inventory Stacking if present
         public static Func<Inventory, HashSet<int>, string, bool> apiIsFullStackedWithRemoveInventory = 
-            (inv, toremove, grid) => inv.GetInsideWorldObjects().Count - toremove.Count >= inv.GetSize();
+            (inv, toremove, grid) => fInventoryWorldObjectsInInventory(inv).Count - toremove.Count >= inv.GetSize();
 
         /// <summary>
         /// Call this method to make inventory preparations before setting a construction ghost.
@@ -79,6 +79,8 @@ namespace CheatCraftFromNearbyContainers
         static AccessTools.FieldRef<WorldObject, int> fWorldObjectPlanetHash;
 
         static string[] includeFilterArray = [];
+
+        static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
 
         public void Awake()
         {
@@ -105,12 +107,11 @@ namespace CheatCraftFromNearbyContainers
 
             fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
 
+            fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
-            /*var harmony = */
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
-            /*
-            LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Craft From Nearby Containers - v" + PluginInfo.PLUGIN_VERSION);
-            */
+            LibCommon.GameVersionCheck.Patch(h, "(Cheat) Craft From Nearby Containers - v" + PluginInfo.PLUGIN_VERSION);
 
             ModNetworking.Init(modCheatCraftFromNearbyContainersGuid, logger);
             ModNetworking.Patch(h);
@@ -596,7 +597,7 @@ namespace CheatCraftFromNearbyContainers
             foreach (var gr in ingredients)
             {
                 bool found = false;
-                foreach (var wo in backpackInv.GetInsideWorldObjects())
+                foreach (var wo in fInventoryWorldObjectsInInventory(backpackInv))
                 {
                     if (wo.GetGroup() == gr)
                     {
@@ -611,7 +612,7 @@ namespace CheatCraftFromNearbyContainers
                 }
                 if (!found && equipmentInv != null)
                 {
-                    foreach (var wo in equipmentInv.GetInsideWorldObjects())
+                    foreach (var wo in fInventoryWorldObjectsInInventory(equipmentInv))
                     {
                         if (wo.GetGroup() == gr)
                         {
@@ -632,7 +633,7 @@ namespace CheatCraftFromNearbyContainers
                         if (inv != null)
                         {
                             bool found2 = false;
-                            foreach (var wo in inv.GetInsideWorldObjects())
+                            foreach (var wo in fInventoryWorldObjectsInInventory(inv))
                             {
                                 if (wo.GetGroup() == gr)
                                 {
@@ -1072,7 +1073,7 @@ namespace CheatCraftFromNearbyContainers
             PlayerBuilder __instance, 
             GroupConstructible ___ghostGroupConstructible)
         {
-            foreach (var wo in inv.GetInsideWorldObjects())
+            foreach (var wo in fInventoryWorldObjectsInInventory(inv))
             {
                 if (wo.GetGroup() == ___ghostGroupConstructible)
                 {
@@ -1244,7 +1245,7 @@ namespace CheatCraftFromNearbyContainers
 
             inventoryCounts.Clear();
 
-            foreach (WorldObject wo in inventory.GetInsideWorldObjects())
+            foreach (WorldObject wo in fInventoryWorldObjectsInInventory(inventory))
             {
                 inventoryCounts.Update(wo.GetGroup().id);
             }
@@ -1253,7 +1254,7 @@ namespace CheatCraftFromNearbyContainers
             {
                 if (inv != null)
                 {
-                    foreach (var wo in inv.GetInsideWorldObjects())
+                    foreach (var wo in fInventoryWorldObjectsInInventory(inv))
                     {
                         inventoryCounts.Update(wo.GetGroup().id);
                     }

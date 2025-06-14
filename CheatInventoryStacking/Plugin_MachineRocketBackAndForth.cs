@@ -49,7 +49,7 @@ namespace CheatInventoryStacking
             if (stackSize.Value > 1 && IsBackAndForthStackable(__instance))
             {
                 if (__instance.GetComponent<SettingProxy>().GetSetting() == 1
-                    && ____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count)
+                    && ____inventory.GetSize() * stackSize.Value <= fInventoryWorldObjectsInInventory(____inventory).Count)
                 {
                     __instance.SendBackAndForthRocket();
                 }
@@ -403,7 +403,7 @@ namespace CheatInventoryStacking
         {
             if (stackSize.Value > 1 && stackInterplanetaryRockets.Value)
             {
-                if (____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count
+                if (____inventory.GetSize() * stackSize.Value <= fInventoryWorldObjectsInInventory(____inventory).Count
                     && __instance.GetComponent<SettingProxy>().GetSetting() == 1)
                 {
                     CoroutineHandler.Instance.StartCoroutine(RelaunchRocket(__instance, ____inventory));
@@ -420,7 +420,7 @@ namespace CheatInventoryStacking
             {
                 yield break;
             }
-            if (____inventory.GetSize() * stackSize.Value <= ____inventory.GetInsideWorldObjects().Count
+            if (____inventory.GetSize() * stackSize.Value <= fInventoryWorldObjectsInInventory(____inventory).Count
                 && __instance.GetComponent<SettingProxy>().GetSetting() == 1)
             {
                 __instance.SendBackAndForthRocket();

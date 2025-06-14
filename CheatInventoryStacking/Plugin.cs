@@ -132,6 +132,8 @@ namespace CheatInventoryStacking
         static Func<Inventory, WorldObject, Inventory, WorldObject, WorldObject, bool> Api_1_AllowBufferLogisticsTaskEx;
 
         static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
+        static AccessTools.FieldRef<MachineAutoCrafter, HashSet<WorldObject>> fMachineAutoCrafterWorldObjectsInRange;
+        static AccessTools.FieldRef<object, List<(GameObject, Group)>> fMachineAutoCrafterGosInRangeForListing;
 
         void Awake()
         {
@@ -267,11 +269,12 @@ namespace CheatInventoryStacking
 
             fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
 
+            fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
+            fMachineAutoCrafterGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(typeof(MachineAutoCrafter), "_gosInRangeForListing");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
-            /*
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
-            */
         }
 
         // --------------------------------------------------------------------------------------------------------
@@ -304,7 +307,7 @@ namespace CheatInventoryStacking
             return AccessTools.MethodDelegate<Action<EventTriggerCallbackData>>(mi, __instance);
         }
 
-        static List<List<WorldObject>> CreateInventorySlots(IEnumerable<WorldObject> worldObjects, int n)
+        static List<List<WorldObject>> CreateInventorySlots(List<WorldObject> worldObjects, int n)
         {
             Dictionary<string, List<WorldObject>> currentSlot = [];
             List<List<WorldObject>> slots = [];
@@ -473,7 +476,7 @@ namespace CheatInventoryStacking
                 Action<EventTriggerCallbackData> onConsumeViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnConsumeViaGamepad, __instance);
                 Action<EventTriggerCallbackData> onDropViaGamepadDelegate = CreateGamepadCallback(mInventoryDisplayerOnDropViaGamepad, __instance);
 
-                var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
+                var slots = CreateInventorySlots(fInventoryWorldObjectsInInventory(____inventory), n);
 
                 var waitingSlots = ____inventory.GetLogisticEntity().waitingDemandSlots;
 
@@ -649,7 +652,7 @@ namespace CheatInventoryStacking
                             {
                                 Log("Transfer from " + ____inventory.GetId() + " to " + otherInventory.GetId() + " start");
                                 WorldObject wo = eventTriggerCallbackData.worldObject;
-                                var slots = CreateInventorySlots(____inventory.GetInsideWorldObjects(), n);
+                                var slots = CreateInventorySlots(fInventoryWorldObjectsInInventory(____inventory), n);
 
                                 foreach (var slot in slots)
                                 {
@@ -730,6 +733,7 @@ namespace CheatInventoryStacking
             nonAttributedTasksCacheAllPlanets.Clear();
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
+            machineGetInRangeCache = [];
             /*
             optimizerLast = null;
             optimizerLastFrame = -1;
@@ -837,7 +841,7 @@ namespace CheatInventoryStacking
             {
                 return true;
             }
-            var content = inventory.GetInsideWorldObjects();
+            var content = fInventoryWorldObjectsInInventory(inventory);
             var text = new StringBuilder(content.Count * 10 + 1);
 
             foreach (var wo in content)

@@ -48,7 +48,7 @@ namespace CheatInventoryStacking
 
                         if (____worldObject != null
                             && ____worldObject.GetSetting() == 1
-                            && ____inventory.GetSize() <= GetStackCountColl(____inventory.GetInsideWorldObjects())
+                            && ____inventory.GetSize() <= GetStackCountList(fInventoryWorldObjectsInInventory(____inventory))
                         )
                         {
                             InventoriesHandler.Instance.RemoveAndDestroyAllItemsFromInventory(____inventory);

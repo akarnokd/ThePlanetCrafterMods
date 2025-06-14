@@ -99,6 +99,7 @@ namespace CheatAutoSequenceDNA
         const string funcSetEnabled = "AutoSequenceDNASetEnabled";
         const string funcSetAll = "AutoSequenceDNASetAll";
         static AccessTools.FieldRef<UiWindowCraft, ActionCrafter> fUiWindowCraftActionCrafter;
+        static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
 
         public void Awake()
         {
@@ -153,6 +154,8 @@ namespace CheatAutoSequenceDNA
             fEventHoverShowGroupAssociatedGroup = AccessTools.FieldRefAccess<EventHoverShowGroup, Group>("_associatedGroup");
 
             fUiWindowCraftActionCrafter = AccessTools.FieldRefAccess<UiWindowCraft, ActionCrafter>("sourceCrafter");
+
+            fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -311,7 +314,7 @@ namespace CheatAutoSequenceDNA
                     }
                     int incubatorPlanetHash = incubator.GetPlanetHash();
 
-                    var currentItems = incubatorInv.GetInsideWorldObjects();
+                    var currentItems = fInventoryWorldObjectsInInventory(incubatorInv);
                     if (currentItems.Count > 0 && incubator.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
@@ -607,7 +610,7 @@ namespace CheatAutoSequenceDNA
                     }
                     int sequencerPlanetHash = sequencer.GetPlanetHash();
 
-                    var currentItems = sequencerInv.GetInsideWorldObjects();
+                    var currentItems = fInventoryWorldObjectsInInventory(sequencerInv);
                     if (currentItems.Count > 0 && sequencer.GetGrowth() == 0)
                     {
                         Log("    Depositing products");
@@ -765,7 +768,7 @@ namespace CheatAutoSequenceDNA
                     {
                         anyInput = true;
                         var inv = invh.GetInventoryById(input.GetLinkedInventoryId());
-                        var content = inv.GetInsideWorldObjects();
+                        var content = fInventoryWorldObjectsInInventory(inv);
                         Log("  - Checking input " + input.GetId() + " with " + inv.GetId() + " at " + d + ", Count: " + content.Count);
                         for (var i = content.Count - 1; i >= 0; i--)
                         {
@@ -870,7 +873,7 @@ namespace CheatAutoSequenceDNA
 
                     if (inv != null)
                     {
-                        foreach (var wo in inv.GetInsideWorldObjects())
+                        foreach (var wo in fInventoryWorldObjectsInInventory(inv))
                         {
                             var woGid = wo.GetGroup().GetId();
                             if (woGid == gid)

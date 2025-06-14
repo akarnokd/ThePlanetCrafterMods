@@ -71,7 +71,7 @@ namespace CheatInventoryStacking
                 noStackingInventories.Add(____secondInventory.GetId());
             }
 
-            foreach (var wo in ____firstIventory.GetInsideWorldObjects())
+            foreach (var wo in fInventoryWorldObjectsInInventory(____firstIventory))
             {
                 var recipe = wo.GetGroup().GetRecipe().GetIngredientsGroupInRecipe();
                 if (recipe.Count != 0)
@@ -96,7 +96,7 @@ namespace CheatInventoryStacking
                     if (debugModeOptimizations1.Value) {
                         groupCounts2.Clear();
 
-                        foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
+                        foreach (var worldObject in fInventoryWorldObjectsInInventory(____secondInventory))
                         {
                             groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
                         }
@@ -110,7 +110,7 @@ namespace CheatInventoryStacking
                     {
                         groupCounts.Clear();
 
-                        foreach (var worldObject in ____secondInventory.GetInsideWorldObjects())
+                        foreach (var worldObject in fInventoryWorldObjectsInInventory(____secondInventory))
                         {
                             AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
                         }

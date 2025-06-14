@@ -47,7 +47,9 @@ namespace CheatInventoryStacking
                 var toRemoveFromBackpack = new HashSet<int>();
                 var ingredientsCopy = new List<Group>(ingredients);
 
-                foreach (var wo in backpackInventory.GetInsideWorldObjects())
+                var backpackContents = fInventoryWorldObjectsInInventory(backpackInventory);
+
+                foreach (var wo in backpackContents)
                 {
                     for (int i = 0; i < ingredientsCopy.Count; i++)
                     {

@@ -51,6 +51,8 @@ namespace CheatRecyclerRemoteDeposit
 
         static AccessTools.FieldRef<MachineDisintegrator, Inventory> fMachineDisintegratorSecondInventory;
 
+        static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
+
         private void Awake()
         {
             me = this;
@@ -70,6 +72,8 @@ namespace CheatRecyclerRemoteDeposit
             maxRange = Config.Bind("General", "MaxRange", 20, "The maximum range to look for containers within. Zero means unlimited range.");
 
             fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
+
+            fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             ParseAliasConfig();
 
@@ -376,7 +380,7 @@ namespace CheatRecyclerRemoteDeposit
                 }
 
 
-                var n = machineInventory.GetInsideWorldObjects().Count;
+                var n = fInventoryWorldObjectsInInventory(machineInventory).Count;
                 Log("Begin " + machineWorldObject.GetId() + " (" + n + ") on planet " + machineWorldObject.GetPlanetHash());
 
                 if (n == 0)
@@ -388,7 +392,7 @@ namespace CheatRecyclerRemoteDeposit
 
                 machinePosition = machineWorldObject.GetPosition();
 
-                toRecycleWo = machineInventory.GetInsideWorldObjects()[0];
+                toRecycleWo = fInventoryWorldObjectsInInventory(machineInventory)[0];
                 var gi = toRecycleWo.GetGroup() as GroupItem;
                 var recipe = gi.GetRecipe().GetIngredientsGroupInRecipe();
 
@@ -605,7 +609,7 @@ namespace CheatRecyclerRemoteDeposit
                 {
                     var sw = Stopwatch.StartNew();
                     Log("ClearMachineInventory begin: " + _inventory.GetId() + " on " + planetHash);
-                    var items = _inventory.GetInsideWorldObjects();
+                    var items = fInventoryWorldObjectsInInventory(_inventory);
 
                     for (int i = items.Count - 1; i >= 0; i--)
                     {

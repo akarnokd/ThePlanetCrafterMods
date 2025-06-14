@@ -99,7 +99,7 @@ namespace CheatInventoryStacking
                 {
                     demandInventorySize *= n;
                 }
-                var demandCount = demandInventory.GetInsideWorldObjects().Count;
+                var demandCount = fInventoryWorldObjectsInInventory(demandInventory).Count;
                 var demandLE = demandInventory.GetLogisticEntity();
                 var supplyCounter = 0;
 
@@ -124,7 +124,8 @@ namespace CheatInventoryStacking
 
                                 if (hasGroups == null || hasGroups.Contains(demandGroup.id))
                                 {
-                                    foreach (var supplyWo in supplyInventory.GetInsideWorldObjects())
+                                    var supplyContents = fInventoryWorldObjectsInInventory(supplyInventory);
+                                    foreach (var supplyWo in supplyContents)
                                     {
                                         supplyCounter++;
                                         if (supplyWo.GetGroup() == demandGroup)
@@ -446,7 +447,7 @@ namespace CheatInventoryStacking
             }
 
             var droneInv = drone.GetDroneInventory();
-            var items = droneInv.GetInsideWorldObjects();
+            var items = fInventoryWorldObjectsInInventory(droneInv);
 
             if (items.Count == 0)
             {

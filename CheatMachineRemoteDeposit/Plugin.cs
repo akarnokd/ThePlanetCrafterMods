@@ -61,6 +61,8 @@ namespace CheatMachineRemoteDeposit
 
         static Coroutine clearCoroutine;
 
+        static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
+
         void Awake()
         {
             me = this;
@@ -127,6 +129,8 @@ namespace CheatMachineRemoteDeposit
             }
 
             fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
+
+            fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -235,7 +239,7 @@ namespace CheatMachineRemoteDeposit
                         {
                             continue;
                         }
-                        var items = _inventory.GetInsideWorldObjects();
+                        var items = fInventoryWorldObjectsInInventory(_inventory);
                         var originalCount = items.Count;
                         if (originalCount != 0)
                         {

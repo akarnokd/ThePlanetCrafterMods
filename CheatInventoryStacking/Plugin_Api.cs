@@ -136,32 +136,6 @@ namespace CheatInventoryStacking
             return stacks;
         }
 
-        static int GetStackCountColl(ReadOnlyCollection<WorldObject> items)
-        {
-            int n = stackSize.Value;
-            int stacks = 0;
-
-            if (debugModeOptimizations1.Value)
-            {
-                groupCounts2.Clear();
-                foreach (WorldObject worldObject in items)
-                {
-                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
-                }
-            }
-            else
-            {
-                groupCounts.Clear();
-
-                foreach (WorldObject worldObject in items)
-                {
-                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-                }
-            }
-
-            return stacks;
-        }
-
         static bool IsFullStackedEnum(IEnumerable<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
 
@@ -202,45 +176,6 @@ namespace CheatInventoryStacking
 
         static bool IsFullStackedList(List<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
         {
-            int n = stackSize.Value;
-            int stacks = 0;
-
-            if (debugModeOptimizations1.Value)
-            {
-                groupCounts2.Clear();
-
-                foreach (WorldObject worldObject in worldObjectsInInventory)
-                {
-                    groupCounts2.Update(GeneticsGrouping.GetStackId(worldObject), n, ref stacks);
-                }
-
-                if (gid != null)
-                {
-                    groupCounts2.Update(gid, n, ref stacks);
-                }
-            }
-            else
-            {
-                groupCounts.Clear();
-
-                foreach (WorldObject worldObject in worldObjectsInInventory)
-                {
-                    AddToStackDict(GeneticsGrouping.GetStackId(worldObject), groupCounts, n, ref stacks);
-                }
-
-                if (gid != null)
-                {
-                    AddToStackDict(gid, groupCounts, n, ref stacks);
-                }
-            }
-
-            return stacks > inventorySize;
-        }
-
-        static bool IsFullStackedColl(ReadOnlyCollection<WorldObject> worldObjectsInInventory, int inventorySize, string gid)
-        {
-
-
             int n = stackSize.Value;
             int stacks = 0;
 
@@ -320,11 +255,12 @@ namespace CheatInventoryStacking
         /// <returns>The number of stacks occupied by the list of items.</returns>
         static int GetStackCountOfInventory(Inventory inventory)
         {
+            var content = fInventoryWorldObjectsInInventory(inventory);
             if (!CanStack(inventory.GetId()))
             {
-                return inventory.GetInsideWorldObjects().Count;
+                return content.Count;
             }
-            return GetStackCountColl(inventory.GetInsideWorldObjects());
+            return GetStackCountList(content);
         }
 
         /// <summary>
@@ -336,7 +272,7 @@ namespace CheatInventoryStacking
         /// <returns>True if the list is full.</returns>
         static bool IsFullStackedOfInventory(Inventory inventory, string gid)
         {
-            var worldObjects = inventory.GetInsideWorldObjects();
+            var worldObjects = fInventoryWorldObjectsInInventory(inventory);
             int capacity = inventory.GetSize();
             int count = worldObjects.Count;
             // if less than capacity items, we can't be stacked fully
@@ -354,7 +290,7 @@ namespace CheatInventoryStacking
                 return true;
             }
 
-            return IsFullStackedColl(worldObjects, capacity, gid);
+            return IsFullStackedList(worldObjects, capacity, gid);
         }
 
         /// <summary>
@@ -366,20 +302,21 @@ namespace CheatInventoryStacking
         /// <returns>True if the list is full.</returns>
         static bool IsFullStackedWithRemoveOfInventory(Inventory inventory, HashSet<int> toremove, string gid = null)
         {
+            var content = fInventoryWorldObjectsInInventory(inventory);
             if (!CanStack(inventory.GetId()))
             {
-                int count = inventory.GetInsideWorldObjects().Count;
+                int count = content.Count;
                 return count - toremove.Count >= inventory.GetSize();
             }
             if (toremove.Count != 0)
             {
                 return IsFullStackedEnum(
-                    inventory.GetInsideWorldObjects()
+                    content
                     .Where(wo => !toremove.Contains(wo.GetId())), 
                     inventory.GetSize(), gid);
             }
 
-            return IsFullStackedColl(inventory.GetInsideWorldObjects(), inventory.GetSize(), gid);
+            return IsFullStackedList(content, inventory.GetSize(), gid);
         }
 
         /// <summary>

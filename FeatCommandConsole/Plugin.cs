@@ -220,9 +220,7 @@ namespace FeatCommandConsole
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modFeatCommandConsole, _ => PlanetLoader_HandleDataAfterLoad());
-            /*
             LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
-            */
         }
 
         static void Log(object o)
