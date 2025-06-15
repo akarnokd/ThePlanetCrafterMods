@@ -230,5 +230,12 @@ namespace FixUnofficialPatches
             }
             return false;
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(JsonablesHelper), nameof(JsonablesHelper.JsonableToWorldObject))]
+        static void JsonablesHelper_JsonableToWorldObject(JsonableWorldObject jsonableWorldObject)
+        {
+            jsonableWorldObject.grwth = Mathf.Clamp(jsonableWorldObject.grwth, 0, 100);
+        }
     }
 }

@@ -734,6 +734,7 @@ namespace CheatInventoryStacking
             inventoryGroupIsFull.Clear();
             allTasksFrameCache.Clear();
             machineGetInRangeCache = [];
+            placedWorldObjects.Clear();
             /*
             optimizerLast = null;
             optimizerLastFrame = -1;

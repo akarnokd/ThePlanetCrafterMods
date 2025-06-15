@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
+using UnityEngine.UIElements;
 
 namespace CheatInventoryStacking
 {
@@ -102,9 +104,9 @@ namespace CheatInventoryStacking
         {
             ClearAutoCrafterWorldObjects(gr.GetRecipe().GetIngredientsGroupInRecipe());
 
-            _gosInRangeForListing = fMachineAutoCrafterGosInRangeForListing();
+            _gosInRangeForListingRef = fMachineAutoCrafterGosInRangeForListing();
             mSetItemsInRange();
-            _gosInRangeForListing = null;
+            _gosInRangeForListingRef = null;
 
             JoinAutoCrafterWorldObjects(worldObjectsInRange);
 
@@ -115,7 +117,7 @@ namespace CheatInventoryStacking
 
         static readonly Dictionary<Group, List<WorldObject>> autocrafterWorldObjects = [];
 
-        static List<ValueTuple<GameObject, Group>> _gosInRangeForListing;
+        static List<ValueTuple<GameObject, Group>> _gosInRangeForListingRef;
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineAutoCrafter), "GetInRange")]
@@ -254,50 +256,9 @@ namespace CheatInventoryStacking
             Action<GameObject, Group> result
         )
         {
-            var allWorldObjects = WorldObjectsHandler.Instance.GetAllWorldObjects();
-            int n = Math.Min(4, Environment.ProcessorCount);
-            if (allWorldObjects.Count < 10_000 || n <= 1)
-            {
-                return true;
-            }
             if (NetworkManager.Singleton.IsServer && !__instance.gameObject.activeInHierarchy)
             {
-                var self = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-                var position = __instance.transform.position;
-                var h = self.GetPlanetHash();
-
-                var workQueues = new Dictionary<Group, List<WorldObject>>[n];
-                for (int i = 0; i < n; i++)
-                {
-                    workQueues[i] = [];
-                    foreach (var k in autocrafterWorldObjects.Keys)
-                    {
-                        workQueues[i].TryAdd(k, new(10));
-                    }
-                }
-
-                var count = MachineGetInRangeCreateArray(allWorldObjects);
-
-                MachineGetInRangeParallelScan(
-                    range, 
-                    self, 
-                    position, 
-                    n, 
-                    workQueues, 
-                    count,
-                    result);
-
-                foreach (var wq in workQueues)
-                {
-                    foreach (var e in wq)
-                    {
-                        if (autocrafterWorldObjects.TryGetValue(e.Key, out var worldObjects))
-                        {
-                            worldObjects.AddRange(e.Value);
-                        }
-                    }
-                }
-
+                MachineGetInRangeTryScan(__instance, range, result);
                 return false;
             }
             if (!__instance.gameObject.activeInHierarchy)
@@ -308,25 +269,121 @@ namespace CheatInventoryStacking
             return true;
         }
 
-        private static int MachineGetInRangeCreateArray(Dictionary<int, WorldObject> allWorldObjects)
+        private static void MachineGetInRangeTryScan(MachineGetInRange __instance, float range, Action<GameObject, Group> result)
         {
-            var n = allWorldObjects.Count;
+            var self = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+            var position = __instance.transform.position;
+            var h = self.GetPlanetHash();
+            int n = Math.Min(4, Environment.ProcessorCount);
+
+            var itemCount = WorldObjectsHandler.Instance.GetAllWorldObjects().Count;
+            Log("MachineGetInRange: " + itemCount + " total, " + placedWorldObjects.Count + " placed, NCPU: " + n);
+            if (itemCount < 10_000 || n <= 1 || _gosInRangeForListingRef == null)
+            {
+                MachineGetInRangeSequential(self, position, h, range, result);
+            }
+            else
+            {
+                MachineGetInRangeParallel(self, position, h, n, range, result);
+            }
+        }
+
+        static void MachineGetInRangeSequential(WorldObject self, Vector3 pos, int h, float r, Action<GameObject, Group> result)
+        {
+            if (_gosInRangeForListingRef == null)
+            {
+                foreach (var value in placedWorldObjects)
+                {
+                    if (Vector3.Distance(pos, value.GetPosition()) < r
+                        && value != self
+                        && value.GetGameObject() != null
+                        && value.GetPlanetHash() == h
+                    )
+                    {
+                        result(value.GetGameObject(), value.GetGroup());
+                    }
+                }
+            }
+            else
+            {
+                foreach (var value in placedWorldObjects)
+                {
+                    if (Vector3.Distance(pos, value.GetPosition()) < r
+                        && value != self
+                        && value.GetGameObject() != null
+                        && value.GetPlanetHash() == h
+                    )
+                    {
+                        AutoCrafterGetInRangeWorldObject(value, autocrafterWorldObjects, _gosInRangeForListingRef);
+                    }
+                }
+            }
+        }
+
+        static void MachineGetInRangeParallel(WorldObject self, 
+            Vector3 position, int h, int n, float range,
+            Action<GameObject, Group> result)
+        {
+            var workQueues = new Dictionary<Group, List<WorldObject>>[n];
+            var listings = new List<(GameObject, Group)>[n];
+            for (int i = 0; i < n; i++)
+            {
+                workQueues[i] = [];
+                foreach (var k in autocrafterWorldObjects.Keys)
+                {
+                    workQueues[i].TryAdd(k, new(10));
+                }
+                listings[i] = [];
+            }
+
+            var count = MachineGetInRangeCreateArray(placedWorldObjects);
+
+            MachineGetInRangeParallelScan(
+                range,
+                self,
+                position,
+                n,
+                workQueues,
+                count,
+                result,
+                listings);
+
+            foreach (var wq in workQueues)
+            {
+                foreach (var e in wq)
+                {
+                    if (autocrafterWorldObjects.TryGetValue(e.Key, out var worldObjects))
+                    {
+                        worldObjects.AddRange(e.Value);
+                    }
+                }
+            }
+            foreach (var lst in listings)
+            {
+                _gosInRangeForListingRef.AddRange(lst);
+            }
+        }
+
+        static int MachineGetInRangeCreateArray(HashSet<WorldObject> placed)
+        {
+            var n = placed.Count;
             if (machineGetInRangeCache.Length < n)
             {
-                machineGetInRangeCache = new WorldObject[allWorldObjects.Count * 11 / 10];
+                machineGetInRangeCache = new WorldObject[placed.Count * 11 / 10];
             }
-            allWorldObjects.Values.CopyTo(machineGetInRangeCache, 0);
+            placed.CopyTo(machineGetInRangeCache, 0);
             return n;
         }
 
-        private static void MachineGetInRangeParallelScan(
+        static void MachineGetInRangeParallelScan(
             float _range, 
             WorldObject _worldObject, 
             Vector3 _position, 
             int _n,
             Dictionary<Group, List<WorldObject>>[] _workQueues,
             int inputCount,
-            Action<GameObject, Group> result)
+            Action<GameObject, Group> result,
+            List<(GameObject, Group)>[] listings)
         {
             Enumerable.Range(0, _n)
                 .AsParallel()
@@ -342,45 +399,29 @@ namespace CheatInventoryStacking
                     var r = _range;
                     var h = self.GetPlanetHash();
                     var q = _workQueues[index];
+                    var lst = listings[index];
                     if (index == _n - 1)
                     {
                         end = inputCount;
                     }
-                    if (_gosInRangeForListing == null)
+                    for (int i = start; i < end; i++)
                     {
-                        for (int i = start; i < end; i++)
+                        var value = wos[i];
+                        if (Vector3.Distance(pos, value.GetPosition()) < r
+                            && value != self
+                            && value.GetGameObject() != null
+                            && value.GetPlanetHash() == h
+                        )
                         {
-                            var value = wos[i];
-                            if (Vector3.Distance(pos, value.GetPosition()) < r
-                                && value != self
-                                && value.GetGameObject() != null
-                                && value.GetPlanetHash() == h
-                            )
-                            {
-                                result(value.GetGameObject(), value.GetGroup());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (int i = start; i < end; i++)
-                        {
-                            var value = wos[i];
-                            if (Vector3.Distance(pos, value.GetPosition()) < r
-                                && value != self
-                                && value.GetGameObject() != null
-                                && value.GetPlanetHash() == h
-                            )
-                            {
-                                AutoCrafterGetInRangeWorldObject(value, q);
-                            }
+                            AutoCrafterGetInRangeWorldObject(value, q, lst);
                         }
                     }
                 });
         }
 
         static void AutoCrafterGetInRangeWorldObject(WorldObject wo, 
-            Dictionary<Group, List<WorldObject>> q)
+            Dictionary<Group, List<WorldObject>> q,
+            List<(GameObject, Group)> lst)
         {
             var group = wo.GetGroup();
             if (group is GroupItem)
@@ -391,7 +432,7 @@ namespace CheatInventoryStacking
                     return;
                 }
                 AddToAutoCrafterWorldObjects(wo, q);
-                _gosInRangeForListing.Add(new(wo.GetGameObject(), group));
+                lst.Add(new(wo.GetGameObject(), group));
                 return;
             }
             var lt = group.GetLogisticInterplanetaryType();
@@ -401,7 +442,7 @@ namespace CheatInventoryStacking
                 var iid1 = wo.GetLinkedInventoryId();
                 if (iid1 > 0)
                 {
-                    _gosInRangeForListing.Add(new(wo.GetGameObject(), group));
+                    lst.Add(new(wo.GetGameObject(), group));
                     if (all)
                     {
                         AutoCrafterGetInRangeProcessInventory(iid1, q);
@@ -431,5 +472,56 @@ namespace CheatInventoryStacking
             }
         }
 
+        static readonly HashSet<WorldObject> placedWorldObjects = [];
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.SetPositionAndRotation))]
+        static void Patch_WorldObject_SetPositionAndRotation(
+            WorldObject __instance, Vector3 position)
+        {
+            if (position == Vector3.zero)
+            {
+                placedWorldObjects.Remove(__instance);
+            }
+            else
+            {
+                placedWorldObjects.Add(__instance);
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObject), nameof(WorldObject.ResetPositionAndRotation))]
+        static void Patch_WorldObject_ResetPositionAndRotation(WorldObject __instance)
+        {
+            placedWorldObjects.Remove(__instance);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "SetAllWorldObjects")]
+        static void Patch_WorldObjectsHandler_SetAllWorldObjects()
+        {
+            placedWorldObjects.Clear();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), "AddToSpecificLists")]
+        static void Patch_WorldObjectsHandler_AddToSpecificLists(WorldObject worldObject)
+        {
+            if (worldObject.GetPosition() != Vector3.zero)
+            {
+                placedWorldObjects.Add(worldObject);
+            }
+            else
+            {
+                placedWorldObjects.Remove(worldObject);
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject), [typeof(WorldObject), typeof(bool)])]
+        static void Patch_WorldObjectsHandler_DestroyWorldObject(WorldObject worldObject)
+        {
+            placedWorldObjects.Remove(worldObject);
+        }
     }
 }
