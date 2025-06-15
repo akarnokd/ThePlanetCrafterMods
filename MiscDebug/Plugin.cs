@@ -25,6 +25,7 @@ namespace MiscDebug
         static ManualLogSource logger;
 
         static ConfigEntry<bool> coroutineTrace;
+        static ConfigEntry<float> traceThreshold; 
 
         public void Awake()
         {
@@ -33,6 +34,7 @@ namespace MiscDebug
             logger = Logger;
 
             coroutineTrace = Config.Bind("General", "CoroutineTrace", false, "Enable tracing of coroutine execution times?");
+            traceThreshold = Config.Bind("General", "TraceThreshold", 30f, "The threshold for reporting in slow sum coroutine execution times.");
 
             // LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -104,7 +106,7 @@ namespace MiscDebug
         static IEnumerator DecoratedEnumerator(IEnumerator original)
         {
             var sw = new Stopwatch();
-            var str = original.GetType().Name;
+            var str = original.GetType().FullName;
             for (; ; )
             {
                 sw.Restart();
@@ -162,11 +164,12 @@ namespace MiscDebug
                         File.Delete(path + "\\frametimes.csv");
                         once = true;
                     }
-                    if (sum > 10)
+                    if (sum > traceThreshold.Value)
                     {
                         File.AppendAllLines(path + "\\frametimes.csv",
                             e
-                            .OrderByDescending(x => x.Key)
+                            .Select(x => (x.Key, x.Value))
+                            .OrderByDescending(x => x.Value)
                             .Select(k => k.Key + ";" + k.Value)
                             .Append(";" + sum)
                             .Append(";")
