@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CheatRecyclerRemoteDeposit</AssemblyName>
     <Description>(Cheat) Recyclers Deposit Into Remote Containers</Description>
-    <Version>1.0.0.25</Version>
+    <Version>1.0.0.26</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -16,7 +16,8 @@
         <Compile Include="..\LibCommon\ModNetworking.cs" Link="ModNetworking.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
-	</ItemGroup>
+        <Compile Include="..\LibCommon\CoroutineCoordinator.cs" Link="CoroutineCoordinator.cs" />
+    </ItemGroup>
 
     <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />

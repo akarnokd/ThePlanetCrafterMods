@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 
 using HarmonyLib;
+using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
@@ -69,6 +71,8 @@ namespace CheatInventoryStacking
 
             for (; ; )
             {
+                var sw = Stopwatch.StartNew();
+
                 if (fMachineAutoCrafterHasEnergy(__instance))
                 {
                     fMachineAutoCrafterTimeHasCrafted(__instance) = Time.time;
@@ -78,9 +82,21 @@ namespace CheatInventoryStacking
                         var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
                         if (machineWo != null)
                         {
+                            var id = machineWo.GetId();
+                            machineAutoCrafters[__instance.GetInstanceID()] = id;
+                            var routineId = CreateRoutineId(machineWo.GetId());
+
+                            if (!CoroutineCoordinator.CanRun(routineId))
+                            {
+                                yield return null;
+                                continue;
+                            }
+
+
                             var linkedGroups = machineWo.GetLinkedGroups();
                             if (linkedGroups != null && linkedGroups.Count != 0)
                             {
+
                                 var gr = linkedGroups[0];
 
                                 if (!IsFullStackedOfInventory(inv, gr.id))
@@ -89,6 +105,20 @@ namespace CheatInventoryStacking
                                         mSetItemsInRange, mCraftIfPossible);
                                 }
                             }
+
+
+                            var frameTimeLimit = logisticsTimeLimit.Value / 1000d;
+
+                            var elaps0 = sw.Elapsed.TotalMilliseconds;
+                            if (elaps0 > frameTimeLimit)
+                            {
+                                CoroutineCoordinator.Yield(routineId, elaps0);
+                                do
+                                {
+                                    yield return null;
+                                }
+                                while (!CoroutineCoordinator.CanRun(routineId));
+                            }
                         }
                     }
                 }
@@ -96,6 +126,23 @@ namespace CheatInventoryStacking
             }
         }
 
+        static string CreateRoutineId(int id)
+        {
+            return "CheatInventoryStacking::MachineAutoCrafterTryToCraft::" + id;
+        }
+
+        static readonly Dictionary<int, int> machineAutoCrafters = [];
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineAutoCrafter), "OnDestroy")]
+        static void Patch_MachineAutoCrafter_OnDestroy(MachineAutoCrafter __instance)
+        {
+            var iid = __instance.GetInstanceID();
+            if (machineAutoCrafters.Remove(iid, out var id)) 
+            {
+                CoroutineCoordinator.Remove(CreateRoutineId(id));
+            }
+        }
 
         static void AutoCrafterTry(Group gr, 
             HashSet<WorldObject> worldObjectsInRange, 

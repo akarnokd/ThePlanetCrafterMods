@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 
 using HarmonyLib;
+using LibCommon;
 using SpaceCraft;
 using System;
 using System.Collections;
@@ -72,6 +73,12 @@ namespace CheatInventoryStacking
             }
 
             fLogisticManagerUpdatingLogisticTasks(__instance) = true;
+
+            const string routineId = "CheatInventoryStacking::SetLogisticTasks";
+            while (!CoroutineCoordinator.CanRun(routineId))
+            {
+                yield return null;
+            }
 
             Log("LogisticManager::SetLogisticTasks Running.");
 
@@ -241,7 +248,13 @@ namespace CheatInventoryStacking
                 var elaps0 = timer.Elapsed.TotalMilliseconds;
                 if (elaps0 >= frametimeLimit)
                 {
-                    yield return null;
+                    CoroutineCoordinator.Yield(routineId, elaps0);
+                    do
+                    {
+                        yield return null;
+                    } 
+                    while (!CoroutineCoordinator.CanRun(routineId));
+
                     timer.Restart();
                     frameSkipCount++;
                     inventoryActualSupplyGroupsMain.Clear();
@@ -293,9 +306,15 @@ namespace CheatInventoryStacking
                         perPlanetNonAttributedList.Add(task);
                     }
                 }
-                if (timer.Elapsed.TotalMilliseconds >= frametimeLimit)
+                var elaps3 = timer.Elapsed.TotalMilliseconds;
+                if (elaps3 >= frametimeLimit)
                 {
-                    yield return null;
+                    CoroutineCoordinator.Yield(routineId, elaps3);
+                    do
+                    {
+                        yield return null;
+                    }
+                    while (!CoroutineCoordinator.CanRun(routineId));
                     timer.Restart();
                     frameSkipCount++;
                     Log("    LogisticManager::SetLogisticTasks timeout on chest fullness detection");
@@ -336,9 +355,15 @@ namespace CheatInventoryStacking
                     }
                 }
 
-                if (timer.Elapsed.TotalMilliseconds >= frametimeLimit)
+                var elaps4 = timer.Elapsed.TotalMilliseconds;
+                if (elaps4 >= frametimeLimit)
                 {
-                    yield return null;
+                    CoroutineCoordinator.Yield(routineId, elaps4);
+                    do
+                    {
+                        yield return null;
+                    }
+                    while (!CoroutineCoordinator.CanRun(routineId));
                     timer.Restart();
                     frameSkipCount++;
                     Log("    LogisticManager::SetLogisticTasks timeout active drones task assignments");
@@ -409,7 +434,12 @@ namespace CheatInventoryStacking
                         var elaps1 = timer.Elapsed.TotalMilliseconds;
                         if (elaps1 >= frametimeLimit)
                         {
-                            yield return null;
+                            CoroutineCoordinator.Yield(routineId, elaps1);
+                            do
+                            {
+                                yield return null;
+                            }
+                            while (!CoroutineCoordinator.CanRun(routineId));
                             timer.Restart();
                             frameSkipCount++;
                             Log("    LogisticManager::SetLogisticTasks timeout on new drone attribution: "
@@ -428,6 +458,18 @@ namespace CheatInventoryStacking
             }
 
             Log("LogisticManager::SetLogisticTasks Done: " + totalTimer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
+
+            var elaps2 = timer.Elapsed.TotalMilliseconds;
+            if (elaps2 >= frametimeLimit)
+            {
+                Log("      --- yield (final) --- " + elaps2);
+                CoroutineCoordinator.Yield(routineId, elaps2);
+                do
+                {
+                    yield return null;
+                }
+                while (!CoroutineCoordinator.CanRun(routineId));
+            }
 
             fLogisticManagerUpdatingLogisticTasks(__instance) = false;
         }

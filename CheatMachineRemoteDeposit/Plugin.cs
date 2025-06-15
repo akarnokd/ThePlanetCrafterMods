@@ -30,6 +30,7 @@ namespace CheatMachineRemoteDeposit
 
         static ConfigEntry<bool> modEnabled;
         static ConfigEntry<bool> debugMode;
+        static ConfigEntry<bool> debugCoordinator;
 
         static readonly Dictionary<string, string> depositAliases = [];
 
@@ -76,6 +77,7 @@ namespace CheatMachineRemoteDeposit
 
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Produce detailed logs? (chatty)");
+            debugCoordinator = Config.Bind("General", "DebugCoordinator", false, "Produce coordinator logs? (chatty)");
 
             aliases = Config.Bind("General", "Aliases", "", "A comma separated list of resourceId:aliasForId, for example, Iron:A,Cobalt:B,Uranim:C");
 
@@ -132,6 +134,8 @@ namespace CheatMachineRemoteDeposit
 
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
+            CoroutineCoordinator.Init(LogCoord);
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
@@ -168,6 +172,13 @@ namespace CheatMachineRemoteDeposit
         static void Log(string s)
         {
             if (debugMode.Value)
+            {
+                logger.LogInfo(s);
+            }
+        }
+        static void LogCoord(string s)
+        {
+            if (debugCoordinator.Value)
             {
                 logger.LogInfo(s);
             }
@@ -210,13 +221,19 @@ namespace CheatMachineRemoteDeposit
 
         static IEnumerator ClearMachineInventory()
         {
+            const string routineId = "CheatMachineRemoteDeposit::ClearMachineInventory";
             while (true)
             {
                 // Server side is responsible for the transfer.
                 var invh = InventoriesHandler.Instance;
-                var timeLimit = frameTimeLimit.Value / 1000d;
                 if (modEnabled.Value && invh != null && invh.IsServer)
                 {
+                    var timeLimit = frameTimeLimit.Value / 1000d;
+                    while (!CoroutineCoordinator.CanRun(routineId))
+                    {
+                        yield return null;
+                    }
+
                     var sw0 = Stopwatch.StartNew();
                     var skips = 0;
                     Log("ClearMachineInventory begin - " + clearInventoryAndPlanetHash.Count);
@@ -252,7 +269,12 @@ namespace CheatMachineRemoteDeposit
                             {
                                 skips++;
                                 Log("      --- yield (inv) --- " + elaps0);
-                                yield return null;
+                                CoroutineCoordinator.Yield(routineId, elaps0);
+                                do
+                                {
+                                    yield return null;
+                                }
+                                while (!CoroutineCoordinator.CanRun(routineId));
                                 transferFailures.Clear();
                                 sw.Restart();
                             }
@@ -274,7 +296,12 @@ namespace CheatMachineRemoteDeposit
                                     {
                                         skips++;
                                         Log("      --- yield (item) --- " + elaps1);
-                                        yield return null;
+                                        CoroutineCoordinator.Yield(routineId, elaps1);
+                                        do
+                                        {
+                                            yield return null;
+                                        }
+                                        while (!CoroutineCoordinator.CanRun(routineId));
                                         transferFailures.Clear();
                                         sw.Restart();
                                     }
@@ -303,7 +330,12 @@ namespace CheatMachineRemoteDeposit
                                             {
                                                 skips++;
                                                 Log("      --- yield (candidate) --- " + elaps2);
-                                                yield return null;
+                                                CoroutineCoordinator.Yield(routineId, elaps2);
+                                                do
+                                                {
+                                                    yield return null;
+                                                }
+                                                while (!CoroutineCoordinator.CanRun(routineId));
                                                 transferFailures.Clear();
                                                 sw.Restart();
                                             }
@@ -318,7 +350,12 @@ namespace CheatMachineRemoteDeposit
                                                 {
                                                     skips++;
                                                     Log("      --- yield (transfer) ---");
-                                                    yield return null;
+                                                    CoroutineCoordinator.Yield(routineId, 0);
+                                                    do
+                                                    {
+                                                        yield return null;
+                                                    }
+                                                    while (!CoroutineCoordinator.CanRun(routineId));
                                                     transferFailures.Clear();
                                                 }
                                                 if (callback.IsSuccess)
@@ -350,6 +387,19 @@ namespace CheatMachineRemoteDeposit
                         }
                     }
                     Log("ClearMachineInventory end - " + clearInventoryAndPlanetHash.Count + " in " + sw0.Elapsed.TotalMilliseconds + " skips " + skips);
+
+                    // last yield check
+                    var elaps3 = sw.Elapsed.TotalMilliseconds;
+                    if (elaps3 > timeLimit)
+                    {
+                        Log("      --- yield (final) --- " + elaps3);
+                        CoroutineCoordinator.Yield(routineId, elaps3);
+                        do
+                        {
+                            yield return null;
+                        }
+                        while (!CoroutineCoordinator.CanRun(routineId));
+                    }
                 }
                 yield return new WaitForSeconds(period.Value);
             }
@@ -490,6 +540,20 @@ namespace CheatMachineRemoteDeposit
         static void MachineDisintegrator_OnDestroy(Inventory ____secondInventory)
         {
             StopClearMachineInventory(____secondInventory);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void Patch_UiWindowPause_OnQuit()
+        {
+            CoroutineCoordinator.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void Patch_BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
         }
 
         static readonly Comparison<Inventory> balancedSorter = (a, b) => a.GetInsideWorldObjects().Count.CompareTo(b.GetInsideWorldObjects().Count);

@@ -57,6 +57,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<bool> debugModeLogMachineGenerator;
         static ConfigEntry<bool> debugModeOptimizations1;
+        static ConfigEntry<bool> debugCoordinator;
         static ConfigEntry<int> networkBufferScaling;
         static ConfigEntry<int> logisticsTimeLimit;
         static ConfigEntry<bool> debugOverrideLogisticsAnyway;
@@ -149,6 +150,7 @@ namespace CheatInventoryStacking
             debugOverrideLogisticsAnyway = Config.Bind("General", "DebugOverrideLogisticsAnyway", false, "If true, the custom logistics code still runs on StackSize <= 1");
             debugModeLogMachineGenerator = Config.Bind("General", "DebugModeMachineGenerator", false, "Produce detailed logs for the machine generators? (chatty)");
             debugModeOptimizations1 = Config.Bind("General", "DebugModeOptimizations1", false, "Enables certain type of optimizations (experimental)!");
+            debugCoordinator = Config.Bind("General", "DebugCoordinator", false, "Produce coordinator logs (chatty)!");
 
             stackSize = Config.Bind("General", "StackSize", 10, "The stack size of all item types in the inventory");
             fontSize = Config.Bind("General", "FontSize", 25, "The font size for the stack amount");
@@ -272,6 +274,8 @@ namespace CheatInventoryStacking
             fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
             fMachineAutoCrafterGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(typeof(MachineAutoCrafter), "_gosInRangeForListing");
 
+            CoroutineCoordinator.Init(LogCoord);
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(harmony, "(Cheat) Inventory Stacking - v" + PluginInfo.PLUGIN_VERSION);
@@ -292,6 +296,14 @@ namespace CheatInventoryStacking
         static void LogMG(string s)
         {
             if (debugModeLogMachineGenerator.Value)
+            {
+                logger.LogInfo(s);
+            }
+        }
+
+        static void LogCoord(string s)
+        {
+            if (debugCoordinator.Value)
             {
                 logger.LogInfo(s);
             }
@@ -735,6 +747,7 @@ namespace CheatInventoryStacking
             allTasksFrameCache.Clear();
             machineGetInRangeCache = [];
             placedWorldObjects.Clear();
+            CoroutineCoordinator.Clear();
             /*
             optimizerLast = null;
             optimizerLastFrame = -1;

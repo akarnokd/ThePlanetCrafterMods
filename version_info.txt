@@ -15,9 +15,9 @@ akarnokd.theplanetcraftermods.cheatautostore=1.0.0.17
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.71
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.96
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.1.97
 # (Cheat) Machines Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.41
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.42
 # (Cheat) Minimap
 akarnokd.theplanetcraftermods.cheatminimap=1.0.0.66
 # (Cheat) More Trade
@@ -27,7 +27,7 @@ akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.32
 # (Cheat) Hide Water in Photomode
 akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.17
 # (Cheat) Recyclers Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.25
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.26
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.10
 # (Feat) Command Console
@@ -131,4 +131,4 @@ akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.56
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.25
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.16
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.17

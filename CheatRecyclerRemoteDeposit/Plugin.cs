@@ -29,6 +29,8 @@ namespace CheatRecyclerRemoteDeposit
 
         static ConfigEntry<bool> debugMode;
 
+        static ConfigEntry<bool> debugCoordinator;
+
         static ConfigEntry<string> defaultDepositAlias;
 
         static ConfigEntry<string> customDepositAliases;
@@ -36,6 +38,8 @@ namespace CheatRecyclerRemoteDeposit
         static ConfigEntry<int> autoRecyclePeriod;
 
         static ConfigEntry<int> maxRange;
+
+        static ConfigEntry<int> frameTimeLimit;
 
         static readonly Dictionary<string, string> aliasMap = [];
 
@@ -66,16 +70,20 @@ namespace CheatRecyclerRemoteDeposit
 
             modEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debug mode with detailed logging (chatty!)");
+            debugCoordinator = Config.Bind("General", "DebugCoordinator", false, "Enable coordinator logging (chatty!)");
             defaultDepositAlias = Config.Bind("General", "DefaultDepositAlias", "*Recycled", "The name of the container to deposit resources not explicity mentioned in CustomDepositAliases.");
             customDepositAliases = Config.Bind("General", "CustomDepositAliases", "", "Comma separated list of resource_id:alias to deposit into such named containers");
             autoRecyclePeriod = Config.Bind("General", "AutoRecyclePeriod", 5, "How often to auto-recycle, seconds. Zero means no auto-recycle.");
             maxRange = Config.Bind("General", "MaxRange", 20, "The maximum range to look for containers within. Zero means unlimited range.");
+            frameTimeLimit = Config.Bind("General", "FrameTimeLimit", 5000, "How much time is allowed to inspect the output inventories to avoid stutter, in microseconds");
 
             fMachineDisintegratorSecondInventory = AccessTools.FieldRefAccess<MachineDisintegrator, Inventory>("_secondInventory");
 
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             ParseAliasConfig();
+
+            CoroutineCoordinator.Init(LogCoord);
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -337,6 +345,13 @@ namespace CheatRecyclerRemoteDeposit
             }
         }
 
+        static void LogCoord(object message)
+        {
+            if (debugCoordinator.Value)
+            {
+                logger.LogInfo(message);
+            }
+        }
 
         internal class Depositor
         {
@@ -548,12 +563,12 @@ namespace CheatRecyclerRemoteDeposit
             if (wo.GetGroup().GetId().StartsWith("RecyclingMachine", StringComparison.Ordinal))
             {
                 var planetHash = wo.GetPlanetHash();
-                me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance, planetHash, wo.GetPosition()));
+                me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance, planetHash, wo.GetPosition(), wo));
             }
         }
 
         static IEnumerator MachineDisintegrator_WaitForSecondInventory(
-            MachineDisintegrator __instance, int planetHash, Vector3 pos)
+            MachineDisintegrator __instance, int planetHash, Vector3 pos, WorldObject machine)
         {
             bool requesting = false;
             while (fMachineDisintegratorSecondInventory(__instance) == null)
@@ -573,13 +588,13 @@ namespace CheatRecyclerRemoteDeposit
             }
 
             var inv = fMachineDisintegratorSecondInventory(__instance);
-            StartClearMachineInventory(inv, planetHash, pos);
+            StartClearMachineInventory(inv, planetHash, pos, machine);
         }
 
-        static void StartClearMachineInventory(Inventory inventory, int planetHash, Vector3 center)
+        static void StartClearMachineInventory(Inventory inventory, int planetHash, Vector3 center, WorldObject machine)
         {
             StopClearMachineInventory(inventory);
-            var coroutine = me.StartCoroutine(ClearMachineInventory(inventory, planetHash, center));
+            var coroutine = me.StartCoroutine(ClearMachineInventory(inventory, planetHash, center, machine));
             clearCoroutines[inventory.GetId()] = coroutine;
             Log("StartClearMachineInventory: " + inventory.GetId() + ", planet " + planetHash);
         }
@@ -600,14 +615,24 @@ namespace CheatRecyclerRemoteDeposit
             StopClearMachineInventory(____secondInventory);
         }
 
-        static IEnumerator ClearMachineInventory(Inventory _inventory, int planetHash, Vector3 center)
+        static IEnumerator ClearMachineInventory(Inventory _inventory, int planetHash, Vector3 center, WorldObject machine)
         {
             while (true)
             {
                 // Server side is responsible for the transfer.
                 if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
+                    var timeLimit = frameTimeLimit.Value / 1000d;
+
+                    var routineId = "CheatRecyclerRemoteDeposit::ClearMachineInventory::" + machine.GetId();
+                    if (!CoroutineCoordinator.CanRun(routineId))
+                    {
+                        yield return null;
+                        continue;
+                    }
+
                     var sw = Stopwatch.StartNew();
+
                     Log("ClearMachineInventory begin: " + _inventory.GetId() + " on " + planetHash);
                     var items = fInventoryWorldObjectsInInventory(_inventory);
 
@@ -624,12 +649,50 @@ namespace CheatRecyclerRemoteDeposit
                                 InventoriesHandler.Instance.TransferItem(_inventory, candidateInv, item);
                             }
                         }
-                        yield return null;
+                        // last yield check
+                        var elaps2 = sw.Elapsed.TotalMilliseconds;
+                        if (elaps2 > timeLimit)
+                        {
+                            CoroutineCoordinator.Yield(routineId, elaps2);
+                            do
+                            {
+                                yield return null;
+                            }
+                            while (!CoroutineCoordinator.CanRun(routineId));
+                            sw.Restart();
+                        }
                     }
                     Log("ClearMachineInventory end: " + _inventory.GetId() + " on " + planetHash + ", elapsed " + sw.Elapsed.TotalMilliseconds);
+
+                    // last yield check
+                    var elaps3 = sw.Elapsed.TotalMilliseconds;
+                    if (elaps3 > timeLimit)
+                    {
+                        CoroutineCoordinator.Yield(routineId, elaps3);
+                        do
+                        {
+                            yield return null;
+                        }
+                        while (!CoroutineCoordinator.CanRun(routineId));
+                    }
+
                 }
                 yield return new WaitForSeconds(autoRecyclePeriod.Value);
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
+        static void Patch_UiWindowPause_OnQuit()
+        {
+            CoroutineCoordinator.Clear();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BlackScreen), nameof(BlackScreen.DisplayLogoStudio))]
+        static void Patch_BlackScreen_DisplayLogoStudio()
+        {
+            Patch_UiWindowPause_OnQuit();
         }
     }
 }
