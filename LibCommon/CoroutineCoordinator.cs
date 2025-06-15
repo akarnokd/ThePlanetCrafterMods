@@ -28,15 +28,15 @@ namespace LibCommon
         internal static void Init(Action<string> log)
         {
             CoroutineCoordinator.log = log;
-            var go = GameObject.Find("FrameCoordinator");
+            var go = GameObject.Find("CoroutineCoordinator");
             if (go == null)
             {
-                go = new GameObject("FrameCoordinator");
+                go = new GameObject("CoroutineCoordinator");
                 GameObject.DontDestroyOnLoad(go);
-                var b = go.AddComponent<FrameCoordinatorBehaviour>();
+                var b = go.AddComponent<CoroutineCoordinatorBehaviour>();
                 b.yielders = yielders;
                 b.waiters = waiters;
-                log?.Invoke("FrameCoodinator created");
+                log?.Invoke("CoroutineCoordinator created");
             }
             else
             {
@@ -45,7 +45,7 @@ namespace LibCommon
 
                 foreach (var comp in go.GetComponents(typeof(MonoBehaviour)))
                 {
-                    if (comp.name.Contains("FrameCoordinator"))
+                    if (comp.name.Contains("CoroutineCoordinator"))
                     {
                         var fref = AccessTools.FieldRefAccess<Queue<string>>(comp.GetType(), "waiters");
                         var gref = AccessTools.FieldRefAccess<Queue<(string, int)>>(comp.GetType(), "yielders");
@@ -65,11 +65,11 @@ namespace LibCommon
                             yielders = [];
                             throw new InvalidOperationException("FieldCoordinator.yielders");
                         }
-                        log?.Invoke("FrameCoodinator Found");
+                        log?.Invoke("CoroutineCoordinator Found");
                         return;
                     }
                 }
-                throw new InvalidOperationException("FrameCoordinator not found after all");
+                throw new InvalidOperationException("CoroutineCoordinator not found after all");
             }
         }
 
@@ -82,7 +82,7 @@ namespace LibCommon
         internal static void Yield(string routineId, double elapsed)
         {
             int fc = Time.frameCount;
-            log?.Invoke("FrameCoordinator-Yielding    [" + fc + "] " + routineId + " (" + elapsed + " ms)");
+            log?.Invoke("CoroutineCoordinator-Yielding    [" + fc + "] " + routineId + " (" + elapsed + " ms)");
             yielders.Enqueue((routineId, fc));
         }
 
@@ -119,17 +119,20 @@ namespace LibCommon
                 yielders.Enqueue(y);
             }
             int fc = Time.frameCount;
-            log?.Invoke("FrameCoordinator-Remove      [" + fc + "] " + routineId + " removed");
+            log?.Invoke("CoroutineCoordinator-Remove      [" + fc + "] " + routineId + " removed");
         }
 
         internal static bool CanRun(string routineId)
         {
             int fc = Time.frameCount;
 
+            bool yieldedThisFrame = yielders.Any(e => e.Item2 == fc);
+            bool routineInYield = yielders.Any(e => e.Item1 == routineId);
+
             // if someone yielded this frame
-            if (yielders.Any(e => e.Item2 == fc))
+            if (yieldedThisFrame && !routineInYield)
             {
-                log?.Invoke("FrameCoordinator-NoTimeLeft  [" + fc + "] " + routineId);
+                log?.Invoke("CoroutineCoordinator-NoTimeLeft  [" + fc + "] " + routineId);
                 // enqueue us as a waiter
                 if (!waiters.Contains(routineId))
                 {
@@ -143,15 +146,25 @@ namespace LibCommon
                 // its us, stop waiting and indicate runs
                 if (w == routineId)
                 {
-                    log?.Invoke("FrameCoordinator-RunWaiter   [" + fc + "] " + routineId);
+                    log?.Invoke("CoroutineCoordinator-RunWaiter   [" + fc + "] " + routineId);
                     waiters.TryDequeue(out _);
                     return true;
                 }
-                log?.Invoke("FrameCoordinator-SkipWaiter  [" + fc + "] " + routineId + ", next waiter " + w);
-                // not us, enqueue as waiter
-                if (!waiters.Contains(routineId))
+
+                // check if it is a yielder itself
+                if (!routineInYield)
                 {
-                    waiters.Enqueue(routineId);
+                    // nope another waiter
+                    log?.Invoke("CoroutineCoordinator-SkipWaiter  [" + fc + "] " + routineId + ", next waiter " + w);
+                    // not us, enqueue as waiter
+                    if (!waiters.Contains(routineId))
+                    {
+                        waiters.Enqueue(routineId);
+                    }
+                } 
+                else
+                {
+                    log?.Invoke("CoroutineCoordinator-SkipYielder [" + fc + "] " + routineId + ", next waiter " + w);
                 }
                 return false;
             }
@@ -163,21 +176,21 @@ namespace LibCommon
                 // yes, resume us
                 if (y.Item1 == routineId)
                 {
-                    log?.Invoke("FrameCoordinator-RunYielder  [" + fc + "] " + routineId + " after " + (fc - y.Item2) + " skips");
+                    log?.Invoke("CoroutineCoordinator-RunYielder  [" + fc + "] " + routineId + " after " + (fc - y.Item2) + " skips");
                     yielders.TryDequeue(out _);
                     return true;
                 }
                 // nope, wait our turn
-                log?.Invoke("FrameCoordinator-SkipYielder [" + fc + "] " + routineId + ", next yielder " + y.Item1);
+                log?.Invoke("CoroutineCoordinator-SkipYielder [" + fc + "] " + routineId + ", next yielder " + y.Item1);
                 return false;
             }
             // no yielders, no waiters, we can run
-            log?.Invoke("FrameCoordinator-Free        [" + fc + "] " + routineId);
+            log?.Invoke("CoroutineCoordinator-Free        [" + fc + "] " + routineId);
 
             return true;
         }
 
-        internal class FrameCoordinatorBehaviour : MonoBehaviour
+        internal class CoroutineCoordinatorBehaviour : MonoBehaviour
         {
             internal Queue<(string, int)> yielders;
 

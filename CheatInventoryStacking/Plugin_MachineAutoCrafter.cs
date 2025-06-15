@@ -82,9 +82,7 @@ namespace CheatInventoryStacking
                         var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
                         if (machineWo != null)
                         {
-                            var id = machineWo.GetId();
-                            machineAutoCrafters[__instance.GetInstanceID()] = id;
-                            var routineId = CreateRoutineId(machineWo.GetId());
+                            var routineId = CreateRoutineId(inv.GetId());
 
                             if (!CoroutineCoordinator.CanRun(routineId))
                             {
@@ -131,16 +129,13 @@ namespace CheatInventoryStacking
             return "CheatInventoryStacking::MachineAutoCrafterTryToCraft::" + id;
         }
 
-        static readonly Dictionary<int, int> machineAutoCrafters = [];
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MachineAutoCrafter), "OnDestroy")]
-        static void Patch_MachineAutoCrafter_OnDestroy(MachineAutoCrafter __instance)
+        static void Patch_MachineAutoCrafter_OnDestroy(Inventory ____autoCrafterInventory)
         {
-            var iid = __instance.GetInstanceID();
-            if (machineAutoCrafters.Remove(iid, out var id)) 
+            if (____autoCrafterInventory != null)
             {
-                CoroutineCoordinator.Remove(CreateRoutineId(id));
+                CoroutineCoordinator.Remove(CreateRoutineId(____autoCrafterInventory.GetId()));
             }
         }
 

@@ -613,6 +613,15 @@ namespace CheatRecyclerRemoteDeposit
         static void MachineDisintegrator_OnDestroy(Inventory ____secondInventory)
         {
             StopClearMachineInventory(____secondInventory);
+            if (____secondInventory != null)
+            {
+                CoroutineCoordinator.Remove(CreateRoutineId(____secondInventory.GetId()));
+            }
+        }
+
+        static string CreateRoutineId(int id)
+        {
+            return "CheatRecyclerRemoteDeposit::ClearMachineInventory::" + id;
         }
 
         static IEnumerator ClearMachineInventory(Inventory _inventory, int planetHash, Vector3 center, WorldObject machine)
@@ -623,8 +632,9 @@ namespace CheatRecyclerRemoteDeposit
                 if (modEnabled.Value && InventoriesHandler.Instance != null && InventoriesHandler.Instance.IsServer)
                 {
                     var timeLimit = frameTimeLimit.Value / 1000d;
+                    var items = fInventoryWorldObjectsInInventory(_inventory);
 
-                    var routineId = "CheatRecyclerRemoteDeposit::ClearMachineInventory::" + machine.GetId();
+                    var routineId = CreateRoutineId(_inventory.GetId());
                     if (!CoroutineCoordinator.CanRun(routineId))
                     {
                         yield return null;
@@ -634,7 +644,6 @@ namespace CheatRecyclerRemoteDeposit
                     var sw = Stopwatch.StartNew();
 
                     Log("ClearMachineInventory begin: " + _inventory.GetId() + " on " + planetHash);
-                    var items = fInventoryWorldObjectsInInventory(_inventory);
 
                     for (int i = items.Count - 1; i >= 0; i--)
                     {
