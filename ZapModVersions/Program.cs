@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2022-2025, David Karnok & Contributors
 // Licensed under the Apache License, Version 2.0
 
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
@@ -78,3 +79,66 @@ if (lines.Count != 0)
 {
     File.WriteAllLines(workdir + "version_info.txt", lines);
 }
+
+/*
+Console.WriteLine("---");
+
+string gamePath = @"c:\Program Files (x86)\Steam\steamapps\common\The Planet Crafter\Planet Crafter_Data\Managed";
+
+string[] files = ["Assembly-CSharp.dll", "Assembly-Csharp-firstpass.dll"];
+
+foreach (string file in files)
+{
+    Console.WriteLine("Disassembly check " + file);
+    var main = Path.Combine(gamePath, file);
+    var backup = Path.Combine(gamePath, file + ".bak");
+
+    var generate = true;
+
+    if (File.Exists(backup))
+    {
+        Console.WriteLine("  Backup found. Comparing.");
+        var a1 = File.ReadAllBytes(backup);
+        var a2 = File.ReadAllBytes(main);
+
+        if (Enumerable.SequenceEqual<byte>(a1, a2))
+        {
+            generate = false;
+            Console.WriteLine("    Main == Backup");
+        }
+    }
+    else
+    {
+        Console.WriteLine("  Backup not found.");
+    }
+
+    if (generate)
+    {
+        Console.WriteLine("  Creating a fresh backup.");
+        File.Copy(main, backup);
+
+        {
+            Console.WriteLine("  Installing ilspycmd.");
+            var ps = new ProcessStartInfo("dotnet.exe",
+                ["tool", "install", "--global", "ilspycmd", "--version", "9.1.0.7988"])!;
+            ps.RedirectStandardOutput = true;
+
+            var p = Process.Start(ps)!;
+            Console.WriteLine(p.StandardOutput.ReadToEnd());
+            p.WaitForExit();
+            Console.WriteLine("    Done.");
+        }
+
+        {
+            Console.WriteLine("  Decompiling.");
+            var ps = new ProcessStartInfo("ilspycmd", ["-genpdb", main]);
+            ps.RedirectStandardOutput = true;
+
+            var p = Process.Start(ps)!;
+            Console.WriteLine(p.StandardOutput.ReadToEnd());
+            p.WaitForExit();
+            Console.WriteLine("    Done.");
+        }
+    }
+}
+*/

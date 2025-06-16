@@ -10,6 +10,6 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="&quot;$(ProjectDir)bin\Debug\net7.0\ZapModVersions.exe&quot; $(ProjectDir)\..\" />
+    <Exec Command="&quot;$(TargetDir)ZapModVersions.exe&quot; $(ProjectDir)\..\" />
   </Target>
 </Project>
