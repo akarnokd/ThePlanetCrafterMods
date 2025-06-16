@@ -79,7 +79,7 @@ namespace MiscDebug
                 isEnabled = !isEnabled;
             }
         }
-        /*
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), [typeof(IEnumerator)])]
         static void MonoBehaviour_StartCoroutine(ref IEnumerator routine)
@@ -89,7 +89,6 @@ namespace MiscDebug
                 routine = DecoratedEnumerator(routine);
             }
         }
-        */
 
         static IEnumerator DecoratedEnumerator(IEnumerator original)
         {
