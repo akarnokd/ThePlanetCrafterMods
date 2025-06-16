@@ -32,7 +32,8 @@
 
   <Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
-    <Copy SourceFiles="$(SourceDir)images\map_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
+	  <Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(Destination1)" />
+	  <Copy SourceFiles="$(SourceDir)images\map_barren.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)images\map_lush.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)images\map_endgame.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
     <Copy SourceFiles="$(SourceDir)images\player_marker.png" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />

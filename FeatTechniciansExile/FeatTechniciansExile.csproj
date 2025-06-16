@@ -27,7 +27,8 @@
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
       <Copy SourceFiles="$(SourceDir)Technician_Front.png" DestinationFolder="$(Destination1)" />
-      <Copy SourceFiles="$(SourceDir)Technician_Back.png" DestinationFolder="$(Destination1)" />
+		<Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(Destination1)" />
+		<Copy SourceFiles="$(SourceDir)Technician_Back.png" DestinationFolder="$(Destination1)" />
       <Copy SourceFiles="$(SourceDir)technician_labels_english.txt" DestinationFolder="$(Destination1)" />
       <Copy SourceFiles="$(SourceDir)technician_labels_hungarian.txt" DestinationFolder="$(Destination1)" />
 		<Copy SourceFiles="$(SourceDir)technician_labels_russian.txt" DestinationFolder="$(Destination1)" />
