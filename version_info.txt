@@ -37,7 +37,7 @@ akarnokd.theplanetcraftermods.featflatlands=1.0.0.2
 # (Feat) Multiplayer
 akarnokd.theplanetcraftermods.featmultiplayer=0.2.0.77
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.29
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.30
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.38
 # (Fix) Unofficial Patches

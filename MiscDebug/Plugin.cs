@@ -55,6 +55,38 @@ namespace MiscDebug
             return false;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.PlaceAllWorldObjects))]
+        static void WorldObjectsHandler_PlaceAllWorldObjects(WorldObjectsHandler __instance)
+        {
+            HashSet<int> inventoryUsed = [];
+
+            foreach (var wo in __instance.GetAllWorldObjects().Values)
+            {
+                if (wo.GetLinkedInventoryId() > 0)
+                {
+                    inventoryUsed.Add(wo.GetLinkedInventoryId());
+                }
+                var alt = wo.GetSecondaryInventoriesId();
+                if (alt != null)
+                {
+                    foreach (var iid in alt)
+                    {
+                        inventoryUsed.Add(iid);
+                    }
+                }
+            }
+
+            foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
+            {
+                int id = inv.GetId();
+                var le = inv.GetLogisticEntity();
+                if (id < 100_000_000 && !inventoryUsed.Contains(id) && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
+                {
+                    logger.LogWarning("Inventory " + inv.GetId() + " no world object is using it");
+                }
+            }
+        }
         /*
         [HarmonyPostfix]
         [HarmonyPatch(typeof(GroupsHandler), nameof(GroupsHandler.SetAllGroups))]

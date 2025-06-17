@@ -561,6 +561,10 @@ namespace FeatSpaceCows
                 cowChecker = null;
             }
             Log("Clearing Cows = " + cowAroundSpreader.Count);
+            foreach (var cow in cowAroundSpreader.Values)
+            {
+                cow.Destroy(me);
+            }
             cowAroundSpreader.Clear();
             Log("                Done");
         }
