@@ -68,7 +68,6 @@ namespace UIShowAutoCrafterRecipe
             if (Chainloader.PluginInfos.TryGetValue(modCheatInventoryStackingGuid, out var pi))
             {
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " found, accessing its range check data.");
-                fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
 
                 fInventoryStackingGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(pi.Instance.GetType(), "_gosInRangeForListingRef");
 
@@ -81,7 +80,9 @@ namespace UIShowAutoCrafterRecipe
                 Logger.LogInfo("Optional mod " + modCheatInventoryStackingGuid + " not found.");
             }
 
-                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
@@ -207,6 +208,8 @@ namespace UIShowAutoCrafterRecipe
                         inRange.Add(worldObject);
                     }
                 }
+                dict.Clear();
+                fInventoryStackingGosInRangeForListing() = null;
             }
 
             var inRangeCounts = new Dictionary<Group, int>();

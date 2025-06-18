@@ -95,7 +95,7 @@ akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.34
 # (UI) Save When Quitting
 akarnokd.theplanetcraftermods.saveonquit=1.0.0.14
 # (UI) Show Auto-Crafter Recipe
-akarnokd.theplanetcraftermods.uishowautocrafterrecipe=1.0.0.0
+akarnokd.theplanetcraftermods.uishowautocrafterrecipe=1.0.0.1
 # (UI) Show Consumable Counts
 akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.21
 # (UI) Show Container Content Info
