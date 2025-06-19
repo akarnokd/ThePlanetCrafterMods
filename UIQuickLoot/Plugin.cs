@@ -2,20 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
+using LibCommon;
+using SpaceCraft;
 using System;
 using System.Collections.Generic;
-using BepInEx.Bootstrap;
-using System.Reflection;
-using BepInEx.Configuration;
-using UnityEngine;
-using BepInEx.Logging;
 using System.Linq;
-using UnityEngine.UI;
-using LibCommon;
-using UnityEngine.InputSystem;
+using System.Reflection;
 using System.Text;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine.UIElements.UIR;
 
 namespace UIQuickLoot
 {
@@ -43,6 +44,9 @@ namespace UIQuickLoot
         static GameObject panelGo;
         static Image panelBackground;
         static RectTransform panelRt;
+
+        static GameObject emptyGo;
+        static Text emptyText;
         
         static GameObject scrollUp;
         static Text scrollUpText;
@@ -95,6 +99,36 @@ namespace UIQuickLoot
         static InputAction takeOne;
         static InputAction takeAll;
 
+        static ConfigEntry<bool> allowPlayerContainers;
+        static ConfigEntry<bool> allowWorldContainers;
+        static ConfigEntry<bool> allowWreckContainers;
+        static ConfigEntry<bool> allowAutoCrafters;
+        static ConfigEntry<bool> allowRecyclerIns;
+        static ConfigEntry<bool> allowRecyclerOuts;
+        static ConfigEntry<bool> allowOreExtractors;
+        static ConfigEntry<bool> allowOreCrusherIns;
+        static ConfigEntry<bool> allowOreCrusherOuts;
+        static ConfigEntry<bool> allowWaterCollectors;
+        static ConfigEntry<bool> allowFoodGrowers;
+        static ConfigEntry<bool> allowFarms;
+        static ConfigEntry<bool> allowGasExtractors;
+        static ConfigEntry<bool> allowBeehives;
+        static ConfigEntry<bool> allowButterflyFarms;
+        static ConfigEntry<bool> allowFishFarms;
+        static ConfigEntry<bool> allowFrogFarms;
+        static ConfigEntry<bool> allowEcosystems;
+        static ConfigEntry<bool> allowFlowerSpreaders;
+        static ConfigEntry<bool> allowTreeSpreaders;
+        static ConfigEntry<bool> allowBiodomes;
+        static ConfigEntry<bool> allowGeneticExtractors;
+        static ConfigEntry<bool> allowSequencers;
+        static ConfigEntry<bool> allowIncubators;
+        static ConfigEntry<bool> allowSynthetizers;
+        static ConfigEntry<bool> allowRoverStorages;
+        static ConfigEntry<bool> allowRoverEquipments;
+        static ConfigEntry<bool> allowAnimalFeeders;
+        static ConfigEntry<bool> allowDefault;
+
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -110,6 +144,37 @@ namespace UIQuickLoot
 
             keyTakeOne = Config.Bind("Keys", "TakeOne", "<Keyboard>/E", "Key to press to take one item.");
             keyTakeAll = Config.Bind("Keys", "TakeAll", "<Keyboard>/R", "Key to press to take all items.");
+
+            allowPlayerContainers = Config.Bind("Settings", "AllowPlayerContainers", true, "Allow quick looting on Player containers?");
+            allowWorldContainers = Config.Bind("Settings", "AllowWorldContainers", true, "Allow quick looting on world containers?");
+            allowWreckContainers = Config.Bind("Settings", "AllowWreckContainers", true, "Allow quick looting on wreck containers?");
+            allowAutoCrafters = Config.Bind("Settings", "AllowAutoCrafters", true, "Allow quick looting on Auto-Crafters?");
+            allowRecyclerIns = Config.Bind("Settings", "AllowRecyclerIns", false, "Allow quick looting on Recycler inputs?");
+            allowRecyclerOuts = Config.Bind("Settings", "AllowRecyclerOuts", true, "Allow quick looting on Recycler outputs?");
+            allowOreExtractors = Config.Bind("Settings", "AllowOreExtractors", true, "Allow quick looting on Ore extractors?");
+            allowOreCrusherIns = Config.Bind("Settings", "AllowOreCrusherIns", false, "Allow quick looting on Ore crusher inputs?");
+            allowOreCrusherOuts = Config.Bind("Settings", "AllowOreCrusherOuts", true, "Allow quick looting on Ore crusher outputs?");
+            allowWaterCollectors = Config.Bind("Settings", "AllowWaterCollectors", true, "Allow quick looting on Water collectors?");
+            allowFoodGrowers = Config.Bind("Settings", "AllowFoodGrowers", false, "Allow quick looting on Food growers?");
+            allowFarms = Config.Bind("Settings", "AllowFarms", false, "Allow quick looting on Farms?");
+            allowGasExtractors = Config.Bind("Settings", "AllowGasExtractors", true, "Allow quick looting on Gas extractors?");
+            allowBeehives = Config.Bind("Settings", "AllowBeehives", true, "Allow quick looting on Beehives?");
+            allowButterflyFarms = Config.Bind("Settings", "AllowButterflyFarms", false, "Allow quick looting on Butterfly farms?");
+            allowFishFarms = Config.Bind("Settings", "AllowFishflyFarms", false, "Allow quick looting on Fish farms?");
+            allowFrogFarms = Config.Bind("Settings", "AllowFrogFarms", false, "Allow quick looting on Frog farms?");
+            allowEcosystems = Config.Bind("Settings", "AllowEcosystems", true, "Allow quick looting on Ecosystems?");
+            allowFlowerSpreaders = Config.Bind("Settings", "AllowFlowerSpreaders", false, "Allow quick looting on Flower spreaders?");
+            allowTreeSpreaders = Config.Bind("Settings", "AllowTreeSpreaders", false, "Allow quick looting on Tree spreaders?");
+            allowBiodomes = Config.Bind("Settings", "AllowBiodomes", true, "Allow quick looting on Biodomes?");
+            allowGeneticExtractors = Config.Bind("Settings", "AllowGeneticExtractors", false, "Allow quick looting on Genetic extractors?");
+            allowSequencers = Config.Bind("Settings", "AllowSequencers", true, "Allow quick looting on DNA sequencers?");
+            allowIncubators = Config.Bind("Settings", "AllowIncubators", true, "Allow quick looting on Incubators?");
+            allowSynthetizers = Config.Bind("Settings", "AllowSynthetizers", false, "Allow quick looting on Synthetizers?");
+            allowRoverStorages = Config.Bind("Settings", "AllowRoverStorages", true, "Allow quick looting on Rover storages?");
+            allowRoverEquipments = Config.Bind("Settings", "AllowRoverEquipments", false, "Allow quick looting on Rover equipments?");
+            allowAnimalFeeders = Config.Bind("Settings", "AllowAnimalFeeders", false, "Allow quick looting on Animal feeders?");
+            allowDefault = Config.Bind("Settings", "AllowDefault", true, "When none of the other filters apply, what should be the default logic?");
+
 
             panelX = Config.Bind("UI", "PanelX", 100, "Shift the panel in the X direction by this amount relative to screen center.");
             panelY = Config.Bind("UI", "PanelY", 0, "Shift the panel in the Y direction by this amount relative to screen center.");
@@ -158,8 +223,7 @@ namespace UIQuickLoot
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ActionOpenable), nameof(ActionOpenable.OnHover))]
         static void ActionOpenable_OnHover(
-            ActionOpenable __instance, 
-            BaseHudHandler ____hudHandler)
+            ActionOpenable __instance)
         {
             if (!modEnabled.Value)
             {
@@ -168,28 +232,28 @@ namespace UIQuickLoot
             var inventoryAssoc = __instance.GetComponent<InventoryAssociated>();
             if (inventoryAssoc != null)
             {
-                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance));
                 return;
             }
 
             var inventoryAssocProxy = __instance.GetComponent<InventoryAssociatedProxy>();
             if (inventoryAssocProxy != null)
             {
-                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance));
                 return;
             }
 
             inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
             if (inventoryAssoc != null)
             {
-                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance));
                 return;
             }
 
             inventoryAssocProxy = __instance.GetComponentInParent<InventoryAssociatedProxy>();
             if (inventoryAssocProxy != null)
             {
-                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance));
                 return;
             }
         }
@@ -216,8 +280,7 @@ namespace UIQuickLoot
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ActionGroupSelector), nameof(ActionGroupSelector.OnHover))]
         static void ActionGroupSelector_OnHover(
-            ActionOpenable __instance,
-            BaseHudHandler ____hudHandler)
+            ActionOpenable __instance)
         {
             if (!modEnabled.Value)
             {
@@ -226,28 +289,28 @@ namespace UIQuickLoot
             var inventoryAssoc = __instance.GetComponent<InventoryAssociated>();
             if (inventoryAssoc != null)
             {
-                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance));
                 return;
             }
 
             var inventoryAssocProxy = __instance.GetComponent<InventoryAssociatedProxy>();
             if (inventoryAssocProxy != null)
             {
-                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance));
                 return;
             }
 
             inventoryAssoc = __instance.GetComponentInParent<InventoryAssociated>();
             if (inventoryAssoc != null)
             {
-                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssoc.GetInventory(inv => OnInventory(inv, __instance));
                 return;
             }
 
             inventoryAssocProxy = __instance.GetComponentInParent<InventoryAssociatedProxy>();
             if (inventoryAssocProxy != null)
             {
-                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance, ____hudHandler));
+                inventoryAssocProxy.GetInventory((inv, _) => OnInventory(inv, __instance));
                 return;
             }
 
@@ -273,16 +336,171 @@ namespace UIQuickLoot
             }
         }
 
+        static bool CheckContainerType(Actionnable __instance)
+        {
+            var sb = new StringBuilder(256);
+            var go = __instance.gameObject;
+            while (go != null)
+            {
+                sb.Append(go.name).Append('/');
+                if (go.transform.parent != null)
+                {
+                    go = go.transform.parent.gameObject;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            var path = sb.ToString();
+            Log("CheckContainerType: " + path);
+
+            if (path.Contains("Container1", StringComparison.InvariantCultureIgnoreCase)
+                || path.Contains("Container2", StringComparison.InvariantCultureIgnoreCase)
+                || path.Contains("Container3", StringComparison.InvariantCultureIgnoreCase)
+                )
+            {
+                return allowPlayerContainers.Value;
+            }
+            if (path.Contains("World", StringComparison.InvariantCultureIgnoreCase)
+                || path.Contains("Golden", StringComparison.InvariantCultureIgnoreCase)
+                || path.Contains("Vault", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowWorldContainers.Value;
+            }
+            if (path.Contains("Wreck", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowWreckContainers.Value;
+            }
+            if (path.Contains("AutoCrafter", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowAutoCrafters.Value;
+            }
+            if (path.Contains("Recycling", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (path.Contains("ContainerLeft", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowRecyclerIns.Value;
+                }
+                else
+                if (path.Contains("ContainerRight", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowRecyclerOuts.Value;
+                }
+                return allowRecyclerIns.Value;
+            }
+            if (path.Contains("OreBreaker", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (path.Contains("ContainerLeft", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowOreCrusherIns.Value;
+                }
+                else
+                if (path.Contains("ContainerRight", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowOreCrusherOuts.Value;
+                }
+            }
+            if (path.Contains("OreExtractor", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowOreExtractors.Value;
+            }
+            if (path.Contains("WaterCollector", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowWaterCollectors.Value;
+            }
+            if (path.Contains("FoodGrower", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowFoodGrowers.Value;
+            }
+            if (path.Contains("Farm", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowFarms.Value;
+            }
+            if (path.Contains("GasExtractor", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowGasExtractors.Value;
+            }
+            if (path.Contains("Beehive", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowBeehives.Value;
+            }
+            if (path.Contains("Butterfly", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowButterflyFarms.Value;
+            }
+            if (path.Contains("Fish", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowFishFarms.Value;
+            }
+            if (path.Contains("Frog", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowFrogFarms.Value;
+            }
+            if (path.Contains("Ecosystem", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowEcosystems.Value;
+            }
+            if (path.Contains("SeedSpreader", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowFlowerSpreaders.Value;
+            }
+            if (path.Contains("TreesSpreader", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowTreeSpreaders.Value;
+            }
+            if (path.Contains("Biodome", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowBiodomes.Value;
+            }
+            if (path.Contains("GeneticExtractor", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowGeneticExtractors.Value;
+            }
+            if (path.Contains("Sequencer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowSequencers.Value;
+            }
+            if (path.Contains("Incubator", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowIncubators.Value;
+            }
+            if (path.Contains("VehicleTruck", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (path.Contains("InventoryStorage", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowRoverStorages.Value;
+                }
+                if (path.Contains("InventoryEquipment", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowRoverEquipments.Value;
+                }
+            }
+            if (path.Contains("GeneticSynthetizer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowSynthetizers.Value;
+            }
+            if (path.Contains("AnimalFeeder", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowAnimalFeeders.Value;
+            }
+
+            return allowDefault.Value;
+        }
+
         static readonly Action<WorldObject, bool> OnInventoyModified = (wo, add) => UpdateDisplay();
 
-        static void OnInventory(Inventory inventory, Actionnable __instance,
-            BaseHudHandler ____hudHandler)
+        static void OnInventory(Inventory inventory, Actionnable __instance)
         {
-            currentActionable = __instance;
             if (currentInventory != null)
             {
                 currentInventory.inventoryContentModified -= OnInventoyModified;
             }
+            if (!CheckContainerType(__instance))
+            {
+                return;
+            }
+            currentActionable = __instance;
             currentInventory = inventory;
             inventory.inventoryContentModified += OnInventoyModified;
 
@@ -303,6 +521,7 @@ namespace UIQuickLoot
                 outline.effectColor = Color.white;
                 outline.effectDistance = new Vector2(1, -1);
 
+                panelEntries.Clear();
                 create = true;
             }
 
@@ -358,6 +577,15 @@ namespace UIQuickLoot
 
             if (create)
             {
+                emptyGo = new GameObject("Empty");
+                emptyGo.transform.SetParent(panelGo.transform, false);
+                emptyText = emptyGo.AddComponent <Text>();
+                emptyText.color = Color.white;
+                emptyText.font = font;
+                emptyText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                emptyText.verticalOverflow = VerticalWrapMode.Overflow;
+                emptyText.alignment = TextAnchor.MiddleCenter;
+
                 var scrollUpBackgroundGo = new GameObject("ScrollUpBackground");
                 scrollUpBackgroundGo.transform.SetParent(panelGo.transform, false);
                 scrollUpBackground = scrollUpBackgroundGo.AddComponent<Image>();
@@ -598,6 +826,10 @@ namespace UIQuickLoot
             shortcutTipBackground.color = panelBackground.color;
             shortcutTipBackgroundRt.localPosition = shortcutTipRt.localPosition;
             shortcutTipBackgroundRt.sizeDelta = shortcutTipRt.sizeDelta + new Vector2(margin.Value, margin.Value);
+
+            emptyText.fontSize = fontSize.Value;
+            emptyText.text = Localization.GetLocalizedString("QuickLoot_Empty");
+            emptyGo.SetActive(groupsFound.Count == 0);
         }
 
         void Update()
@@ -617,13 +849,13 @@ namespace UIQuickLoot
             {
                 return;
             }
+            if (panel == null || !panel.activeSelf)
+            {
+                return;
+            }
             if (wh.GetHasUiOpen())
             {
                 panel.SetActive(false);
-            }
-
-            if (panel == null || !panel.activeSelf)
-            {
                 return;
             }
             if (Mouse.current != null)
@@ -745,6 +977,7 @@ namespace UIQuickLoot
                 dict["QuickLoot_TakeStack"] = "Köteg elvétele";
                 dict["QuickLoot_TakeRow"] = "Egész sor elvétele";
                 dict["QuickLoot_TakeAll"] = "Minden elvétele";
+                dict["QuickLoot_Empty"] = "Üres";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
@@ -752,8 +985,22 @@ namespace UIQuickLoot
                 dict["QuickLoot_TakeStack"] = "Take Stack";
                 dict["QuickLoot_TakeRow"] = "Take Entire Row";
                 dict["QuickLoot_TakeAll"] = "Take All";
+                dict["QuickLoot_Empty"] = "Empty";
             }
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(VisualsToggler), nameof(VisualsToggler.ToggleUi))]
+        static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
+        {
+            bool active = ___uisToHide[0].activeSelf;
+            if (panel != null && !active)
+            {
+                panel.SetActive(false);
+            }
+        }
+
+
         internal class PanelEntry
         {
             internal GameObject rowObject;

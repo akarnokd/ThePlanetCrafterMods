@@ -152,7 +152,7 @@ namespace CheatAutoGrabAndMine
                     Managers.GetManager<BaseHudHandler>()
                         ?.DisplayCursorText("", 3f, "Auto Grab And Mine: Scanning Now");
 
-                    DoScan();
+                    me.StartCoroutine(DoScan());
                 }
                 else
                 {
