@@ -527,6 +527,26 @@ namespace UIModConfigMenu
 
                     foreach (var sec in sections)
                     {
+
+                        var smod = Instantiate(otherOptions);
+                        smod.name = sec;
+                        Destroy(smod.GetComponentInChildren<LocalizedText>());
+                        var smodImg = smod.GetComponentInChildren<Image>();
+                        smodImg.enabled = true;
+                        smodImg.color = new Color(0.25f, 0.15f, 0.25f);
+
+                        var stxt = smod.transform.Find("Label/Text").GetComponent<Text>();
+
+                        stxt.supportRichText = true;
+                        stxt.text = sec;
+
+                        smod.transform.SetParent(modScrollContent.transform, false);
+
+                        var srtLine = smod.GetComponent<RectTransform>();
+
+                        srtLine.localPosition = new Vector3(otherOptionsX, j, 0);
+                        j -= srtLine.sizeDelta.y;
+
                         foreach (var ce in pi.Instance.Config)
                         {
                             if (sec == ce.Key.Section)
@@ -548,7 +568,7 @@ namespace UIModConfigMenu
 
                                 rt.localPosition = new Vector3(otherOptionsX, j, 0);
 
-                                txt.text = "[" + ce.Key.Section + "] " + ce.Key.Key;
+                                txt.text = "    " + ce.Key.Key;
 
                                 if (ce.Value.SettingType == typeof(bool))
                                 {

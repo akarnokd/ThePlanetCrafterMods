@@ -127,6 +127,7 @@ namespace UIQuickLoot
         static ConfigEntry<bool> allowRoverStorages;
         static ConfigEntry<bool> allowRoverEquipments;
         static ConfigEntry<bool> allowAnimalFeeders;
+        static ConfigEntry<bool> allowOptimizers;
         static ConfigEntry<bool> allowDefault;
 
         private void Awake()
@@ -173,6 +174,7 @@ namespace UIQuickLoot
             allowRoverStorages = Config.Bind("Settings", "AllowRoverStorages", true, "Allow quick looting on Rover storages?");
             allowRoverEquipments = Config.Bind("Settings", "AllowRoverEquipments", false, "Allow quick looting on Rover equipments?");
             allowAnimalFeeders = Config.Bind("Settings", "AllowAnimalFeeders", false, "Allow quick looting on Animal feeders?");
+            allowOptimizers = Config.Bind("Settings", "AllowOptimizers", false, "Allow quick looting on Optimizers?");
             allowDefault = Config.Bind("Settings", "AllowDefault", true, "When none of the other filters apply, what should be the default logic?");
 
 
@@ -483,6 +485,10 @@ namespace UIQuickLoot
             if (path.Contains("AnimalFeeder", StringComparison.InvariantCultureIgnoreCase))
             {
                 return allowAnimalFeeders.Value;
+            }
+            if (path.Contains("Optimizer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return allowOptimizers.Value;
             }
 
             return allowDefault.Value;
