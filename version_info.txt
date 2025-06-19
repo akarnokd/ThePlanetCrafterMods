@@ -92,6 +92,8 @@ akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.18
 akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.43
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.34
+# (UI) Quick Loot
+akarnokd.theplanetcraftermods.uiquickloot=1.0.0.0
 # (UI) Save When Quitting
 akarnokd.theplanetcraftermods.saveonquit=1.0.0.14
 # (UI) Show Auto-Crafter Recipe
