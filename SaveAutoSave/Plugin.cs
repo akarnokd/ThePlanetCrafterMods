@@ -45,7 +45,7 @@ namespace SaveAutoSave
         {
             for (; ; )
             {
-                yield return new WaitForSeconds(saveDelay.Value * 60);
+                yield return new WaitForSecondsRealtime(saveDelay.Value * 60);
 
                 if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
                 {
