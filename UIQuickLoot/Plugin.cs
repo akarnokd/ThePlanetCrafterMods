@@ -87,6 +87,7 @@ namespace UIQuickLoot
         static ConfigEntry<int> fontSize;
         static ConfigEntry<int> margin;
         static ConfigEntry<int> amountWidth;
+        static ConfigEntry<bool> showShortcuts;
 
         static ConfigEntry<string> keyTakeOne;
         static ConfigEntry<string> keyTakeAll;
@@ -187,6 +188,7 @@ namespace UIQuickLoot
             fontSize = Config.Bind("UI", "FontSize", 24, "The font size");
             margin = Config.Bind("UI", "Margin", 5, "The margin between visual elements.");
             amountWidth = Config.Bind("UI", "AmountWidth", 100, "The width of the amount field.");
+            showShortcuts = Config.Bind("UI", "ShowShortcuts", true, "Show the shortcuts tips panel?");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
@@ -832,6 +834,9 @@ namespace UIQuickLoot
             shortcutTipBackground.color = panelBackground.color;
             shortcutTipBackgroundRt.localPosition = shortcutTipRt.localPosition;
             shortcutTipBackgroundRt.sizeDelta = shortcutTipRt.sizeDelta + new Vector2(margin.Value, margin.Value);
+
+            shortcutTip.SetActive(showShortcuts.Value);
+            shortcutTipBackground.gameObject.SetActive(showShortcuts.Value);
 
             emptyText.fontSize = fontSize.Value;
             emptyText.text = Localization.GetLocalizedString("QuickLoot_Empty");

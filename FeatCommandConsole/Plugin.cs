@@ -3471,14 +3471,20 @@ namespace FeatCommandConsole
         [Command("/logistics-item-stats", "Display statistics about a particular item type in the logistics system.")]
         public void LogisticItemStats(List<string> args)
         {
-            if (args.Count != 2)
+            if (args.Count < 2)
             {
                 AddLine("<margin=1em>Display statistics about a particular item type in the logistics system.");
                 AddLine("<margin=1em>Usage:");
-                AddLine("<margin=2em><color=#FFFF00>/logistics-item-stats item-id</color> - Display the statistics for the item");
+                AddLine("<margin=2em><color=#FFFF00>/logistics-item-stats item-id [planet]</color> - Display the statistics for the item");
             }
             else
             {
+                var planetHash = Managers.GetManager<PlanetLoader>().GetCurrentPlanetData().GetPlanetHash();
+
+                if (args.Count >= 3)
+                {
+                    planetHash = args[2].GetStableHashCode();
+                }
                 var gr = FindGroup(args[1].ToLowerInvariant());
                 if (gr == null)
                 {
@@ -3499,7 +3505,7 @@ namespace FeatCommandConsole
                     foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
                     {
                         var le = inv.GetLogisticEntity();
-                        if (le != null)
+                        if (le != null && le.GetWorldObject() != null && le.GetWorldObject().GetPlanetHash() == planetHash)
                         {
                             bool isRelated = false;
                             {
@@ -3568,7 +3574,7 @@ namespace FeatCommandConsole
                     foreach (var lt in alltasks)
                     {
                         var wo = lt.Value.GetWorldObjectToMove();
-                        if (wo != null)
+                        if (wo != null && lt.Value.GetPlanetHash() == planetHash)
                         {
                             if (wo.GetGroup() == gr)
                             {

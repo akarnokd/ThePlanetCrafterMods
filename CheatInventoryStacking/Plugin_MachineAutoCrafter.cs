@@ -169,6 +169,10 @@ namespace CheatInventoryStacking
             GameObject go, 
             Group group)
         {
+            if (stackSize.Value <= 1)
+            {
+                return true;
+            }
             if (autocrafterWorldObjects.Count == 0)
             {
                 AutoCrafterGetInRangeOnlyListing(____gosInRangeForListing, go, group);
