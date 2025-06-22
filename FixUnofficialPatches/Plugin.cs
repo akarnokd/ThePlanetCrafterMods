@@ -237,5 +237,24 @@ namespace FixUnofficialPatches
         {
             jsonableWorldObject.grwth = Mathf.Clamp(jsonableWorldObject.grwth, 0, 100);
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(TerrainVisualsHandler), "GetTerrainLayerDataByName")]
+        static bool TerrainVisualsHandler_GetTerrainLayerDataByName(ref bool __result)
+        {
+            var pl = Managers.GetManager<PlanetLoader>();
+            if (pl == null)
+            {
+                __result = false;
+                return false;
+            }
+            var cd = pl.GetCurrentPlanetData();
+            if (cd == null)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
     }
 }

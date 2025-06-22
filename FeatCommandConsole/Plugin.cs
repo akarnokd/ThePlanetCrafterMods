@@ -4118,6 +4118,11 @@ namespace FeatCommandConsole
         [Command("/spawn-gt", "Spawns genetic trait(s) with a specific type and value.")]
         public void SpawnTrait(List<string> args)
         {
+            if (!(NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer))
+            {
+                AddLine("<margin=1em>This command can't be executed on the client.");
+                return;
+            }
             if (args.Count < 3)
             {
                 AddLine("<margin=1em>Spawns genetic trait(s) with a specific type and value.");
@@ -4187,6 +4192,11 @@ namespace FeatCommandConsole
         [Command("/spawn-dna", "Spawns a DNA sequence with a set of specific traits in slots 1-8.")]
         public void SpawnDNA(List<string> args)
         {
+            if (!(NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer))
+            {
+                AddLine("<margin=1em>This command can't be executed on the client.");
+                return;
+            }
             if (args.Count < 9)
             {
                 AddLine("<margin=1em>Spawns a DNA sequence with a set of specific traits in slots 1-8.");
@@ -4492,6 +4502,11 @@ namespace FeatCommandConsole
         [Command("/spawn-blueprint", "Spawns a blueprint for the specified technology.")]
         public void SpawnRecipe(List<string> args)
         {
+            if (!(NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer))
+            {
+                AddLine("<margin=1em>This command can't be executed on the client.");
+                return;
+            }
             if (args.Count < 2)
             {
                 AddLine("<margin=1em>Spawns a blueprint for the specified technology");

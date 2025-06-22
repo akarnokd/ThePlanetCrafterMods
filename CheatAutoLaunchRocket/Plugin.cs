@@ -67,13 +67,16 @@ namespace CheatAutoLaunchRocket
         [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.DestroyWorldObject), [typeof(WorldObject), typeof(bool)])]
         static void WorldObjectsHandler_DestroyWorldObject(WorldObject worldObject)
         {
-            int id = worldObject.GetId();
-            if (!WorldObjectsIdHandler.IsWorldObjectFromScene(id))
+            if (worldObject != null)
             {
-                var gid = worldObject.GetGroup().GetId();
-                if (gid.StartsWith("Rocket", StringComparison.Ordinal) && !gid.StartsWith("RocketReactor", StringComparison.Ordinal))
+                int id = worldObject.GetId();
+                if (!WorldObjectsIdHandler.IsWorldObjectFromScene(id))
                 {
-                    rockets.Remove(id);
+                    var gid = worldObject.GetGroup().GetId();
+                    if (gid.StartsWith("Rocket", StringComparison.Ordinal) && !gid.StartsWith("RocketReactor", StringComparison.Ordinal))
+                    {
+                        rockets.Remove(id);
+                    }
                 }
             }
         }
