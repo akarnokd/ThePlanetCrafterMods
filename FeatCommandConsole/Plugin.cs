@@ -4511,7 +4511,7 @@ namespace FeatCommandConsole
             {
                 AddLine("<margin=1em>Spawns a blueprint for the specified technology");
                 AddLine("<margin=1em>Usage:");
-                AddLine("<margin=2em><color=#FFFF00>/spawn-recipe identifier</color> spawns the blueprint with the recipe");
+                AddLine("<margin=2em><color=#FFFF00>/spawn-blueprint identifier</color> spawns the blueprint with the specified technology");
                 AddLine("<margin=1em>See also <color=#FFFF00>/list-tech</color> for all identifiers");
             }
             else
