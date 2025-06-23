@@ -3220,7 +3220,7 @@ namespace FeatCommandConsole
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
             {
                 totalInventories++;
-                if (WorldObjectsIdHandler.IsWorldObjectFromScene(inv.GetId()))
+                if (inv.GetId() >= 100_000_000)
                 {
                     sceneInventories++;
                 }
