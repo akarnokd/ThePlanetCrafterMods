@@ -16,6 +16,7 @@
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
     </ItemGroup>
 
+	<!--
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 		<Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(Destination1)" />
@@ -26,4 +27,5 @@
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
   </Target>
+  -->
 </Project>
