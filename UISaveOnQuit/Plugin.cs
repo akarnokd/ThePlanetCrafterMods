@@ -6,6 +6,11 @@ using BepInEx.Configuration;
 using SpaceCraft;
 using HarmonyLib;
 using Unity.Netcode;
+using UnityEngine.UI;
+using UnityEngine.Events;
+using System;
+using BepInEx.Logging;
+using System.Net.NetworkInformation;
 
 namespace UISaveOnQuit
 {
@@ -13,6 +18,8 @@ namespace UISaveOnQuit
     public class Plugin : BaseUnityPlugin
     {
         static ConfigEntry<bool> modEnabled;
+
+        static Action OnContinueQuitting;
 
         private void Awake()
         {
@@ -27,14 +34,40 @@ namespace UISaveOnQuit
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
-        static void UiWindowPause_OnQuit(UiWindowPause __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), "Start")]
+        static void UiWindowPause_Start(UiWindowPause __instance)
         {
-            if (modEnabled.Value && (NetworkManager.Singleton?.IsServer ?? true))
-            {
-                __instance.OnSave();
+            var quitBtn = __instance.transform.Find("Buttons/ButtonQuit").gameObject;
+
+            var btn = quitBtn.GetComponent<Button>();
+
+            var pc = btn.onClick.m_PersistentCalls;
+
+            for (var i = pc.Count - 1; i >= 0; i--) {
+                pc.RemoveListener(i);
             }
+
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(new UnityAction(() => {
+                if (modEnabled.Value && (NetworkManager.Singleton?.IsServer ?? true))
+                {
+                    var sdh = Managers.GetManager<SavedDataHandler>();
+
+                    OnContinueQuitting = () =>
+                    {
+                        sdh.OnSaved -= OnContinueQuitting;
+                        __instance.OnQuit();
+                    };
+
+                    sdh.OnSaved += OnContinueQuitting;
+                    __instance.OnSave();
+                }
+                else
+                {
+                    __instance.OnQuit();
+                }
+            }));
         }
     }
 }

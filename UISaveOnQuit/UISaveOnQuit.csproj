@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UISaveOnQuit</AssemblyName>
     <Description>(UI) Save When Quitting</Description>
-    <Version>1.0.0.14</Version>
+    <Version>1.0.0.15</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -16,7 +16,6 @@
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
     </ItemGroup>
 
-	<!--
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(PluginsFolder)\akarnokd - $(Description)" />
 		<Copy SourceFiles="$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(Destination1)" />
@@ -26,6 +25,5 @@
             SourceDirectory="$(TargetDir)\$(AssemblyName)"
             DestinationFile="$(OutputPath)\..\..\..\..\akarnokd-$(AssemblyName).zip"
             Overwrite="true" />
-  </Target>
-  -->
-</Project>
+		</Target>
+	</Project>
