@@ -10,7 +10,7 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 1.524 or later
+## Supported Game Version: 1.526 or later
 
 With or without the DLC.
 
@@ -81,6 +81,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 - [Overview Panel](#ui-overview-panel)
 - [Pin Recipe to Screen](#ui-pin-recipe-to-screen)
 - [Prevent Accidental Deconstruct](#ui-prevent-accidental-deconstruct)
+- [Quick Loot](#ui-quick-loot)
 - [Save When Quitting](#ui-save-when-quitting)
 - [Show Consumable Counts](#ui-show-consumable-counts)
 - [Show Container Content Info](#ui-show-container-content-info)
@@ -3091,6 +3092,255 @@ Enabled = true
 # Setting type: Boolean
 # Default value: false
 DebugMode = false
+
+```
+</details>
+
+## (UI) Quick Loot
+
+When looking at an openable inventory, show a small panel that allows taking items from it without opening the dialog.
+
+- Use the mouse to scroll down and up a line.
+- Use <kbd>E</kbd> to take one item.
+- Use <kbd>Ctrl+E</kbd> to take all of the items in the line.
+- Use <kbd>R</kbd> to take all items.
+- If [Stacking](#cheat-inventory-stacking) is also present, use <kbd>Shift+E</kbd> to take one stack of items.
+- Use the [Mod Config Menu](#ui-mod-config-menu) to configure the details and visuals of the mod.
+
+Multiplayer - Anyone can use it without the others needing it.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.uiquickloot.cfg</summary>
+
+```
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable detailed logging (chatty!)?
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
+
+[Keys]
+
+## Key to press to take one item.
+# Setting type: String
+# Default value: <Keyboard>/E
+TakeOne = <Keyboard>/E
+
+## Key to press to take all items.
+# Setting type: String
+# Default value: <Keyboard>/R
+TakeAll = <Keyboard>/R
+
+[Settings]
+
+## Allow quick looting on Player containers?
+# Setting type: Boolean
+# Default value: true
+AllowPlayerContainers = true
+
+## Allow quick looting on world containers?
+# Setting type: Boolean
+# Default value: true
+AllowWorldContainers = true
+
+## Allow quick looting on wreck containers?
+# Setting type: Boolean
+# Default value: true
+AllowWreckContainers = true
+
+## Allow quick looting on Auto-Crafters?
+# Setting type: Boolean
+# Default value: true
+AllowAutoCrafters = true
+
+## Allow quick looting on Recycler inputs?
+# Setting type: Boolean
+# Default value: false
+AllowRecyclerIns = false
+
+## Allow quick looting on Recycler outputs?
+# Setting type: Boolean
+# Default value: true
+AllowRecyclerOuts = true
+
+## Allow quick looting on Ore extractors?
+# Setting type: Boolean
+# Default value: true
+AllowOreExtractors = true
+
+## Allow quick looting on Ore crusher inputs?
+# Setting type: Boolean
+# Default value: false
+AllowOreCrusherIns = false
+
+## Allow quick looting on Ore crusher outputs?
+# Setting type: Boolean
+# Default value: true
+AllowOreCrusherOuts = true
+
+## Allow quick looting on Water collectors?
+# Setting type: Boolean
+# Default value: true
+AllowWaterCollectors = true
+
+## Allow quick looting on Food growers?
+# Setting type: Boolean
+# Default value: false
+AllowFoodGrowers = false
+
+## Allow quick looting on Farms?
+# Setting type: Boolean
+# Default value: false
+AllowFarms = false
+
+## Allow quick looting on Gas extractors?
+# Setting type: Boolean
+# Default value: true
+AllowGasExtractors = true
+
+## Allow quick looting on Beehives?
+# Setting type: Boolean
+# Default value: true
+AllowBeehives = true
+
+## Allow quick looting on Butterfly farms?
+# Setting type: Boolean
+# Default value: false
+AllowButterflyFarms = false
+
+## Allow quick looting on Fish farms?
+# Setting type: Boolean
+# Default value: false
+AllowFishflyFarms = false
+
+## Allow quick looting on Frog farms?
+# Setting type: Boolean
+# Default value: false
+AllowFrogFarms = false
+
+## Allow quick looting on Ecosystems?
+# Setting type: Boolean
+# Default value: true
+AllowEcosystems = true
+
+## Allow quick looting on Flower spreaders?
+# Setting type: Boolean
+# Default value: false
+AllowFlowerSpreaders = false
+
+## Allow quick looting on Tree spreaders?
+# Setting type: Boolean
+# Default value: false
+AllowTreeSpreaders = false
+
+## Allow quick looting on Biodomes?
+# Setting type: Boolean
+# Default value: true
+AllowBiodomes = true
+
+## Allow quick looting on Genetic extractors?
+# Setting type: Boolean
+# Default value: false
+AllowGeneticExtractors = false
+
+## Allow quick looting on DNA sequencers?
+# Setting type: Boolean
+# Default value: true
+AllowSequencers = true
+
+## Allow quick looting on Incubators?
+# Setting type: Boolean
+# Default value: true
+AllowIncubators = true
+
+## Allow quick looting on Synthetizers?
+# Setting type: Boolean
+# Default value: false
+AllowSynthetizers = false
+
+## Allow quick looting on Rover storages?
+# Setting type: Boolean
+# Default value: true
+AllowRoverStorages = true
+
+## Allow quick looting on Rover equipments?
+# Setting type: Boolean
+# Default value: false
+AllowRoverEquipments = false
+
+## Allow quick looting on Animal feeders?
+# Setting type: Boolean
+# Default value: false
+AllowAnimalFeeders = false
+
+## Allow quick looting on Optimizers?
+# Setting type: Boolean
+# Default value: false
+AllowOptimizers = false
+
+## When none of the other filters apply, what should be the default logic?
+# Setting type: Boolean
+# Default value: true
+AllowDefault = true
+
+[UI]
+
+## Shift the panel in the X direction by this amount relative to screen center.
+# Setting type: Int32
+# Default value: 100
+PanelX = 100
+
+## Shift the panel in the Y direction by this amount relative to screen center.
+# Setting type: Int32
+# Default value: 0
+PanelY = 0
+
+## The width of the panel.
+# Setting type: Int32
+# Default value: 450
+PanelWidth = 450
+
+## The opacity: 1 - fully opaque, 0 fully transparent.
+# Setting type: Single
+# Default value: 0.99
+PanelOpacity = 0.99
+
+## The number of rows to display at once.
+# Setting type: Int32
+# Default value: 9
+RowCount = 9
+
+## The height of rows in pixels.
+# Setting type: Int32
+# Default value: 32
+RowHeight = 32
+
+## The font size
+# Setting type: Int32
+# Default value: 24
+FontSize = 24
+
+## The margin between visual elements.
+# Setting type: Int32
+# Default value: 5
+Margin = 5
+
+## The width of the amount field.
+# Setting type: Int32
+# Default value: 100
+AmountWidth = 150
+
+## Show the shortcuts tips panel?
+# Setting type: Boolean
+# Default value: true
+ShowShortcuts = true
 
 ```
 </details>
