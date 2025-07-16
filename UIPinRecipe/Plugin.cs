@@ -506,7 +506,10 @@ namespace UIPinRecipe
         static void VisualsToggler_ToggleUi(List<GameObject> ___uisToHide)
         {
             bool active = ___uisToHide[0].activeSelf;
-            parent?.SetActive(active);
+            if (parent != null)
+            {
+                parent.SetActive(active);
+            }
         }
 
         static WorldObject EnsureHiddenContainer()
