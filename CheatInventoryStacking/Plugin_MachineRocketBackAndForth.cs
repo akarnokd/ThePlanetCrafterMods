@@ -78,13 +78,22 @@ namespace CheatInventoryStacking
             {
                 return false;
             }
+            var toChange = changeOfValue;
+            if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
+            {
+                toChange *= 10;
+            }
+            if (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed)
+            {
+                toChange *= 10;
+            }
 
             var newCount = 0;
-            if (changeOfValue < 0)
+            if (toChange < 0)
             {
                 if (____groupsWithNumber.TryGetValue(group, out var count))
                 {
-                    newCount = Math.Max(0, count + changeOfValue);
+                    newCount = Math.Max(0, count + toChange);
                     ____groupsWithNumber[group] = newCount;
                 }
                 else
@@ -92,7 +101,7 @@ namespace CheatInventoryStacking
                     return false;
                 }
             }
-            else if (changeOfValue > 0)
+            else if (toChange > 0)
             {
                 int stacks = 0;
                 int n = stackSize.Value;
@@ -123,7 +132,7 @@ namespace CheatInventoryStacking
                     return false;
                 }
 
-                groupCurrent += changeOfValue;
+                groupCurrent += toChange;
 
                 // how many stacks would the current group with the new amount use
                 int groupCurrentStackUse = groupCurrent / n;

@@ -801,6 +801,8 @@ Items in inventories now stack. The stack count is displayed on the middle of th
 
 Use <kbd>Shift-Left Click</kbd> to move a particular stack of items.
 
+Use <kbd>Shift</kbd> to add/remove 10, <kbd>Ctrl+Shift</kbd> to add/remove 100 in the trade screen or interplanetary exchange.
+
 :warning: The game is not meant to be working with stacks of items and I might not have
 found all places where this can be bad. Backup your saves!
 
