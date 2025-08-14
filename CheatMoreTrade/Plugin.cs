@@ -75,10 +75,19 @@ namespace CheatMoreTrade
                 {
                     if (tradeValues.TryGetValue(gr.id, out var value))
                     {
-                        gr.tradeCategory = DataConfig.TradeCategory.tier1;
-                        gr.tradeValue = value;
-                        logger.LogInfo(gr.id + " now tradeable at " + value + " tt");
-                        found.Add(gr.id);
+                        if (value < 0)
+                        {
+                            gr.tradeCategory = DataConfig.TradeCategory.Null;
+                            gr.tradeValue = 0;
+                            logger.LogInfo(gr.id + " is no longer tradeable");
+                        }
+                        else
+                        {
+                            gr.tradeCategory = DataConfig.TradeCategory.tier1;
+                            gr.tradeValue = value;
+                            logger.LogInfo(gr.id + " now tradeable at " + value + " tt");
+                            found.Add(gr.id);
+                        }
                     }
                 }
             }

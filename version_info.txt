@@ -21,7 +21,7 @@ akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.43
 # (Cheat) Minimap
 akarnokd.theplanetcraftermods.cheatminimap=1.0.0.66
 # (Cheat) More Trade
-akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.12
+akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.13
 # (Cheat) Highlight Nearby Resources
 akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.32
 # (Cheat) Hide Water in Photomode
