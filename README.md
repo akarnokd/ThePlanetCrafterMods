@@ -42,6 +42,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 ### Content
 
 - [Command Console](#feat-command-console)
+- [Flatlands](#feat-flatlands)
 - [Technician's Exile](#feat-technicians-exile)
 - [Space Cows](#feat-space-cows)
 - [Plugin Update Checker](https://github.com/akarnokd/ThePlanetCrafterMods/wiki/%28Misc%29-Plugin-Update-Checker)
@@ -3344,5 +3345,34 @@ AmountWidth = 150
 # Default value: true
 ShowShortcuts = true
 
+```
+</details>
+
+## (Feat) Flatlands
+
+Adds a new staring planet, Flatlands, that is completely flat. No mountains, no water. Creative mode recommended.
+
+Create a new world and select Flatlands as the starting planet. Load it as usual.
+
+▮ Multiplayer Everone or No one - Every player should have this mod installed and the same items enabled, or no mod present.
+
+This mod can serve as a template and inspiration for other modders to create more custom planets in the future.
+
+### Configuration
+
+<details><summary>akarnokd.theplanetcraftermods.featflatlands.cfg</summary>
+
+```
+[General]
+
+## Is the mod enabled?
+# Setting type: Boolean
+# Default value: true
+Enabled = true
+
+## Enable detailed logging (chatty!)
+# Setting type: Boolean
+# Default value: false
+DebugMode = false
 ```
 </details>
