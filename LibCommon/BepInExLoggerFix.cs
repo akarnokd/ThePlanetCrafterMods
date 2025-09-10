@@ -64,51 +64,19 @@ namespace LibCommon
                     Debug.Log("  Runtime version   : " + System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription);
                     Debug.Log("  CLR version       : " + Environment.Version);
                     Debug.Log("  System & Platform : " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + ", " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
-                    Debug.Log("  Processor         : " + RunWMIC("cpu get name") ?? "Unknown");
-                    var mem = RunWMIC("ComputerSystem get TotalPhysicalMemory");
-                    var memgb = "Unknown";
-                    if (mem != null && long.TryParse(mem, out var gb))
-                    {
-                        memgb = (gb / 1024.0 / 1024.0 / 1024.0).ToString("#,##0");
-                    }
-                    Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + memgb + " GB RAM");
+                    Debug.Log("  Processor         : " + SystemInfo.processorType);
+                    Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + string.Format("{0:#,##0.0}", SystemInfo.systemMemorySize / 1024d) + " GB RAM");
                     
                     ApplyAchievementWorkaround();
-                    
+
+                    Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
+
                     Debug.Log("");
                     foreach (var mod in Chainloader.PluginInfos.Values)
                     {
                         Debug.Log("[Info   :   BepInEx] Loading [" + mod.Metadata.Name + " " + mod.Metadata.Version + "]");
                     }
                 }
-            }
-        }
-
-        private static string RunWMIC(string query)
-        {
-            try
-            {
-                System.Diagnostics.ProcessStartInfo startinfo = new()
-                {
-                    FileName = @"wmic",
-                    Arguments = query
-                };
-
-                System.Diagnostics.Process process = new()
-                {
-                    StartInfo = startinfo
-                };
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardInput = true;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.Start();
-                var str = process.StandardOutput.ReadToEnd().Split('\n');
-
-                return str[1].Replace("\n", "").Replace("\r", "");
-            } 
-            catch
-            {
-                return null;
             }
         }
 

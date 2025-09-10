@@ -202,5 +202,21 @@ namespace MiscDebug
                 }
             }
         }
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RequireEnergyHandler), nameof(RequireEnergyHandler.HasEnoughEnergy))]
+        static void RequireEnergyHandler_HasEnoughEnergy(int planetHash)
+        {
+            if (planetHash != 0)
+            {
+                var p = Managers.GetManager<PlanetLoader>().planetList.GetPlanetFromIdHash(planetHash);
+                WorldUnit unit = Managers.GetManager<WorldUnitsHandler>().GetUnit(DataConfig.WorldUnitType.Energy, p.GetPlanetId());
+                if (unit == null)
+                {
+                    logger.LogError(planetHash + ": " + p.GetPlanetId());
+                }
+            }
+        }
+        */
     }
 }
