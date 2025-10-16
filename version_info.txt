@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.28
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.11
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.31
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.32
 # (Feat) Flatlands
 akarnokd.theplanetcraftermods.featflatlands=1.0.0.3
 # (Feat) Multiplayer
@@ -89,7 +89,7 @@ akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.19
 # (UI) Mod Config Menu
 akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.20
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.44
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.45
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.36
 # (UI) Quick Loot
