@@ -3,6 +3,7 @@
 
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
 using System.Collections;
@@ -35,7 +36,7 @@ namespace UIShowGrabNMineCount
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionMinable), "FinishMining")]
-        static void ActionMinable_FinishMining(float time,
+        static bool ActionMinable_FinishMining(float time,
             PlayerMainController ____playerSource,
             PlayerAnimations ____playerAnimations,
             ItemWorldDislpayer ____itemWorldDisplayer,
@@ -45,6 +46,7 @@ namespace UIShowGrabNMineCount
             __result = ActionMinable_FinishMining_Override(time, 
                 ____playerSource, ____playerAnimations, 
                 ____itemWorldDisplayer, __instance);
+            return false;
         }
 
         static IEnumerator ActionMinable_FinishMining_Override(float time,

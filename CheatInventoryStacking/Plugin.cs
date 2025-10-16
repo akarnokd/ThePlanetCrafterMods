@@ -50,6 +50,8 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackVehicle;
         static ConfigEntry<bool> stackOreCrusherIn;
         static ConfigEntry<bool> stackOreCrusherOut;
+        static ConfigEntry<bool> stackDetoxifyIn;
+        static ConfigEntry<bool> stackDetoxifyOut;
         static ConfigEntry<bool> stackInterplanetaryRockets;
         static ConfigEntry<bool> stackPlanetaryDepots;
         static ConfigEntry<bool> stackEcosystems;
@@ -176,6 +178,8 @@ namespace CheatInventoryStacking
             stackVehicle = Config.Bind("General", "StackVehicle", false, "If true, the inventory of vehicles stack.");
             stackOreCrusherIn = Config.Bind("General", "StackOreCrusherIn", true, "Humble DLC: Stack the input of the Ore Crusher?");
             stackOreCrusherOut = Config.Bind("General", "StackOreCrusherOut", true, "Humble DLC: Stack the output of the Ore Crusher?");
+            stackDetoxifyIn = Config.Bind("General", "StackDetoxifyIn", true, "Toxicity DLC: Stack the input of the Detoxify Machine?");
+            stackDetoxifyOut = Config.Bind("General", "StackDetoxifyOut", true, "Toxicity DLC: Stack the output of the Detoxify Machine?");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
