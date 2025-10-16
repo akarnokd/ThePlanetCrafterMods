@@ -2,16 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
 using BepInEx.Configuration;
+using HarmonyLib;
+using SpaceCraft;
+using System.Collections;
+using UnityEngine;
+using static UnityEngine.InputForUI.InputManagerProvider;
 
 namespace UIShowGrabNMineCount
 {
     [BepInPlugin("akarnokd.theplanetcraftermods.uishowgrabnminecount", "(UI) Show Grab N Mine Count", PluginInfo.PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        private static ConfigEntry<bool> isEnabled;
+        static ConfigEntry<bool> isEnabled;
+
+        static AccessTools.FieldRef<ActionMinable, bool> fActionMinableMining;
 
         public void Awake()
         {
@@ -22,66 +27,70 @@ namespace UIShowGrabNMineCount
 
             isEnabled = Config.Bind("General", "Enabled", true, "Is the visual notification enabled?");
 
+            fActionMinableMining = AccessTools.FieldRefAccess<ActionMinable, bool>("_mining");
+
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ActionMinable), "FinishMining")]
-        static bool ActionMinable_FinishMining(
-            ActionMinable __instance, 
-            PlayerMainController ___playerSource,
-            ref bool ___firstReduceDelay, 
-            PlayerAnimations ___playerAnimations,
-            ItemWorldDislpayer ___itemWorldDisplayer, 
-            float ___timeMineStarted, 
-            float ___timeMineStoped,
-            ref bool ____mining) 
+        static void ActionMinable_FinishMining(float time,
+            PlayerMainController ____playerSource,
+            PlayerAnimations ____playerAnimations,
+            ItemWorldDislpayer ____itemWorldDisplayer,
+            ActionMinable __instance,
+            ref IEnumerator __result)
         {
-            if (isEnabled.Value)
+            __result = ActionMinable_FinishMining_Override(time, 
+                ____playerSource, ____playerAnimations, 
+                ____itemWorldDisplayer, __instance);
+        }
+
+        static IEnumerator ActionMinable_FinishMining_Override(float time,
+            PlayerMainController ____playerSource,
+            PlayerAnimations ____playerAnimations,
+            ItemWorldDislpayer ____itemWorldDisplayer,
+            ActionMinable __instance)
+        {
+            yield return new WaitForSeconds(time);
+
+            __instance.StopAllCoroutines();
+
+            if (fActionMinableMining(__instance))
             {
-                __instance.StopAllCoroutines();
-                if (___timeMineStarted - ___timeMineStoped > ___playerSource.GetMultitool().GetMultiToolMine().GetMineTime())
-                {
-                    ___firstReduceDelay = false;
-                    if (____mining)
-                    {
-                        ___playerSource.GetMultitool().GetMultiToolMine().StopMining(miningComplete: true);
-                        ___playerSource.GetPlayerShareState().StopMining();
-                        ___itemWorldDisplayer.Hide();
-                        ___playerAnimations.AnimateRecolt(isPlaying: false);
-                    }
-
-                    ____mining = false;
-
-                    // This also should fix two potential NPEs with quickly disappearing ores
-                    var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
-                    if (wo != null)
-                    {
-                        var inv = ___playerSource.GetPlayerBackpack().GetInventory();
-                        InventoriesHandler.Instance.AddWorldObjectToInventory(
-                            wo,
-                            inv,
-                            grabbed: false,
-                            success =>
-                            {
-                                if (success)
-                                {
-                                    ShowInventoryAdded(wo, inv);
-                                }
-                            }
-                        );
-
-                    }
-                    else
-                    {
-                        Destroy(__instance.gameObject);
-                    }
-                }
-
-                return false;
+                ____playerSource.GetMultitool().GetMultiToolMine().StopMining(true);
+                ____playerSource.GetPlayerShareState().StopMining();
+                ____itemWorldDisplayer.Hide();
+                ____playerAnimations.AnimateRecolt(false, -1f);
+                ____playerSource.GetMultitool().SetState(DataConfig.MultiToolState.Null);
+                ____playerSource.GetMultitool().SetState(DataConfig.MultiToolState.Build);
             }
-            return true;
+            fActionMinableMining(__instance) = false;
+
+            // This also should fix two potential NPEs with quickly disappearing ores
+            var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+            if (wo != null)
+            {
+                var inv = ____playerSource.GetPlayerBackpack().GetInventory();
+                InventoriesHandler.Instance.AddWorldObjectToInventory(
+                    wo,
+                    inv,
+                    grabbed: false,
+                    success =>
+                    {
+                        if (success)
+                        {
+                            ShowInventoryAdded(wo, inv);
+                        }
+                    }
+                );
+
+            }
+            else
+            {
+                Destroy(__instance.gameObject);
+            }
         }
 
         [HarmonyPrefix]

@@ -136,6 +136,8 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, HashSet<WorldObject>> fMachineAutoCrafterWorldObjectsInRange;
         static AccessTools.FieldRef<object, List<(GameObject, Group)>> fMachineAutoCrafterGosInRangeForListing;
 
+        static MethodInfo mLogisticManagerCompleteDroneTransformUpdateJob;
+
         void Awake()
         {
             me = this;
@@ -273,6 +275,8 @@ namespace CheatInventoryStacking
 
             fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
             fMachineAutoCrafterGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(typeof(MachineAutoCrafter), "_gosInRangeForListing");
+
+            mLogisticManagerCompleteDroneTransformUpdateJob = AccessTools.Method(typeof(LogisticManager), "CompleteDroneTransformUpdateJob");
 
             CoroutineCoordinator.Init(LogCoord);
 

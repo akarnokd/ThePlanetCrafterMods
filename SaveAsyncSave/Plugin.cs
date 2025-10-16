@@ -361,6 +361,8 @@ namespace SaveAsyncSave
         internal int traitType;
         internal int traitValue;
         internal float hunger;
+        internal Vector2Int count;
+        internal int linkedWo;
         internal WorldObjectCopy(WorldObject worldObject)
         {
             id = worldObject.GetId();
@@ -380,6 +382,8 @@ namespace SaveAsyncSave
             traitType = (int)worldObject.GetGeneticTraitType();
             traitValue = worldObject.GetGeneticTraitValue();
             hunger = worldObject.GetHunger();
+            count = worldObject.GetCount();
+            linkedWo = worldObject.GetLinkedWorldObject();
         }
 
         internal JsonableWorldObject ToJsonable()
@@ -398,7 +402,10 @@ namespace SaveAsyncSave
                 growth, setting,
                 traitType,
                 traitValue,
-                hunger);
+                hunger,
+                DataTreatments.Vector2IntToString(count),
+                linkedWo
+                );
         }
 
         List<int> Copy(List<int> source)

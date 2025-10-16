@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.Jobs;
 
 namespace CheatInventoryStacking
 {
@@ -35,7 +36,8 @@ namespace CheatInventoryStacking
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             HashSet<MachineDroneStation> ____allDroneStations,
-            HashSet<Drone> ____droneFleet,
+            TransformAccessArray ____accessArray,
+            List<Drone> ____accessArrayCorrespondingDrones,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories,
             ref IEnumerator __result
@@ -47,7 +49,8 @@ namespace CheatInventoryStacking
                     __instance,
                     ____allLogisticTasks,
                     ____allDroneStations,
-                    ____droneFleet,
+                    ____accessArray,
+                    ____accessArrayCorrespondingDrones,
                     ____supplyInventories,
                     ____demandInventories
                 );
@@ -61,7 +64,8 @@ namespace CheatInventoryStacking
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             HashSet<MachineDroneStation> ____allDroneStations,
-            HashSet<Drone> ____droneFleet,
+            TransformAccessArray ____accessArray,
+            List<Drone> ____accessArrayCorrespondingDrones,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories
         )
@@ -81,6 +85,10 @@ namespace CheatInventoryStacking
             }
 
             Log("LogisticManager::SetLogisticTasks Running.");
+
+            Log("LogisticManager::CompleteDroneTransformUpdateJob Running.");
+
+            mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
 
             var frametimeLimit = logisticsTimeLimit.Value / 1000d;
             var timer = Stopwatch.StartNew();
@@ -255,6 +263,8 @@ namespace CheatInventoryStacking
                     } 
                     while (!CoroutineCoordinator.CanRun(routineId));
 
+                    mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
+
                     timer.Restart();
                     frameSkipCount++;
                     inventoryActualSupplyGroupsMain.Clear();
@@ -315,6 +325,7 @@ namespace CheatInventoryStacking
                         yield return null;
                     }
                     while (!CoroutineCoordinator.CanRun(routineId));
+                    mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
                     timer.Restart();
                     frameSkipCount++;
                     Log("    LogisticManager::SetLogisticTasks timeout on chest fullness detection");
@@ -331,7 +342,17 @@ namespace CheatInventoryStacking
             Log("  LogisticManager::SetLogisticTasks Task removals done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             droneFleetCache.Clear();
-            droneFleetCache.AddRange(____droneFleet);
+            if (____accessArray.isCreated)
+            {
+                for (int i = 0; i < ____accessArray.length; i++)
+                {
+                    if (____accessArray[i] != null)
+                    {
+                        Drone drone = ____accessArrayCorrespondingDrones[i];
+                        droneFleetCache.Add(drone);
+                    }
+                }
+            }
 
             for (int i = 0; i < droneFleetCache.Count; i++)
             {
@@ -350,7 +371,7 @@ namespace CheatInventoryStacking
                         {
                             var taskToAttribute = nonAttributedTaskList[nextNonAttributedTaskIndex];
                             nextNonAttributedTaskIndices[planetHash] = nextNonAttributedTaskIndex + 1;
-                            drone.SetLogisticTask(taskToAttribute);
+                            drone.SetLogisticTask(taskToAttribute, ____allDroneStations);
                         }
                     }
                 }
@@ -364,6 +385,7 @@ namespace CheatInventoryStacking
                         yield return null;
                     }
                     while (!CoroutineCoordinator.CanRun(routineId));
+                    mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
                     timer.Restart();
                     frameSkipCount++;
                     Log("    LogisticManager::SetLogisticTasks timeout active drones task assignments");
@@ -426,7 +448,7 @@ namespace CheatInventoryStacking
                                 // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
                                 if (go != null && go.TryGetComponent<Drone>(out var drone))
                                 {
-                                    drone.SetLogisticTask(task);
+                                    drone.SetLogisticTask(task, ____allDroneStations);
                                     break;
                                 }
                             }
@@ -440,6 +462,7 @@ namespace CheatInventoryStacking
                                 yield return null;
                             }
                             while (!CoroutineCoordinator.CanRun(routineId));
+                            mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
                             timer.Restart();
                             frameSkipCount++;
                             Log("    LogisticManager::SetLogisticTasks timeout on new drone attribution: "
@@ -479,7 +502,8 @@ namespace CheatInventoryStacking
         static bool Patch_LogisticManager_FindDemandForDroneOrDestroyContent(
             Drone drone,
             List<Inventory> ____demandInventories,
-            Dictionary<int, LogisticTask> ____allLogisticTasks
+            Dictionary<int, LogisticTask> ____allLogisticTasks,
+            HashSet<MachineDroneStation> ____allDroneStations
         )
         {
             var n = stackSize.Value;
@@ -501,7 +525,7 @@ namespace CheatInventoryStacking
             var gr = wo.GetGroup();
             var gid = gr.id;
             
-            drone.SetLogisticTask(null);
+            drone.SetLogisticTask(null, ____allDroneStations);
 
             foreach (var inv in ____demandInventories)
             {
@@ -511,7 +535,7 @@ namespace CheatInventoryStacking
                     if (task != null)
                     {
                         task.SetTaskState(LogisticData.TaskState.ToDemand);
-                        drone.SetLogisticTask(task);
+                        drone.SetLogisticTask(task, ____allDroneStations);
                         return false;
                     }
                 }
