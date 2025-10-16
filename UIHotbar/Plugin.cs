@@ -277,10 +277,6 @@ namespace UIHotbar
                     nearbyInventoriesChecker = StartCoroutine(UpdateNearbyInventories());
                 }
 
-                if (hud == null)
-                {
-                    hud = GameObject.Find("MainScene/BaseStack/UI/HUD");
-                }
                 visualToggleState = true;
             }
         }
@@ -341,6 +337,10 @@ namespace UIHotbar
         {
             bool isFreeCraft = Managers.GetManager<GameSettingsHandler>().GetCurrentGameSettings().GetFreeCraft();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();
+            if (hud == null)
+            {
+                hud = GameObject.Find("MainScene/BaseStack/UI/HUD");
+            }
 
             parent.SetActive((hud == null 
                 || !hud.TryGetComponent<CanvasGroup>(out var cg) 
@@ -1011,6 +1011,13 @@ namespace UIHotbar
         public static void OnModConfigChanged(ConfigEntryBase _)
         {
             ModNetworking._debugMode = debugMode.Value;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerInputDispatcher), nameof(PlayerInputDispatcher.OnTogglePlayerNames))]
+        static bool PlayerInputDispatcher_OnTogglePlayerNames()
+        {
+            return Keyboard.current[Key.LeftAlt].isPressed;
         }
     }
 }
