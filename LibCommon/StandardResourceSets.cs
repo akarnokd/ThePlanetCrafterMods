@@ -37,7 +37,9 @@ namespace LibCommon
             "Bauxite",
             "CosmicQuartz",
             "Selenium",
-            "Phosphorus"
+            "Phosphorus",
+            "ToxicGoo",
+            "ToxicSpores"
         ];
 
         internal static readonly string defaultOres = string.Join(",", defaultOreSet);
