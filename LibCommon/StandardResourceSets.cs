@@ -40,7 +40,8 @@ namespace LibCommon
             "Phosphorus",
             "ToxicGoo",
             "ToxicSpores",
-            "Minable-Tungsten"
+            "Minable-Tungsten",
+            "PristineMushroom"
         ];
 
         internal static readonly string defaultOres = string.Join(",", defaultOreSet);
