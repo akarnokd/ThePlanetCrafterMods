@@ -20,6 +20,7 @@ using LibCommon;
 using Unity.Netcode;
 using System.Diagnostics;
 using System.Text;
+using UnityEngine.Jobs;
 
 namespace CheatInventoryStacking
 {
@@ -139,6 +140,7 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<object, List<(GameObject, Group)>> fMachineAutoCrafterGosInRangeForListing;
 
         static MethodInfo mLogisticManagerCompleteDroneTransformUpdateJob;
+        static AccessTools.FieldRef<LogisticManager, TransformAccessArray> fLogisticManagerAccessArray;
 
         void Awake()
         {
@@ -281,6 +283,8 @@ namespace CheatInventoryStacking
             fMachineAutoCrafterGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(typeof(MachineAutoCrafter), "_gosInRangeForListing");
 
             mLogisticManagerCompleteDroneTransformUpdateJob = AccessTools.Method(typeof(LogisticManager), "CompleteDroneTransformUpdateJob");
+
+            fLogisticManagerAccessArray = AccessTools.FieldRefAccess<TransformAccessArray>(typeof(LogisticManager), "_accessArray");
 
             CoroutineCoordinator.Init(LogCoord);
 

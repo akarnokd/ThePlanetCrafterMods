@@ -36,7 +36,6 @@ namespace CheatInventoryStacking
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             HashSet<MachineDroneStation> ____allDroneStations,
-            TransformAccessArray ____accessArray,
             List<Drone> ____accessArrayCorrespondingDrones,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories,
@@ -49,7 +48,6 @@ namespace CheatInventoryStacking
                     __instance,
                     ____allLogisticTasks,
                     ____allDroneStations,
-                    ____accessArray,
                     ____accessArrayCorrespondingDrones,
                     ____supplyInventories,
                     ____demandInventories
@@ -64,7 +62,6 @@ namespace CheatInventoryStacking
             LogisticManager __instance,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
             HashSet<MachineDroneStation> ____allDroneStations,
-            TransformAccessArray ____accessArray,
             List<Drone> ____accessArrayCorrespondingDrones,
             List<Inventory> ____supplyInventories,
             List<Inventory> ____demandInventories
@@ -342,6 +339,8 @@ namespace CheatInventoryStacking
             Log("  LogisticManager::SetLogisticTasks Task removals done. " + timer.Elapsed.TotalMilliseconds.ToString("0.000") + " ms");
 
             droneFleetCache.Clear();
+            mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
+            ref TransformAccessArray ____accessArray = ref fLogisticManagerAccessArray(__instance);
             if (____accessArray.isCreated)
             {
                 for (int i = 0; i < ____accessArray.length; i++)
