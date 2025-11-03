@@ -1937,10 +1937,13 @@ namespace FeatCommandConsole
                         {
                             AddLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
                         }
-                        var tsr = gc.GetTerraStageRequirement();
-                        if (tsr != null)
+                        var tsrs = gc.GetTerraStageRequirements();
+                        if (tsrs != null && tsrs.Length != 0)
                         {
-                            AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType()); ;
+                            foreach (var tsr in tsrs)
+                            {
+                                AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType());
+                            }
                         }
                         var notallowed = gc.GetNotAllowedPlanetsRequirement();
                         if (notallowed != null && notallowed.Count != 0)

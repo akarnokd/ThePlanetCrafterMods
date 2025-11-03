@@ -207,6 +207,18 @@ namespace LibCommon
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ToxicCountDisplayer), "OnEnable")]
+        static void ToxicCountDisplayer_OnEanble(ToxicCountDisplayer __instance)
+        {
+            var te = __instance.transform.Find("ToxicArea/ToxicElements");
+            var tmp = te.GetComponent<TextMeshProUGUI>();
+            tmp.autoSizeTextContainer = true;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            tmp.enabled = false;
+            tmp.enabled = true;
+        }
+
         static void ExportLocalization()
         {
             if (!dumpOnce && dumpLabels.Value)

@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.28
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.11
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.32
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.33
 # (Feat) Flatlands
 akarnokd.theplanetcraftermods.featflatlands=1.0.0.3
 # (Feat) Multiplayer
@@ -125,7 +125,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.28
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.34
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.10
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.11
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.30
 # (UI) Korean Translation
