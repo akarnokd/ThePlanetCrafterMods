@@ -202,8 +202,8 @@ namespace UIBeaconText
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MachineBeaconUpdater), "Update")]
-        static void MachineBeaconUpdater_Update(
+        [HarmonyPatch(typeof(MachineBeaconUpdater), "LateUpdate")]
+        static void MachineBeaconUpdater_LateUpdate(
             MachineBeaconUpdater __instance, 
             GameObject ___canvas
         )

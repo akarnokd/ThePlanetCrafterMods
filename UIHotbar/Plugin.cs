@@ -344,7 +344,7 @@ namespace UIHotbar
 
             parent.SetActive((hud == null 
                 || !hud.TryGetComponent<CanvasGroup>(out var cg) 
-                || cg.alpha > 0.99) && visualToggleState);
+                || cg.alpha > 0.97) && visualToggleState);
 
             int oldActiveSlot = activeSlot;
 

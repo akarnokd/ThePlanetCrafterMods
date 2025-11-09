@@ -129,6 +129,8 @@ namespace UIQuickLoot
         static ConfigEntry<bool> allowRoverEquipments;
         static ConfigEntry<bool> allowAnimalFeeders;
         static ConfigEntry<bool> allowOptimizers;
+        static ConfigEntry<bool> allowDetoxifyIns;
+        static ConfigEntry<bool> allowDetoxifyOuts;
         static ConfigEntry<bool> allowDefault;
 
         private void Awake()
@@ -177,6 +179,8 @@ namespace UIQuickLoot
             allowAnimalFeeders = Config.Bind("Settings", "AllowAnimalFeeders", false, "Allow quick looting on Animal feeders?");
             allowOptimizers = Config.Bind("Settings", "AllowOptimizers", false, "Allow quick looting on Optimizers?");
             allowDefault = Config.Bind("Settings", "AllowDefault", true, "When none of the other filters apply, what should be the default logic?");
+            allowDetoxifyIns = Config.Bind("Settings", "AllowDetoxifyIns", false, "Allow quick looting on Detoxify Machine inputs?");
+            allowDetoxifyOuts = Config.Bind("Settings", "AllowDetoxifyOuts", true, "Allow quick looting on Detoxify Machine outputs?");
 
 
             panelX = Config.Bind("UI", "PanelX", 100, "Shift the panel in the X direction by this amount relative to screen center.");
@@ -403,6 +407,18 @@ namespace UIQuickLoot
                 if (path.Contains("ContainerRight", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return allowOreCrusherOuts.Value;
+                }
+            }
+            if (path.Contains("DetoxificationMachine", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (path.Contains("ContainerLeft", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowDetoxifyIns.Value;
+                }
+                else
+                if (path.Contains("ContainerRight", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return allowDetoxifyOuts.Value;
                 }
             }
             if (path.Contains("OreExtractor", StringComparison.InvariantCultureIgnoreCase))

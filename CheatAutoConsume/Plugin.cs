@@ -8,6 +8,7 @@ using BepInEx.Configuration;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using BepInEx.Logging;
 
 namespace CheatAutoConsume
 {
@@ -20,12 +21,14 @@ namespace CheatAutoConsume
         static ConfigEntry<bool> oxygenEnabled;
         static ConfigEntry<bool> waterEnabled;
         static ConfigEntry<bool> foodEnabled;
+        static ConfigEntry<bool> purifyEnabled;
         static ConfigEntry<string> includeList;
         static ConfigEntry<string> excludeList;
 
         static bool oxygenWarning;
         static bool waterWarning;
         static bool foodWarning;
+        static bool purifyWarning;
 
         public void Awake()
         {
@@ -39,6 +42,7 @@ namespace CheatAutoConsume
             oxygenEnabled = Config.Bind("General", "Oxygen", true, "If true, oxygen is automatically consumed.");
             waterEnabled = Config.Bind("General", "Water", true, "If true, water is automatically consumed.");
             foodEnabled = Config.Bind("General", "Food", true, "If true, food is automatically consumed.");
+            purifyEnabled = Config.Bind("General", "Purify", true, "If true, purify is automatically consumed.");
 
             includeList = Config.Bind("General", "IncludeList", "", "Comma separated list of case-insensitive item identifiers that can be auto-consumed. If empty, all eligible items can be consumed. Example: astrofood1, vegetable1growable");
             excludeList = Config.Bind("General", "ExcludeList", "", "Comma separated list of case-insensitive item identifiers that should not be auto-consumed. Example: astrofood1, vegetable1growable");
@@ -74,6 +78,7 @@ namespace CheatAutoConsume
                         if ((type == DataConfig.UsableType.Eatable && gh.Eat(groupValue))
                                 || (type == DataConfig.UsableType.Breathable && gh.Breath(groupValue, true))
                                 || (type == DataConfig.UsableType.Drinkable && gh.Drink(groupValue))
+                                || (type == DataConfig.UsableType.Purify && gh.Purify(groupValue, true))
                                 )
                         {
 
@@ -153,11 +158,35 @@ namespace CheatAutoConsume
             {
                 if (!FindAndConsume(DataConfig.UsableType.Eatable))
                 {
-                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("No Food In Inventory!", 3f);
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("CheatAutoConsume_No_Food", 3f);
                     foodWarning = true;
                 }
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(PlayerGaugeToxic), "GaugeVerifications")]
+        static void PlayerGaugeToxic_GaugeVerifications_Pre(float ___gaugeValue, bool ___isInited, float ___maxValue)
+        {
+            if (!___isInited)
+            {
+                return;
+            }
+            float percent = (___maxValue - ___gaugeValue) * 100f / ___maxValue;
+            if (percent >= threshold.Value)
+            {
+                purifyWarning = false;
+            }
+            if (percent < threshold.Value && !purifyWarning && purifyEnabled.Value)
+            {
+                if (!FindAndConsume(DataConfig.UsableType.Purify))
+                {
+                    Managers.GetManager<BaseHudHandler>().DisplayCursorText("CheatAutoConsume_No_Purify", 3f);
+                    purifyWarning = true;
+                }
+            }
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Localization), "LoadLocalization")]
         static void Localization_LoadLocalization(
@@ -168,12 +197,14 @@ namespace CheatAutoConsume
                 dict["CheatAutoConsume_No_Oxygen"] = "Nincs Oxigén a Hátizsákban!";
                 dict["CheatAutoConsume_No_Water"] = "Nincs Víz a Hátizsákban!";
                 dict["CheatAutoConsume_No_Food"] = "Nincs Étel a Hátizsákban!";
+                dict["CheatAutoConsume_No_Purify"] = "Nincs Tisztító a Hátizsákban!";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
                 dict["CheatAutoConsume_No_Oxygen"] = "No Oxygen In Inventory!";
                 dict["CheatAutoConsume_No_Water"] = "No Water In Inventory!";
                 dict["CheatAutoConsume_No_Food"] = "No Food In Inventory!";
+                dict["CheatAutoConsume_No_Food"] = "No Purify In Inventory!";
             }
         }
 

@@ -1937,10 +1937,13 @@ namespace FeatCommandConsole
                         {
                             AddLine("<margin=1em><b>Next tier group:</b> <color=#00FF00>" + ng.id + " \"" + Readable.GetGroupName(ng) + "\""); 
                         }
-                        var tsr = gc.GetTerraStageRequirement();
-                        if (tsr != null)
+                        var tsrs = gc.GetTerraStageRequirements();
+                        if (tsrs != null && tsrs.Length != 0)
                         {
-                            AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType()); ;
+                            foreach (var tsr in tsrs)
+                            {
+                                AddLine("<margin=1em><b>Terrastage requirement:</b> <color=#00FF00>" + string.Format("{0:#,##0}", tsr.GetStageStartValue()) + " " + tsr.GetWorldUnitType());
+                            }
                         }
                         var notallowed = gc.GetNotAllowedPlanetsRequirement();
                         if (notallowed != null && notallowed.Count != 0)
@@ -2022,6 +2025,7 @@ namespace FeatCommandConsole
             gh.AddHealth(100);
             gh.AddWater(100);
             gh.AddOxygen(1000);
+            gh.RemoveToxic(10000);
             AddLine("<margin=1em>Health, Water and Oxygen refilled");
         }
 
@@ -2057,6 +2061,7 @@ namespace FeatCommandConsole
                             gh.AddHealth(100);
                             gh.AddWater(100);
                             gh.AddOxygen(1000);
+                            gh.RemoveToxic(10000);
 
                             yield return new WaitForSeconds(1);
 
@@ -2077,7 +2082,7 @@ namespace FeatCommandConsole
                 AddLine("<margin=1em>Adds a specific Health amount to the player");
                 AddLine("<margin=1em>Usage:");
                 AddLine("<margin=2em><color=#FFFF00>/add-health amount</color> - Health += amount");
-                AddLine("<margin=1em>See also <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-water</color>, <color=#FFFF00>/add-air</color> or <color=#FFFF00>/remove-toxic</color>");
             }
             else
             {
@@ -2095,7 +2100,7 @@ namespace FeatCommandConsole
                 AddLine("<margin=1em>Adds a specific Water amount to the player");
                 AddLine("<margin=1em>Usage:");
                 AddLine("<margin=2em><color=#FFFF00>/add-water amount</color> - Water += amount");
-                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-air</color>");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color>, <color=#FFFF00>/add-air</color> or <color=#FFFF00>/remove-toxic</color>");
             }
             else
             {
@@ -2113,7 +2118,7 @@ namespace FeatCommandConsole
                 AddLine("<margin=1em>Adds a specific Air amount to the player");
                 AddLine("<margin=1em>Usage:");
                 AddLine("<margin=2em><color=#FFFF00>/add-air amount</color> - Water += amount");
-                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color> or <color=#FFFF00>/add-water</color>");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color>, <color=#FFFF00>/add-water</color> or <color=#FFFF00>/remove-toxic</color>");
             }
             else
             {
@@ -2122,6 +2127,41 @@ namespace FeatCommandConsole
                 gh.AddOxygen(int.Parse(args[1]));
             }
         }
+
+        [Command("/remove-toxic", "Removes a specific amount of toxicity from the player.")]
+        public void RemoveToxic(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Removes a specific amount of toxicity from the player");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/remove-toxic amount</color> - Toxicity -= amount");
+                AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color>, <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
+            }
+            else
+            {
+                var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                var gh = pm.GetGaugesHandler();
+                gh.RemoveToxic(int.Parse(args[1]));
+            }
+        }
+
+        [Command("/add-purity", "Adds a specific purity amount to the current planet.")]
+        public void AddPurity(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Adds a specific purity amount to the current planet");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-purity amount</color> - Purity += amount");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.Purification, float.Parse(args[1], CultureInfo.InvariantCulture));
+                AddLine("<margin=1em>Purification updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+            }
+        }
+
 
         [Command("/die", "Kills the player.")]
         public void Die(List<string> _)
