@@ -1,5 +1,5 @@
 # (Cheat) Asteroid Landing Position Override
-akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.19
+akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.20
 # (Cheat) Auto Consume Oxygen-Water-Food
 akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.21
 # (Cheat) Auto Grab and Mine
@@ -125,7 +125,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.28
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.35
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.14
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.15
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.30
 # (UI) Korean Translation
