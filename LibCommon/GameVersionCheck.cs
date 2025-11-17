@@ -13,7 +13,7 @@ namespace LibCommon
     /// </summary>
     internal class GameVersionCheck
     {
-        const string TargetVersion = "1.605";
+        const string TargetVersion = "1.606";
 
         static string modName;
 
@@ -31,7 +31,7 @@ namespace LibCommon
             {
                 ShowDialog("<b><color=#FFCC00>/!\\ Warning /!\\</color></b>\n\nYou are running the mod\n    <i><color=#FFFF00>"
                     + modName + "</color></i>\ndesigned for game version\n    <i><color=#FFFF00>v"
-                    + TargetVersion + "</color></i>\nwith the game version\n    <i><color=#FFFF00>v" + Application.version
+                    + TargetVersion + "+</color></i>\nwith the game version\n    <i><color=#FFFF00>v" + Application.version
                     + "</color></i>\n\nPlease make sure you have an\nup-to-date <color=#FFFF00>legitimate copy</color> of the game.");
             }
         }
