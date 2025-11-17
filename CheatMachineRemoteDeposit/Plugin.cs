@@ -465,7 +465,9 @@ namespace CheatMachineRemoteDeposit
         )
         {
             var wo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-            if (wo.GetGroup().GetId().StartsWith("OreBreaker", StringComparison.Ordinal))
+            var gid = wo.GetGroup().GetId();
+            if (gid.StartsWith("OreBreaker", StringComparison.Ordinal)
+                || gid.StartsWith("DetoxificationMachine", StringComparison.Ordinal))
             {
                 var planetHash = wo.GetPlanetHash();
 

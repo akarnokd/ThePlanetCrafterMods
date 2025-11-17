@@ -150,6 +150,10 @@ namespace UIOverviewPanel
                 AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.Animals));
                 AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.Animals));
 
+                AddTextRow(Translate("OverviewPanel_Purity"), CreateWorldUnitCurrentValue(WorldUnitType.Purification), PurityVisible());
+                AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.Purification), PurityVisible());
+                AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.Purification), PurityVisible());
+
                 AddTextRow("", () => "");
 
                 AddTextRow(Translate("OverviewPanel_NextTIStage"), CreateNextTiStage());
@@ -188,6 +192,15 @@ namespace UIOverviewPanel
 
                 systemTiUpdater.Clear();
             }
+        }
+
+        Func<bool> PurityVisible()
+        {
+            return () =>
+            {
+                var wu = Managers.GetManager<WorldUnitsHandler>();
+                return wu.GetUnit(WorldUnitType.Purification) is WorldUnitPurification pur && pur.GetValue() >= 0;
+            };
         }
 
         Func<string> CreateWorldUnitCurrentValue(DataConfig.WorldUnitType unitType)
@@ -263,14 +276,25 @@ namespace UIOverviewPanel
                 var excess = wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec();
                 var demand = Math.Abs(wut.GetDecreaseValuePersSec());
 
+                var maxStr = "";
+                if (wu.GetUnit(WorldUnitType.Purification) is WorldUnitPurification pur && pur.GetValue() >= 0)
+                {
+                    maxStr = string.Format("{0} {1:#,##0.00} {2}",
+                        Translate("OverviewPanel_Max"),
+                        pur.GetEnergyAvailable(),
+                        Translate("OverviewPanel_PerHour")
+                    );
+                }
+
                 return string.Format(
-                    "{0:#,##0.00} {1} = {2:#,##0.00} {1} {3} {4:#,##0.00} {5} {1}",
+                    "{0:#,##0.00} {1} = {2:#,##0.00} {1} {3} {4:#,##0.00} {5} {1} {6}",
                     wut.GetIncreaseValuePersSec(),
                     Translate("OverviewPanel_PerHour"),
                     demand,
                     excess < 0 ? " - <color=#FF8080>" : " + <color=#80FF80>",
                     Math.Abs(excess),
-                    "</color>"
+                    "</color>",
+                    maxStr
                 );
             };
         }
@@ -738,15 +762,17 @@ namespace UIOverviewPanel
             internal Text valueText;
             internal RectTransform valueTransform;
             internal Func<string> getValue;
+            internal Func<bool> isVisible;
         }
 
-        void AddTextRow(string heading, Func<string> getValue)
+        void AddTextRow(string heading, Func<string> getValue, Func<bool> isVisible = null)
         {
             int fs = fontSize.Value;
 
             OverviewEntry result = new()
             {
-                getValue = getValue
+                getValue = getValue,
+                isVisible = isVisible
             };
 
             var hg = new GameObject("OverviewPanelCanvas-Heading-" + heading);
@@ -812,10 +838,13 @@ namespace UIOverviewPanel
 
                 foreach (var e in entries)
                 {
-                    e.valueText.text = e.getValue();
+                    if (e.isVisible?.Invoke() ?? true)
+                    {
+                        e.valueText.text = e.getValue();
 
-                    col1Max = Math.Max(col1Max, e.headingText.preferredWidth);
-                    col2Max = Math.Max(col2Max, e.valueText.preferredWidth);
+                        col1Max = Math.Max(col1Max, e.headingText.preferredWidth);
+                        col2Max = Math.Max(col2Max, e.valueText.preferredWidth);
+                    }
                 }
 
                 float w = 3 * margin + col1Max + col2Max;
@@ -825,12 +854,23 @@ namespace UIOverviewPanel
                 float y = h / 2 - margin - fs / 2;
                 foreach (var e in entries)
                 {
-                    float hx = -w / 2 + margin + e.headingText.preferredWidth / 2;
-                    e.headingTransform.localPosition = new Vector3(hx, y, 0);
-                    float tx = -w / 2 + 2 * margin + col1Max + e.valueText.preferredWidth / 2;
-                    e.valueTransform.localPosition = new Vector3(tx, y, 0);
+                    if (e.isVisible?.Invoke() ?? true)
+                    {
+                        e.headingTransform.gameObject.SetActive(true);
+                        e.valueTransform.gameObject.SetActive(true);
 
-                    y -= fs + marginY;
+                        float hx = -w / 2 + margin + e.headingText.preferredWidth / 2;
+                        e.headingTransform.localPosition = new Vector3(hx, y, 0);
+                        float tx = -w / 2 + 2 * margin + col1Max + e.valueText.preferredWidth / 2;
+                        e.valueTransform.localPosition = new Vector3(tx, y, 0);
+
+                        y -= fs + marginY;
+                    }
+                    else
+                    {
+                        e.headingTransform.gameObject.SetActive(false);
+                        e.valueTransform.gameObject.SetActive(false);
+                    }
                 }
 
                 backgroundRectTransform.sizeDelta = new Vector2(w, h);
@@ -875,6 +915,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Plants"] = "Növények";
                 dict["OverviewPanel_Insects"] = "Rovarok";
                 dict["OverviewPanel_Animals"] = "Állatok";
+                dict["OverviewPanel_Purity"] = "Tisztaság";
                 dict["OverviewPanel_NextTIStage"] = "Következő TI szakasz";
                 dict["OverviewPanel_NextSysTIStage"] = "Rendszer TI";
                 dict["OverviewPanel_Growth"] = "- (növekedés)";
@@ -902,6 +943,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_FullyUnlocked"] = " < teljesen feloldva >";
                 dict["OverviewPanel_NA"] = "N/A";
                 dict["OverviewPanel_YearPlus"] = "Év+";
+                dict["OverviewPanel_Max"] = " - Maximum: ";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
@@ -919,6 +961,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Plants"] = "Plants";
                 dict["OverviewPanel_Insects"] = "Insects";
                 dict["OverviewPanel_Animals"] = "Animals";
+                dict["OverviewPanel_Purity"] = "Purification";
                 dict["OverviewPanel_NextTIStage"] = "Next TI Stage";
                 dict["OverviewPanel_NextSysTIStage"] = "System TI";
                 dict["OverviewPanel_Growth"] = "- (growth)";
@@ -945,6 +988,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_FullyUnlocked"] = " < fully unlocked >";
                 dict["OverviewPanel_NA"] = "N/A";
                 dict["OverviewPanel_YearPlus"] = "Year+";
+                dict["OverviewPanel_Max"] = " - Maximum: ";
             }
             if (___localizationDictionary.TryGetValue("russian", out dict))
             {
@@ -962,6 +1006,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_Plants"] = "Растения";
                 dict["OverviewPanel_Insects"] = "Насекомые";
                 dict["OverviewPanel_Animals"] = "Животные";
+                dict["OverviewPanel_Purity"] = "Очищение";
                 dict["OverviewPanel_NextTIStage"] = "Следующий этап";
                 dict["OverviewPanel_NextSysTIStage"] = "Системная терраформация";
                 dict["OverviewPanel_Growth"] = "- (рост)";
@@ -988,6 +1033,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_FullyUnlocked"] = " < полностью разблокирован >";
                 dict["OverviewPanel_NA"] = "нет в наличии";
                 dict["OverviewPanel_YearPlus"] = "Год+";
+                dict["OverviewPanel_Max"] = " - Максимум: ";
             }
         }
 

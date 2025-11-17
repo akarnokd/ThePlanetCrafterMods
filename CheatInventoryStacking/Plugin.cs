@@ -20,6 +20,7 @@ using LibCommon;
 using Unity.Netcode;
 using System.Diagnostics;
 using System.Text;
+using UnityEngine.Jobs;
 
 namespace CheatInventoryStacking
 {
@@ -50,6 +51,8 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackVehicle;
         static ConfigEntry<bool> stackOreCrusherIn;
         static ConfigEntry<bool> stackOreCrusherOut;
+        static ConfigEntry<bool> stackDetoxifyIn;
+        static ConfigEntry<bool> stackDetoxifyOut;
         static ConfigEntry<bool> stackInterplanetaryRockets;
         static ConfigEntry<bool> stackPlanetaryDepots;
         static ConfigEntry<bool> stackEcosystems;
@@ -136,6 +139,9 @@ namespace CheatInventoryStacking
         static AccessTools.FieldRef<MachineAutoCrafter, HashSet<WorldObject>> fMachineAutoCrafterWorldObjectsInRange;
         static AccessTools.FieldRef<object, List<(GameObject, Group)>> fMachineAutoCrafterGosInRangeForListing;
 
+        static MethodInfo mLogisticManagerCompleteDroneTransformUpdateJob;
+        static AccessTools.FieldRef<LogisticManager, TransformAccessArray> fLogisticManagerAccessArray;
+
         void Awake()
         {
             me = this;
@@ -174,6 +180,8 @@ namespace CheatInventoryStacking
             stackVehicle = Config.Bind("General", "StackVehicle", false, "If true, the inventory of vehicles stack.");
             stackOreCrusherIn = Config.Bind("General", "StackOreCrusherIn", true, "Humble DLC: Stack the input of the Ore Crusher?");
             stackOreCrusherOut = Config.Bind("General", "StackOreCrusherOut", true, "Humble DLC: Stack the output of the Ore Crusher?");
+            stackDetoxifyIn = Config.Bind("General", "StackDetoxifyIn", true, "Toxicity DLC: Stack the input of the Detoxify Machine?");
+            stackDetoxifyOut = Config.Bind("General", "StackDetoxifyOut", true, "Toxicity DLC: Stack the output of the Detoxify Machine?");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
@@ -273,6 +281,10 @@ namespace CheatInventoryStacking
 
             fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
             fMachineAutoCrafterGosInRangeForListing = AccessTools.FieldRefAccess<List<(GameObject, Group)>>(typeof(MachineAutoCrafter), "_gosInRangeForListing");
+
+            mLogisticManagerCompleteDroneTransformUpdateJob = AccessTools.Method(typeof(LogisticManager), "CompleteDroneTransformUpdateJob");
+
+            fLogisticManagerAccessArray = AccessTools.FieldRefAccess<TransformAccessArray>(typeof(LogisticManager), "_accessArray");
 
             CoroutineCoordinator.Init(LogCoord);
 

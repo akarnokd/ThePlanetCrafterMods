@@ -126,22 +126,22 @@ namespace CheatInventoryStacking
             {
                 if (___panel.GetIsCeiling())
                 {
-                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.FloorLight, refreshIds: true, disolve: true);
+                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.FloorLight, refreshIds: true, disolve: false);
                 }
                 else
                 {
-                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.FloorPlain, refreshIds: true, disolve: true);
+                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.FloorPlain, refreshIds: true, disolve: false);
                 }
             }
             else if (___panel.GetPanelType() == DataConfig.BuildPanelType.Wall)
             {
-                if (___panel.GetContingousPanels(2f) != null)
+                if (___panel.GetContingousPanels(2f, false) != null)
                 {
-                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.WallCorridor, refreshIds: true, disolve: true);
+                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.WallCorridor, refreshIds: true, disolve: false);
                 }
                 else
                 {
-                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.WallPlain, refreshIds: true, disolve: true);
+                    ___panel.ChangePanel(DataConfig.BuildPanelSubType.WallPlain, refreshIds: true, disolve: false);
                 }
             }
 

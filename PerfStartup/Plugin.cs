@@ -185,6 +185,7 @@ namespace PerfStartup
             dest.unitPlantsLevel += src.unitPlantsLevel;
             dest.unitInsectsLevel += src.unitInsectsLevel;
             dest.unitAnimalsLevel += src.unitAnimalsLevel;
+            dest.unitPurificationLevel += src.unitPurificationLevel;
         }
 
     }

@@ -56,7 +56,7 @@ namespace CheatInventoryStacking
                         group = linkedGroups[UnityEngine.Random.Range(0, linkedGroups.Count)];
                     }
                 }
-                else if (___groupDatas.Count != 0)
+                else if (___groupDatas.Count != 0 || ___groupDatasTerraStage.Count != 0)
                 {
                     List<GroupData> list = [.. ___groupDatas];
                     List<Group> linkedGroups = ____worldObject.GetLinkedGroups();
@@ -78,7 +78,10 @@ namespace CheatInventoryStacking
                     {
                         list.AddRange(___groupDatasTerraStage);
                     }
-                    group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
+                    if (list.Count != 0)
+                    {
+                        group = GroupsHandler.GetGroupViaId(list[UnityEngine.Random.Range(0, list.Count)].id);
+                    }
                 }
 
                 // deposit the ore

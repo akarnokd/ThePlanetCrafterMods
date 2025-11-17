@@ -19,13 +19,27 @@ namespace CheatInventoryStacking
             Inventory inventory
         )
         {
-            if (!stackOreCrusherIn.Value)
+            if (__instance.name.Contains("DetoxificationMachine"))
             {
-                noStackingInventories.Add(inventory.GetId());
+                if (!stackDetoxifyIn.Value)
+                {
+                    noStackingInventories.Add(inventory.GetId());
+                }
+                if (!stackDetoxifyOut.Value)
+                {
+                    me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance));
+                }
             }
-            if (!stackOreCrusherOut.Value)
+            else
             {
-                me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance));
+                if (!stackOreCrusherIn.Value)
+                {
+                    noStackingInventories.Add(inventory.GetId());
+                }
+                if (!stackOreCrusherOut.Value)
+                {
+                    me.StartCoroutine(MachineDisintegrator_WaitForSecondInventory(__instance));
+                }
             }
         }
 

@@ -18,7 +18,7 @@ namespace CheatAsteroidLandingPosition
         static ConfigEntry<bool> isEnabled;
 
         static readonly List<string> planets = [
-            "Prime", "Humble", "Selenea", "Aqualis"];
+            "Prime", "Humble", "Selenea", "Aqualis", "Toxicity"];
 
         static readonly Dictionary<string, PlanetConfig> configs = [];
 
@@ -38,7 +38,8 @@ namespace CheatAsteroidLandingPosition
                     deltaX = Config.Bind("Planet " + planet, "DeltaX", 100, "Relative position east-west (east is positive)."),
                     deltaY = Config.Bind("Planet " + planet, "DeltaY", 0, "Relative position up-down."),
                     deltaZ = Config.Bind("Planet " + planet, "DeltaZ", 0, "Relative position north-south (north is positive)."),
-                    absolute = Config.Bind("Planet " + planet, "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?.")
+                    absolute = Config.Bind("Planet " + planet, "Absolute", false, "Should the DeltaX, DeltaY and DeltaZ interpreted instead of absolute coordinates?"),
+                    force = Config.Bind("Planet " + planet, "Force", false, "Force the landing position even if normally the game wouldn't land asteroids there.")
                 };
                 configs[planet] = config;
             }
@@ -110,7 +111,7 @@ namespace CheatAsteroidLandingPosition
             {
                 landingPosition += playerPosition;
             }
-            if (AsteroidsHandler_IsInAuthorizedBounds(landingPosition, ___authorizedPlaces))
+            if (config.force.Value || AsteroidsHandler_IsInAuthorizedBounds(landingPosition, ___authorizedPlaces))
             {
                 GameObject gameObject = Instantiate(asteroidEvent.asteroidGameObject, AsteroidsHandler_RandomPointInBounds(collider.bounds), Quaternion.identity, __instance.gameObject.transform);
                 gameObject.transform.LookAt(landingPosition);
@@ -165,5 +166,10 @@ namespace CheatAsteroidLandingPosition
         /// Should the coordinates treated as absolute?
         /// </summary>
         internal ConfigEntry<bool> absolute;
+
+        /// <summary>
+        /// Force the landing position even if normally the game wouldn't land asteroids there.
+        /// </summary>
+        internal ConfigEntry<bool> force;
     }
 }

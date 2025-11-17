@@ -27,6 +27,8 @@ namespace UIShowConsumableCount
 
         static GameObject oxygenCount;
 
+        static GameObject purifyCount;
+
         readonly Dictionary<DataConfig.UsableType, GameObject> counts = [];
 
         void Awake()
@@ -82,10 +84,12 @@ namespace UIShowConsumableCount
             healthCount = AddTextForGauge(PlayerGaugeHealth.Instance, "FoodConsumableCounter");
             waterCount = AddTextForGauge(PlayerGaugeThirst.Instance, "WaterConsumableCounter");
             oxygenCount = AddTextForGauge(PlayerGaugeOxygen.Instance, "OxygenConsumableCounter");
+            purifyCount = AddTextForGauge(PlayerGaugeToxic.Instance, "PurifyConsumableCounter");
 
             counts[DataConfig.UsableType.Eatable] = healthCount;
             counts[DataConfig.UsableType.Drinkable] = waterCount;
             counts[DataConfig.UsableType.Breathable] = oxygenCount;
+            counts[DataConfig.UsableType.Purify] = purifyCount;
 
             LogInfo("Done adding UI elements");
         }
@@ -168,6 +172,7 @@ namespace UIShowConsumableCount
             healthCount?.SetActive(active);
             waterCount?.SetActive(active);
             oxygenCount?.SetActive(active);
+            purifyCount?.SetActive(active);
         }
 
         [HarmonyPostfix]

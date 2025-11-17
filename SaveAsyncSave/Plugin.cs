@@ -2,20 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using BepInEx.Logging;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
-using System.Threading;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Diagnostics;
-using UnityEngine;
-using System.Collections;
 using LibCommon;
-using Unity.Netcode;
+using SpaceCraft;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace SaveAsyncSave
 {
@@ -340,6 +341,28 @@ namespace SaveAsyncSave
         {
             UiWindowPause_OnQuit();
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnSave))]
+        static void UiWindowPause_OnSave(UiWindowPause __instance, Selectable ___saveButton)
+        {
+            var qb = ___saveButton.gameObject.transform.parent.Find("ButtonQuit").GetComponent<Button>();
+            if (Managers.GetManager<SavedDataHandler>().IsSaving())
+            {
+                Log("Disabling Quit Button interaction.");
+                qb.interactable = false;
+                __instance.StartCoroutine(QuitButtonEnabler(qb));
+            }
+        }
+        static IEnumerator QuitButtonEnabler(Selectable quitButton)
+        {
+            while (Managers.GetManager<SavedDataHandler>().IsSaving())
+            {
+                yield return null;
+            }
+            quitButton.interactable = true;
+            Log("Enabling Quit Button interaction.");
+        }
     }
 
     internal class WorldObjectCopy
@@ -361,6 +384,8 @@ namespace SaveAsyncSave
         internal int traitType;
         internal int traitValue;
         internal float hunger;
+        internal Vector2Int count;
+        internal int linkedWo;
         internal WorldObjectCopy(WorldObject worldObject)
         {
             id = worldObject.GetId();
@@ -380,6 +405,8 @@ namespace SaveAsyncSave
             traitType = (int)worldObject.GetGeneticTraitType();
             traitValue = worldObject.GetGeneticTraitValue();
             hunger = worldObject.GetHunger();
+            count = worldObject.GetCount();
+            linkedWo = worldObject.GetLinkedWorldObject();
         }
 
         internal JsonableWorldObject ToJsonable()
@@ -398,7 +425,10 @@ namespace SaveAsyncSave
                 growth, setting,
                 traitType,
                 traitValue,
-                hunger);
+                hunger,
+                DataTreatments.Vector2IntToString(count),
+                linkedWo
+                );
         }
 
         List<int> Copy(List<int> source)

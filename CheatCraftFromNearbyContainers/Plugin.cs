@@ -206,17 +206,17 @@ namespace CheatCraftFromNearbyContainers
                         Managers.GetManager<BaseHudHandler>()?.DisplayCursorText("UI_craft_contains_object", 0f, "", "");
                         return;
                     }
-                    PrepareInventories(__instance, ac);
+                    PrepareInventories(__instance, ac, __instance.cantCraftIfSpawnContainsObject);
                 });
                 return false;
             }
 
-            PrepareInventories(__instance, ac);
+            PrepareInventories(__instance, ac, __instance.cantCraftIfSpawnContainsObject);
 
             return false;
         }
 
-        static void PrepareInventories(ActionCrafter __instance, PlayerMainController ac)
+        static void PrepareInventories(ActionCrafter __instance, PlayerMainController ac, bool _checkSpawnPosition)
         {
             if (inventoryLookupInProgress)
             {
@@ -234,7 +234,7 @@ namespace CheatCraftFromNearbyContainers
 
                 UiWindowCraft uiWindowCraft = (UiWindowCraft)Managers.GetManager<WindowsHandler>()
                     .OpenAndReturnUi(DataConfig.UiType.Craft);
-                uiWindowCraft.SetCrafter(__instance, !__instance.cantCraft);
+                uiWindowCraft.SetCrafter(__instance, !__instance.cantCraft, _checkSpawnPosition);
                 uiWindowCraft.ChangeTitle(Localization.GetLocalizedString(__instance.titleLocalizationId));
 
                 inventoryLookupInProgress = false;
@@ -540,6 +540,7 @@ namespace CheatCraftFromNearbyContainers
             ActionCrafter sourceCrafter,
             PlayerMainController playerController,
             GroupItem groupItem,
+            bool checkSpawnPosition,
             ref bool ____crafting,
             ref bool __result)
         {
@@ -564,8 +565,15 @@ namespace CheatCraftFromNearbyContainers
             {
                 ____crafting = true;
 
-                WorldObjectsHandler.Instance.CreateAndInstantiateWorldObject(groupItem, sourceCrafter.GetSpawnPosition(),
-                    sourceCrafter.GetSpawnRotation(), true, true, true, false, newSpawnedObject =>
+                WorldObjectsHandler.Instance.CreateAndInstantiateWorldObject(
+                    groupItem, 
+                    sourceCrafter.GetSpawnPosition(),
+                    sourceCrafter.GetSpawnRotation(), 
+                    disolve: true,
+                    checkSpawnPosition, 
+                    save: true, 
+                    addDeconstructIcon: false, 
+                    newSpawnedObject =>
                 {
                     if (newSpawnedObject != null)
                     {
