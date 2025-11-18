@@ -192,7 +192,26 @@ namespace ItemRods
                     string text2 = "Rod-" + text.ToLowerInvariant();
                     Group groupViaId = GroupsHandler.GetGroupViaId(text2);
                     logger.LogInfo("Unlocking " + text2);
-                    ____unlockedGroups.Add(groupViaId.stableHashCode);
+                    var h = groupViaId.stableHashCode;
+                    if (!____unlockedGroups.Contains(h))
+                    {
+                        ____unlockedGroups.Add(h);
+                    }
+                }
+            }
+
+            // cleanup previous duplication mistakes
+            for (var i = ____unlockedGroups.Count - 1; i >= 0; i--)
+            {
+                var a = ____unlockedGroups[i];
+                for (var j = i - 1; j >= 0; j--)
+                {
+                    var b = ____unlockedGroups[j];
+                    if (a == b)
+                    {
+                        ____unlockedGroups.RemoveAt(i);
+                        break;
+                    }
                 }
             }
         }

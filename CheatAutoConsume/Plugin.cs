@@ -53,11 +53,14 @@ namespace CheatAutoConsume
 
         static bool FindAndConsume(DataConfig.UsableType type)
         {
+            var activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+            var inv = activePlayerController.GetPlayerBackpack().GetInventory();
+            if (inv == null)
+            {
+                return true;
+            }
             var includeSet = includeList.Value.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim().ToLowerInvariant()).ToHashSet();
             var excludeSet = excludeList.Value.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim().ToLowerInvariant()).ToHashSet();
-
-            var activePlayerController = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-            var inv = Managers.GetManager<PlayersManager>().GetActivePlayerController().GetPlayerBackpack().GetInventory();
             var gh = activePlayerController.GetGaugesHandler();
             foreach (WorldObject _worldObject in inv.GetInsideWorldObjects())
             {
