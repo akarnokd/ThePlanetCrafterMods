@@ -80,7 +80,10 @@ namespace LibCommon
                     int idx = line.IndexOf('=');
                     if (idx >= 0)
                     {
-                        labels[line[..idx]] = line[(idx + 1)..];
+                        labels[line[..idx]] = line[(idx + 1)..]
+                            .Replace("Ezen dolgozzatok még ", "")
+                            .Replace("halyó", "hajó")
+                        ;
                     }
                 }
             }
