@@ -58,6 +58,8 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> sequencerFertilizerId;
 
+        static ConfigEntry<string> sequencerPurificationId;
+
         static ConfigEntry<string> incubatorPhytoplanktonId;
 
         static ConfigEntry<string> incubatorFishId;
@@ -120,6 +122,7 @@ namespace CheatAutoSequenceDNA
             sequencerPhytoplanktonId = Config.Bind("Sequencer", "Phytoplankton", "*Phytoplankton", "The name of the container(s) where to look for Phytoplankton.");
             sequencerFertilizerId = Config.Bind("Sequencer", "Fertilizer", "*Fertilizer", "The name of the container(s) where to look for fertilizer.");
             sequencerVegetableId = Config.Bind("Sequencer", "Vegetable", "*Vegetable", "The name of the container(s) where to look for vegetables.");
+            sequencerPurificationId = Config.Bind("Sequencer", "Purification", "*Purification", "The name of the container(s) where to look for purification gel.");
             sequencerUnhide = Config.Bind("Sequencer", "Unhide", true, "Unhide the alternative recipes and outputs.");
 
             incubatorEnabled = Config.Bind("Incubator", "Enabled", true, "Should the Incubator auto sequence?");
@@ -572,6 +575,10 @@ namespace CheatAutoSequenceDNA
             {
                 return "Vegetable";
             }
+            else if (ingredientGroupId.StartsWith("PurificationGel", StringComparison.Ordinal))
+            {
+                return "Purification";
+            }
             return "";
         }
 
@@ -588,6 +595,7 @@ namespace CheatAutoSequenceDNA
                 { "Phytoplankton", sequencerPhytoplanktonId.Value },
                 { "Fertilizer", sequencerFertilizerId.Value },
                 { "Vegetable", sequencerVegetableId.Value },
+                { "Purification", sequencerPurificationId.Value }
             };
 
             // List of world objects per category (containers, machines)
@@ -638,6 +646,8 @@ namespace CheatAutoSequenceDNA
                         {
                             Shuffle(candidates);
 
+                            Log("    Sequencing: candidates: " + string.Join(", ", candidates.Select(g => g.id)));
+
                             bool found = false;
                             foreach (var spawnTarget in candidates)
                             {
@@ -683,7 +693,7 @@ namespace CheatAutoSequenceDNA
             foreach (var gi in GroupsHandler.GetGroupsItem())
             {
                 if (gi.CanBeCraftedIn(craftableIn) 
-                    && gi.GetUnlockingInfos().GetIsUnlocked()
+                    && (gi.GetUnlockingInfos().GetIsUnlocked() || gi.GetIsGloballyUnlocked())
                     && IsDNAEnabled(machineId, gi.id))
                 {
                     candidates.Add(gi);

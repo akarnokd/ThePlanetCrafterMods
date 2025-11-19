@@ -279,11 +279,23 @@ namespace UIOverviewPanel
                 var maxStr = "";
                 if (wu.GetUnit(WorldUnitType.Purification) is WorldUnitPurification pur && pur.GetValue() >= 0)
                 {
-                    maxStr = string.Format("{0} {1:#,##0.00} {2}",
-                        Translate("OverviewPanel_Max"),
-                        pur.GetEnergyAvailable(),
-                        Translate("OverviewPanel_PerHour")
-                    );
+                    var ea = pur.GetEnergyAvailable();
+                    if (ea > 1E9)
+                    {
+                        maxStr = string.Format("{0} {1:0.000e+0} {2}",
+                            Translate("OverviewPanel_Max"),
+                            ea,
+                            Translate("OverviewPanel_PerHour")
+                        );
+                    }
+                    else
+                    {
+                        maxStr = string.Format("{0} {1:#,##0.00} {2}",
+                            Translate("OverviewPanel_Max"),
+                            ea,
+                            Translate("OverviewPanel_PerHour")
+                        );
+                    }
                 }
 
                 return string.Format(
