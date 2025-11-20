@@ -400,7 +400,7 @@ INFOS_IceMeltsAt=Olvadás kezdete:
 INVENTORY=Hátizsák
 MainMenu_Button_Exit=Kilépés
 MainMenu_Button_Options=Beállítások
-MainMenu_Button_Play.Játék
+MainMenu_Button_Play=Játék
 MainMenu_Loading=Betöltés
 MainMenu_Prologue=Bevezető
 MENU_BACKTOGAME=Folytatás
@@ -1787,9 +1787,9 @@ GROUP_NAME_AntiToxinsExplosive2=Toxikus ragacs eltávolító robbanószer t2
 GROUP_DESC_AntiToxinsExplosive2=Használd egy nagyobb terület toxikus ragacsának eltávolításához
 GROUP_NAME_TrashElectronics1=Elektronikus hulladék
 GROUP_DESC_TrashElectronics1=
-GROUP_NAME_TrashMetalsScraps1.Fémhulladék
+GROUP_NAME_TrashMetalsScraps1=Fémhulladék
 GROUP_DESC_TrashMetalsScraps1=
-GROUP_NAME_TrashMetalsCanisters1.Fémhulladék
+GROUP_NAME_TrashMetalsCanisters1=Fémhulladék
 GROUP_DESC_TrashMetalsCanisters1=
 Message_toxicity_welcome=Figyelem. Ez a bolygó rendkívül toxikus. A túléléshes detoxifikálnod kell az alapvető anyagokat, úgymint víz, egy gép segítségével. Építs egy detoxifikáló gépet és egy toxikus vízgyűjtőt minél hamarabb.<br><br>Néhány terület toxikusabb, mint mások. Tartsd szemmel a saját toxikusság-mérődet és távolítsd el a toxikus ragacsot azokból a zónákból, hogy biztonságosan építhess és fedezhess fel.<br><br>Továbbe, magas toxikusság bizonyos szinteken meg fogja zavarni az energiatermelésedet. A terraformálás előrehaladásához a szokásos értékek mellett növelned kell a globális tisztaságot is.
 Ui_ToxicScreenObjectsCleaned=Toxikus ragacs eltakarítva:
