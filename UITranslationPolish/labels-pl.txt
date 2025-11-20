@@ -1895,3 +1895,4 @@ GROUP_NAME_GoldenToxicityEffigie5=Złota Figurka
 GROUP_NAME_GoldenToxicityEffigie6=Złota Figurka
 Menu_MOD_Warning=Wykryto mody – pamiętaj, że mody nie są oficjalnie wspierane. Nieaktualne mody mogą zepsuć grę, zwłaszcza po nowych aktualizacjach. Zaktualizuj lub usuń wszelkie mody przed zgłoszeniem problemów.
 UI_TerraStageBuildRequirement=Nie można wcześniej budować niż
+GROUP_NAME_Poster13=Plakat M
