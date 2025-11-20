@@ -13,6 +13,7 @@ namespace UITranslationHungarian
             LibCommon.UITranslator.AddLanguage("hungarian", "labels-hu.txt", this, Logger, Config, labels =>
             {
                 labels["GROUP_NAME_TrashAluminiumScraps1"] = "Aluminium hulladék";
+                labels["GROUP_NAME_Poster13"] = labels["GROUP_NAME_poster13"];
             });
         }
     }

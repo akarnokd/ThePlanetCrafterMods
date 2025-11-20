@@ -1693,6 +1693,7 @@ GROUP_NAME_Poster9=Poszter I
 GROUP_NAME_Poster10=Poszter J
 GROUP_NAME_Poster11=Poszter K
 GROUP_NAME_Poster12=Poszter L
+GROUP_NAME_poster13=Poszter M
 GROUP_NAME_Skin-20=Colonnya Űrruha
 GROUP_NAME_Skin-21=Sunsio Űrruha
 Message_aqualis_ending=Gratulálunk, terraformált egy óceán típusú égitestet. Az eredményessége hasznos adatokat eredményezett az efféle holdak terraformálásáról. Ez valószínűleg javíani fogja az elítéltek sikerességi arányát a különféle galaxisokban. Az elkövetkező hónapokban folytatjuk a szektorának vizsgálatát további potenciális terraformálható bolygók után.
