@@ -400,7 +400,7 @@ INFOS_IceMeltsAt=Olvadás kezdete:
 INVENTORY=Hátizsák
 MainMenu_Button_Exit=Kilépés
 MainMenu_Button_Options=Beállítások
-MainMenu_Button_Play=Játék
+MainMenu_Button_Play.Játék
 MainMenu_Loading=Betöltés
 MainMenu_Prologue=Bevezető
 MENU_BACKTOGAME=Folytatás
@@ -1786,9 +1786,9 @@ GROUP_NAME_AntiToxinsExplosive2=Toxikus ragacs eltávolító robbanószer t2
 GROUP_DESC_AntiToxinsExplosive2=Használd egy nagyobb terület toxikus ragacsának eltávolításához
 GROUP_NAME_TrashElectronics1=Elektronikus hulladék
 GROUP_DESC_TrashElectronics1=
-GROUP_NAME_TrashMetalsScraps1=Fémhulladék
+GROUP_NAME_TrashMetalsScraps1.Fémhulladék
 GROUP_DESC_TrashMetalsScraps1=
-GROUP_NAME_TrashMetalsCanisters1=Fémhulladék
+GROUP_NAME_TrashMetalsCanisters1.Fémhulladék
 GROUP_DESC_TrashMetalsCanisters1=
 Message_toxicity_welcome=Figyelem. Ez a bolygó rendkívül toxikus. A túléléshes detoxifikálnod kell az alapvető anyagokat, úgymint víz, egy gép segítségével. Építs egy detoxifikáló gépet és egy toxikus vízgyűjtőt minél hamarabb.<br><br>Néhány terület toxikusabb, mint mások. Tartsd szemmel a saját toxikusság-mérődet és távolítsd el a toxikus ragacsot azokból a zónákból, hogy biztonságosan építhess és fedezhess fel.<br><br>Továbbe, magas toxikusság bizonyos szinteken meg fogja zavarni az energiatermelésedet. A terraformálás előrehaladásához a szokásos értékek mellett növelned kell a globális tisztaságot is.
 Ui_ToxicScreenObjectsCleaned=Toxikus ragacs eltakarítva:
@@ -1809,8 +1809,8 @@ TERRASTAGE_CleanAtmosphere=Tisztított légkör
 TERRASTAGE_CleanWaterCycle=Tisztított vízciklus
 TERRASTAGE_CleanOceans=Tisztított óceánok
 INFOS_ObjectDisappearsAt=Eltűnik 
-GROUP_NAME_TrashAluminium1=Aluminium hulladék
-GROUP_DESC_TrashAluminium1=
+GROUP_NAME_TrashAluminiumScraps1=Plágium
+GROUP_DESC_TrashAluminiumScraps1=
 GROUP_NAME_TrashUraniumScraps1=Uránium hulladék
 GROUP_DESC_TrashUraniumScraps1=
 MULTIPLIER_Purification=Tisztasági szorzó
@@ -1893,6 +1893,6 @@ GROUP_NAME_GoldenToxicityEffigie2=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie3=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie4=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie5=Aranyfigura
-GROUP_NAME_GoldenToxicityEffigie6=Aranyfigura
+GROUP_NAME_GoldenToxicityEffigie6.Aranyfigura
 Menu_MOD_Warning=Modokat Észleltünk - Kérlek vedd figyelembe, hogy a moddolás hivatalosan nem támogatott. Elavult modok hajlamosak hibákat eredményezni, főleg játékfrissítés után. Frissítsd vagy távolítsd el a modjaidat, mielőtt hibajelentést teszel.
 UI_TerraStageBuildRequirement=Csak e felett építhető:

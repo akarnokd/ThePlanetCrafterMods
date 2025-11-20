@@ -6,6 +6,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +39,8 @@ namespace LibCommon
 
         static bool dumpOnce;
 
+        static Action<Dictionary<string, string>> onLabelsReady;
+
         /// <summary>
         /// Adds a new language to the game.
         /// </summary>
@@ -51,7 +54,8 @@ namespace LibCommon
             string languageFile,
             BaseUnityPlugin parent,
             ManualLogSource Logger, 
-            ConfigFile Config)
+            ConfigFile Config,
+            Action<Dictionary<string, string>> onLabelsReady = null)
         {
             BepInExLoggerFix.ApplyFix();
 
@@ -78,8 +82,13 @@ namespace LibCommon
                 if (line.Length != 0 && !line.StartsWith("#"))
                 {
                     int idx = line.IndexOf('=');
-                    if (idx >= 0)
+                    int jdx = line.IndexOf('.');
+                    if (idx >= 0 || jdx >= 0)
                     {
+                        if (idx < 0)
+                        {
+                            idx = jdx;
+                        }
                         labels[line[..idx]] = line[(idx + 1)..]
                             .Replace("Ezen dolgozzatok még ", "")
                             .Replace("halyó", "hajó")
@@ -87,6 +96,7 @@ namespace LibCommon
                     }
                 }
             }
+            onLabelsReady?.Invoke(labels);
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(UITranslator));
             var h = Harmony.CreateAndPatchAll(typeof(UITranslator));

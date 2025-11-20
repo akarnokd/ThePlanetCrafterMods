@@ -10,7 +10,10 @@ namespace UITranslationHungarian
     {
         public void Awake()
         {
-            LibCommon.UITranslator.AddLanguage("hungarian", "labels-hu.txt", this, Logger, Config);
+            LibCommon.UITranslator.AddLanguage("hungarian", "labels-hu.txt", this, Logger, Config, labels =>
+            {
+                labels["GROUP_NAME_TrashAluminiumScraps1"] = "Aluminium hulladék";
+            });
         }
     }
 }
