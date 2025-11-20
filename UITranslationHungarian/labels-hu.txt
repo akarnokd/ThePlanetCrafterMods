@@ -1864,7 +1864,7 @@ UI_Endingbutton_toxicity_Solo=A bolygó elhagyása az üzleti partnerség betelj
 UI_Endingbutton_toxicity_Eternastra=A bolygó elhagyása az EternAstra üzleti partnerség beteljesítésével
 UI_Endingbutton_toxicity_Dassetex=A bolygó elhagyása a Dassetex üzleti partnerség beteljesítésével
 Ending_Toxicity_Solo_Text_1=Gratulálunk, sikeresen terraformált egy toxikus bolygót. <br>Mivel nem teljesített semmilyen üzleti partnerséget, a bűnügyi nyilvántartása változatlan marad.
-Ending_Toxicity_Solo_Text_2==Tényleg reméljük, hogy a bolygó terraformálása jobbá tette önt, és most már érti, hogy válhat valami toxikus dolog tisztává és élvezhetővé.
+Ending_Toxicity_Solo_Text_2=Tényleg reméljük, hogy a bolygó terraformálása jobbá tette önt, és most már érti, hogy válhat valami toxikus dolog tisztává és élvezhetővé.
 Ending_Toxicity_Solo_Text_3=Ez a konkrét bolygó fontos volt számunkra, mivel a múltbeli történetünk része. Örülünk, hogy megtisztította.<br> Sentinel Vállalat
 Ending_Toxicity_Eternastra_Text_1=Köszönyjük, hogy együttműködött az EternAstrával.<br>Együtt tiszta gyógyszerrel látjuk el az egész világegyetemet.
 Ending_Toxicity_Eternastra_Text_2=Egy toxikus bolygót új reménnyé alakítottunk a beteg emberek számára. A remény a legfontosabb dolog a világon. Okot ad, hogy a jövőnkért küzdjünk.
