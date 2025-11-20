@@ -1894,6 +1894,6 @@ GROUP_NAME_GoldenToxicityEffigie2=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie3=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie4=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie5=Aranyfigura
-GROUP_NAME_GoldenToxicityEffigie6.Aranyfigura
+GROUP_NAME_GoldenToxicityEffigie6=Aranyfigura
 Menu_MOD_Warning=Modokat Észleltünk - Kérlek vedd figyelembe, hogy a moddolás hivatalosan nem támogatott. Elavult modok hajlamosak hibákat eredményezni, főleg játékfrissítés után. Frissítsd vagy távolítsd el a modjaidat, mielőtt hibajelentést teszel.
 UI_TerraStageBuildRequirement=Csak e felett építhető:
