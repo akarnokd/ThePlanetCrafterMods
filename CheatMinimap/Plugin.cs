@@ -53,6 +53,8 @@ namespace CheatMinimap
         Texture2D seleneaLush;
         Texture2D aqualisBarren;
         Texture2D aqualisLush;
+        Texture2D toxicityBarren;
+        Texture2D toxicityLush;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -105,6 +107,7 @@ namespace CheatMinimap
             { "Humble", new RectMinMax(-2300, -2300, 2700, 2700) },
             { "Selenea", new RectMinMax(-2000, -2000, 3000, 3000) },
             { "Aqualis", new RectMinMax(-3000, -3000, 4000, 4000) },
+            { "Toxicity", new RectMinMax(-2200, -2200, 2800, 2800) },
         };
 
         internal class RectMinMax
@@ -164,6 +167,8 @@ namespace CheatMinimap
             poster = LoadPNG(Path.Combine(dir, "poster.png"));
             animal = LoadPNG(Path.Combine(dir, "animal.png"));
             fusion = LoadPNG(Path.Combine(dir, "fusion.png"));
+            toxicityBarren = LoadPNG(Path.Combine(dir, "toxicity_barren.jpg"));
+            toxicityLush = LoadPNG(Path.Combine(dir, "toxicity_lush.jpg"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -745,6 +750,20 @@ namespace CheatMinimap
                             if (currT >= minT)
                             {
                                 theMap = aqualisLush;
+                            }
+                        }
+                    }
+                    if (pd != null && pd.id == "Toxicity")
+                    {
+                        theMap = toxicityBarren;
+
+                        if (achievementsHandler != null && worldUnitsHandler != null)
+                        {
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
+                            if (currT >= minT)
+                            {
+                                theMap = toxicityLush;
                             }
                         }
                     }
