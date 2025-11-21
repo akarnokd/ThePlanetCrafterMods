@@ -60,9 +60,14 @@ namespace SaveAutoSave
                     {
                         logger.LogWarning("Unable to find the SavedDataHandler; can't auto save");
                     } 
-                    else 
+                    else
+                    if (!sdh.IsSaving())
                     { 
                         sdh.SaveWorldData(null);
+                    }
+                    else
+                    {
+                        logger.LogInfo("Game already saving, skipping this one.");
                     }
                 }
             }

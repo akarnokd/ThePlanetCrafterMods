@@ -67,7 +67,7 @@ akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.6
 # (Save) Auto Backup
 akarnokd.theplanetcraftermods.saveautobackup=1.0.0.17
 # (Save) Auto Save
-akarnokd.theplanetcraftermods.saveautosave=1.0.0.17
+akarnokd.theplanetcraftermods.saveautosave=1.0.0.18
 # (Save) Quick Save
 akarnokd.theplanetcraftermods.savequicksave=1.0.0.19
 # (UI) Beacon Text
