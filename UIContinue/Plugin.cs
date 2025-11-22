@@ -363,6 +363,7 @@ namespace UIContinue
 
         static void OnContinueClick()
         {
+            continueButton.GetComponent<Button>().enabled = false;
             try
             {
                 var modVersionLog = Path.Combine(Application.persistentDataPath, "lastgameversion2.txt");
