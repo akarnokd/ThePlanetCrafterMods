@@ -88,7 +88,7 @@ namespace SaveAsyncSave
             {
                 return true;
             }
-            Log("Main thread check");
+            Log("Main thread check: " + Thread.CurrentThread.ManagedThreadId);
             if (mainThreadId == Thread.CurrentThread.ManagedThreadId)
             {
                 var worldObjectCopyRef = worldObjectCopy;
@@ -106,6 +106,13 @@ namespace SaveAsyncSave
                     lock (gate)
                     {
                         var sw = Stopwatch.StartNew();
+                        if (worldObjectCopyRef.Count == 0 || inventoryCopyRef.Count == 0)
+                        {
+                            logger.LogError("Exception: Oops, almost corrupted the save. " + worldObjectCopyRef.Count + " : " + inventoryCopyRef.Count
+                                + "\r\nat " + Environment.StackTrace
+                                );
+                            return;
+                        }
                         _worldObjects.Capacity = worldObjectCopyRef.Capacity + 1;
                         foreach (var item in worldObjectCopyRef)
                         {
@@ -143,6 +150,14 @@ namespace SaveAsyncSave
                         {
                             logger.LogError(ex);
                         }
+                    }
+                });
+                saveTask.ContinueWith(t =>
+                {
+                    Log("SaveTask status: " + t.Status);
+                    if (t.IsFaulted)
+                    {
+                        Log(t.Exception.ToString());
                     }
                 });
                 return false;
@@ -341,9 +356,18 @@ namespace SaveAsyncSave
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
-            Log("UiWindowPause_OnQuit()\r\n" + Environment.StackTrace);
-            worldObjectCopy.Clear();
-            inventoryCopy.Clear();
+            Log("UiWindowPause_OnQuit(): " + (saveTask == null || saveTask.IsCompleted));
+
+            if (saveTask == null || saveTask.IsCompleted)
+            {
+                worldObjectCopy.Clear();
+                inventoryCopy.Clear();
+            }
+            else
+            {
+                worldObjectCopy = [];
+                inventoryCopy = [];
+            }
         }
 
         [HarmonyPrefix]
