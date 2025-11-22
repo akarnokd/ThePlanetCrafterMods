@@ -2,18 +2,20 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
-using UnityEngine;
-using System.Collections.Generic;
-using UnityEngine.UI;
-using TMPro;
-using System.IO;
-using System;
-using UnityEngine.SceneManagement;
-using System.Collections;
-using BepInEx.Logging;
 using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
+using SpaceCraft;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace UIContinue
 {
@@ -360,6 +362,106 @@ namespace UIContinue
         }
 
         static void OnContinueClick()
+        {
+            try
+            {
+                var modVersionLog = Path.Combine(Application.persistentDataPath, "lastgameversion2.txt");
+                if (File.Exists(modVersionLog))
+                {
+                    var log = File.ReadAllText(modVersionLog).Trim();
+                    if (log != Application.version)
+                    {
+                        ShowDialog("The game just updated from <color=#FFCC00>v"
+                            + log + "</color> to <color=#FFCC00>v" + Application.version + "</color> !"
+                            + "\n"
+                            + "\nIf you are experiencing problems,"
+                            + "\nplease update your mods as soon as possible."
+                            + "\n"
+                            + "\n=[ Press ESC / Gamepad-B to continue ]="
+                            , false);
+                        File.WriteAllText(modVersionLog, Application.version);
+                    }
+                    else
+                    {
+                        DoLoad();
+                    }
+                }
+                else
+                {
+                    ShowDialog("Welcome to <color=#FFCC00>v" + Application.version + "</color> !"
+                            + "\n"
+                            + "\nIf you are experiencing problems,"
+                            + "\nplease update your mods as soon as possible."
+                            + "\n"
+                            + "\n=[ Press ESC / Gamepad-B to continue ]="
+                            , false);
+                    File.WriteAllText(modVersionLog, Application.version);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex);
+                DoLoad();
+            }
+        }
+
+        static void ShowDialog(string message, bool warning)
+        {
+            var panel = new GameObject("MiscModEnabler_Notification");
+            var canvas = panel.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 100;
+
+            var background = new GameObject("MiscModEnabler_Notification_Background");
+            background.transform.SetParent(panel.transform, false);
+            var img = background.AddComponent<Image>();
+            if (warning)
+            {
+                img.color = new Color(0.5f, 0, 0, 0.99f);
+            }
+            else
+            {
+                img.color = new Color(0, 0.4f, 0, 0.99f);
+            }
+
+            var text = new GameObject("MiscModEnabler_Notification_Text");
+            text.transform.SetParent(background.transform, false);
+
+            var txt = text.AddComponent<Text>();
+            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.supportRichText = true;
+            txt.text = message;
+            txt.color = Color.white;
+            txt.fontSize = 30;
+            txt.resizeTextForBestFit = false;
+            txt.verticalOverflow = VerticalWrapMode.Overflow;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.alignment = TextAnchor.MiddleLeft;
+
+            var trect = text.GetComponent<RectTransform>();
+            trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+            var brect = background.GetComponent<RectTransform>();
+            brect.sizeDelta = trect.sizeDelta + new Vector2(30, 30);
+
+            panel.AddComponent<DialogCloser>();
+        }
+
+        class DialogCloser : MonoBehaviour
+        {
+            void Update()
+            {
+                var gamepad = Gamepad.current;
+                if (Keyboard.current[Key.Escape].wasPressedThisFrame
+                    || (gamepad != null && (gamepad[GamepadButton.B]?.wasPressedThisFrame ?? false)))
+                {
+                    Destroy(gameObject);
+                    DoLoad();
+                }
+            }
+        }
+
+        static void DoLoad()
         {
             if (lastSave != null)
             {

@@ -73,7 +73,7 @@ akarnokd.theplanetcraftermods.savequicksave=1.0.0.19
 # (UI) Beacon Text
 akarnokd.theplanetcraftermods.uibeacontext=1.0.0.23
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.31
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.32
 # (UI) Customize Inventory Sort Order
 akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.18
 # (UI) Prevent Accidental Deconstruct
