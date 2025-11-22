@@ -88,10 +88,19 @@ namespace SaveAsyncSave
             {
                 return true;
             }
+            Log("Main thread check");
             if (mainThreadId == Thread.CurrentThread.ManagedThreadId)
             {
                 var worldObjectCopyRef = worldObjectCopy;
                 var inventoryCopyRef = inventoryCopy;
+                if (worldObjectCopyRef.Count == 0 || inventoryCopyRef.Count == 0)
+                {
+                    logger.LogError("Exception: Oops, almost corrupted the save. " + worldObjectCopyRef.Count + " : " + inventoryCopyRef.Count
+                        + "\r\nat " + Environment.StackTrace
+                        );
+                    return false;
+                }
+                Log("Starting background save routine");
                 saveTask = Task.Factory.StartNew(() =>
                 {
                     lock (gate)
@@ -138,6 +147,7 @@ namespace SaveAsyncSave
                 });
                 return false;
             }
+            Log("SaveToJson on background thread");
             return true;
         }
 
@@ -214,7 +224,7 @@ namespace SaveAsyncSave
             __state = Stopwatch.StartNew();
             if (!modEnabled.Value)
             {
-                worldObjectCopy.Clear();
+                inventoryCopy.Clear();
                 return true;
             }
 
@@ -331,6 +341,7 @@ namespace SaveAsyncSave
         [HarmonyPatch(typeof(UiWindowPause), nameof(UiWindowPause.OnQuit))]
         static void UiWindowPause_OnQuit()
         {
+            Log("UiWindowPause_OnQuit()\r\n" + Environment.StackTrace);
             worldObjectCopy.Clear();
             inventoryCopy.Clear();
         }
