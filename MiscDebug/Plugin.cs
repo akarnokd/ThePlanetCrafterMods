@@ -88,6 +88,20 @@ namespace MiscDebug
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(UiWindowLogistics), nameof(UiWindowLogistics.OnOpen))]
+        static void UiWindowLogistics_OnOpen()
+        {
+            foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
+            {
+                var le = inv.GetLogisticEntity();
+                if (le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
+                {
+                    logger.LogWarning("Inventory " + inv.GetId() + " has a null worldobject");
+                }
+            }
+        }
+
         static int lastFrame;
         static Dictionary<string, double> coroutineTimes = [];
         static int wip;
