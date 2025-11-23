@@ -14,6 +14,7 @@ namespace UITranslationHungarian
             {
                 labels["GROUP_NAME_TrashAluminiumScraps1"] = "Aluminium hulladék";
                 labels["GROUP_NAME_Poster13"] = labels["GROUP_NAME_poster13"];
+                labels["Ui_no"] = labels["UI_no"];
             });
         }
     }

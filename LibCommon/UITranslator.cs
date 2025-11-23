@@ -79,16 +79,11 @@ namespace LibCommon
             foreach (var row in text)
             {
                 var line = row.Trim();
-                if (line.Length != 0 && !line.StartsWith("#"))
+                if (line.Length != 0 && !line.StartsWith("#") && !line.StartsWith("//") && line != "=")
                 {
-                    int idx = line.IndexOf('=');
-                    int jdx = line.IndexOf('.');
-                    if (idx >= 0 || jdx >= 0)
+                    int idx = FindSeparator(line, '=', '.', '@', '~', '*');
+                    if (idx >= 0)
                     {
-                        if (idx < 0)
-                        {
-                            idx = jdx;
-                        }
                         labels[line[..idx]] = line[(idx + 1)..]
                             .Replace("Ezen dolgozzatok még ", "")
                             .Replace("halyó", "hajó")
@@ -106,6 +101,24 @@ namespace LibCommon
             Logger.LogInfo($"Plugin loaded!");
 
             return h;
+        }
+
+        static int FindSeparator(string line, params char[] separators)
+        {
+            int j = -1;
+            foreach (char c in separators)
+            {
+                int k = line.IndexOf(c);
+                if (k >= 0 && j < 0)
+                {
+                    j = k;
+                }
+                else if (k >= 0 && k < j)
+                {
+                    j = k;
+                }
+            }
+            return j;
         }
 
         static IEnumerator WaitForLocalizationLoad()
