@@ -101,6 +101,13 @@ namespace LibCommon
             {
                 Debug.Log("  Achievements      : Disabled");
             }
+
+            var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
+            
+            using var stream = File.OpenRead(main);
+            using var sha1 = System.Security.Cryptography.SHA1.Create();
+
+            Debug.Log("  Integrity         : " + Convert.ToBase64String(sha1.ComputeHash(stream)));
         }
 
         internal static string OfArchitecture()
