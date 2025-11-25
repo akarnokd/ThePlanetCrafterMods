@@ -39,8 +39,6 @@ namespace LibCommon
 
         static bool dumpOnce;
 
-        static Action<Dictionary<string, string>> onLabelsReady;
-
         /// <summary>
         /// Adds a new language to the game.
         /// </summary>
