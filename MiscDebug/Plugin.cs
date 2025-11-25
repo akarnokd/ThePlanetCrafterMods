@@ -107,9 +107,16 @@ namespace MiscDebug
         static void LogisticManager_AddNewDemandInventory(Inventory inventory)
         {
             var le = inventory.GetLogisticEntity();
-            if (le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
-            {
-                logger.LogWarning("LogisticManager::AddNewDemandInventory|Inventory " + inventory.GetId() + " has a null worldobject");
+            var wo = le.GetWorldObject();
+            if ((le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0)) {
+                if (wo == null)
+                {
+                    logger.LogWarning("LogisticManager::AddNewDemandInventory|Inventory " + inventory.GetId() + " has a null worldobject");
+                }
+                else if (le.GetPlanetHash() == 0)
+                {
+                    logger.LogWarning("LogisticManager::AddNewDemandInventory|Inventory " + inventory.GetId() + " has a zero planet hash: WorldObject: " + wo.GetId() + " \"" + wo.GetGroup().GetId() + "\"");
+                }
             }
         }
 
