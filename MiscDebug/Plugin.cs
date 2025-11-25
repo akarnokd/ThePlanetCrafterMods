@@ -97,8 +97,19 @@ namespace MiscDebug
                 var le = inv.GetLogisticEntity();
                 if (le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
                 {
-                    logger.LogWarning("Inventory " + inv.GetId() + " has a null worldobject");
+                    logger.LogWarning("UiWindowLogistics::OnOpen|Inventory " + inv.GetId() + " has a null worldobject");
                 }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "AddNewDemandInventory")]
+        static void LogisticManager_AddNewDemandInventory(Inventory inventory)
+        {
+            var le = inventory.GetLogisticEntity();
+            if (le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
+            {
+                logger.LogWarning("LogisticManager::AddNewDemandInventory|Inventory " + inventory.GetId() + " has a null worldobject");
             }
         }
 
