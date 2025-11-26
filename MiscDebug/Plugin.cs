@@ -6,6 +6,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -119,6 +120,36 @@ namespace MiscDebug
                 }
             }
         }
+        /*
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(GroupNetworkBase), nameof(GroupNetworkBase.SetWorldObjectFromGeneratedWreck))]
+        static void GroupNetworkBase_SetWorldObjectFromGeneratedWreck(ref int __state)
+        {
+            __state = WorldObjectsHandler.Instance.GetConstructedWorldObjects().Count;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GroupNetworkBase), nameof(GroupNetworkBase.SetWorldObjectFromGeneratedWreck))]
+        static void GroupNetworkBase_SetWorldObjectFromGeneratedWreck_Post(ref int __state)
+        {
+            if (__state != WorldObjectsHandler.Instance.GetConstructedWorldObjects().Count)
+            {
+                logger.LogWarning(Environment.StackTrace);
+            }
+        }
+        */
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WorldObjectsHandler), nameof(WorldObjectsHandler.GetWorldObjectForInventory))]
+        static void WorldObjectsHandler_GetWorldObjectForInventory(ref WorldObject __result, Inventory inventory)
+        {
+            if (__result == null)
+            {
+                logger.LogWarning("GetWorldObjectForInventory: " + inventory.GetId());
+                logger.LogWarning(Environment.StackTrace);
+            }
+        }
+        */
 
         static int lastFrame;
         static Dictionary<string, double> coroutineTimes = [];
