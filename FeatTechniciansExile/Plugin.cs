@@ -104,6 +104,7 @@ namespace FeatTechniciansExile
             AddTranslation(dir, "hungarian");
             AddTranslation(dir, "russian");
             AddTranslation(dir, "french");
+            AddTranslation(dir, "spanish");
 
             PrepareDialogChoices();
 
