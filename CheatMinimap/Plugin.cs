@@ -95,7 +95,6 @@ namespace CheatMinimap
         static bool mapVisible = true;
         static int autoScanEnabled = 0;
         static bool coroutineRunning = false;
-        static ConfigEntry<bool> photographMap;
 
         static InputAction mapAction;
 
@@ -180,7 +179,6 @@ namespace CheatMinimap
             zoomOutMouseButton = Config.Bind("General", "ZoomOutMouseButton", 5, "Which mouse button to use for zooming out (0-none, 1-left, 2-right, 3-middle, 4-forward, 5-back)");
             autoScanForChests = Config.Bind("General", "AutoScanForChests", 5, "If nonzero and the minimap is visible, the minimap periodically scans for chests every N seconds. Toggle with Alt+N");
             fixedRotation = Config.Bind("General", "FixedRotation", -1, "If negative, the map rotates on screen. If Positive, the map is fixed to that rotation in degrees (0..360).");
-            photographMap = Config.Bind("General", "PhotographMap", false, "Not meant for end-users. (Photographs the map when pressing U for development purposes.)");
             mapManualVisible = Config.Bind("General", "MapVisible", true, "Should the map be visible?");
             fontSize = Config.Bind("General", "FontSize", 16, "The size of the names of other players, use 0 to disable showing their name.");
             showLadders = Config.Bind("General", "ShowWreckLadders", true, "Show the ladders in the procedural wrecks?");
@@ -313,7 +311,6 @@ namespace CheatMinimap
                     }
                 }
             }
-            UpdatePhoto();
             UpdateXRay(player, windowNotOpen);
         }
 
