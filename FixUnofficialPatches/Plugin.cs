@@ -16,6 +16,7 @@ using TMPro;
 using Steamworks;
 using Unity.Netcode;
 using System.Text;
+using System.Linq;
 
 namespace FixUnofficialPatches
 {
@@ -252,6 +253,65 @@ namespace FixUnofficialPatches
             if (cd == null)
             {
                 __result = false;
+                return false;
+            }
+            return true;
+        }
+
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.LoadFromJson))]
+        static void JSONExport_LoadFromJson(
+            JsonableWorldState ____worldState,
+            List<JsonableProceduralInstance> ____proceduralInstances)
+        {
+            if (____worldState != null && ____proceduralInstances != null)
+            {
+                for (int i = ____proceduralInstances.Count - 1; i >= 0; i--)
+                {
+                    if (____worldState.openedInstanceSeed == 0 
+                        || ____proceduralInstances[i].owner != ____worldState.openedInstanceSeed)
+                    {
+                        ____proceduralInstances.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.InitLogistics))]
+        static void LogisticManager_InitLogistics(Dictionary<int, Dictionary<int, int>> ____taskPriorities)
+        {
+            if (!Managers.GetManager<PlanetLoader>().planetList.GetPlanetList(true)
+                .Any(e => e != null && e.GetPlanetHash() == 0))
+            {
+                ____taskPriorities.TryAdd(0, []);
+            }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MachineDeparturePlatform), "Awake")]
+        static void MachineDeparturePlatform_Awake(MachineDeparturePlatform __instance)
+        {
+            Managers.GetManager<PlayersManager>().RegisterToLocalPlayerStarted(() => {
+                WorldObject worldObject = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                Inventory inventoryById = InventoriesHandler.Instance.GetInventoryById(worldObject.GetLinkedInventoryId());
+                if (inventoryById != null)
+                {
+                    var le = inventoryById.GetLogisticEntity();
+
+                    AccessTools.FieldRefAccess<LogisticEntity, WorldObject>("_wo")(le) = worldObject;
+                }
+            });
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticEntity), nameof(LogisticEntity.GetPlanetHash))]
+        static bool LogisticEntity_GetPlanetHash(WorldObject ____wo, ref int __result)
+        {
+            if (____wo == null)
+            {
+                __result = 0;
                 return false;
             }
             return true;
