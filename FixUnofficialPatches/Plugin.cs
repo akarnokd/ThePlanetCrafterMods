@@ -17,6 +17,7 @@ using Steamworks;
 using Unity.Netcode;
 using System.Text;
 using System.Linq;
+using BepInEx.Configuration;
 
 namespace FixUnofficialPatches
 {
@@ -26,6 +27,8 @@ namespace FixUnofficialPatches
 
         static ManualLogSource logger;
 
+        static ConfigEntry<bool> droneLogisticFixes;
+
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -34,6 +37,8 @@ namespace FixUnofficialPatches
             Logger.LogInfo($"Plugin is loaded!");
 
             logger = Logger;
+
+            droneLogisticFixes = Config.Bind("General", "DroneLogisticFixes", true, "Enable the drone logistics fixes");
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -265,6 +270,10 @@ namespace FixUnofficialPatches
             JsonableWorldState ____worldState,
             List<JsonableProceduralInstance> ____proceduralInstances)
         {
+            if (!droneLogisticFixes.Value)
+            {
+                return;
+            }
             if (____worldState != null && ____proceduralInstances != null)
             {
                 for (int i = ____proceduralInstances.Count - 1; i >= 0; i--)
@@ -282,6 +291,10 @@ namespace FixUnofficialPatches
         [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.InitLogistics))]
         static void LogisticManager_InitLogistics(Dictionary<int, Dictionary<int, int>> ____taskPriorities)
         {
+            if (!droneLogisticFixes.Value)
+            {
+                return;
+            }
             if (!Managers.GetManager<PlanetLoader>().planetList.GetPlanetList(true)
                 .Any(e => e != null && e.GetPlanetHash() == 0))
             {
@@ -293,6 +306,10 @@ namespace FixUnofficialPatches
         [HarmonyPatch(typeof(MachineDeparturePlatform), "Awake")]
         static void MachineDeparturePlatform_Awake(MachineDeparturePlatform __instance)
         {
+            if (!droneLogisticFixes.Value)
+            {
+                return;
+            }
             Managers.GetManager<PlayersManager>().RegisterToLocalPlayerStarted(() => {
                 WorldObject worldObject = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
                 Inventory inventoryById = InventoriesHandler.Instance.GetInventoryById(worldObject.GetLinkedInventoryId());
@@ -309,7 +326,7 @@ namespace FixUnofficialPatches
         [HarmonyPatch(typeof(LogisticEntity), nameof(LogisticEntity.GetPlanetHash))]
         static bool LogisticEntity_GetPlanetHash(WorldObject ____wo, ref int __result)
         {
-            if (____wo == null)
+            if (droneLogisticFixes.Value && ____wo == null)
             {
                 __result = 0;
                 return false;
