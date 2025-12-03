@@ -107,7 +107,7 @@ akarnokd.theplanetcraftermods.uishowcrash=1.0.0.18
 # (UI) Show ETA
 akarnokd.theplanetcraftermods.uishoweta=1.0.0.19
 # (UI) Show Grab N Mine Count
-akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.20
+akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.21
 # (UI) Show MultiTool Mode
 akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.18
 # (UI) Show Player Inventory Counts
