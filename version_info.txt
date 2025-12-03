@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.32
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.41
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.63
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.64
 # (Item) Rods
 akarnokd.theplanetcraftermods.itemrods=1.0.0.12
 # (Lathrey) Auto Move
@@ -125,7 +125,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.31
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.37
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.21
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.22
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.31
 # (UI) Korean Translation

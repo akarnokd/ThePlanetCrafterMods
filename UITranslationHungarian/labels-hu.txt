@@ -1897,3 +1897,5 @@ GROUP_NAME_GoldenToxicityEffigie5=Aranyfigura
 GROUP_NAME_GoldenToxicityEffigie6.Aranyfigura
 Menu_MOD_Warning=Modokat Észleltünk - Kérlek vedd figyelembe, hogy a moddolás hivatalosan nem támogatott. Elavult modok hajlamosak hibákat eredményezni, főleg játékfrissítés után. Frissítsd vagy távolítsd el a modjaidat, mielőtt hibajelentést teszel.
 UI_TerraStageBuildRequirement=Csak e felett építhető:
+GROUP_NAME_ContainerToxic1~Toxikus ragacs tároló
+GROUP_DESC_ContainerToxic1=Nagy toxikus ragacs tároló a toxikus területek megtisztításának elősegítésére
