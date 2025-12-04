@@ -1880,4 +1880,5 @@ UI_TerraStageBuildRequirement=Ei saa enne ehitada.
 GROUP_NAME_Poster13=Plakat M
 Message_toxicity_myceliumCave=Mind tõmbas siia. Ma tean seda nüüd, ma mõistan — see polnud mina, kes otsustas nendesse koobastesse laskuda. Ma tundsin kutset ja järgisin nähtamatut jälge ning olen leitust vaimustuses. See kutse jälitab mind, muutudes iga päevaga tugevamaks. Tunnen seda sügaval enda sees, seda vastupandamatut tõmmet. Kuid see on soe, puhas, lohutav. Ma tahan seda kogeda vähemalt korra elus: puhtust, mugavust, heatahtlikku kaitset. Jätta kõik selja taha, lõpetada kõhklemine ja lihtsalt olla selles hetkes isegi, kui see jääb viimaseks…
 Menu_MOD_Warning=Modifikatsioonid tuvastatud. Modifikatsioonid ei ole ametlikult toetatud. Vananenud modifikatsioonid võivad mängu ära lõhkuda, eriti pärast uusi uuendusi. Uuenda või eemalda kõik modifikatsioonid enne probleemidest teatamist.
-
+GROUP_NAME_ContainerToxic1=Mürgise lima konteiner
+GROUP_DESC_ContainerToxic1=Suur mürgise lima konteiner, mis aitab puhastada mürgiseid alasid
