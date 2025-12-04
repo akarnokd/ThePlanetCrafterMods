@@ -1896,3 +1896,5 @@ GROUP_NAME_GoldenToxicityEffigie6=Złota Figurka
 Menu_MOD_Warning=Wykryto mody – pamiętaj, że mody nie są oficjalnie wspierane. Nieaktualne mody mogą zepsuć grę, zwłaszcza po nowych aktualizacjach. Zaktualizuj lub usuń wszelkie mody przed zgłoszeniem problemów.
 UI_TerraStageBuildRequirement=Nie można wcześniej budować niż
 GROUP_NAME_Poster13=Plakat M
+GROUP_NAME_ContainerToxic1=Szafka do toksycznej mazi
+GROUP_DESC_ContainerToxic1=Duża szafka z toksyczną mazią, który pomaga w czyszczeniu toksycznych miejsc
