@@ -321,17 +321,5 @@ namespace FixUnofficialPatches
                 }
             });
         }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(LogisticEntity), nameof(LogisticEntity.GetPlanetHash))]
-        static bool LogisticEntity_GetPlanetHash(WorldObject ____wo, ref int __result)
-        {
-            if (droneLogisticFixes.Value && ____wo == null)
-            {
-                __result = 0;
-                return false;
-            }
-            return true;
-        }
     }
 }

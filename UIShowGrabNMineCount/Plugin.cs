@@ -71,7 +71,8 @@ namespace UIShowGrabNMineCount
             fActionMinableMining(__instance) = false;
 
             // This also should fix two potential NPEs with quickly disappearing ores
-            var wo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
+            var woa = __instance.GetComponent<WorldObjectAssociated>();
+            var wo = woa != null ? woa.GetWorldObject() : null;
             if (wo != null)
             {
                 var inv = ____playerSource.GetPlayerBackpack().GetInventory();
@@ -84,6 +85,13 @@ namespace UIShowGrabNMineCount
                         if (success)
                         {
                             ShowInventoryAdded(wo, inv);
+                        }
+                        else
+                        {
+                            WorldObjectsHandler.Instance.DisableWorldObjectFromScene(wo, true, __instance.transform.position + new Vector3(0f, 1f, 0f));
+                            WorldObjectsHandler.Instance.DestroyWorldObjectGOOnAllClients(wo.GetId(), 0f);
+                            WorldObjectsHandler.Instance.DestroyWorldObject(wo.GetId(), false);
+
                         }
                     }
                 );
