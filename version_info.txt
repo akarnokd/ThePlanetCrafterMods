@@ -9,7 +9,7 @@ akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.39
 # (Cheat) Auto Launch Rockets
 akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.17
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.35
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.36
 # (Cheat) Auto Store
 akarnokd.theplanetcraftermods.cheatautostore=1.0.0.19
 # (Cheat) Craft From Nearby Containers
@@ -131,7 +131,7 @@ akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.31
 # (UI) Korean Translation
 akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.20
 # (UI) Polish Translation
-akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.61
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.62
 # (UI) Romanian Translation
 akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.27
 # (UI) Ukrainian Translation

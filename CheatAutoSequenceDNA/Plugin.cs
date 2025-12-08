@@ -66,6 +66,10 @@ namespace CheatAutoSequenceDNA
 
         static ConfigEntry<string> incubatorFrogEggId;
 
+        static ConfigEntry<string> incubatorFlowerSeedId;
+
+        static ConfigEntry<string> incubatorMushroomId;
+
         static ConfigEntry<int> range;
 
         static ConfigEntry<bool> debugMode;
@@ -136,6 +140,8 @@ namespace CheatAutoSequenceDNA
             incubatorFishId = Config.Bind("Incubator", "Fish", "*Fish", "The name of the container(s) where to deposit the spawned fish.");
             incubatorFrogEggId = Config.Bind("Incubator", "FrogEgg", "*FrogEgg", "The name of the container(s) where to to look for frog eggs.");
             incubatorBacteriaId = Config.Bind("Incubator", "Bacteria", "*Bacteria", "The name of the container(s) where to to look for bacteria samples.");
+            incubatorFlowerSeedId = Config.Bind("Incubator", "FlowerSeed", "*FlowerSeed", "The name of the container(s) where to to look for flower seeds.");
+            incubatorMushroomId = Config.Bind("Incubator", "Mushroom", "*Mushroom", "The name of the container(s) where to to look for mushroom.");
             incubatorUnhide = Config.Bind("Incubator", "Unhide", true, "Unhide the alternative recipes and outputs.");
 
             extractorEnabled = Config.Bind("Extractor", "Enabled", true, "Should the automatic DNA extraction happen?");
@@ -295,6 +301,9 @@ namespace CheatAutoSequenceDNA
                 { "Fish", incubatorFishId.Value },
                 { "FrogEgg", incubatorFrogEggId.Value },
                 { "Bacteria", incubatorBacteriaId.Value },
+                { "FlowerSeed", incubatorFlowerSeedId.Value },
+                { "Mushroom", incubatorMushroomId.Value },
+
             };
 
             // List of world objects per category (containers, machines)
@@ -578,6 +587,10 @@ namespace CheatAutoSequenceDNA
             else if (ingredientGroupId.StartsWith("PurificationGel", StringComparison.Ordinal))
             {
                 return "Purification";
+            }
+            else if (ingredientGroupId.Contains("Mushroom", StringComparison.Ordinal))
+            {
+                return "Mushroom";
             }
             return "";
         }

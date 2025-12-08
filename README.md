@@ -313,6 +313,8 @@ On the recipe side:
 - `*FrogEgg` - where the *Frog Eggs* ingredients are searched for.
 - `*ExtractFrom*` - where to look for items to extract DNA traits from.
 - `*Vegetable` - where to look for *Vegetable*s.
+- `*Mushroom` - where to look for *Mushroom*s.
+- `*Purification` - where to look for *Purification Gel*s.
 
 On the product side:
 - `*Butterfly` - where to deposit the created *Butterfly larvae* (all kinds).
