@@ -89,7 +89,7 @@ akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.20
 # (UI) Mod Config Menu
 akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.21
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.49
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.50
 # (UI) Pin Recipe to Screen
 akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.37
 # (UI) Quick Loot
@@ -125,7 +125,7 @@ akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.31
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.38
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.22
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.23
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.31
 # (UI) Korean Translation

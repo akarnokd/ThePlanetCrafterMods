@@ -276,37 +276,14 @@ namespace UIOverviewPanel
                 var excess = wut.GetIncreaseValuePersSec() + wut.GetDecreaseValuePersSec();
                 var demand = Math.Abs(wut.GetDecreaseValuePersSec());
 
-                var maxStr = "";
-                if (wu.GetUnit(WorldUnitType.Purification) is WorldUnitPurification pur && pur.GetValue() >= 0)
-                {
-                    var ea = pur.GetEnergyAvailable();
-                    if (ea > 1E9)
-                    {
-                        maxStr = string.Format("{0} {1:0.000e+0} {2}",
-                            Translate("OverviewPanel_Max"),
-                            ea,
-                            Translate("OverviewPanel_PerHour")
-                        );
-                    }
-                    else
-                    {
-                        maxStr = string.Format("{0} {1:#,##0.00} {2}",
-                            Translate("OverviewPanel_Max"),
-                            ea,
-                            Translate("OverviewPanel_PerHour")
-                        );
-                    }
-                }
-
                 return string.Format(
-                    "{0:#,##0.00} {1} = {2:#,##0.00} {1} {3} {4:#,##0.00} {5} {1} {6}",
+                    "{0:#,##0.00} {1} = {2:#,##0.00} {1} {3} {4:#,##0.00} {5} {1}",
                     wut.GetIncreaseValuePersSec(),
                     Translate("OverviewPanel_PerHour"),
                     demand,
                     excess < 0 ? " - <color=#FF8080>" : " + <color=#80FF80>",
                     Math.Abs(excess),
-                    "</color>",
-                    maxStr
+                    "</color>"
                 );
             };
         }
