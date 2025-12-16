@@ -310,16 +310,21 @@ namespace FixUnofficialPatches
             {
                 return;
             }
-            Managers.GetManager<PlayersManager>().RegisterToLocalPlayerStarted(() => {
-                WorldObject worldObject = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-                Inventory inventoryById = InventoriesHandler.Instance.GetInventoryById(worldObject.GetLinkedInventoryId());
-                if (inventoryById != null)
+            var pm = Managers.GetManager<PlayersManager>();
+            if (pm != null)
+            {
+                pm.RegisterToLocalPlayerStarted(() =>
                 {
-                    var le = inventoryById.GetLogisticEntity();
+                    WorldObject worldObject = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+                    Inventory inventoryById = InventoriesHandler.Instance.GetInventoryById(worldObject.GetLinkedInventoryId());
+                    if (inventoryById != null)
+                    {
+                        var le = inventoryById.GetLogisticEntity();
 
-                    AccessTools.FieldRefAccess<LogisticEntity, WorldObject>("_wo")(le) = worldObject;
-                }
-            });
+                        AccessTools.FieldRefAccess<LogisticEntity, WorldObject>("_wo")(le) = worldObject;
+                    }
+                });
+            }
         }
     }
 }
