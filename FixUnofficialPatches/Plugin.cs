@@ -301,30 +301,5 @@ namespace FixUnofficialPatches
                 ____taskPriorities.TryAdd(0, []);
             }
         }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MachineDeparturePlatform), "Awake")]
-        static void MachineDeparturePlatform_Awake(MachineDeparturePlatform __instance)
-        {
-            if (!droneLogisticFixes.Value)
-            {
-                return;
-            }
-            var pm = Managers.GetManager<PlayersManager>();
-            if (pm != null)
-            {
-                pm.RegisterToLocalPlayerStarted(() =>
-                {
-                    WorldObject worldObject = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-                    Inventory inventoryById = InventoriesHandler.Instance.GetInventoryById(worldObject.GetLinkedInventoryId());
-                    if (inventoryById != null)
-                    {
-                        var le = inventoryById.GetLogisticEntity();
-
-                        AccessTools.FieldRefAccess<LogisticEntity, WorldObject>("_wo")(le) = worldObject;
-                    }
-                });
-            }
-        }
     }
 }
