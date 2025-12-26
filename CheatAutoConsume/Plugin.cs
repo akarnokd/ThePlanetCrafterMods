@@ -207,7 +207,7 @@ namespace CheatAutoConsume
                 dict["CheatAutoConsume_No_Oxygen"] = "No Oxygen In Inventory!";
                 dict["CheatAutoConsume_No_Water"] = "No Water In Inventory!";
                 dict["CheatAutoConsume_No_Food"] = "No Food In Inventory!";
-                dict["CheatAutoConsume_No_Food"] = "No Purify In Inventory!";
+                dict["CheatAutoConsume_No_Purify"] = "No Purify In Inventory!";
             }
         }
 

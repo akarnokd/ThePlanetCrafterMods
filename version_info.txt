@@ -1,7 +1,7 @@
 # (Cheat) Asteroid Landing Position Override
 akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.21
 # (Cheat) Auto Consume Oxygen-Water-Food
-akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.23
+akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.24
 # (Cheat) Auto Grab and Mine
 akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.26
 # (Cheat) Automatically Harvest Food n Algae
@@ -41,7 +41,7 @@ akarnokd.theplanetcraftermods.featspacecows=1.0.0.32
 # (Feat) Technicians Exile
 akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.41
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.65
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.66
 # (Item) Rods
 akarnokd.theplanetcraftermods.itemrods=1.0.0.12
 # (Lathrey) Auto Move
