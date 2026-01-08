@@ -96,7 +96,7 @@ namespace MiscDebug
             foreach (var inv in InventoriesHandler.Instance.GetAllInventories().Values)
             {
                 var le = inv.GetLogisticEntity();
-                if (le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
+                if (le != null && le.GetWorldObject() == null && (le.GetSupplyGroups().Count != 0 || le.GetDemandGroups().Count != 0))
                 {
                     logger.LogWarning("UiWindowLogistics::OnOpen|Inventory " + inv.GetId() + " has a null worldobject");
                 }
