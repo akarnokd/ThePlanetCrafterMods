@@ -8,6 +8,7 @@ using HarmonyLib;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace LibCommon
@@ -15,7 +16,7 @@ namespace LibCommon
     /// <summary>
     /// Workaround for a problem with BepInEx 5.4.22 and Unity 2023.2.4f1 (or any 2023 versions)
     /// in which the BepInEx logs do not show up in the Player.log because the UnityLogListener
-    /// of BepInEx can't find the corret Unity logging method, maybe because it runs too early.
+    /// of BepInEx can't find the correct Unity logging method, maybe because it runs too early.
     /// </summary>
     public static class BepInExLoggerFix
     {
@@ -91,15 +92,18 @@ namespace LibCommon
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
                     Debug.Log("  Achievements      : Enabled");
+                    Pi(false);
                 }
                 else
                 {
                     Debug.Log("  Acheivements      : Active");
+                    Pi(true);
                 }
             }
             else
             {
                 Debug.Log("  Achievements      : Disabled");
+                Pi(false);
             }
 
             var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
@@ -131,6 +135,24 @@ namespace LibCommon
         static string OfContainer()
         {
             return ".dll";
+        }
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool SetWindowText(IntPtr hWnd, string lpString);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        static void Pi(bool isPi)
+        {
+            string t = Application.productName;
+
+            var handle = FindWindow(null, t);
+
+            if (handle != IntPtr.Zero)
+            {
+                SetWindowText(handle, t + " " + Application.version + (isPi ? "p" : ""));
+            }
         }
     }
 }
