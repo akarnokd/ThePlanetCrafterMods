@@ -48,6 +48,10 @@ namespace CheatAutoStore
 
         static ConfigEntry<string> keepList;
 
+        static ConfigEntry<string> includeContainerList;
+
+        static ConfigEntry<string> excludeContainerList;
+
         static InputAction storeAction;
 
         static bool inventoryStoringActive;
@@ -82,6 +86,8 @@ namespace CheatAutoStore
             storeByNameAliases = Config.Bind("General", "StoreByNameAliases", "", "A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C");
             storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
             keepList = Config.Bind("General", "KeepList", "", "A comma separated list of itemId:amount elements to keep a minimum amount of that item. itemId is case sensitive. Example: WaterBottle1:5,OxygenCapsule1:5 to keep 5 water bottles and oxygen capsules in the backpack");
+            includeContainerList = Config.Bind("General", "ContainerIncludeList", "", "The comma separated list of case-sensitive container ids to include as a possible deposit target. See https://www.nexusmods.com/planetcrafter/articles/4 for identifiers.");
+            excludeContainerList = Config.Bind("General", "ContainerExcludeList", "", "The comma separated list of case-sensitive container ids to exclude as a possible deposit target. Takes priority over include and the default Container*. See https://www.nexusmods.com/planetcrafter/articles/4 for identifiers.");
 
             fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
 
@@ -202,12 +208,43 @@ namespace CheatAutoStore
             InventorySearch(ac);
         }
 
+        HashSet<string> ParseIncludeContainerList()
+        {
+            var result = new HashSet<string>();
+            foreach (var s in includeContainerList.Value.Split(","))
+            {
+                var z = s.Trim();
+                if (z.Length != 0)
+                {
+                    result.Add(z);
+                }
+            }
+            return result;
+        }
+
+        HashSet<string> ParseExcludeContainerList()
+        {
+            var result = new HashSet<string>();
+            foreach (var s in excludeContainerList.Value.Split(","))
+            {
+                var z = s.Trim();
+                if (z.Length != 0)
+                {
+                    result.Add(z);
+                }
+            }
+            return result;
+        }
+
         void InventorySearch(PlayerMainController ac)
         {
             var playerPos = ac.transform.position;
 
             List<(int, string, int)> candidateInventoryIds = [];
             List<(WorldObject, string)> candidateGetInventoryOfWorldObject = [];
+
+            var includeContainerSet = ParseIncludeContainerList();
+            var excludeContainerSet = ParseExcludeContainerList();
 
             var wos = WorldObjectsHandler.Instance.GetConstructedWorldObjects();
             Log("  Constructed WorldObjects: " + wos.Count);
@@ -239,7 +276,12 @@ namespace CheatAutoStore
                 {
                     var dist = Vector3.Distance(playerPos, woPos);
                     Log("    WorldObject " + wo.GetId() + " (" + wo.GetGroup().GetId() + ") @ " + dist + " m");
-                    if (grid.StartsWith("Container", StringComparison.Ordinal) && dist <= range.Value)
+                    if (dist <= range.Value &&
+                        !excludeContainerSet.Contains(grid)
+                        && (grid.StartsWith("Container", StringComparison.Ordinal)
+                            || includeContainerSet.Contains(grid)
+                        )
+                    )
                     {
                         if (wo.GetLinkedInventoryId() != 0)
                         {

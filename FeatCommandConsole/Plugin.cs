@@ -921,6 +921,7 @@ namespace FeatCommandConsole
                 AddLine("<margin=2em><color=#FFFF00>/tp location-name</color> - teleport to location-name");
                 AddLine("<margin=2em><color=#FFFF00>/tp x y z</color> - teleport to a specific coordinate");
                 AddLine("<margin=2em><color=#FFFF00>/tp x:y:z</color> - teleport to a specific coordinate described by the colon format");
+                AddLine("<margin=2em><color=#FFFF00>/tp x,y,z</color> - teleport to a specific coordinate described by the comma format");
                 AddLine("<margin=1em>See also <color=#FFFF00>/tp-create</color>, <color=#FFFF00>/tp-list</color>, <color=#FFFF00>/tp-remove</color>.");
             }
             else
@@ -944,22 +945,42 @@ namespace FeatCommandConsole
                     );
                 }
                 else
-                if (TryGetSavedTeleportLocation(args[1], out var pos))
                 {
-                    var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
-                    pm.SetPlayerPlacement(pos, pm.transform.rotation);
+                    var m2 = Regex.Match(args[1], "([-+]?[0-9]*\\.?[0-9]*),([-+]?[0-9]*\\.?[0-9]*),([-+]?[0-9]*\\.?[0-9]*)");
+                    if (m2.Success)
+                    {
+                        var x = float.Parse(m2.Groups[1].Value, CultureInfo.InvariantCulture);
+                        var y = float.Parse(m2.Groups[2].Value, CultureInfo.InvariantCulture);
+                        var z = float.Parse(m2.Groups[3].Value, CultureInfo.InvariantCulture);
 
-                    AddLine("<margin=1em>Teleported to: <color=#00FF00>" + args[1] + "</color> at ( "
-                        + pos.x.ToString(CultureInfo.InvariantCulture)
-                        + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
-                        + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
-                        + " )"
-                    );
-                }
-                else
-                {
-                    AddLine("<margin=1em><color=#FF0000>Unknown location.");
-                    AddLine("<margin=1em>Use <b><color=#FFFF00>/tp-list</color></b> to get all known named locations.");
+                        var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                        pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
+
+                        AddLine("<margin=1em>Teleported to: ( "
+                            + m.Groups[1].Value
+                            + ", " + m.Groups[2].Value
+                            + ", " + m.Groups[3].Value
+                            + " )"
+                        );
+                    }
+                    else
+                    if (TryGetSavedTeleportLocation(args[1], out var pos))
+                    {
+                        var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
+                        pm.SetPlayerPlacement(pos, pm.transform.rotation);
+
+                        AddLine("<margin=1em>Teleported to: <color=#00FF00>" + args[1] + "</color> at ( "
+                            + pos.x.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.y.ToString(CultureInfo.InvariantCulture)
+                            + ", " + pos.z.ToString(CultureInfo.InvariantCulture)
+                            + " )"
+                        );
+                    }
+                    else
+                    {
+                        AddLine("<margin=1em><color=#FF0000>Unknown location.");
+                        AddLine("<margin=1em>Use <b><color=#FFFF00>/tp-list</color></b> to get all known named locations.");
+                    }
                 }
             }
             else
@@ -4788,6 +4809,70 @@ namespace FeatCommandConsole
             cc.detectCollisions = !cc.detectCollisions;
             cc.enabled = !cc.enabled;
             AddLine("<margin=1em>Noclip is " + (cc.detectCollisions ? "OFF" : "ON"));
+        }
+
+        [Command("/bat", "Execute a several commands from a text file.")]
+        public void Bat(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Execute a several commands from a text file.");
+                AddLine("<margin=2em>Place a .txt file into the game's save directory at.");
+                AddLine("<margin=3em>" + Application.persistentDataPath);
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/bat file1[.txt] file2[.txt]</color> execute commands from one or more text files. Extension optional.");
+                AddLine("<margin=3em>Lines in the files starting with hashtag # are ignored.");
+
+                return;
+            }
+            StartCoroutine(BatExecutor(args));
+        }
+
+        IEnumerator BatExecutor(List<string> args)
+        {
+            for (int i = 1; i < args.Count; i++)
+            {
+                var cmd = args[i];
+
+                if (!cmd.EndsWith(".txt", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    cmd += ".txt";
+                }
+
+                var path = Path.Combine(Application.persistentDataPath, cmd);
+                if (File.Exists(path))
+                {
+                    string[] lines = [];
+                    try
+                    {
+                        lines = File.ReadAllLines(path);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e);
+                        AddLine("<margin=1><color=#FF0000>Error while reading file: " + cmd);
+                        AddLine("<margin=1><color=#FF0000>Check log for exception details: " + e.Message);
+                    }
+
+                    foreach (var line in lines)
+                    {
+                        var tline = line.Trim();
+                        if (tline.Length != 0 && !tline.StartsWith("#"))
+                        {
+                            ExecuteConsoleCommand(tline);
+                        }
+                        yield return null;
+                    }
+                }
+                else
+                {
+                    AddLine("<margin=1><color=#FF0000>Bat file not found: " + cmd);
+                }
+                if (i < args.Count - 1)
+                {
+                    yield return null;
+                }
+            }
         }
 
         // ***********************************************************************************************

@@ -11,7 +11,7 @@ akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.17
 # (Cheat) Auto Sequence DNA
 akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.36
 # (Cheat) Auto Store
-akarnokd.theplanetcraftermods.cheatautostore=1.0.0.19
+akarnokd.theplanetcraftermods.cheatautostore=1.0.0.20
 # (Cheat) Craft From Nearby Containers
 akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.74
 # (Cheat) Inventory Stacking
@@ -31,7 +31,7 @@ akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.29
 # (Cheat) Wreck Map
 akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.12
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.34
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.35
 # (Feat) Flatlands
 akarnokd.theplanetcraftermods.featflatlands=1.0.0.4
 # (Feat) Multiplayer
