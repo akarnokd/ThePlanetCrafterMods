@@ -15,23 +15,6 @@
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
     </ItemGroup>
-	<ItemGroup>
-		<Reference Include="NewtonsoftJson">
-			<SpecificVersion>False</SpecificVersion>
-			<HintPath>$(GameManaged)\Newtonsoft.Json.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-		<Reference Include="Assembly-csharp-firstpass">
-			<SpecificVersion>False</SpecificVersion>
-			<HintPath>$(GameManaged)\Assembly-CSharp-firstpass.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-		<Reference Include="Steamworks">
-			<SpecificVersion>False</SpecificVersion>
-			<HintPath>$(GameManaged)\com.rlabrecque.steamworks.net.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-	</ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />
