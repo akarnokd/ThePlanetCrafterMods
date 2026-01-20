@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatCommandConsole</AssemblyName>
     <Description>(Feat) Command Console</Description>
-    <Version>1.0.1.35</Version>
+    <Version>1.0.1.36</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -17,6 +17,7 @@
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
         <Compile Include="..\LibCommon\GeneticsGrouping.cs" Link="GeneticsGrouping.cs" />
 		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
+		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
 
 		<Reference Include="Unity.Collections">
 			<SpecificVersion>False</SpecificVersion>

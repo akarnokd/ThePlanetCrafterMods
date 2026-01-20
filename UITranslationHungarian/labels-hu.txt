@@ -1900,3 +1900,8 @@ UI_TerraStageBuildRequirement=Csak e felett építhető:
 GROUP_NAME_ContainerToxic1~Toxikus ragacs tároló
 GROUP_DESC_ContainerToxic1=Nagy toxikus ragacs tároló a toxikus területek megtisztításának elősegítésére
 Message_toxicity_ending=Gratulálunk, sikeresen terraformáltál egy toxikus bolygót. Ez a bolygó kifejezetten fontos a Sentinel Vállalat számára. A megtisztítása és terraformálása lehetővé teszi, hogy újra kapcsolatba lépjünk a Planet Crafter program eredetével, ami sok sok éve kezdődött. Azóta számos bolygó került rehabilitálásra és a program napról napra bizonyítja, mennyivel hatékonyabb, mint más módszerek. A bolygók rehabilitálásával és a bűnözők újraintegrálásával a Sentinel Vállalat a nagyobb jóért dolgozik.
+GROUP_NAME_ToxicityDiorama1=Terraformálási Dioráma A
+GROUP_DESC_ToxicityDiorama1=Az eredeti Planet Crafter program kutatói által létrehozott dioráma
+GROUP_NAME_ToxicityDiorama2=Terraformálási Dioráma B
+GROUP_DESC_ToxicityDiorama2~Az eredeti Planet Crafter program kutatói által létrehozott dioráma
+GROUP_NAME_AnimalEffigie9*Állatfigura : Doggox

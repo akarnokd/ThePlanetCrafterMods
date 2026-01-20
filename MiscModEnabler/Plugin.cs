@@ -2,21 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using HarmonyLib;
-using UnityEngine;
-using UnityEngine.UI;
-using System.Reflection;
-using System.IO;
-using System;
-using System.Globalization;
-using TMPro;
 using BepInEx.Bootstrap;
 using Galaxy.Api;
-using System.Net.Http.Headers;
+using HarmonyLib;
+using SpaceCraft;
+using System;
 using System.Collections;
+using System.Globalization;
+using System.IO;
+using System.Net.Http.Headers;
+using System.Reflection;
+using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.UI;
 
 namespace MiscModEnabler
 {
@@ -33,6 +33,10 @@ namespace MiscModEnabler
 
             LibCommon.BepInExLoggerFix.ApplyFix();
 
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            {
+                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+            }
 
             // Plugin startup logic
             Logger.LogInfo("Checking for BepInEx.cfg HideManagerGameObject");
@@ -132,6 +136,11 @@ namespace MiscModEnabler
                         {
                             str += " - " + text;
                         }
+                    }
+                    else 
+                    if (LibCommon.ModVersionCheck.CheckSteamBeta(self.Logger.LogInfo, out var nm))
+                    {
+                        str += " - " + nm;
                     }
                 } catch (Exception exc)
                 {

@@ -43,6 +43,11 @@ namespace SaveAsyncSave
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            {
+                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+            }
+
             me = this;
 
             // Plugin startup logic

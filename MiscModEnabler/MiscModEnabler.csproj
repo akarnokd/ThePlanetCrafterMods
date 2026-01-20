@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>MiscModEnabler</AssemblyName>
     <Description>(Misc) Mod Enabler</Description>
-    <Version>1.0.0.16</Version>
+    <Version>1.0.0.17</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -14,7 +14,8 @@
 	<ItemGroup>
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
-    </ItemGroup>
+		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
+	</ItemGroup>
     <ItemGroup>
         <Reference Include="Assembly-csharp-firstpass">
             <SpecificVersion>False</SpecificVersion>

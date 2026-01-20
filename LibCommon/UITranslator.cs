@@ -57,6 +57,11 @@ namespace LibCommon
         {
             BepInExLoggerFix.ApplyFix();
 
+            if (ModVersionCheck.Check(parent, Logger.LogInfo))
+            {
+                ModVersionCheck.NotifyUser(parent, Logger.LogInfo);
+            }
+
             languageKey = languageCode;
 
             // Plugin startup logic
