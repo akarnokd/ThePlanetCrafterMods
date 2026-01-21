@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FixUnofficialPatches</AssemblyName>
     <Description>(Fix) Unofficial Patches</Description>
-    <Version>1.0.0.67</Version>
+    <Version>1.0.0.68</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>

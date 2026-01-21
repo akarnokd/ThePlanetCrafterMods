@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Cache;
 using System.Reflection;
@@ -121,7 +122,6 @@ namespace LibCommon
             else
             {
                 logInfo("[ModVersionCheck] Accessing existing data");
-                versionInfo.Clear();
 
                 foreach (var comp in versionCheckGameObject.GetComponents<MonoBehaviour>())
                 {
@@ -161,6 +161,10 @@ namespace LibCommon
 
         public static void NotifyUser(string localModGuid, string localVersion, string localDescription, Action<object> logInfo)
         {
+            if (outOfDate.Any(e => e.Item1 == localModGuid))
+            {
+                return;
+            }
             outOfDate.Add((localModGuid, localVersion, localDescription));
 
             notificationGameObject = GameObject.Find("ModVersionNotify");
