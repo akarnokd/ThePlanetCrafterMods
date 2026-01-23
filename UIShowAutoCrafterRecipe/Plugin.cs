@@ -12,6 +12,7 @@ using System.Text;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using System.Collections;
+using Unity.Netcode;
 
 namespace UIShowAutoCrafterRecipe
 {
@@ -35,7 +36,7 @@ namespace UIShowAutoCrafterRecipe
 
         static AccessTools.FieldRef<MachineAutoCrafter, List<(GameObject, Group)>> fMachineAutoCrafterGosInRangeForListing;
 
-        static bool stackingRangeCheckAugment;
+        static bool stackingRangeCheckAugmentState;
 
         static AccessTools.FieldRef<object, List<(GameObject, Group)>> fInventoryStackingGosInRangeForListing;
 
@@ -45,12 +46,20 @@ namespace UIShowAutoCrafterRecipe
 
         static Font font;
 
+        static ConfigEntry<int> stackingStackSize;
+
         private void Awake()
         {
-            LibCommon.BepInExLoggerFix.ApplyFix();
-
             // logger = Logger;
             me = this;
+
+            LibCommon.BepInExLoggerFix.ApplyFix();
+
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            {
+                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+            }
+
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -73,7 +82,8 @@ namespace UIShowAutoCrafterRecipe
 
                 fInventoryStackingAutocrafterWorldObjects = AccessTools.FieldRefAccess<Dictionary<Group, List<WorldObject>>>(pi.Instance.GetType(), "autocrafterWorldObjects");
 
-                stackingRangeCheckAugment = true;
+                stackingRangeCheckAugmentState = true;
+                stackingStackSize = pi.Instance.Config[new ConfigDefinition("General", "StackSize")] as ConfigEntry<int>;
             }
             else
             {
@@ -132,12 +142,17 @@ namespace UIShowAutoCrafterRecipe
             }
         }
 
+        static bool UseStackingAugment()
+        {
+            return stackingRangeCheckAugmentState && stackingStackSize.Value > 1;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UiWindowGroupSelector), nameof(UiWindowGroupSelector.UpdateListInRange))]
         static void UiWindowGroupSelector_UpdateListInRange_Pre(
             LinkedGroupsProxy ____worldObjectProxy, MachineAutoCrafter ____autoCrafter)
         {
-            if (stackingRangeCheckAugment && ____autoCrafter != null && modEnabled.Value)
+            if (UseStackingAugment() && ____autoCrafter != null && modEnabled.Value)
             {
                 fInventoryStackingGosInRangeForListing() = [];
 
@@ -197,7 +212,7 @@ namespace UIShowAutoCrafterRecipe
             }
 
             var inRange = fMachineAutoCrafterWorldObjectsInRange();
-            if (stackingRangeCheckAugment)
+            if (UseStackingAugment())
             {
                 inRange.Clear();
                 var dict = fInventoryStackingAutocrafterWorldObjects();
