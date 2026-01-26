@@ -267,7 +267,7 @@ namespace FixUnofficialPatches
             return true;
         }
 
-
+        /*
         [HarmonyPostfix]
         [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.LoadFromJson))]
         static void JSONExport_LoadFromJson(
@@ -290,6 +290,7 @@ namespace FixUnofficialPatches
                 }
             }
         }
+        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.InitLogistics))]
