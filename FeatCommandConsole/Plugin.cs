@@ -98,6 +98,8 @@ namespace FeatCommandConsole
 
         static float noClipBaseSpeed;
 
+        static AccessTools.FieldRef<MachineAutoCrafter, HashSet<WorldObject>> fMachineAutoCrafterWorldObjectsInRange;
+
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // API
         // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -221,6 +223,9 @@ namespace FeatCommandConsole
             {
                 Logger.LogInfo("Mod " + modCheatInventoryStackingGuid + " not found.");
             }
+
+            fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
+
 
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
@@ -962,9 +967,9 @@ namespace FeatCommandConsole
                         pm.SetPlayerPlacement(new Vector3(x, y, z), pm.transform.rotation);
 
                         AddLine("<margin=1em>Teleported to: ( "
-                            + m.Groups[1].Value
-                            + ", " + m.Groups[2].Value
-                            + ", " + m.Groups[3].Value
+                            + m2.Groups[1].Value
+                            + ", " + m2.Groups[2].Value
+                            + ", " + m2.Groups[3].Value
                             + " )"
                         );
                     }
@@ -4877,6 +4882,403 @@ namespace FeatCommandConsole
                 {
                     yield return null;
                 }
+            }
+        }
+
+        [Command("/list-machines", "List machines based on type and planet.")]
+        public void ListMachines(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>List machines based on type and planet.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/list-machines groupid [planet] [itemid]</color> list machines with the given group id.");
+                AddLine("<margin=3em>Optionally limit to a particular planet and having a particular item id selected for production.");
+                AddLine("<margin=3em>Use star (*) for any groupid or any planet.");
+                AddLine("<margin=3em>All parameters are case insensitive.");
+
+                return;
+            }
+
+            var gid1 = args[1].ToLowerInvariant();
+            bool anyGroup = gid1 == "*";
+            SpaceCraft.Group g1 = null;
+
+            if (!anyGroup)
+            {
+                g1 = FindGroup(gid1);
+
+                if (g1 == null)
+                {
+                    DidYouMean(gid1, true, false);
+                    return;
+                }
+                else if (g1 is not GroupConstructible)
+                {
+                    AddLine("<margin=1em><color=#FF0000>This identifier is not a machine.");
+                    return;
+                }
+            }
+
+            var pl = Managers.GetManager<PlanetLoader>().planetList;
+
+            bool filterByPlanet = false;
+            int filterByPlanetId = 0;
+            if (args.Count >= 3)
+            {
+                if (args[2] != "*")
+                {
+                    filterByPlanet = true;
+                    foreach (var p in pl.GetPlanetList(true))
+                    {
+                        if (p.id.Equals(args[2], StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            filterByPlanetId = p.id.GetStableHashCode();
+                        }
+                    }
+                }
+            }
+
+            string selectedItemId = null;
+            if (args.Count >= 4)
+            {
+                var gid2 = args[3].ToLowerInvariant();
+                SpaceCraft.Group g2 = FindGroup(gid2);
+
+                if (g2 == null)
+                {
+                    DidYouMean(gid2, false, true);
+                    return;
+                }
+                else if (g2 is not GroupItem)
+                {
+                    AddLine("<margin=1em><color=#FF0000>This identifier is not an item.");
+                    return;
+                }
+                selectedItemId = g2.id;
+            }
+
+            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            {
+                if (!anyGroup && wo.GetGroup().id != g1.id)
+                {
+                    continue;
+                }
+                if (filterByPlanet && wo.GetPlanetHash() != filterByPlanetId)
+                {
+                    continue;
+                }
+                if (selectedItemId != null && !wo.GetLinkedGroups().Any(g => g != null && g.id == selectedItemId))
+                {
+                    continue;
+                }
+
+                var planetData = pl.GetPlanetFromIdHash(wo.GetPlanetHash());
+                AddLine("<margin=1em><color=#00FF00>" + wo.GetId() 
+                    + "</color>"
+                    + (anyGroup ? " (" + wo.GetGroup().id + ")" : "")
+                    + " @ " + wo.GetPosition() 
+                    + " on <color=#00FF00>" + (planetData != null ? planetData.id : "??? " + wo.GetPlanetHash())
+                    + "</color> doing <color=#00FF00>" + (wo.GetLinkedGroups() ?? []).Select(lg => lg.id).DefaultIfEmpty("Nothing").Join(delimiter: ", ")
+                    + "</color>"
+                    );
+            }
+        }
+
+        [Command("/info-autocrafter", "Show the current status of a particular Auto-Crafter.")]
+        public void InfoAutoCrafter(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>Show the current status of a particular Auto-Crafter.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/info-autocrafter id</color> show the status of the Auto-Crafter");
+                AddLine("<margin=3em>Use /list-machines AutoCrafter1 [planet] to find the id.");
+                AddLine("<margin=3em>All parameters are case insensitive.");
+
+                return;
+            }
+
+            var pl = Managers.GetManager<PlanetLoader>().planetList;
+
+            var id = int.Parse(args[1]);
+
+            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            {
+                if (wo.GetId() == id)
+                {
+                    var planetData = pl.GetPlanetFromIdHash(wo.GetPlanetHash());
+                    AddLine("<margin=1em><color=#00FF00>" + wo.GetId()
+                        + "</color> @ " + wo.GetPosition()
+                        + " on <color=#00FF00>" + (planetData != null ? planetData.id : "??? " + wo.GetPlanetHash())
+                        + "</color>"
+                        );
+
+                    var lg = wo.GetLinkedGroups() ?? [];
+                    if (lg.Count != 0)
+                    {
+                        AddLine("<margin=2em>Production: <color=#00FF00>" 
+                            + string.Join(", ", lg.Select(g => g.id)) + "</color>"
+                            );
+
+                        bool foundMac = false;
+                        foreach (var mac in FindObjectsByType<MachineAutoCrafter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        {
+                            var woa = mac.GetComponent<WorldObjectAssociated>();
+                            if (woa != null)
+                            {
+                                var woawo = woa.GetWorldObject();
+                                if (woawo != null && woawo.GetId() == wo.GetId())
+                                {
+                                    foundMac = true;
+                                    var recipeAggregate = new Dictionary<string, int>();
+
+                                    foreach (var rg in lg[0].GetRecipe().GetIngredientsGroupInRecipe())
+                                    {
+                                        recipeAggregate.TryGetValue(rg.id, out var rcnt);
+                                        recipeAggregate[rg.id] = rcnt + 1;
+                                    }
+
+                                    mac.GetGroupsInRangeForListing();
+
+                                    var woInRange = fMachineAutoCrafterWorldObjectsInRange();
+
+                                    var ingredientsAggregate = new Dictionary<string, int>();
+                                    foreach (var wr in woInRange)
+                                    {
+                                        ingredientsAggregate.TryGetValue(wr.GetGroup().id, out var icnt);
+                                        ingredientsAggregate[wr.GetGroup().id] = icnt + 1;
+                                    }
+
+                                    foreach (var recElem in recipeAggregate)
+                                    {
+                                        ingredientsAggregate.TryGetValue(recElem.Key, out var icnt);
+
+                                        var coloring = recElem.Value > icnt ? "FFC0C0" : "00FF00";
+                                        AddLine("<margin=3em>- " + recElem.Key 
+                                            + ": <color=#" + coloring + ">" + recElem.Value 
+                                            + " / " + icnt + (recElem.Value > icnt ? "   ! Missing !" : "")
+                                            + "</color>"
+                                            );
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                        if (!foundMac)
+                        {
+                            AddLine("<margin=3em>Unable to locate the MachineAutoCrafter object");
+                        }
+                    } 
+                    else
+                    {
+                        AddLine("<margin=2em>Production: Nothing");
+                    }
+                    Dictionary<string, int> counts = [];
+                    foreach (var inside in InventoriesHandler.Instance.GetInventoryById(wo.GetLinkedInventoryId()).GetInsideWorldObjects())
+                    {
+                        var insideId = inside.GetGroup().id;
+                        counts.TryGetValue(insideId, out var count);
+                        counts[insideId] = count + 1;
+                    }
+
+                    AddLine("<margin=2em>Inventory: " + counts.Select(e => e.Value + " x " + e.Key).DefaultIfEmpty("Empty").Join(delimiter: ", "));
+                    
+                    return;
+                }
+            }
+            AddLine("<margin=1em><color=#FF0000>Auto-Crafter not found.");
+        }
+
+        [Command("/list-extractors", "List all machines which extract resources from the ground, water or air.")]
+        public void ListExtractors(List<string> args)
+        {
+            if (args.Count < 2)
+            {
+                AddLine("<margin=1em>List all machines which extract resources from the ground, water or air.");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/list-extractors groupid [planet] [itemid]</color> list machines with the given group id.");
+                AddLine("<margin=3em>Optionally limit to a particular planet and having a particular item id selected for production.");
+                AddLine("<margin=3em>Use star (*) for any groupid or any planet.");
+                AddLine("<margin=3em>All parameters are case insensitive.");
+
+                return;
+            }
+
+            var gid1 = args[1].ToLowerInvariant();
+            var anyGroup = gid1 == "*";
+            SpaceCraft.Group g1 = null;
+            if (!anyGroup)
+            {
+                g1 = FindGroup(gid1);
+                if (g1 == null)
+                {
+                    DidYouMean(gid1, true, false);
+                    return;
+                }
+                else if (g1 is not GroupConstructible)
+                {
+                    AddLine("<margin=1em><color=#FF0000>This identifier is not a machine.");
+                    return;
+                }
+            }
+
+            var pl = Managers.GetManager<PlanetLoader>().planetList;
+
+            bool filterByPlanet = false;
+            int filterByPlanetId = 0;
+            if (args.Count >= 3)
+            {
+                if (args[2] != "*")
+                {
+                    filterByPlanet = true;
+                    foreach (var p in pl.GetPlanetList(true))
+                    {
+                        if (p.id.Equals(args[2], StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            filterByPlanetId = p.id.GetStableHashCode();
+                        }
+                    }
+                }
+            }
+
+            string selectedItemId = null;
+            if (args.Count >= 4)
+            {
+                var gid2 = args[3].ToLowerInvariant();
+                SpaceCraft.Group g2 = FindGroup(gid2);
+
+                if (g2 == null)
+                {
+                    DidYouMean(gid2, false, true);
+                    return;
+                }
+                else if (g2 is not GroupItem)
+                {
+                    AddLine("<margin=1em><color=#FF0000>This identifier is not an item.");
+                    return;
+                }
+                selectedItemId = g2.id;
+            }
+
+            Dictionary<int, MachineGenerator> generatorMap = [];
+            foreach (var mg in FindObjectsByType<MachineGenerator>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var woa = mg.GetComponent<WorldObjectAssociated>();
+                if (woa != null)
+                {
+                    var woawo = woa.GetWorldObject();
+                    if (woawo != null)
+                    {
+                        generatorMap[woawo.GetId()] = mg;
+                    }
+                }
+            }
+
+            int found = 0;
+
+            foreach (var wo in WorldObjectsHandler.Instance.GetConstructedWorldObjects())
+            {
+                if (!anyGroup && wo.GetGroup().id != g1.id)
+                {
+                    continue;
+                }
+                if (filterByPlanet && wo.GetPlanetHash() != filterByPlanetId)
+                {
+                    continue;
+                }
+                List<GroupData> gdlist = [];
+                if (generatorMap.TryGetValue(wo.GetId(), out var mg))
+                {
+                    if (mg.groupDatas != null)
+                    {
+                        gdlist.AddRange(mg.groupDatas);
+                    }
+                    if (mg.groupDatasTerraStage != null)
+                    {
+                        gdlist.AddRange(mg.groupDatasTerraStage);
+                    }
+                }
+
+                var lg = wo.GetLinkedGroups() ?? [];
+
+                if (selectedItemId != null)
+                {
+                    if (!lg.Any(g => g != null && g.id == selectedItemId))
+                    {
+                        if (!gdlist.Any(e => e.id == selectedItemId))
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+
+                var planetData = pl.GetPlanetFromIdHash(wo.GetPlanetHash());
+                AddLine("<margin=1em><color=#00FF00>" + wo.GetId()
+                    + "</color>"
+                    + (anyGroup ? " (" + wo.GetGroup().id + ")" : "")
+                    + " @ " + wo.GetPosition()
+                    + " on <color=#00FF00>" + (planetData != null ? planetData.id : "??? " + wo.GetPlanetHash())
+                    + "</color> doing <color=#00FF00>" + lg.Select(lge => lge.id)
+                        .DefaultIfEmpty("Nothing").Join(delimiter: ", ")
+                    + "</color>"
+                    + " veins (" + gdlist.Count + ")"
+                    );
+                if (gdlist.Count != 0)
+                {
+                    
+                    AddLine("<margin=2em>Vein details: <color=#00FF00>" + 
+                        gdlist.GroupBy(e => e.id)
+                            .Select(e =>
+                            {
+                                var c = e.Count();
+                                if (c > 1)
+                                {
+                                    return e.Key + " x " + c;
+                                }
+                                return e.Key;
+                            })
+                            .DefaultIfEmpty("No vein").Join(delimiter: ",")
+                        + "</color>");
+                }
+                List<int> invs = [ wo.GetLinkedInventoryId(), ..wo.GetSecondaryInventoriesId() ];
+
+                foreach (var inv in invs)
+                {
+                    var iobj = InventoriesHandler.Instance.GetInventoryById(inv);
+                    List < WorldObject > content = [];
+                    if (iobj != null)
+                    {
+                        content.AddRange(iobj.GetInsideWorldObjects());
+                    }
+                    AddLine("<margin=2em>Inventory "
+                        + inv
+                        + " ("
+                        + (GetInventoryCapacity != null ? GetInventoryCapacity(iobj) : iobj.GetSize())
+                        + "): "
+                        + "<color=#00FF00>"
+                        +  content.GroupBy(e => e.GetGroup().GetId())
+                            .Select(e =>
+                            {
+                                var c = e.Count();
+                                if (c > 1)
+                                {
+                                    return e.Key + " x " + c;
+                                }
+                                return e.Key;
+                            })
+                            .DefaultIfEmpty("Empty").Join(delimiter: ",")
+                        + "</color>");
+                }
+
+                found++;
+            }
+
+            if (found == 0)
+            {
+                AddLine("<margin=1em>No machines found");
             }
         }
 
