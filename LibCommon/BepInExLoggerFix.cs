@@ -25,6 +25,7 @@ namespace LibCommon
         /// </summary>
         public static void ApplyFix()
         {
+            bool dumpPreviousMods = false;
             var field = AccessTools.DeclaredField(typeof(UnityLogListener), "WriteStringToUnityLog");
             if (field.GetValue(null) == null)
             {
@@ -57,22 +58,31 @@ namespace LibCommon
                 else
                 {
                     field.SetValue(null, WriteStringToUnityLog);
-                    
-                    var ver = typeof(Paths).Assembly.GetName().Version;
-                    Debug.Log("  BepInEx version   : " + ver);
-                    Debug.Log("  Application       : " + Application.productName + " (" + Application.version + ")");
-                    Debug.Log("  Unity version     : " + Application.unityVersion);
-                    Debug.Log("  Runtime version   : " + System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription);
-                    Debug.Log("  CLR version       : " + Environment.Version);
-                    Debug.Log("  System & Platform : " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + ", " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
-                    Debug.Log("  Processor         : " + SystemInfo.processorType);
-                    Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + string.Format("{0:#,##0.0}", SystemInfo.systemMemorySize / 1024d) + " GB RAM");
-                    
-                    ApplyAchievementWorkaround();
+                    dumpPreviousMods = true;
+                }
+            }
+            if (UnityEngine.GameObject.Find("BepInExLoggerFix") == null)
+            {
+                GameObject.DontDestroyOnLoad(new GameObject("BepInExLoggerFix"));
 
-                    Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
+                var ver = typeof(Paths).Assembly.GetName().Version;
+                Debug.Log("");
+                Debug.Log("  BepInEx version   : " + ver);
+                Debug.Log("  Application       : " + Application.productName + " (" + Application.version + ")");
+                Debug.Log("  Unity version     : " + Application.unityVersion);
+                Debug.Log("  Runtime version   : " + System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription);
+                Debug.Log("  CLR version       : " + Environment.Version);
+                Debug.Log("  System & Platform : " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture + ", " + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
+                Debug.Log("  Processor         : " + SystemInfo.processorType);
+                Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + string.Format("{0:#,##0.0}", SystemInfo.systemMemorySize / 1024d) + " GB RAM");
 
-                    Debug.Log("");
+                ApplyAchievementWorkaround();
+
+                Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
+
+                Debug.Log("");
+                if (dumpPreviousMods)
+                {
                     foreach (var mod in Chainloader.PluginInfos.Values)
                     {
                         Debug.Log("[Info   :   BepInEx] Loading [" + mod.Metadata.Name + " " + mod.Metadata.Version + "]");

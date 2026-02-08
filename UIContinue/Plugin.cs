@@ -42,6 +42,11 @@ namespace UIContinue
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            {
+                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+            }
+
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
 
