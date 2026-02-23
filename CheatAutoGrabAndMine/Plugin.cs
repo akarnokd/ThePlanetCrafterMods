@@ -243,7 +243,7 @@ namespace CheatAutoGrabAndMine
                             if (wo == null)
                             {
                                 var woap = grabable.GetComponentInParent<WorldObjectAssociatedProxy>();
-                                if (woap != null)
+                                if (woap != null && woap.IsSpawned)
                                 {
                                     var grabable2 = grabable;
                                     woap.GetId(id =>
