@@ -71,7 +71,7 @@ akarnokd.theplanetcraftermods.saveautosave=1.0.0.19
 # (Save) Quick Save
 akarnokd.theplanetcraftermods.savequicksave=1.0.0.20
 # (UI) Beacon Text
-akarnokd.theplanetcraftermods.uibeacontext=1.0.0.24
+akarnokd.theplanetcraftermods.uibeacontext=1.0.0.25
 # (UI) Continue
 akarnokd.theplanetcraftermods.uicontinue=1.0.0.33
 # (UI) Customize Inventory Sort Order

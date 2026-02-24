@@ -34,6 +34,8 @@ namespace UIBeaconText
 
         static ConfigEntry<bool> hideVanillaHexagon;
 
+        static ConfigEntry<int> combineLabels;
+
         static ManualLogSource logger;
         static Font font;
         static InputAction toggleAction;
@@ -48,12 +50,13 @@ namespace UIBeaconText
 
             fontSize = Config.Bind("General", "FontSize", 20, "The font size.");
             displayMode = Config.Bind("General", "DisplayMode", 3, "Display: 0 - no text no distance, 1 - distance only, 2 - text only, 3 - distance + text.");
-            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode. Shift+<toggle key> to swap top-down. Ctrl+Shift+<toggle key> to toggle hexagon.");
+            displayModeToggle = Config.Bind("General", "DisplayModeToggleKey", "B", "The toggle key for changing the display mode. Shift+<toggle key> to swap top-down. Ctrl+Shift+<toggle key> to toggle hexagon. Alt+<toggle key> to turn all beacons on or off.");
             showDistanceOnTop = Config.Bind("General", "ShowDistanceOnTop", true, "Show the distance above the beacon hexagon if true, below if false");
             hideVanillaLabel = Config.Bind("General", "HideVanillaLabel", true, "If true, the vanilla beacon text is hidden and replaced by this mod's label");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debug logging? Chatty!");
             fontName = Config.Bind("General", "Font", "Arial.ttf", "The built-in font name, including its extesion.");
-            hideVanillaHexagon = Config.Bind("General", "HideVanillaHexagon", false, "If true, the vanilla hexagon is hidde. Toggle via Ctrl+Shift+<toggle key>.");
+            hideVanillaHexagon = Config.Bind("General", "HideVanillaHexagon", false, "If true, the vanilla hexagon is hidden. Toggle via Ctrl+Shift+<toggle key>.");
+            combineLabels = Config.Bind("General", "CombineLabels", 0, "0 - separate labels, 1 - combined labels above the hexagon, 2 - combined labels below the hexagon. Configure ordering via ShowDistanceOnTop");
 
             UpdateKeyBindings();
 
@@ -92,6 +95,8 @@ namespace UIBeaconText
 
                 var shiftPressed = Keyboard.current[Key.LeftShift].IsPressed() || Keyboard.current[Key.RightShift].IsPressed();
 
+                var altPressed = Keyboard.current[Key.LeftAlt].IsPressed() || Keyboard.current[Key.RightAlt].IsPressed();
+
                 var hh = Managers.GetManager<BaseHudHandler>();
 
                 if (accessPressed && shiftPressed)
@@ -104,6 +109,30 @@ namespace UIBeaconText
                     showDistanceOnTop.Value = !showDistanceOnTop.Value;
                     hh?.DisplayCursorText("", 3f, "BeaconText: Distance " + (showDistanceOnTop.Value ? "On Top" : "On Bottom"));
                 }
+                else if (altPressed)
+                {
+                    if (shiftPressed)
+                    {
+                        var c = combineLabels.Value + 1;
+                        if (c == 3)
+                        {
+                            c = 0;
+                        }
+                        combineLabels.Value = c;
+                        hh?.DisplayCursorText("", 3f, "BeaconText: Combining labels " + (c switch
+                        {
+                            0 => "OFF",
+                            1 => "ON TOP",
+                            2 => "ON BOTTOM",
+                            _ => "???"
+                        }));
+                    }
+                    else
+                    {
+                        MachineBeaconUpdater.HideBeacons = !MachineBeaconUpdater.HideBeacons;
+                        hh?.DisplayCursorText("", 3f, "BeaconText: All beacons are now " + (MachineBeaconUpdater.HideBeacons ? "OFF" : "ON"));
+                    }
+                }
                 else
                 {
                     var m = displayMode.Value + 1;
@@ -112,7 +141,7 @@ namespace UIBeaconText
                         m = 0;
                     }
                     displayMode.Value = m;
-                    
+
 
                     hh?.DisplayCursorText("", 3f, "BeaconText: Display Mode " + (
                         m switch
@@ -128,6 +157,10 @@ namespace UIBeaconText
             }
         }
 
+        const float defaultScale = 0.005f;
+        const float defaultOffset = 0.15f;
+        static readonly Vector3 defaultRotation = new(0, 0, 0);
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineBeaconUpdater), "Start")]
         static void MachineBeaconUpdater_Start(
@@ -136,15 +169,12 @@ namespace UIBeaconText
         {
             var vanillaLabel = ___canvas.GetComponentInChildren<TextMeshProUGUI>();
 
-            var s = 0.005f;
-            var offset = 0.15f;
-            var rot = new Vector3(0, 0, 0);
 
             var title = new GameObject("BeaconTitle");
             title.transform.SetParent(___canvas.transform, false);
-            title.transform.localPosition = new Vector3(0, offset, 0);
-            title.transform.localScale = new Vector3(s, s, s);
-            title.transform.localEulerAngles = rot;
+            title.transform.localPosition = new Vector3(0, defaultOffset, 0);
+            title.transform.localScale = new Vector3(defaultScale, defaultScale, defaultScale);
+            title.transform.localEulerAngles = defaultRotation;
 
             var titleText = title.AddComponent<Text>();
             
@@ -156,12 +186,13 @@ namespace UIBeaconText
             titleText.verticalOverflow = VerticalWrapMode.Overflow;
             titleText.horizontalOverflow = HorizontalWrapMode.Overflow;
             titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.supportRichText = true;
 
             var distance = new GameObject("BeaconDistance");
             distance.transform.SetParent(___canvas.transform, false);
-            distance.transform.localPosition = new Vector3(0, -offset, 0);
-            distance.transform.localScale = new Vector3(s, s, s);
-            distance.transform.localEulerAngles = rot;
+            distance.transform.localPosition = new Vector3(0, -defaultOffset, 0);
+            distance.transform.localScale = new Vector3(defaultScale, defaultScale, defaultScale);
+            distance.transform.localEulerAngles = defaultRotation;
 
             var distanceText = distance.AddComponent<Text>(); 
             distanceText.font = font;
@@ -172,6 +203,7 @@ namespace UIBeaconText
             distanceText.verticalOverflow = VerticalWrapMode.Overflow;
             distanceText.horizontalOverflow = HorizontalWrapMode.Overflow;
             distanceText.alignment = TextAnchor.MiddleCenter;
+            distanceText.supportRichText = true;
 
             Log("Finding the World Object of the beacon");
             WorldObject wo = null;
@@ -240,6 +272,43 @@ namespace UIBeaconText
                 textValue = holder.textProxy.GetText();
             }
 
+            titleText.gameObject.transform.localPosition = new Vector3(0, defaultOffset, 0);
+            distanceText.gameObject.transform.localPosition = new Vector3(0, -defaultOffset, 0);
+
+            if (combineLabels.Value == 1)
+            {
+                if (showDistanceOnTop.Value)
+                {
+                    titleText.text = dist + "m\n" + textValue;
+                }
+                else
+                {
+                    titleText.text = textValue + "\n" + dist + "m";
+                }
+
+                titleText.gameObject.SetActive(displayMode.Value != 0);
+                distanceText.gameObject.SetActive(false);
+                titleText.gameObject.transform.localPosition = new Vector3(0, defaultOffset * 1.5f, 0);
+                distanceText.gameObject.transform.localPosition = new Vector3(0, -defaultOffset * 1.5f, 0);
+            }
+            else
+            if (combineLabels.Value == 2)
+            {
+                if (showDistanceOnTop.Value)
+                {
+                    distanceText.text = dist + "m\n" + textValue;
+                }
+                else
+                {
+                    distanceText.text = textValue + "\n" + dist + "m";
+                }
+
+                distanceText.gameObject.SetActive(displayMode.Value != 0);
+                titleText.gameObject.SetActive(false);
+                titleText.gameObject.transform.localPosition = new Vector3(0, defaultOffset * 1.5f, 0);
+                distanceText.gameObject.transform.localPosition = new Vector3(0, -defaultOffset * 1.5f, 0);
+            }
+            else
             if (showDistanceOnTop.Value)
             {
                 titleText.text = dist + "m";
