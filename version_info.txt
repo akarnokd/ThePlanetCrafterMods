@@ -9,7 +9,7 @@ akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.40
 # (Cheat) Auto Launch Rockets
 akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.18
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.37
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.38
 # (Cheat) Auto Store
 akarnokd.theplanetcraftermods.cheatautostore=1.0.0.21
 # (Cheat) Craft From Nearby Containers
