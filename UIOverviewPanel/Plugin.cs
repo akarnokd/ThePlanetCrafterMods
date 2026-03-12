@@ -633,7 +633,7 @@ namespace UIOverviewPanel
         {
             return () =>
             {
-                return string.Format("{0:#,##0}", CraftManager.GetTotalCraftedObjects());
+                return string.Format("{0:#,##0}", WorldObjectsHandler.Instance.GetTotalCraftedObjects());
             };
         }
 

@@ -591,7 +591,7 @@ namespace CheatCraftFromNearbyContainers
                     }
                     fCraftManagerCrafting() = false;
                 });
-                CraftManager.AddOneToTotalCraft();
+                WorldObjectsHandler.Instance.AddOneToTotalCraft();
             }
 
             return false;
@@ -752,7 +752,7 @@ namespace CheatCraftFromNearbyContainers
                     groupItem, discovery, useFromEquipment, 
                     backpackInv, equipmentInv, equipment, ____tempSpaceInInventory));
 
-                CraftManager.AddOneToTotalCraft();
+                WorldObjectsHandler.Instance.AddOneToTotalCraft();
             }
             return false;
         }

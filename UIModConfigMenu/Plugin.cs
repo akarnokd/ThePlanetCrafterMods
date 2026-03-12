@@ -18,6 +18,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System.Text;
 using GameOptionsUtility;
+using TMPro;
 
 namespace UIModConfigMenu
 {
@@ -33,6 +34,8 @@ namespace UIModConfigMenu
 
         static Texture2D resetButtonImage;
 
+        static Font defaultFont;
+
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
@@ -47,6 +50,8 @@ namespace UIModConfigMenu
 
             logger = Logger;
             me = this;
+
+            defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
             CreateResetButtonImage();
 
@@ -294,22 +299,24 @@ namespace UIModConfigMenu
             var filterTextGo = new GameObject("ModConfigMenu_Filter_Text");
             filterTextGo.transform.SetParent(filterGo.transform, false);
 
-            var buttonTxtRef = buttonMods.GetComponentInChildren<Text>();
+            var buttonTxtRef = buttonMods.GetComponentInChildren<TextMeshProUGUI>();
 
             var filterTextPlaceholderGo = new GameObject("ModConfigMenu_Filter_Text_PlaceHolder");
             filterTextPlaceholderGo.transform.SetParent(filterGo.transform, false);
-
+            
             filterPlaceholderText = filterTextPlaceholderGo.AddComponent<Text>();
-            filterPlaceholderText.font = buttonTxtRef.font;
-            filterPlaceholderText.fontSize = buttonTxtRef.fontSize;
+            // filterPlaceholderText.font = buttonTxtRef.font;
+            filterPlaceholderText.font = defaultFont;
+            filterPlaceholderText.fontSize = (int)buttonTxtRef.fontSize;
             filterPlaceholderText.fontStyle = FontStyle.Italic;
             filterPlaceholderText.text = Localization.GetLocalizedString("ModConfigMenu_Filter");
             filterPlaceholderText.color = new Color(0.7f, 0.7f, 0.7f);
 
             var filterText = filterTextGo.AddComponent<Text>();
-            filterText.font = buttonTxtRef.font;
-            filterText.fontSize = buttonTxtRef.fontSize;
-            filterText.fontStyle = buttonTxtRef.fontStyle;
+            // filterText.font = buttonTxtRef.font;
+            filterText.font = defaultFont;
+            filterText.fontSize = (int)buttonTxtRef.fontSize;
+            filterText.fontStyle = (FontStyle)((int)buttonTxtRef.fontStyle);
 
             filterRt.sizeDelta = new Vector2(1000, buttonTxtRef.fontSize + 20);
             RectTransform filterTextPlaceholderRt = filterTextPlaceholderGo.GetComponent<RectTransform>();
@@ -343,9 +350,11 @@ namespace UIModConfigMenu
             filterCount.transform.SetParent(filterGo.transform, false);
 
             var filterCountTxt = filterCount.AddComponent<Text>();
-            filterCountTxt.font = buttonTxtRef.font;
-            filterCountTxt.fontSize = buttonTxtRef.fontSize;
-            filterCountTxt.fontStyle = buttonTxtRef.fontStyle;
+            // filterCountTxt.font = buttonTxtRef.font;
+            filterCountTxt.font = defaultFont;
+
+            filterCountTxt.fontSize = (int)buttonTxtRef.fontSize;
+            filterCountTxt.fontStyle = (FontStyle)buttonTxtRef.fontStyle;
             filterCountTxt.alignment = TextAnchor.MiddleCenter;
             filterCountTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
             filterCountTxt.text = "        ";
@@ -451,9 +460,9 @@ namespace UIModConfigMenu
                 var amodImg = amod.GetComponentInChildren<Image>();
                 amodImg.enabled = true;
 
-                var txt = amod.transform.Find("Label/Text").GetComponent<Text>();
+                var txt = amod.transform.Find("Label/Text").GetComponent<TextMeshProUGUI>();
 
-                txt.supportRichText = true;
+                txt.richText = true;
                 txt.text = pi.Metadata.Name + " <color=#FFFF00>v" + pi.Metadata.Version + "</color>";
 
                 amod.transform.SetParent(modScrollContent.transform, false);
@@ -476,9 +485,10 @@ namespace UIModConfigMenu
 
                 var amodOpenCfgTxt = amodOpenCfgTextGo.AddComponent<Text>();
                 amodOpenCfgTxt.text = Localization.GetLocalizedString("ModConfigMenu_OpenCfg");
-                amodOpenCfgTxt.font = txt.font;
-                amodOpenCfgTxt.fontSize = txt.fontSize;
-                amodOpenCfgTxt.fontStyle = txt.fontStyle;
+                // amodOpenCfgTxt.font = txt.font;
+                amodOpenCfgTxt.font = defaultFont;
+                amodOpenCfgTxt.fontSize = (int)txt.fontSize;
+                amodOpenCfgTxt.fontStyle = (FontStyle)txt.fontStyle;
                 amodOpenCfgTxt.color = Color.white;
                 amodOpenCfgTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
                 amodOpenCfgTxt.alignment = TextAnchor.MiddleCenter;
@@ -513,11 +523,11 @@ namespace UIModConfigMenu
 
                     Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
 
-                    txt = amodCfg.transform.Find("Label/Text").GetComponent<Text>();
+                    txt = amodCfg.transform.Find("Label/Text").GetComponent<TextMeshProUGUI>();
 
-                    txt.supportRichText = true;
-                    txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-                    txt.fontStyle = FontStyle.BoldAndItalic;
+                    txt.richText = true;
+                    txt.overflowMode = TextOverflowModes.Overflow;
+                    txt.fontStyle = FontStyles.Bold | FontStyles.Italic;
 
                     var rt = amodCfg.GetComponent<RectTransform>();
 
@@ -540,9 +550,9 @@ namespace UIModConfigMenu
                         smodImg.enabled = true;
                         smodImg.color = new Color(0.25f, 0.15f, 0.25f);
 
-                        var stxt = smod.transform.Find("Label/Text").GetComponent<Text>();
+                        var stxt = smod.transform.Find("Label/Text").GetComponent<TextMeshProUGUI>();
 
-                        stxt.supportRichText = true;
+                        stxt.richText = true;
                         stxt.text = sec;
 
                         smod.transform.SetParent(modScrollContent.transform, false);
@@ -564,10 +574,10 @@ namespace UIModConfigMenu
 
                                 Destroy(amodCfg.GetComponentInChildren<LocalizedText>());
 
-                                txt = amodCfg.transform.Find("Label/Text").GetComponent<Text>();
+                                txt = amodCfg.transform.Find("Label/Text").GetComponent<TextMeshProUGUI>();
 
-                                txt.supportRichText = true;
-                                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                                txt.richText = true;
+                                txt.overflowMode = TextOverflowModes.Overflow;
 
                                 var rt = amodCfg.GetComponent<RectTransform>();
 
@@ -659,9 +669,9 @@ namespace UIModConfigMenu
                                     txt3.transform.SetParent(editorGo.transform, false);
                                     var rt3 = txt3.GetComponent<RectTransform>();
                                     rt3.localPosition = new Vector3(5, -5, 0);
-                                    txt3.font = txt.font;
-                                    txt3.fontSize = txt.fontSize;
-                                    txt3.fontStyle = txt.fontStyle;
+                                    txt3.font = defaultFont;
+                                    txt3.fontSize = (int)txt.fontSize;
+                                    txt3.fontStyle = (FontStyle)txt.fontStyle;
                                     txt3.horizontalOverflow = HorizontalWrapMode.Overflow;
                                     txt3.verticalOverflow = VerticalWrapMode.Overflow;
 
@@ -832,12 +842,12 @@ namespace UIModConfigMenu
                 var tooltipTxt = new GameObject(gameObject.name + "-tooltip-text");
                 tooltipTxt.transform.SetParent(tooltipGo.transform, false);
 
-                var txtExample = gameObject.GetComponentInChildren<Text>();
+                var txtExample = gameObject.GetComponentInChildren<TextMeshProUGUI>();
                 var txt = tooltipTxt.AddComponent<Text>();
 
                 txt.supportRichText = true;
-                txt.font = txtExample.font;
-                txt.fontSize = txtExample.fontSize;
+                txt.font = defaultFont;
+                txt.fontSize = (int)txtExample.fontSize;
                 txt.fontStyle = FontStyle.Normal;
                 txt.horizontalOverflow = HorizontalWrapMode.Overflow;
                 txt.verticalOverflow = VerticalWrapMode.Overflow;

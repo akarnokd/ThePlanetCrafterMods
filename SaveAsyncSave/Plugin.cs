@@ -84,7 +84,6 @@ namespace SaveAsyncSave
             List<JsonableInventory> _inventories,
             List<JsonableMessage> _messages,
             List<JsonableStoryEvent> _storyEvents,
-            List<JsonableTerrainLayer> _terrainLayers,
             List<JsonableProceduralInstance> _proceduralInstances,
             ref Stopwatch __state)
         {
@@ -147,7 +146,6 @@ namespace SaveAsyncSave
                                 _inventories,
                                 _messages,
                                 _storyEvents,
-                                _terrainLayers,
                                 _proceduralInstances
                             );
                         }
