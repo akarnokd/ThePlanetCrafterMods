@@ -447,6 +447,7 @@ namespace CheatInventoryStacking
                                 // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
                                 if (go != null && go.TryGetComponent<Drone>(out var drone))
                                 {
+                                    drone.AddDroneToFleet();
                                     drone.SetLogisticTask(task, ____allDroneStations);
                                     break;
                                 }
