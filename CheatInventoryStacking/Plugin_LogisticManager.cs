@@ -675,6 +675,25 @@ namespace CheatInventoryStacking
         }
 
         [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.SetANonAttributedTaskToDrone))]
+        static bool Patch_LogisticManager_SetANonAttributedTaskToDrone(Drone drone, HashSet<MachineDroneStation> ____allDroneStations)
+        {
+            if (nonAttributedTasksCacheAllPlanets.TryGetValue(drone.GetDronePlanetHash(), out var taskList))
+            {
+                for (int i = 0; i < taskList.Count; i++)
+                {
+                    LogisticTask task = taskList[i];
+                    if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
+                    {
+                        drone.SetLogisticTask(task, ____allDroneStations);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(WorldObjectsHandler), "AddToSpecificLists")]
         static void Patch_WorldObjectsHandler_AddToSpecificLists(
             ref int __state,
