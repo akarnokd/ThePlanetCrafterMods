@@ -1142,23 +1142,23 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPostfix]
         [HarmonyPatch(typeof(CanvasPinedRecipes), "OnUiWindowEvent")]
         static void CanvasPinnedRecipes_OnUiWindowEvent(CanvasPinedRecipes __instance,
-            Inventory ___playerInventory,
-            List<InformationDisplayer> ___informationDisplayers,
-            List<Group> ___groupsAdded)
+            Inventory ____playerInventory,
+            List<InformationDisplayer> ____informationDisplayers,
+            List<Group> ____groupsAdded)
         {
-            CanvasPinnedRecipes_SetPlayerInventory(__instance, ___playerInventory, ___informationDisplayers, ___groupsAdded);
+            CanvasPinnedRecipes_SetPlayerInventory(__instance, ____playerInventory, ____informationDisplayers, ____groupsAdded);
         }
 
         static IEnumerator UpdateVanillaPinsCoroutine(CanvasPinedRecipes __instance, 
             Inventory _inventory,
-            List<InformationDisplayer> ___informationDisplayers, 
-            List<Group> ___groupsAdded)
+            List<InformationDisplayer> ____informationDisplayers, 
+            List<Group> ____groupsAdded)
         {
             var wait = new WaitForSeconds(0.25f);
             var cw = new CallbackWaiter();
             for (; ; )
             {
-                if (___groupsAdded.Count != 0)
+                if (____groupsAdded.Count != 0)
                 {
                     var pm = Managers.GetManager<PlayersManager>();
                     if (pm != null)
@@ -1176,10 +1176,10 @@ namespace CheatCraftFromNearbyContainers
                                     candidateInventories = list;
                                     UpdateCounters();
 
-                                    for (int i = 0; i < ___groupsAdded.Count; i++)
+                                    for (int i = 0; i < ____groupsAdded.Count; i++)
                                     {
-                                        var gr = ___groupsAdded[i];
-                                        var id = ___informationDisplayers[i];
+                                        var gr = ____groupsAdded[i];
+                                        var id = ____informationDisplayers[i];
 
                                         id.SetGroupListGroupsAvailability(
                                             GetRecipeStatus(gr.GetRecipe().GetIngredientsGroupInRecipe())

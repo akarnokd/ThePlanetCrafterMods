@@ -120,6 +120,8 @@ namespace CheatInventoryStacking
         static MethodInfo mMachineAutoCrafterCraftIfPossible;
         static MethodInfo mUiWindowTradeUpdateTokenUi;
         static MethodInfo mGroupListOnGroupClicked;
+        static MethodInfo mGroupListOnGroupListHovered;
+        static MethodInfo mGroupListOnGroupListHoveredOut;
 
         static Font font;
 
@@ -219,6 +221,8 @@ namespace CheatInventoryStacking
             mUiWindowTradeUpdateTokenUi = AccessTools.Method(typeof(UiWindowTrade), "UpdateTokenUi");
 
             mGroupListOnGroupClicked = AccessTools.Method(typeof(GroupList), "OnGroupClicked");
+            mGroupListOnGroupListHovered = AccessTools.Method(typeof(GroupList), "OnGroupListHovered");
+            mGroupListOnGroupListHoveredOut = AccessTools.Method(typeof(GroupList), "OnGroupListHoveredOut");
 
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 

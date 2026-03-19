@@ -76,7 +76,7 @@ namespace UIHotbar
 
             _logger = Logger;
 
-            fCanvasPinedRecipesGroupsAdded = AccessTools.FieldRefAccess<CanvasPinedRecipes, List<Group>>("groupsAdded");
+            fCanvasPinedRecipesGroupsAdded = AccessTools.FieldRefAccess<CanvasPinedRecipes, List<Group>>("_groupsAdded");
             mCanvasPinedRecipesRemovePinnedRecipeAtIndex = AccessTools.Method(typeof(CanvasPinedRecipes), "RemovePinnedRecipeAtIndex");
             
             pinUnpinRecipe = DefaultPinUnpinRecipe;
