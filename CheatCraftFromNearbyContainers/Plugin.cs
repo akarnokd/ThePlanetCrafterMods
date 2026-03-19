@@ -1125,8 +1125,8 @@ namespace CheatCraftFromNearbyContainers
         [HarmonyPatch(typeof(CanvasPinedRecipes), "SetPlayerInventory")]
         static void CanvasPinnedRecipes_SetPlayerInventory(CanvasPinedRecipes __instance, 
             Inventory _inventory,
-            List<InformationDisplayer> ___informationDisplayers,
-            List<Group> ___groupsAdded)
+            List<InformationDisplayer> ____informationDisplayers,
+            List<Group> ____groupsAdded)
         {
             if (vanillaPinUpdaterCoroutine != null)
             {
@@ -1135,8 +1135,8 @@ namespace CheatCraftFromNearbyContainers
             }
             vanillaPinUpdaterCoroutine = __instance.StartCoroutine(UpdateVanillaPinsCoroutine(__instance,
                 _inventory, 
-                ___informationDisplayers, 
-                ___groupsAdded));
+                ____informationDisplayers, 
+                ____groupsAdded));
         }
 
         [HarmonyPostfix]

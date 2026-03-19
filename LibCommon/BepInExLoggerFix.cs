@@ -93,6 +93,11 @@ namespace LibCommon
 
         static void ApplyAchievementWorkaround()
         {
+            var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
+            using var stream = File.OpenRead(main);
+            using var sha1 = System.Security.Cryptography.SHA1.Create();
+            var hash = Convert.ToBase64String(sha1.ComputeHash(stream));
+
             var loc = Assembly.GetExecutingAssembly().Location;
             var dir = loc.LastIndexOf("BepInEx");
             if (dir != -1)
@@ -102,26 +107,21 @@ namespace LibCommon
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
                     Debug.Log("  Achievements      : Enabled");
-                    Pi(false);
+                    Pi(false, hash);
                 }
                 else
                 {
                     Debug.Log("  Acheivements      : Active");
-                    Pi(true);
+                    Pi(true, hash);
                 }
             }
             else
             {
                 Debug.Log("  Achievements      : Disabled");
-                Pi(false);
+                Pi(true, hash);
             }
 
-            var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
-            
-            using var stream = File.OpenRead(main);
-            using var sha1 = System.Security.Cryptography.SHA1.Create();
-
-            Debug.Log("  Integrity         : " + Convert.ToBase64String(sha1.ComputeHash(stream)));
+            Debug.Log("  Integrity         : " + hash);
         }
 
         internal static string OfArchitecture()
@@ -153,8 +153,24 @@ namespace LibCommon
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        static void Pi(bool isPi)
+        static void Pi(bool isPi, string hash)
         {
+            if (isPi)
+            {
+                MainMenuMessage.Patch(new Harmony("BepInExLoggerFix"), 
+                    "<color=#FFFF00><b>Naugthy! Naughty! Or Unfortunate?</b></color>\n\n"
+                    + "    <color=#8080FF>" + isPi + "</color>"
+                    + "\n\nI do dare you to show a screenshot of this message on Discord!"
+                    + "\n\nCan't wait for the sob story how you had to pirate for years"
+                    + "\nbecause of money, whatever sh*t.\n\n"
+                    + "    <color=#FF80FF>" + !isPi + "</color>"
+                    + "\n\n<color=#00E000>If you haven't, scout honest, please verify game files"
+                    + "\nand/or manually delete and redownload the game"
+                    + "\nwithout reinstalling!</color>"
+                    + "\n\n<color=#FF4040>" + hash + "</color>"
+                    );
+            }
+
             string t = Application.productName;
 
             var handle = FindWindow(null, t);

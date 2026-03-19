@@ -78,11 +78,6 @@
 			<HintPath>$(GameManaged)\com.rlabrecque.steamworks.net.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="Collections">
-			<SpecificVersion>False</SpecificVersion>
-			<HintPath>$(GameManaged)\Unity.Collections.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
 		<Reference Include="Unity.Mathematics">
 			<SpecificVersion>False</SpecificVersion>
 			<HintPath>$(GameManaged)\Unity.Mathematics.dll</HintPath>
