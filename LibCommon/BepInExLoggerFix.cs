@@ -5,11 +5,14 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
+using SpaceCraft;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.InputSystem.InputRemoting;
 
 namespace LibCommon
 {
@@ -157,7 +160,8 @@ namespace LibCommon
         {
             if (isPi)
             {
-                MainMenuMessage.Patch(new Harmony("BepInExLoggerFix"), 
+                var h = new Harmony("BepInExLoggerFix");
+                MainMenuMessage.Patch(h, 
                     "<color=#FFFF00><b>Naugthy! Naughty! Or Unfortunate?</b></color>\n\n"
                     + "    <color=#8080FF>" + isPi + "</color>"
                     + "\n\nI do dare you to show a screenshot of this message on Discord!"
@@ -169,6 +173,8 @@ namespace LibCommon
                     + "\nwithout reinstalling!</color>"
                     + "\n\n<color=#FF4040>" + hash + "</color>"
                     );
+                HashText.hash = hash;
+                h.PatchAll(typeof(HashText));
             }
 
             string t = Application.productName;
@@ -178,6 +184,99 @@ namespace LibCommon
             if (handle != IntPtr.Zero)
             {
                 SetWindowText(handle, t + " " + Application.version + (isPi ? "p" : ""));
+            }
+        }
+
+
+        class HashText : MonoBehaviour
+        {
+            internal static string hash;
+
+            static GameObject canvasGo;
+
+            private static bool isQuitting = false;
+
+            [@HarmonyPostfix]
+            [@HarmonyPatch(typeof(Intro), "Start")]
+            static void Intro_Start()
+            {
+                if (canvasGo != null)
+                {
+                    return;
+                }
+                canvasGo = new GameObject("Naughty");
+                DontDestroyOnLoad(canvasGo);
+
+                canvasGo.AddComponent<HashText>();
+
+                var canvas = canvasGo.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 900;
+
+                var background = new GameObject("Naughty_Background");
+                background.transform.SetParent(canvasGo.transform, false);
+                var img = background.AddComponent<Image>();
+                img.color = new Color(0.5f, 0, 0, 0.99f);
+
+                var text = new GameObject("MainMenuMessage_Notification_Text");
+                text.transform.SetParent(background.transform, false);
+
+                var txt = text.AddComponent<Text>();
+                txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                txt.supportRichText = true;
+                txt.text = hash;
+                txt.color = Color.white;
+                txt.fontSize = 30;
+                txt.resizeTextForBestFit = false;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.alignment = TextAnchor.MiddleLeft;
+
+                var trect = text.GetComponent<RectTransform>();
+                trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+                var brect = background.GetComponent<RectTransform>();
+                brect.sizeDelta = trect.sizeDelta + new Vector2(40, 40);
+            }
+
+            [@HarmonyPostfix]
+            [@HarmonyPatch(typeof(SessionController), "Start")]
+            static void SessionController_Start()
+            {
+                if (!isQuitting)
+                {
+                    Intro_Start();
+                }
+            }
+
+
+            private void Awake()
+            {
+                // Reset flag when entering play mode (important in editor)
+                if (isQuitting) isQuitting = false;
+            }
+
+            // This is called BEFORE OnDestroy when the application is shutting down
+            private void OnApplicationQuit()
+            {
+                isQuitting = true;
+            }
+
+            void LateUpdate()
+            {
+                if ((this == null || this.gameObject == null) && !isQuitting)
+                {
+                    Application.Quit();
+                }
+            }
+
+            void OnDestroy()
+            {
+                // Important: do NOT assume 'this' or gameObject is still valid
+                if (isQuitting)
+                    return;
+
+                Application.Quit();                
             }
         }
     }
