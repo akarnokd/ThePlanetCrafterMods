@@ -13,7 +13,7 @@ namespace LibCommon
     /// </summary>
     internal class GameVersionCheck
     {
-        const string TargetVersion = "2.000";
+        const string TargetVersion = "2.001";
 
         static string modName;
 
