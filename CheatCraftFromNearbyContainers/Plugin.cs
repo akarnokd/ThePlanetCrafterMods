@@ -1020,6 +1020,7 @@ namespace CheatCraftFromNearbyContainers
                 return true;
             }
 
+            PlayerBuilder.IsDuringConstruction = false;
             ____ghost = null;
             __instance.GetComponent<PlayerAudio>().PlayBuildGhost();
             __instance.GetComponent<PlayerAnimations>().AnimateConstruct(true, -1f);
