@@ -385,7 +385,7 @@ namespace SaveAsyncSave
         static void UiWindowPause_OnSave(UiWindowPause __instance, Selectable ___saveButton)
         {
             var qb = ___saveButton.gameObject.transform.parent.Find("ButtonQuit").GetComponent<Button>();
-            if (Managers.GetManager<SavedDataHandler>().IsSavePossible())
+            if (!Managers.GetManager<SavedDataHandler>().IsSavePossible())
             {
                 Log("Disabling Quit Button interaction.");
                 qb.interactable = false;
@@ -394,7 +394,7 @@ namespace SaveAsyncSave
         }
         static IEnumerator QuitButtonEnabler(Selectable quitButton)
         {
-            while (Managers.GetManager<SavedDataHandler>().IsSavePossible())
+            while (!Managers.GetManager<SavedDataHandler>().IsSavePossible())
             {
                 yield return null;
             }

@@ -60,7 +60,7 @@ namespace SaveQuickSave
                     }
                     else
                     {
-                        if (!sdh.IsSavePossible())
+                        if (sdh.IsSavePossible())
                         {
                             sdh.SaveWorldData(null);
                             Managers.GetManager<BaseHudHandler>().DisplayCursorText("", 3f, "Quick Save Success");
