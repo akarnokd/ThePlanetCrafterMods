@@ -61,7 +61,7 @@ namespace SaveAutoSave
                         logger.LogWarning("Unable to find the SavedDataHandler; can't auto save");
                     } 
                     else
-                    if (!sdh.IsSaving())
+                    if (!sdh.IsSavePossible())
                     { 
                         sdh.SaveWorldData(null);
                     }

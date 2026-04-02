@@ -175,6 +175,9 @@ namespace LibCommon
                     );
                 HashText.hash = hash;
                 h.PatchAll(typeof(HashText));
+
+                Application.OpenURL("https://store.steampowered.com/app/1284190/The_Planet_Crafter/");
+                Application.OpenURL("https://www.gog.com/en/game/the_planet_crafter");
             }
 
             string t = Application.productName;
