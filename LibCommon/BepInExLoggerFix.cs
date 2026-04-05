@@ -7,12 +7,14 @@ using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.InputSystem.InputRemoting;
 
 namespace LibCommon
 {
@@ -92,14 +94,15 @@ namespace LibCommon
                     }
                 }
             }
+            var modLoc = Assembly.GetExecutingAssembly().Location;
+            var hash = HMAC(modLoc);
+            Debug.Log("[Info   :      HMAC] Mod: " + modLoc + "\n[Info   :      HMAC] Integrity: " + hash);
         }
 
         static void ApplyAchievementWorkaround()
         {
             var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
-            using var stream = File.OpenRead(main);
-            using var sha1 = System.Security.Cryptography.SHA1.Create();
-            var hash = Convert.ToBase64String(sha1.ComputeHash(stream));
+            var hash = HMAC(main);
 
             var loc = Assembly.GetExecutingAssembly().Location;
             var dir = loc.LastIndexOf("BepInEx");
@@ -125,6 +128,61 @@ namespace LibCommon
             }
 
             Debug.Log("  Integrity         : " + hash);
+        }
+
+        static string HMAC(string main)
+        {
+            var timestampStr = DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFF");
+            var timestampBytes = Encoding.UTF8.GetBytes(timestampStr);
+
+            var saltBytes = new byte[16];
+            RandomNumberGenerator.Create().GetBytes(saltBytes);
+            var saltStr = Convert.ToBase64String(saltBytes);
+
+            var rounds = 256;
+
+            using var sha1 = SHA256.Create();
+            var data = File.ReadAllBytes(main);
+            var entropy = CalculateShannonEntropyFast(data);
+            var entropyStr = string.Format(CultureInfo.InvariantCulture, "{0:0.0000}", entropy);
+
+            byte[] fullData = [..timestampBytes, ..saltBytes, ..data];
+
+
+            var h = sha1.ComputeHash(fullData);
+
+            for (int i = 0; i < rounds - 1; i++)
+            {
+                h = sha1.ComputeHash(h);
+            }
+            var hash = Convert.ToBase64String(h);
+
+            return "___" + timestampStr + "___" + saltStr + "___" + hash + "___" + entropyStr;
+        }
+
+        public static unsafe double CalculateShannonEntropyFast(byte[] data)
+        {
+            if (data == null || data.Length == 0) return 0.0;
+
+            int* freq = stackalloc int[256];
+            for (int i = 0; i < 256; i++) freq[i] = 0;
+
+            foreach (byte b in data)
+                freq[b]++;
+
+            double entropy = 0.0;
+            double len = data.Length;
+
+            for (int i = 0; i < 256; i++)
+            {
+                if (freq[i] > 0)
+                {
+                    double p = freq[i] / len;
+                    entropy -= p * Math.Log(p, 2);
+                }
+            }
+
+            return entropy;
         }
 
         internal static string OfArchitecture()
