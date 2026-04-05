@@ -151,13 +151,16 @@ namespace LibCommon
 
             var h = sha1.ComputeHash(fullData);
 
+            byte[] hcopy = [.. h];
+            var hashCopy = Convert.ToBase64String(hcopy);
+
             for (int i = 0; i < rounds - 1; i++)
             {
                 h = sha1.ComputeHash(h);
             }
             var hash = Convert.ToBase64String(h);
 
-            return "___" + timestampStr + "___" + saltStr + "___" + hash + "___" + entropyStr;
+            return hashCopy + "___" + timestampStr + "___" + saltStr + "___" + hash + "___" + entropyStr;
         }
 
         public static unsafe double CalculateShannonEntropyFast(byte[] data)
