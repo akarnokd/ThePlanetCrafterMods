@@ -16,6 +16,7 @@
 		<Compile Include="..\LibCommon\UITranslator.cs" Link="UITranslator.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
+		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
 	</ItemGroup>
 
 

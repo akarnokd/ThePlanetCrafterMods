@@ -139,7 +139,7 @@ namespace CheatInventoryStacking
                         });
                     });
 
-                    CraftManager.AddOneToTotalCraft();
+                    WorldObjectsHandler.Instance.AddOneToTotalCraft();
                     __result = true;
                     return false;
                 }

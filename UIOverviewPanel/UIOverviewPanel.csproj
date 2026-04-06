@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UIOverviewPanel</AssemblyName>
     <Description>(UI) Overview Panel</Description>
-    <Version>1.0.0.51</Version>
+    <Version>1.0.0.52</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -18,7 +18,8 @@
 		<Compile Include="..\LibCommon\StandardResourceSets.cs" Link="StandardResourceSets.cs" />
         <Compile Include="..\LibCommon\HashSetFast.cs" Link="HashSetFast.cs" />
         <Compile Include="..\LibCommon\DictionaryCounter.cs" Link="DictionaryCounter.cs" />
-    </ItemGroup>
+		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
+	</ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(Destination1)" />

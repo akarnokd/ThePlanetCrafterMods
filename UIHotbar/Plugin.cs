@@ -76,7 +76,7 @@ namespace UIHotbar
 
             _logger = Logger;
 
-            fCanvasPinedRecipesGroupsAdded = AccessTools.FieldRefAccess<CanvasPinedRecipes, List<Group>>("groupsAdded");
+            fCanvasPinedRecipesGroupsAdded = AccessTools.FieldRefAccess<CanvasPinedRecipes, List<Group>>("_groupsAdded");
             mCanvasPinedRecipesRemovePinnedRecipeAtIndex = AccessTools.Method(typeof(CanvasPinedRecipes), "RemovePinnedRecipeAtIndex");
             
             pinUnpinRecipe = DefaultPinUnpinRecipe;
@@ -672,7 +672,7 @@ namespace UIHotbar
         }
         static int WhichNumberKeyWasPressed()
         {
-            if (!PlayerThirdPersonView_ShortcutEmote())
+            if (!PlayerThirdPersonView_ShortcutAnimation())
             {
                 var kc = Keyboard.current;
                 for (int i = 0; i < numberKeys.Length; i++)
@@ -864,8 +864,8 @@ namespace UIHotbar
 
         // Do not emote while the command console is open by pressing 1-9
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerThirdPersonView), "ShortcutEmote")]
-        static bool PlayerThirdPersonView_ShortcutEmote()
+        [HarmonyPatch(typeof(PlayerThirdPersonView), "ShortcutAnimation")]
+        static bool PlayerThirdPersonView_ShortcutAnimation()
         {
             return Keyboard.current[Key.LeftAlt].isPressed;
         }

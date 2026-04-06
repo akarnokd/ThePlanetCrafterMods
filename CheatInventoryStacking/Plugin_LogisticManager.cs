@@ -8,6 +8,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 
@@ -445,8 +447,10 @@ namespace CheatInventoryStacking
                             {
                                 var go = dist.GetMachineDroneStation().TryToReleaseOneDrone();
                                 // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
-                                if (go != null && go.TryGetComponent<Drone>(out var drone))
+                                if (go != null)
                                 {
+                                    Drone drone = go.GetComponentInChildren<Drone>();
+                                    drone.AddDroneToFleet();
                                     drone.SetLogisticTask(task, ____allDroneStations);
                                     break;
                                 }
@@ -670,6 +674,56 @@ namespace CheatInventoryStacking
 
             candidateDroneStationsPerPlanet.Clear();
 
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.SetANonAttributedTaskToDrone))]
+        static bool Patch_LogisticManager_SetANonAttributedTaskToDrone(Drone drone, HashSet<MachineDroneStation> ____allDroneStations)
+        {
+            if (nonAttributedTasksCacheAllPlanets.TryGetValue(drone.GetDronePlanetHash(), out var taskList))
+            {
+                for (int i = 0; i < taskList.Count; i++)
+                {
+                    LogisticTask task = taskList[i];
+                    if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
+                    {
+                        drone.SetLogisticTask(task, ____allDroneStations);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LogisticManager), "RemoveDroneFromFleet")]
+        static bool Patch_LogisticManager_RemoveDroneFromFleet(
+            LogisticManager __instance,
+            Drone drone,
+            ref int ____accessArrayIndexAvailable,
+            ref NativeQueue<int> ____accessAtTargetQueue,
+            ref TransformAccessArray ____accessArray,
+            List<Drone> ____accessArrayCorrespondingDrones,
+            HashSet<Drone> ____droneFleet
+        )
+        {
+            if (__instance.IsServer && drone.AccessArrayIndex >= 0)
+            {
+                mLogisticManagerCompleteDroneTransformUpdateJob.Invoke(__instance, []);
+
+                int _accessAtTargetQueue_ElementCount = ____accessAtTargetQueue.Count;
+                for (int i = 0; i < _accessAtTargetQueue_ElementCount; i++)
+                {
+                    int droneAccessIndex = ____accessAtTargetQueue.Dequeue();
+                    if (droneAccessIndex != drone.AccessArrayIndex) ____accessAtTargetQueue.Enqueue(droneAccessIndex);
+                }
+
+                ____accessArrayIndexAvailable = math.min(____accessArrayIndexAvailable, drone.AccessArrayIndex);
+                ____accessArray[drone.AccessArrayIndex] = null;
+                ____accessArrayCorrespondingDrones[drone.AccessArrayIndex] = null;
+            }
+            ____droneFleet.Remove(drone);
             return false;
         }
 

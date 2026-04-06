@@ -15,6 +15,7 @@
 		<Compile Include="..\LibCommon\BepInExLoggerFix.cs" Link="BepInExLoggerFix.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
+		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
 	</ItemGroup>
     <ItemGroup>
         <Reference Include="Assembly-csharp-firstpass">

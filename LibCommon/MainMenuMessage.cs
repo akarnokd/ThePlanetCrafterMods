@@ -62,7 +62,7 @@ namespace LibCommon
             trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
 
             var brect = background.GetComponent<RectTransform>();
-            brect.sizeDelta = trect.sizeDelta + new Vector2(10, 10);
+            brect.sizeDelta = trect.sizeDelta + new Vector2(40, 40);
 
             UnityEngine.Object.Destroy(panel, 120);
         }

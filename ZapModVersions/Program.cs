@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
@@ -80,6 +82,35 @@ if (lines.Count != 0)
     File.WriteAllLines(workdir + "version_info.txt", lines);
 }
 
+List<string> hashes = [];
+using var sha1 = SHA256.Create();
+
+foreach (var file in Directory.EnumerateFiles(workdir, "akarnokd-*.zip"))
+{
+    if (file.Contains("akarnokd-all"))
+    {
+        continue;
+    }
+
+    using var zf = ZipFile.OpenRead(file);
+    foreach (var entry in zf.Entries)
+    {
+        if (entry.FullName.EndsWith(".dll"))
+        {
+            var fname = entry.Name;
+            using var stream = entry.Open();
+            var h = sha1.ComputeHash(stream);
+            var hash = Convert.ToBase64String(h);
+            hashes.Add(entry.Name.PadRight(64) + " " + hash);
+        }
+    }
+}
+
+if (hashes.Count != 0)
+{
+    hashes.Sort();
+    File.WriteAllLines(workdir + "hashes.txt", hashes);
+}
 /*
 Console.WriteLine("---");
 

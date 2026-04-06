@@ -84,7 +84,6 @@ namespace SaveAsyncSave
             List<JsonableInventory> _inventories,
             List<JsonableMessage> _messages,
             List<JsonableStoryEvent> _storyEvents,
-            List<JsonableTerrainLayer> _terrainLayers,
             List<JsonableProceduralInstance> _proceduralInstances,
             ref Stopwatch __state)
         {
@@ -147,7 +146,6 @@ namespace SaveAsyncSave
                                 _inventories,
                                 _messages,
                                 _storyEvents,
-                                _terrainLayers,
                                 _proceduralInstances
                             );
                         }
@@ -387,7 +385,7 @@ namespace SaveAsyncSave
         static void UiWindowPause_OnSave(UiWindowPause __instance, Selectable ___saveButton)
         {
             var qb = ___saveButton.gameObject.transform.parent.Find("ButtonQuit").GetComponent<Button>();
-            if (Managers.GetManager<SavedDataHandler>().IsSaving())
+            if (!Managers.GetManager<SavedDataHandler>().IsSavePossible())
             {
                 Log("Disabling Quit Button interaction.");
                 qb.interactable = false;
@@ -396,7 +394,7 @@ namespace SaveAsyncSave
         }
         static IEnumerator QuitButtonEnabler(Selectable quitButton)
         {
-            while (Managers.GetManager<SavedDataHandler>().IsSaving())
+            while (!Managers.GetManager<SavedDataHandler>().IsSavePossible())
             {
                 yield return null;
             }

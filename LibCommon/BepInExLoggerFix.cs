@@ -5,11 +5,16 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using HarmonyLib;
+using SpaceCraft;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LibCommon
 {
@@ -89,10 +94,16 @@ namespace LibCommon
                     }
                 }
             }
+            var modLoc = Assembly.GetExecutingAssembly().Location;
+            var hash = HMAC(modLoc);
+            Debug.Log("[Info   :      HMAC] Mod: " + modLoc + "\n[Info   :      HMAC] Integrity: " + hash);
         }
 
         static void ApplyAchievementWorkaround()
         {
+            var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
+            var hash = HMAC(main);
+
             var loc = Assembly.GetExecutingAssembly().Location;
             var dir = loc.LastIndexOf("BepInEx");
             if (dir != -1)
@@ -102,26 +113,79 @@ namespace LibCommon
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
                     Debug.Log("  Achievements      : Enabled");
-                    Pi(false);
+                    Pi(false, hash);
                 }
                 else
                 {
                     Debug.Log("  Acheivements      : Active");
-                    Pi(true);
+                    Pi(true, hash);
                 }
             }
             else
             {
                 Debug.Log("  Achievements      : Disabled");
-                Pi(false);
+                Pi(true, hash);
             }
 
-            var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
-            
-            using var stream = File.OpenRead(main);
-            using var sha1 = System.Security.Cryptography.SHA1.Create();
+            Debug.Log("  Integrity         : " + hash);
+        }
 
-            Debug.Log("  Integrity         : " + Convert.ToBase64String(sha1.ComputeHash(stream)));
+        static string HMAC(string main)
+        {
+            var timestampStr = DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFF");
+            var timestampBytes = Encoding.UTF8.GetBytes(timestampStr);
+
+            var saltBytes = new byte[16];
+            RandomNumberGenerator.Create().GetBytes(saltBytes);
+            var saltStr = Convert.ToBase64String(saltBytes);
+
+            var rounds = 256;
+
+            using var sha1 = SHA256.Create();
+            var data = File.ReadAllBytes(main);
+            var entropy = CalculateShannonEntropyFast(data);
+            var entropyStr = string.Format(CultureInfo.InvariantCulture, "{0:0.0000}", entropy);
+
+            byte[] fullData = [..timestampBytes, ..saltBytes, ..data];
+
+
+            var h = sha1.ComputeHash(fullData);
+
+            byte[] hcopy = [.. h];
+            var hashCopy = Convert.ToBase64String(hcopy);
+
+            for (int i = 0; i < rounds - 1; i++)
+            {
+                h = sha1.ComputeHash(h);
+            }
+            var hash = Convert.ToBase64String(h);
+
+            return hashCopy + "___" + timestampStr + "___" + saltStr + "___" + hash + "___" + entropyStr;
+        }
+
+        public static unsafe double CalculateShannonEntropyFast(byte[] data)
+        {
+            if (data == null || data.Length == 0) return 0.0;
+
+            int* freq = stackalloc int[256];
+            for (int i = 0; i < 256; i++) freq[i] = 0;
+
+            foreach (byte b in data)
+                freq[b]++;
+
+            double entropy = 0.0;
+            double len = data.Length;
+
+            for (int i = 0; i < 256; i++)
+            {
+                if (freq[i] > 0)
+                {
+                    double p = freq[i] / len;
+                    entropy -= p * Math.Log(p, 2);
+                }
+            }
+
+            return entropy;
         }
 
         internal static string OfArchitecture()
@@ -153,8 +217,30 @@ namespace LibCommon
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        static void Pi(bool isPi)
+        static void Pi(bool isPi, string hash)
         {
+            if (isPi)
+            {
+                var h = new Harmony("BepInExLoggerFix");
+                MainMenuMessage.Patch(h, 
+                    "<color=#FFFF00><b>Naugthy! Naughty! Or Unfortunate?</b></color>\n\n"
+                    + "    <color=#8080FF>" + isPi + "</color>"
+                    + "\n\nI do dare you to show a screenshot of this message on Discord!"
+                    + "\n\nCan't wait for the sob story how you had to pirate for years"
+                    + "\nbecause of money, whatever sh*t.\n\n"
+                    + "    <color=#FF80FF>" + !isPi + "</color>"
+                    + "\n\n<color=#00E000>If you haven't, scout honest, please verify game files"
+                    + "\nand/or manually delete and redownload the game"
+                    + "\nwithout reinstalling!</color>"
+                    + "\n\n<color=#FF4040>" + hash + "</color>"
+                    );
+                HashText.hash = hash;
+                h.PatchAll(typeof(HashText));
+
+                Application.OpenURL("https://store.steampowered.com/app/1284190/The_Planet_Crafter/");
+                Application.OpenURL("https://www.gog.com/en/game/the_planet_crafter");
+            }
+
             string t = Application.productName;
 
             var handle = FindWindow(null, t);
@@ -162,6 +248,99 @@ namespace LibCommon
             if (handle != IntPtr.Zero)
             {
                 SetWindowText(handle, t + " " + Application.version + (isPi ? "p" : ""));
+            }
+        }
+
+
+        class HashText : MonoBehaviour
+        {
+            internal static string hash;
+
+            static GameObject canvasGo;
+
+            private static bool isQuitting = false;
+
+            [@HarmonyPostfix]
+            [@HarmonyPatch(typeof(Intro), "Start")]
+            static void Intro_Start()
+            {
+                if (canvasGo != null)
+                {
+                    return;
+                }
+                canvasGo = new GameObject("Naughty");
+                DontDestroyOnLoad(canvasGo);
+
+                canvasGo.AddComponent<HashText>();
+
+                var canvas = canvasGo.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 900;
+
+                var background = new GameObject("Naughty_Background");
+                background.transform.SetParent(canvasGo.transform, false);
+                var img = background.AddComponent<Image>();
+                img.color = new Color(0.5f, 0, 0, 0.99f);
+
+                var text = new GameObject("MainMenuMessage_Notification_Text");
+                text.transform.SetParent(background.transform, false);
+
+                var txt = text.AddComponent<Text>();
+                txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                txt.supportRichText = true;
+                txt.text = hash;
+                txt.color = Color.white;
+                txt.fontSize = 30;
+                txt.resizeTextForBestFit = false;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.alignment = TextAnchor.MiddleLeft;
+
+                var trect = text.GetComponent<RectTransform>();
+                trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+                var brect = background.GetComponent<RectTransform>();
+                brect.sizeDelta = trect.sizeDelta + new Vector2(40, 40);
+            }
+
+            [@HarmonyPostfix]
+            [@HarmonyPatch(typeof(SessionController), "Start")]
+            static void SessionController_Start()
+            {
+                if (!isQuitting)
+                {
+                    Intro_Start();
+                }
+            }
+
+
+            private void Awake()
+            {
+                // Reset flag when entering play mode (important in editor)
+                if (isQuitting) isQuitting = false;
+            }
+
+            // This is called BEFORE OnDestroy when the application is shutting down
+            private void OnApplicationQuit()
+            {
+                isQuitting = true;
+            }
+
+            void LateUpdate()
+            {
+                if ((this == null || this.gameObject == null) && !isQuitting)
+                {
+                    Application.Quit();
+                }
+            }
+
+            void OnDestroy()
+            {
+                // Important: do NOT assume 'this' or gameObject is still valid
+                if (isQuitting)
+                    return;
+
+                Application.Quit();                
             }
         }
     }

@@ -313,7 +313,7 @@ namespace CheatInventoryStacking
         static readonly List<Group> groupSetCache = [];
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(GroupList), nameof(GroupList.AddGroups), [typeof(List<SpaceCraft.Group>), typeof(GroupInfosDisplayerBlocksSwitches), typeof(bool)])]
+        [HarmonyPatch(typeof(GroupList), nameof(GroupList.AddGroups), [typeof(List<SpaceCraft.Group>), typeof(GroupInfosDisplayerBlocksSwitches), typeof(bool), typeof(bool)])]
         static bool Patch_GroupList_AddGroups(GroupList __instance,
             List<Group> _groups,
             bool _showBacklines,
@@ -322,7 +322,8 @@ namespace CheatInventoryStacking
             GameObject ___grid,
             List<GroupDisplayer> ___groupsDisplayer,
             GroupInfosDisplayerBlocksSwitches _infosDisplayerGroup,
-            GameObject ___groupDisplayerGameObject
+            GameObject ___groupDisplayerGameObject,
+            bool disableNavigation
         )
         {
             if (__instance.GetComponentInParent<UiWindowInterplanetaryExchange>() == null
@@ -363,6 +364,13 @@ namespace CheatInventoryStacking
                 GroupDisplayer component = gameObject.GetComponent<GroupDisplayer>();
                 component.SetGroupAndUpdateDisplay(_group, greyed: false, showName: false, isLocked: false, _showBacklines);
                 ___groupsDisplayer.Add(component);
+                EventsHelpers.AddTriggerEvent(component.gameObject, EventTriggerType.Select, evt => {
+                    mGroupListOnGroupListHovered.Invoke(__instance, [evt]);
+                });
+                EventsHelpers.AddTriggerEvent(component.gameObject, EventTriggerType.Deselect, evt => {
+                    mGroupListOnGroupListHoveredOut.Invoke(__instance, [evt]);
+                });
+
                 gameObject.AddComponent<EventHoverShowGroup>().SetHoverGroupEvent(_group, idg, default, null, null);
                 EventsHelpers.AddTriggerEvent(gameObject, EventTriggerType.PointerClick, 
                     evt =>
@@ -370,6 +378,15 @@ namespace CheatInventoryStacking
                         mGroupListOnGroupClicked.Invoke(__instance, [evt]);
                     }, 
                     new EventTriggerCallbackData(_group));
+
+
+                if (disableNavigation)
+                {
+                    gameObject.GetComponent<Button>().navigation = new Navigation
+                    {
+                        mode = Navigation.Mode.None
+                    };
+                }
 
                 if (count > 1)
                 {

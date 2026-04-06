@@ -248,6 +248,7 @@ namespace FixUnofficialPatches
             jsonableWorldObject.grwth = Mathf.Clamp(jsonableWorldObject.grwth, 0, 100);
         }
 
+        /*
         [HarmonyPrefix]
         [HarmonyPatch(typeof(TerrainVisualsHandler), "GetTerrainLayerDataByName")]
         static bool TerrainVisualsHandler_GetTerrainLayerDataByName(ref bool __result)
@@ -266,6 +267,7 @@ namespace FixUnofficialPatches
             }
             return true;
         }
+        */
 
         /*
         [HarmonyPostfix]
