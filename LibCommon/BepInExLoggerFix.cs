@@ -7,8 +7,10 @@ using BepInEx.Logging;
 using HarmonyLib;
 using SpaceCraft;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -97,6 +99,8 @@ namespace LibCommon
             var modLoc = Assembly.GetExecutingAssembly().Location;
             var hash = HMAC(modLoc);
             Debug.Log("[Info   :      HMAC] Mod: " + modLoc + "\n[Info   :      HMAC] Integrity: " + hash);
+
+            VerifyOverloads();
         }
 
         static void ApplyAchievementWorkaround()
@@ -251,6 +255,106 @@ namespace LibCommon
             }
         }
 
+        public static void VerifyOverloads()
+        {
+            var crash = false;
+            var dll = Assembly.GetExecutingAssembly();
+            var sc = typeof(SpaceCraft.AchievementLocation).Assembly;
+            var errs = new List<string>();
+
+            var allType = BindingFlags.Instance | BindingFlags.Public
+                    | BindingFlags.Static
+                    | BindingFlags.DeclaredOnly | BindingFlags.NonPublic;
+
+            foreach (var t in dll.GetTypes())
+            {
+                foreach (var m in t.GetMethods(allType)) {
+                    var mb = m.GetMethodBody();
+                    if (mb == null)
+                    {
+                        continue;
+                    }
+                    var il = mb.GetILAsByteArray();
+                    if (il == null)
+                    {
+                        continue;
+                    }
+
+                    for (int i = 0; i < il.Length - 5; i++)
+                    {
+                        int c = il[i];
+                        if (c == 0x28 || c == 0x6F || c == 0x73)
+                        {
+                            int offset = i + 1;
+                            uint token = BitConverter.ToUInt32(il, offset);   // little-endian
+
+                            try
+                            {
+                                // Use the more general ResolveMember instead of ResolveMethod
+                                MemberInfo member = m.Module.ResolveMember((int)token);
+
+                                if (member != null && (member.Name.Contains(".ctor") || member.Name.Contains(".cctor")))
+                                {
+                                    continue;
+                                }
+
+                                MethodBase mb2 = member as MethodBase;
+                                if (mb2 == null)
+                                {
+                                    // Could be a field, property, etc. — skip
+                                    i += 4;
+                                    continue;
+                                }
+
+                                if (mb2.DeclaringType?.Assembly == sc)
+                                {
+                                    var scdecl = sc.GetTypes().FirstOrDefault(t => t == mb2.DeclaringType);
+
+                                    bool found = false;
+                                    foreach (var scmeth in scdecl.GetMethods(allType))
+                                    {
+                                        if (mb2.Name == scmeth.Name)
+                                        {
+                                            if (mb2.GetParameters().SequenceEqual(scmeth.GetParameters()))
+                                            {
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!found)
+                                    {
+                                        Debug.Log("Unable to find overload for " + mb2);
+                                        crash = true;
+                                        errs.Add(mb2.ToString());
+                                    }
+                                }
+                            }
+                            catch (ArgumentException)
+                            {
+                                // Invalid token or token not resolvable in this module (common for refs)
+                                // Just skip
+                            }
+                            i += 4;
+                        }
+                    }
+                }
+            }
+            if (crash)
+            {
+                var msg = "<color=#FFFF00><b>Vanilla <*> Mod binary incompatibility detected</b></color>\n\n"
+                    + "\n\n<color=#FFCC00>TPC v" + Application.version + "</color>\n\n"
+                    + "\n\n<color=#FFFFFF>" + dll.GetName() + "</color>\n\nMod disabled.\n\n"
+                    + string.Join("\n", errs.Take(10).Select(v => v.Length > 60 ? v.Substring(0, 60) : v));
+                
+                var h = new Harmony("BepInExLoggerFix-Overloads");
+                MainMenuMessage.Patch(h, msg);
+
+                throw new InvalidDataException("Overload(s) not found in " + dll.FullName + "\n" 
+                    + string.Join("\n  ", errs));
+            }
+        }
 
         class HashText : MonoBehaviour
         {
