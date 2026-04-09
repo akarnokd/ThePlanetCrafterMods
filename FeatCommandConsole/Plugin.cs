@@ -1114,7 +1114,23 @@ namespace FeatCommandConsole
                     {
                         if (ap.id.Equals(args[1], StringComparison.InvariantCultureIgnoreCase))
                         {
-                            PlanetNetworkLoader.Instance.SwitchToPlanet(ap);
+							NetworkBackendProvider.GetActiveBackend().SetSessionJoinabilityAsync(SessionJoinabilityStatus.PlanetSwitch);
+
+							Action planetLoadedReplacement = null;
+							planetLoadedReplacement = new Action(delegate () {
+								Managers.GetManager<MeshOccluderHandler>().SpeedUpProcess(5);
+
+								CanvasLoading.Instance.Toggle(false);
+								NetworkBackendProvider.GetActiveBackend().SetSessionJoinabilityAsync(SessionJoinabilityStatus.Joinable);
+
+								PlanetLoader manager = Managers.GetManager<PlanetLoader>();
+								manager.planetIsLoaded = (Action)Delegate.Remove(manager.planetIsLoaded, new Action(planetLoadedReplacement));
+							});
+
+							PlanetLoader planetLoader = Managers.GetManager<PlanetLoader>();
+							planetLoader.planetIsLoaded = (Action)Delegate.Combine(planetLoader.planetIsLoaded, planetLoadedReplacement);
+
+							PlanetNetworkLoader.Instance.SwitchToPlanet(ap);
                             found = true;
                             break;
                         }
