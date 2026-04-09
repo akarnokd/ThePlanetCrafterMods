@@ -108,11 +108,10 @@ namespace LibCommon
             var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
             var hash = HMAC(main);
 
-            var loc = Assembly.GetExecutingAssembly().Location;
-            var dir = loc.LastIndexOf("BepInEx");
+            var dir = main.LastIndexOf("Planet Crafter_Data");
             if (dir != -1)
             {
-                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
+                var target = main[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
                 var fi = new FileInfo(target);
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
@@ -223,6 +222,7 @@ namespace LibCommon
 
         static void Pi(bool isPi, string hash)
         {
+            hash = hash.Replace("___", "\n");
             if (isPi)
             {
                 var h = new Harmony("BepInExLoggerFix");
