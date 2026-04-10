@@ -15,12 +15,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Cache;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
+using OutOfShape = (string guid, string version, string description, bool hashError, string repo);
+using RemoteInfo = (string description, string version, string hash, string directory, string repo);
 
 namespace LibCommon
 {
@@ -51,13 +54,13 @@ namespace LibCommon
             "mcnicki2002/PlanetCrafterMods",
         };
 
-        static Dictionary<string, (string, string)> versionInfo = [];
+        static Dictionary<string, RemoteInfo> versionInfo = [];
 
         static GameObject versionCheckGameObject;
 
         static GameObject notificationGameObject;
 
-        static List<(string, string, string)> outOfDate = [];
+        static List<OutOfShape> outOfDateOrShape = [];
 
         /// <summary>
         /// Checks if the given plugin has any newer version online.
@@ -65,16 +68,23 @@ namespace LibCommon
         /// <param name="plugin">The current plugin to check.</param>
         /// <param name="logInfo">Where to log debug information.</param>
         /// <returns>True if a newer version is available, false if not or there was an error</returns>
-        public static bool Check(BaseUnityPlugin plugin, Action<object> logInfo)
+        public static bool Check(BaseUnityPlugin plugin, Action<object> logInfo, out bool hashError, out string repoURL)
         {
-            return Check(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), logInfo);
+            using var sha2 = SHA256.Create();
+            var hash = sha2.ComputeHash(File.ReadAllBytes(plugin.GetType().Assembly.Location));
+            var hashStr = Convert.ToBase64String(hash);
+
+            return Check(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), hashStr, logInfo, out hashError, out repoURL);
         }
 
-        public static bool Check(string localModGuid, string localModVersion, Action<object> logInfo)
+        public static bool Check(string localModGuid, string localModVersion, string localHash, 
+            Action<object> logInfo, out bool hashError, out string repoURL)
         {
             var killswitch = Environment.GetEnvironmentVariable("TPC_MODVERSIONCHECK_OFF");
             if (!string.IsNullOrEmpty(killswitch))
             {
+                hashError = false;
+                repoURL = "";
                 return false;
             }
 
@@ -87,14 +97,14 @@ namespace LibCommon
                 GameObject.DontDestroyOnLoad(versionCheckGameObject);
                 var m = versionCheckGameObject.AddComponent<ModVersionCheckBehaviour>();
                 m.dictionary = versionInfo;
-                m.list = outOfDate;
+                m.list = outOfDateOrShape;
                 var beta = CheckSteamBeta(logInfo, out _);
 
-                List<Task<Dictionary<string, (string, string)>>> allTasks = [];
+                List<Task<Dictionary<string, RemoteInfo>>> allTasks = [];
                 foreach (var repo in REPOSITORIES)
                 {
                     var frepo = repo;
-                    allTasks.Add(Task.Run<Dictionary<string, (string, string)>>(() =>
+                    allTasks.Add(Task.Run<Dictionary<string, RemoteInfo>>(() =>
                     {
                         try
                         {
@@ -127,9 +137,9 @@ namespace LibCommon
                 {
                     if (comp.GetType().Name == "ModVersionCheckBehaviour")
                     {
-                        versionInfo = AccessTools.FieldRefAccess<Dictionary<string, (string, string)>>(comp.GetType(), "dictionary")(comp);
+                        versionInfo = AccessTools.FieldRefAccess<Dictionary<string, RemoteInfo>>(comp.GetType(), "dictionary")(comp);
                         // logInfo("[ModVersionCheck]   Found versionInfo with count " + versionInfo.Count);
-                        outOfDate = AccessTools.FieldRefAccess<List<(string, string, string)>>(comp.GetType(), "list")(comp);
+                        outOfDateOrShape = AccessTools.FieldRefAccess<List<OutOfShape>>(comp.GetType(), "list")(comp);
                         // logInfo("[ModVersionCheck]   Found outOfDate with count " + outOfDate.Count);
                         break;
                     }
@@ -139,11 +149,18 @@ namespace LibCommon
             if (versionInfo.TryGetValue(localModGuid, out var version))
             {
                 var localVer = new Version(localModVersion);
-                var remoteVer = new Version(version.Item2);
+                var remoteVer = new Version(version.version);
+                var remoteHash = version.Item3;
                 var hasNewer = remoteVer > localVer;
+                var sameHash = remoteHash == localHash || "" == remoteHash;
                 logInfo("[ModVersionCheck] " + localVer + " <-> " + remoteVer + (hasNewer ? " | Update Available" : ""));
+                logInfo("[ModHashingCheck] " + localHash + " <-> " + remoteHash + (sameHash ? "" : " | CORRUPTED?"));
+                hashError = !sameHash;
+                repoURL = version.repo;
                 return hasNewer;
             }
+            hashError = false;
+            repoURL = "";
             return false;
         }
 
@@ -154,18 +171,21 @@ namespace LibCommon
         /// </summary>
         /// <param name="plugin">The current plugin to check.</param>
         /// <param name="logInfo">Where to log debug information.</param>
-        public static void NotifyUser(BaseUnityPlugin plugin, Action<object> logInfo)
+        public static void NotifyUser(BaseUnityPlugin plugin, bool hashError, string repo, Action<object> logInfo)
         {
-            NotifyUser(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), plugin.Info.Metadata.Name, logInfo);
+            NotifyUser(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), 
+                plugin.Info.Metadata.Name, hashError, repo, logInfo);
         }
 
-        public static void NotifyUser(string localModGuid, string localVersion, string localDescription, Action<object> logInfo)
+        public static void NotifyUser(string localModGuid, string localVersion,
+            string localDescription, bool hashError, string repo, Action<object> logInfo)
         {
-            if (outOfDate.Any(e => e.Item1 == localModGuid))
+            if (outOfDateOrShape.Any(e => e.Item1 == localModGuid))
             {
                 return;
             }
-            outOfDate.Add((localModGuid, localVersion, localDescription));
+            logInfo((localModGuid, localVersion, localDescription, hashError));
+            outOfDateOrShape.Add((localModGuid, localVersion, localDescription, hashError, repo));
 
             notificationGameObject = GameObject.Find("ModVersionNotify");
             if (notificationGameObject == null)
@@ -214,21 +234,36 @@ namespace LibCommon
             var textRect = textGo.GetComponent<RectTransform>();
             textRect.sizeDelta = rect.sizeDelta - new Vector2(30, 30);
 
-            txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDate.Count + " mod(s) have updates available /!\\/!\\</size></b></color>";
+            txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDateOrShape.Count + " mod(s) need attention /!\\/!\\</size></b></color>";
             txt.text += "\nPlease update them as soon as possible.";
-            txt.text += "\n<color=#CCFF00>[= Press ESC or Controller B to close. =]</color>";
-            foreach (var md in outOfDate)
+            txt.text += "\n<color=#CCFFCC>[= Press Ctrl+Enter to upgrade/fix mods. =]</color>";
+            txt.text += "\n<color=#CCFF00>[=  Press ESC or Controller B to close.  =]</color>";
+
+            var noDevChecks = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TPC_NODEVCHECKS_ON"));
+
+            UnityEngine.Debug.Log(outOfDateOrShape);
+
+            foreach (var md in outOfDateOrShape)
             {
-                versionInfo.TryGetValue(md.Item1, out var v2);
-                txt.text += "\n\n" + md.Item3 + "\n    v" + md.Item2 + " -> <color=#80FF80>v" + (v2.Item2 ?? "??") + "</color>";
+                versionInfo.TryGetValue(md.guid, out var v2);
+                UnityEngine.Debug.Log(md);
+                UnityEngine.Debug.Log(v2);
+                if (md.version != v2.version)
+                {
+                    txt.text += "\n\n" + md.description + "\n    v" + md.version + " -> <color=#80FF80>v" + (v2.version ?? "??") + "</color>";
+                }
+                else if (md.hashError && !noDevChecks)
+                {
+                    txt.text += "\n\n" + md.description + "\n    v" + md.version + " -> <color=#FF80800>CORRUPTION?</color>";
+                }
             }
         }
 
         public class ModVersionCheckBehaviour : MonoBehaviour
         {
-            public Dictionary<string, (string, string)> dictionary;
+            public Dictionary<string, RemoteInfo> dictionary;
 
-            public List<(string, string, string)> list;
+            public List<OutOfShape> list;
         }
 
         class DialogCloser : MonoBehaviour
@@ -241,12 +276,17 @@ namespace LibCommon
                 {
                     Destroy(gameObject);
                 }
+                if ((Keyboard.current[Key.Enter].wasPressedThisFrame || Keyboard.current[Key.NumpadEnter].wasPressedThisFrame)
+                    && (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed))
+                {
+                    // TODO
+                }
             }
         }
 
         public static bool CheckSteamBeta(Action<object> logInfo, out string betaName)
         {
-            var loc = Assembly.GetExecutingAssembly().Location;
+            var loc = typeof(Intro).Assembly.Location;
             var steamapps = loc.IndexOf("steamapps", StringComparison.InvariantCultureIgnoreCase);
             if (steamapps > 0)
             {
@@ -274,7 +314,7 @@ namespace LibCommon
             return false;
         }
 
-        static Dictionary<string, (string, string)> GetVersionTxt(string repository, bool beta, Action<object> logInfo)
+        static Dictionary<string, RemoteInfo> GetVersionTxt(string repository, bool beta, Action<object> logInfo)
         {
             var startUrl = "https://raw.githubusercontent.com/" + repository + "/main/version_info.txt";
 
@@ -295,7 +335,7 @@ namespace LibCommon
 
             logInfo("[ModVersionCheck] Download " + startUrl);
 
-            Dictionary<string, (string, string)> plugins = [];
+            Dictionary<string, RemoteInfo> plugins = [];
 
             var request = WebRequest.Create(MaybeRandom(startUrl)).NoCache();
 
@@ -324,7 +364,14 @@ namespace LibCommon
                 }
 
                 // logInfo("  -> " + kv[0] + " @ " + kv[1]);
-                plugins[kv[0]] = (desc, kv[1]);
+
+                var subsections = kv[1].Split('|');
+                if (subsections.Length == 1)
+                {
+                    subsections = [subsections[0], "", "", "", startUrl];
+                }
+
+                plugins[kv[0]] = (desc, subsections[0], subsections[1], subsections[2], startUrl);
             }
 
             logInfo("[ModVersionCheck]   Parsing " + repository + " version_info.txt DONE");

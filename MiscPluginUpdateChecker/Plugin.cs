@@ -40,9 +40,9 @@ namespace MiscPluginUpdateChecker
 
             LibCommon.BepInExLoggerFix.ApplyFix();
 
-            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
             {
-                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+                LibCommon.ModVersionCheck.NotifyUser(this, hashError, repoURL, Logger.LogInfo);
             }
 
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging. Very chatty!");
@@ -64,9 +64,9 @@ namespace MiscPluginUpdateChecker
             foreach (var p in Chainloader.PluginInfos.Values)
             {
                 log("  Mod: " + p.Metadata.GUID + " - " + p.Metadata.Name);
-                if (LibCommon.ModVersionCheck.Check(p.Instance, log) || testMode.Value)
+                if (LibCommon.ModVersionCheck.Check(p.Instance, log, out var hashError, out var repoURL) || testMode.Value)
                 {
-                    LibCommon.ModVersionCheck.NotifyUser(p.Instance, log);
+                    LibCommon.ModVersionCheck.NotifyUser(p.Instance, hashError, repoURL, log);
                 }
             }
 

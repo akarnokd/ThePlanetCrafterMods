@@ -9,7 +9,7 @@
       <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="&quot;$(TargetDir)ZapModVersions.exe&quot; $(ProjectDir)\..\" />
   </Target>
 </Project>

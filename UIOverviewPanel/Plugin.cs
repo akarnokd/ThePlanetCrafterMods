@@ -59,6 +59,10 @@ namespace UIOverviewPanel
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
+            {
+                LibCommon.ModVersionCheck.NotifyUser(this, hashError, repoURL, Logger.LogInfo);
+            }
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
