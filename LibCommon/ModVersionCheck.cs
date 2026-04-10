@@ -71,8 +71,14 @@ namespace LibCommon
         public static bool Check(BaseUnityPlugin plugin, Action<object> logInfo, out bool hashError, out string repoURL)
         {
             using var sha2 = SHA256.Create();
+            var filename = plugin.GetType().Assembly.Location;
             var hash = sha2.ComputeHash(File.ReadAllBytes(plugin.GetType().Assembly.Location));
             var hashStr = Convert.ToBase64String(hash);
+
+            if (File.Exists(filename.Replace(".dll", ".pdb", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                hashStr = ""; // ignore dev deployments locally if we have PDBs along with the DLLs
+            }
 
             return Check(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), hashStr, logInfo, out hashError, out repoURL);
         }
@@ -113,6 +119,7 @@ namespace LibCommon
                         catch (Exception ex)
                         {
                             logInfo("[ModVersionCheck]   Repo download failed: " + frepo + " (" + ex.Message + ")");
+                            logInfo(ex);
                         }
                         return [];
                     }));
@@ -140,25 +147,26 @@ namespace LibCommon
                         versionInfo = AccessTools.FieldRefAccess<Dictionary<string, RemoteInfo>>(comp.GetType(), "dictionary")(comp);
                         // logInfo("[ModVersionCheck]   Found versionInfo with count " + versionInfo.Count);
                         outOfDateOrShape = AccessTools.FieldRefAccess<List<OutOfShape>>(comp.GetType(), "list")(comp);
-                        // logInfo("[ModVersionCheck]   Found outOfDate with count " + outOfDate.Count);
+                        // logInfo("[ModVersionCheck]   Found outOfDate with count " + outOfDateOrShape.Count);
                         break;
                     }
                 }
             }
-
             if (versionInfo.TryGetValue(localModGuid, out var version))
             {
                 var localVer = new Version(localModVersion);
                 var remoteVer = new Version(version.version);
-                var remoteHash = version.Item3;
+                var remoteHash = version.hash;
                 var hasNewer = remoteVer > localVer;
-                var sameHash = remoteHash == localHash || "" == remoteHash;
+                var sameHash = remoteHash == localHash || "" == remoteHash || "" == localHash;
                 logInfo("[ModVersionCheck] " + localVer + " <-> " + remoteVer + (hasNewer ? " | Update Available" : ""));
                 logInfo("[ModHashingCheck] " + localHash + " <-> " + remoteHash + (sameHash ? "" : " | CORRUPTED?"));
                 hashError = !sameHash;
                 repoURL = version.repo;
-                return hasNewer;
+                return hasNewer || !sameHash;
             }
+            logInfo("[ModVersionCheck] " + localModGuid + " not found [" + versionInfo.Count + "]" + string.Join("\n", versionInfo));
+
             hashError = false;
             repoURL = "";
             return false;
@@ -190,72 +198,18 @@ namespace LibCommon
             notificationGameObject = GameObject.Find("ModVersionNotify");
             if (notificationGameObject == null)
             {
+                UnityEngine.Debug.Log("Creating ModVersionNotify");
                 notificationGameObject = new GameObject("ModVersionNotify");
+                GameObject.DontDestroyOnLoad(notificationGameObject);
                 var canvas = notificationGameObject.AddComponent<Canvas>();
                 canvas.sortingOrder = 1100;
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                GameObject.DontDestroyOnLoad(notificationGameObject);
 
-                Harmony.CreateAndPatchAll(typeof(ModVersionCheck));
+                Harmony.CreateAndPatchAll(typeof(DialogCloser));
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start()
-        {
-            for (int i = notificationGameObject.transform.childCount - 1; i >= 0; i--)
+            else
             {
-                UnityEngine.Object.Destroy(notificationGameObject.transform.GetChild(i).gameObject);
-            }
-
-            var background = new GameObject("ModVersionNotifyBackground");
-            background.transform.SetParent(notificationGameObject.transform, false);
-            background.AddComponent<DialogCloser>();
-
-            var img = background.AddComponent<Image>();
-            img.color = new Color(0, 0, 0, 0.995f);
-
-            var rect = background.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(Screen.width * 3 / 4, Screen.height * 3 / 4);
-
-            var textGo = new GameObject("ModVersionNotifyText");
-            textGo.transform.SetParent(background.transform, false);
-            var txt = textGo.AddComponent<Text>();
-
-            txt.fontSize = 25;
-            txt.supportRichText = true;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            txt.color = Color.white;
-            txt.alignment = TextAnchor.UpperCenter;
-            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-            txt.verticalOverflow = VerticalWrapMode.Truncate;
-
-            var textRect = textGo.GetComponent<RectTransform>();
-            textRect.sizeDelta = rect.sizeDelta - new Vector2(30, 30);
-
-            txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDateOrShape.Count + " mod(s) need attention /!\\/!\\</size></b></color>";
-            txt.text += "\nPlease update them as soon as possible.";
-            txt.text += "\n<color=#CCFFCC>[= Press Ctrl+Enter to upgrade/fix mods. =]</color>";
-            txt.text += "\n<color=#CCFF00>[=  Press ESC or Controller B to close.  =]</color>";
-
-            var noDevChecks = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TPC_NODEVCHECKS_ON"));
-
-            UnityEngine.Debug.Log(outOfDateOrShape);
-
-            foreach (var md in outOfDateOrShape)
-            {
-                versionInfo.TryGetValue(md.guid, out var v2);
-                UnityEngine.Debug.Log(md);
-                UnityEngine.Debug.Log(v2);
-                if (md.version != v2.version)
-                {
-                    txt.text += "\n\n" + md.description + "\n    v" + md.version + " -> <color=#80FF80>v" + (v2.version ?? "??") + "</color>";
-                }
-                else if (md.hashError && !noDevChecks)
-                {
-                    txt.text += "\n\n" + md.description + "\n    v" + md.version + " -> <color=#FF80800>CORRUPTION?</color>";
-                }
+                UnityEngine.Debug.Log("Found ModVersionNotify");
             }
         }
 
@@ -268,8 +222,124 @@ namespace LibCommon
 
         class DialogCloser : MonoBehaviour
         {
+            public static RectTransform textRect;        // Assign the Text's RectTransform
+            public static RectTransform maskRect;        // Optional: the Panel's RectTransform for bounds checking
+            public static Text txt;
+            public static float scrollSpeed = 3f;       // Pixels per second
+
+            private float maxScroll;         // how far we can scroll down
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Intro), "Start")]
+            static void Intro_Start()
+            {
+                // notificationGameObject.SetActive(true);
+                for (int i = notificationGameObject.transform.childCount - 1; i >= 0; i--)
+                {
+                    UnityEngine.Object.Destroy(notificationGameObject.transform.GetChild(i).gameObject);
+                }
+
+                var background = new GameObject("ModVersionNotifyBackground");
+                background.transform.SetParent(notificationGameObject.transform, false);
+                background.AddComponent<DialogCloser>();
+
+                var outline = background.AddComponent<Outline>();
+                outline.effectDistance = new Vector2(2, 2);
+                outline.effectColor = new Color(1f, 0.75f, 0, 1f);
+
+                var img = background.AddComponent<Image>();
+                img.color = new Color(0, 0, 0, 0.995f);
+
+                var rect = background.GetComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(Screen.width * 3 / 4, Screen.height * 3 / 4);
+
+                maskRect = background.AddComponent<RectMask2D>().GetComponent<RectTransform>();
+
+                var textGo = new GameObject("ModVersionNotifyText");
+                textGo.transform.SetParent(background.transform, false);
+                txt = textGo.AddComponent<Text>();
+
+                txt.fontSize = 25;
+                txt.supportRichText = true;
+                txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                txt.color = Color.white;
+                txt.alignment = TextAnchor.UpperCenter;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+
+                textRect = textGo.GetComponent<RectTransform>();
+                textRect.pivot = new(textRect.pivot.x, 1); 
+
+                txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDateOrShape.Count + " mod(s) need attention /!\\/!\\</size></b></color>";
+                txt.text += "\nPlease update them as soon as possible.";
+                txt.text += "\n<color=#CCFFCC>[= Press Ctrl+Enter to upgrade/fix mods. =]</color>";
+                txt.text += "\n<color=#CCCCFF>[=    Up/Down arrow or Mouse to scroll.  =]</color>";
+                txt.text += "\n<color=#CCFF00>[=  Press ESC or Controller B to close.  =]</color>";
+
+                var noDevChecks = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TPC_NODEVCHECKS_ON"));
+
+                var idx = 1;
+                foreach (var md in outOfDateOrShape)
+                {
+                    versionInfo.TryGetValue(md.guid, out var v2);
+                    UnityEngine.Debug.Log(md);
+                    UnityEngine.Debug.Log(v2);
+                    if (md.version != v2.version)
+                    {
+                        txt.text += "\n\n<color=#C0C0C0>" + idx + ")</color> " + md.description + "  ~~~~  v" + md.version + " :::: <color=#80FF80>v" + (v2.version ?? "??") + "</color>";
+                    }
+                    else if (md.hashError && !noDevChecks)
+                    {
+                        txt.text += "\n\n<color=#C0C0C0>" + idx + ")</color> " + md.description + "  ~~~~    <color=#80FF80>v" + md.version + "</color> :::: <color=#FF8080>CORRUPTION?</color>";
+                    }
+
+                    idx++;
+                }
+
+                textRect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+            }
+
+            void Start()
+            {
+                // Force layout so the text calculates its full preferred height
+                LayoutRebuilder.ForceRebuildLayoutImmediate(textRect);
+
+                // Calculate how much content is overflowing
+                float visibleHeight = maskRect != null ? maskRect.rect.height : textRect.rect.height;
+                float contentHeight = txt.preferredHeight;   // full height after layout
+
+                maxScroll = Mathf.Max(0f, contentHeight - visibleHeight);
+
+                // === THIS IS THE KEY LINE TO START AT THE TOP ===
+                textRect.anchoredPosition = new Vector2(textRect.anchoredPosition.x, maskRect.rect.height / 2);
+            }
+
+            public void ShiftText(float deltaY)
+            {
+                Vector2 pos = textRect.anchoredPosition;
+                pos.y += deltaY;                          // positive delta = scroll up (reveal earlier text)
+
+                // Clamp so we never go above the header (y=0) or below the bottom
+                pos.y = Mathf.Clamp(pos.y, maskRect.rect.height / 2, maskRect.rect.height / 2 + maxScroll);
+
+                textRect.anchoredPosition = pos;
+            }
+
+            // Optional: continuous auto-scroll example
             void Update()
             {
+                if (Keyboard.current[Key.DownArrow].wasPressedThisFrame
+                    || Mouse.current.scroll.y.value < 0)
+                {
+                    ShiftText(scrollSpeed  * txt.fontSize);
+                }
+
+                if (Keyboard.current[Key.UpArrow].wasPressedThisFrame
+                    || Mouse.current.scroll.y.value > 0)
+                {
+                    ShiftText(-scrollSpeed * txt.fontSize);
+                }
+
                 var gamepad = Gamepad.current;
                 if (Keyboard.current[Key.Escape].wasPressedThisFrame
                     || (gamepad != null && (gamepad[GamepadButton.B]?.wasPressedThisFrame ?? false)))
@@ -282,6 +352,7 @@ namespace LibCommon
                     // TODO
                 }
             }
+
         }
 
         public static bool CheckSteamBeta(Action<object> logInfo, out string betaName)
@@ -357,11 +428,12 @@ namespace LibCommon
                     desc = line[2..];
                     continue;
                 }
-                var kv = line.Split('=');
-                if (kv.Length != 2)
+                var kvIndex = line.IndexOf("=");
+                if (kvIndex < 0)
                 {
                     continue;
                 }
+                string[] kv = [line[..kvIndex], line[(kvIndex + 1)..]];
 
                 // logInfo("  -> " + kv[0] + " @ " + kv[1]);
 
@@ -374,7 +446,7 @@ namespace LibCommon
                 plugins[kv[0]] = (desc, subsections[0], subsections[1], subsections[2], startUrl);
             }
 
-            logInfo("[ModVersionCheck]   Parsing " + repository + " version_info.txt DONE");
+            logInfo("[ModVersionCheck]   Parsing " + repository + " version_info.txt DONE. " + plugins.Count + " entries found");
 
             return plugins;
         }

@@ -90,6 +90,7 @@ namespace LibCommon
                 ApplyAchievementWorkaround();
 
                 Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
+                ApplyModEnabler();
 
                 Debug.Log("");
                 if (dumpPreviousMods)
@@ -100,7 +101,6 @@ namespace LibCommon
                     }
                 }
 
-                ApplyModEnabler();
             }
             var modLoc = Assembly.GetExecutingAssembly().Location;
             var hash = HMAC(modLoc);
@@ -160,8 +160,7 @@ namespace LibCommon
 
             var h = sha1.ComputeHash(fullData);
 
-            byte[] hcopy = [.. h];
-            var hashCopy = Convert.ToBase64String(hcopy);
+            var hashCopy = Convert.ToBase64String(sha1.ComputeHash(data));
 
             for (int i = 0; i < rounds - 1; i++)
             {
@@ -365,7 +364,7 @@ namespace LibCommon
         static void ApplyModEnabler()
         {
             // Plugin startup logic
-            Debug.Log("Checking for BepInEx.cfg HideManagerGameObject");
+            // Debug.Log("Checking for BepInEx.cfg HideManagerGameObject");
 
             var me = Assembly.GetExecutingAssembly();
 
@@ -392,12 +391,12 @@ namespace LibCommon
                             {
                                 if (line.EndsWith("true"))
                                 {
-                                    Debug.Log("    HideManagerGameObject = true, all is ok");
+                                    Debug.Log("  HideManagerGO     : true, all is ok");
                                     found = true;
                                 }
                                 else
                                 {
-                                    Debug.Log("    HideManagerGameObject = false, setting it to true");
+                                    Debug.Log("  HideManagerGO     : false, setting it to true, restart required");
                                     lines[i1] = "HideManagerGameObject = true";
                                     save = true;
                                 }
