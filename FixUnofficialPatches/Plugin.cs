@@ -308,5 +308,12 @@ namespace FixUnofficialPatches
                 ____taskPriorities.TryAdd(0, []);
             }
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Intro), "Start")]
+        static void Intro_Start(ref GameObject ___DLCCanvas)
+        {
+            ___DLCCanvas ??= new GameObject("DLCCanvasFix");
+        }
     }
 }

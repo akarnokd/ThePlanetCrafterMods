@@ -12,7 +12,6 @@
   </PropertyGroup>
 	<Import Project="$(SolutionDir)\solution_private.targets" />
 	<ItemGroup>
-		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
 	</ItemGroup>
 
 	<!--

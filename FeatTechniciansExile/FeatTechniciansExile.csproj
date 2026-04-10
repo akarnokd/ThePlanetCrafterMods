@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>FeatTechniciansExile</AssemblyName>
     <Description>(Feat) Technicians Exile</Description>
-    <Version>0.1.0.43</Version>
+    <Version>0.1.0.44</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -16,6 +16,7 @@
 		<Compile Include="..\LibCommon\ModPlanetLoaded.cs" Link="ModPlanetLoaded.cs" />
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
+		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
 		<!-- <Compile Include="..\LibCommon\ModNetworking.cs" Link="ModNetworking.cs" /> -->
 		<Reference Include="Unity.Mathematics">
 			<SpecificVersion>False</SpecificVersion>
