@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -226,6 +227,7 @@ namespace LibCommon
             public static RectTransform maskRect;        // Optional: the Panel's RectTransform for bounds checking
             public static Text txt;
             public static float scrollSpeed = 3f;       // Pixels per second
+            public static Image img;
 
             private float maxScroll;         // how far we can scroll down
 
@@ -247,7 +249,7 @@ namespace LibCommon
                 outline.effectDistance = new Vector2(2, 2);
                 outline.effectColor = new Color(1f, 0.75f, 0, 1f);
 
-                var img = background.AddComponent<Image>();
+                img = background.AddComponent<Image>();
                 img.color = new Color(0, 0, 0, 0.995f);
 
                 var rect = background.GetComponent<RectTransform>();
@@ -272,7 +274,7 @@ namespace LibCommon
 
                 txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDateOrShape.Count + " mod(s) need attention /!\\/!\\</size></b></color>";
                 txt.text += "\nPlease update them as soon as possible.";
-                txt.text += "\n<color=#CCFFCC>[= Press Ctrl+Enter to upgrade/fix mods. =]</color>";
+                txt.text += "\n<color=#CCFFCC>[=  Press Ctrl+Enter to manually update. =]</color>";
                 txt.text += "\n<color=#CCCCFF>[=    Up/Down arrow or Mouse to scroll.  =]</color>";
                 txt.text += "\n<color=#CCFF00>[=  Press ESC or Controller B to close.  =]</color>";
 
@@ -349,8 +351,54 @@ namespace LibCommon
                 if ((Keyboard.current[Key.Enter].wasPressedThisFrame || Keyboard.current[Key.NumpadEnter].wasPressedThisFrame)
                     && (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed))
                 {
-                    // TODO
+                    OpenDownloads();
                 }
+            }
+
+            void OpenDownloads()
+            {
+                img.color = new Color(0.5f, 0.7f, 0.5f, 1);
+
+                StartCoroutine(Quitter());
+            }
+
+            IEnumerator Quitter()
+            {
+                yield return new WaitForSecondsRealtime(2f);
+
+                var location = Assembly.GetExecutingAssembly().Location;
+                var pluginsIndex = location.IndexOf("plugins", StringComparison.InvariantCultureIgnoreCase);
+                if (pluginsIndex > 0)
+                {
+                    location = location.Substring(0, pluginsIndex + 8);
+                }
+                var url = "file:///" + location.Replace("\\", "/");
+                url = Uri.EscapeUriString(url);
+                Application.OpenURL(url);
+
+                yield return new WaitForSecondsRealtime(1f);
+
+                var urlSet = new HashSet<string>();
+                foreach (var md in outOfDateOrShape)
+                {
+                    if (urlSet.Add(md.repo))
+                    {
+                        foreach (var r in REPOSITORIES)
+                        {
+                            if (md.repo.Contains(r, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                Application.OpenURL("https://github.com/" + r + "/releases/latest");
+                                break;
+                            }
+                        }
+                        yield return new WaitForSecondsRealtime(0.25f);
+                    }
+                }
+
+
+                yield return new WaitForSecondsRealtime(1);
+                Application.Quit();
+                yield break;
             }
 
         }
