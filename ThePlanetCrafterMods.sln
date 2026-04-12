@@ -227,6 +227,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIShowAutoCrafterRecipe", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIQuickLoot", "UIQuickLoot\UIQuickLoot.csproj", "{A9CDD3FB-4B1A-DF6E-D362-D2BFE0019325}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZbpVersionBumper", "ZbpVersionBumper\ZbpVersionBumper.csproj", "{EEF57814-335A-BE61-D22D-2826A70E8646}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -517,6 +519,10 @@ Global
 		{A9CDD3FB-4B1A-DF6E-D362-D2BFE0019325}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9CDD3FB-4B1A-DF6E-D362-D2BFE0019325}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9CDD3FB-4B1A-DF6E-D362-D2BFE0019325}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEF57814-335A-BE61-D22D-2826A70E8646}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEF57814-335A-BE61-D22D-2826A70E8646}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEF57814-335A-BE61-D22D-2826A70E8646}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEF57814-335A-BE61-D22D-2826A70E8646}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

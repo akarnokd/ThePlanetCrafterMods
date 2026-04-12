@@ -57,9 +57,9 @@ namespace LibCommon
         {
             BepInExLoggerFix.ApplyFix();
 
-            if (ModVersionCheck.Check(parent, Logger.LogInfo))
+            if (ModVersionCheck.Check(parent, Logger.LogInfo, out var hashError, out var repoURL))
             {
-                ModVersionCheck.NotifyUser(parent, Logger.LogInfo);
+                ModVersionCheck.NotifyUser(parent, hashError, repoURL, Logger.LogInfo);
             }
 
             languageKey = languageCode;

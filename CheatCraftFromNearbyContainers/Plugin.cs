@@ -86,9 +86,9 @@ namespace CheatCraftFromNearbyContainers
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
 
-            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo))
+            if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
             {
-                LibCommon.ModVersionCheck.NotifyUser(this, Logger.LogInfo);
+                LibCommon.ModVersionCheck.NotifyUser(this, hashError, repoURL, Logger.LogInfo);
             }
 
             // Plugin startup logic
