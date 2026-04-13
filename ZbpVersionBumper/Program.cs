@@ -63,7 +63,7 @@ foreach (string dir in Directory.EnumerateDirectories(workdir))
                 RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             // Console.WriteLine(text);
-            //File.WriteAllText(file, text);
+            File.WriteAllText(file, text);
         }
     }
 }
