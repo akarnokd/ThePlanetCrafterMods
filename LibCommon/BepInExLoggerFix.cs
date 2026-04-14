@@ -15,7 +15,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
 
 namespace LibCommon
@@ -27,6 +30,7 @@ namespace LibCommon
     /// </summary>
     public static class BepInExLoggerFix
     {
+        static bool displayMessage;
         /// <summary>
         /// Apply the logging fix if not already working (i.e., UnityLogListener.WriteStringToUnity is still null).
         /// </summary>
@@ -86,6 +90,7 @@ namespace LibCommon
                 ApplyAchievementWorkaround();
 
                 Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
+                ApplyModEnabler();
 
                 Debug.Log("");
                 if (dumpPreviousMods)
@@ -95,6 +100,7 @@ namespace LibCommon
                         Debug.Log("[Info   :   BepInEx] Loading [" + mod.Metadata.Name + " " + mod.Metadata.Version + "]");
                     }
                 }
+
             }
             var modLoc = Assembly.GetExecutingAssembly().Location;
             var hash = HMAC(modLoc);
@@ -108,11 +114,10 @@ namespace LibCommon
             var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
             var hash = HMAC(main);
 
-            var loc = Assembly.GetExecutingAssembly().Location;
-            var dir = loc.LastIndexOf("BepInEx");
+            var dir = main.LastIndexOf("Planet Crafter_Data");
             if (dir != -1)
             {
-                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
+                var target = main[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
                 var fi = new FileInfo(target);
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
@@ -155,8 +160,7 @@ namespace LibCommon
 
             var h = sha1.ComputeHash(fullData);
 
-            byte[] hcopy = [.. h];
-            var hashCopy = Convert.ToBase64String(hcopy);
+            var hashCopy = Convert.ToBase64String(sha1.ComputeHash(data));
 
             for (int i = 0; i < rounds - 1; i++)
             {
@@ -223,10 +227,11 @@ namespace LibCommon
 
         static void Pi(bool isPi, string hash)
         {
+            hash = hash.Replace("___", "\n");
             if (isPi)
             {
                 var h = new Harmony("BepInExLoggerFix");
-                MainMenuMessage.Patch(h, 
+                LibCommon.MainMenuMessage.Patch(h, 
                     "<color=#FFFF00><b>Naugthy! Naughty! Or Unfortunate?</b></color>\n\n"
                     + "    <color=#8080FF>" + isPi + "</color>"
                     + "\n\nI do dare you to show a screenshot of this message on Discord!"
@@ -349,11 +354,240 @@ namespace LibCommon
                     + string.Join("\n", errs.Take(10).Select(v => v.Length > 60 ? v.Substring(0, 60) : v));
                 
                 var h = new Harmony("BepInExLoggerFix-Overloads");
-                MainMenuMessage.Patch(h, msg);
+                LibCommon.MainMenuMessage.Patch(h, msg);
 
                 throw new InvalidDataException("Overload(s) not found in " + dll.FullName + "\n" 
                     + string.Join("\n  ", errs));
             }
+        }
+
+        static void ApplyModEnabler()
+        {
+            // Plugin startup logic
+            // Debug.Log("Checking for BepInEx.cfg HideManagerGameObject");
+
+            var me = Assembly.GetExecutingAssembly();
+
+            var dir = Path.GetDirectoryName(me.Location);
+
+            int i = dir.ToLower(CultureInfo.InvariantCulture).IndexOf("bepinex");
+
+            if (i >= 0)
+            {
+                var newdir = dir[..i] + "bepinex\\config\\BepInEx.cfg";
+
+                if (File.Exists(newdir))
+                {
+                    try
+                    {
+                        var lines = File.ReadAllLines(newdir);
+
+                        var found = false;
+                        var save = false;
+                        for (int i1 = 0; i1 < lines.Length; i1++)
+                        {
+                            string line = lines[i1];
+                            if (line.StartsWith("HideManagerGameObject"))
+                            {
+                                if (line.EndsWith("true"))
+                                {
+                                    Debug.Log("  HideManagerGO     : true, all is ok");
+                                    found = true;
+                                }
+                                else
+                                {
+                                    Debug.Log("  HideManagerGO     : false, setting it to true, restart required");
+                                    lines[i1] = "HideManagerGameObject = true";
+                                    save = true;
+                                }
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            if (save)
+                            {
+                                File.WriteAllLines(newdir, lines);
+                                displayMessage = true;
+                            }
+                            else
+                            {
+                                Debug.Log("BepInEx.cfg is missing the default HideManagerGameObject. Please check your BepInEx version");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log(ex);
+                    }
+                }
+                else
+                {
+                    Debug.Log("Could not locate BepInEx config file: " + newdir);
+                }
+            }
+            else
+            {
+                Debug.Log("Could not locate BepInEx directory: " + dir);
+            }
+            HarmonyIntegrityCheck.Check(typeof(ModEnabler));
+            Harmony.CreateAndPatchAll(typeof(ModEnabler));
+
+        }
+
+        class ModEnabler: MonoBehaviour
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Intro), "Awake")]
+            static void Intro_Awake(Intro __instance)
+            {
+                try
+                {
+                    var logo = GameObject.Find("Canvases/CanvasBase/Logo");
+                    var logoRt = logo.GetComponent<RectTransform>();
+
+                    var subtitleTmp = logo.GetComponentInChildren<TextMeshProUGUI>(true);
+                    var subtitleRt = subtitleTmp.GetComponent<RectTransform>();
+
+                    var version = new GameObject("MiscModEnablerVersion");
+                    version.transform.SetParent(logo.transform, false);
+
+                    var txt = version.AddComponent<TextMeshProUGUI>();
+                    txt.color = Color.yellow;
+                    var str = "v" + Application.version;
+                    try
+                    {
+                        if (SteamManager.Initialized)
+                        {
+                            str += " - Steam";
+                            if (Steamworks.SteamApps.GetCurrentBetaName(out var text, 256))
+                            {
+                                str += " - " + text;
+                            }
+                        }
+                        else
+                        if (LibCommon.ModVersionCheck.CheckSteamBeta(Debug.Log, out var nm))
+                        {
+                            str += " - " + nm;
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Debug.Log(exc);
+                    }
+
+                    str += " - Modded (" + Chainloader.PluginInfos.Count + " mods)";
+                    txt.text = str;
+                    txt.font = subtitleTmp.font;
+                    txt.fontSize = Math.Max(12, subtitleTmp.fontSize / 2);
+                    txt.textWrappingMode = TextWrappingModes.NoWrap;
+
+                    var rt = txt.rectTransform;
+                    rt.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+                    var dw = Math.Max(0, (logoRt.sizeDelta.x - rt.sizeDelta.x) / 2);
+
+                    rt.localPosition = subtitleRt.localPosition + new Vector3(rt.sizeDelta.x / 2 + dw, -rt.sizeDelta.y, 0);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log(ex);
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Intro), "Start")]
+            static void Intro_Start()
+            {
+                if (displayMessage)
+                {
+                    ShowDialog("Mods should now work properly.\n\nPlease restart the game.", true);
+                }
+                try
+                {
+                    var modVersionLog = Path.Combine(Application.persistentDataPath, "lastgameversion.txt");
+                    if (File.Exists(modVersionLog))
+                    {
+                        var log = File.ReadAllText(modVersionLog).Trim();
+                        if (log != Application.version)
+                        {
+                            ShowDialog("The game just updated from <color=#FFCC00>v"
+                                + log + "</color> to <color=#FFCC00>v" + Application.version + "</color> !"
+                                + "\n"
+                                + "\nIf you are experiencing problems,"
+                                + "\nplease update your mods as soon as possible."
+                                + "\n"
+                                + "\n=[ Press ESC / Gamepad-B to continue ]="
+                                , false);
+                            File.WriteAllText(modVersionLog, Application.version);
+                        }
+                    }
+                    else
+                    {
+                        File.WriteAllText(modVersionLog, Application.version);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log(ex);
+                }
+            }
+
+            static void ShowDialog(string message, bool warning)
+            {
+                var panel = new GameObject("MiscModEnabler_Notification");
+                var canvas = panel.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 100;
+
+                var background = new GameObject("MiscModEnabler_Notification_Background");
+                background.transform.SetParent(panel.transform, false);
+                var img = background.AddComponent<Image>();
+                if (warning)
+                {
+                    img.color = new Color(0.5f, 0, 0, 0.99f);
+                }
+                else
+                {
+                    img.color = new Color(0, 0.4f, 0, 0.99f);
+                }
+
+                var text = new GameObject("MiscModEnabler_Notification_Text");
+                text.transform.SetParent(background.transform, false);
+
+                var txt = text.AddComponent<Text>();
+                txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                txt.supportRichText = true;
+                txt.text = message;
+                txt.color = Color.white;
+                txt.fontSize = 30;
+                txt.resizeTextForBestFit = false;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.alignment = TextAnchor.MiddleLeft;
+
+                var trect = text.GetComponent<RectTransform>();
+                trect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+
+                var brect = background.GetComponent<RectTransform>();
+                brect.sizeDelta = trect.sizeDelta + new Vector2(30, 30);
+
+                panel.AddComponent<DialogCloser>();
+            }
+
+            class DialogCloser : MonoBehaviour
+            {
+                void Update()
+                {
+                    var gamepad = Gamepad.current;
+                    if (Keyboard.current[Key.Escape].wasPressedThisFrame
+                        || (gamepad != null && (gamepad[GamepadButton.B]?.wasPressedThisFrame ?? false)))
+                    {
+                        Destroy(gameObject);
+                    }
+                }
+            }
+
         }
 
         class HashText : MonoBehaviour

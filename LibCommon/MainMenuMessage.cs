@@ -11,11 +11,11 @@ namespace LibCommon
     /// <summary>
     /// Displays a warning dialog if the target version differs from the game version.
     /// </summary>
-    internal class MainMenuMessage
+    public static class MainMenuMessage
     {
         static string text = "";
 
-        internal static void Patch(Harmony harmony, string text)
+        public static void Patch(Harmony harmony, string text)
         {
             MainMenuMessage.text = text;
             harmony.PatchAll(typeof(MainMenuMessage));
@@ -28,7 +28,7 @@ namespace LibCommon
             ShowDialog(text);
         }
 
-        internal static void ShowDialog(string message)
+        public static void ShowDialog(string message)
         {
             if (GameObject.Find("MainMenuMessage_Notification") != null) 
             {

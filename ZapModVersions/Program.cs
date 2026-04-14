@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
@@ -12,7 +13,7 @@ string patternConst = "BepInPlugin\\((.*?)\\s*,\\s*\"(.*?)\"\\s*,";
 var regex = new Regex(pattern);
 var regex2 = new Regex(pattern2);
 
-string versionTag = "<Version>(.*?)</Version>";
+string versionTag = "<Version>(.+?)<\\/Version>";
 var versionRegex = new Regex(versionTag);
 
 var workdir = Path.GetFullPath(args[0]);
@@ -66,11 +67,26 @@ foreach (string dir in Directory.EnumerateDirectories(workdir))
                 var m3 = versionRegex.Match(csproj);
                 if (m3.Success)
                 {
+                    Console.WriteLine(csprojFile);
+                    var assName = Regex.Match(csproj,
+                        @"<AssemblyName\s*>(.*?)</AssemblyName>",
+                        RegexOptions.IgnoreCase | RegexOptions.Singleline).Groups[1].Value;
+
+                    var dirName = Regex.Match(csproj,
+                        @"<Description\s*>(.*?)</Description>",
+                        RegexOptions.IgnoreCase | RegexOptions.Singleline).Groups[1].Value;
+
+                    string dllFileName = Path.Combine(dir, "bin/Debug/netstandard2.1/"  + assName + ".dll");
+                    var data = File.ReadAllBytes(dllFileName);
+                    using var sha2 = SHA256.Create();
+                    var hash = sha2.ComputeHash(data);
+                    var hashCopy = Convert.ToBase64String(hash);
+
                     lines.Add("# " + desc);
-                    lines.Add(guid + "=" + m3.Groups[1].Value);
+                    lines.Add(guid + "=" + m3.Groups[1].Value + "|" + hashCopy + "|" + dirName);
 
                     Console.WriteLine("  " + csprojFile);
-                    Console.WriteLine("  :: " + guid + "=" + m3.Groups[1].Value + " ## " + desc);
+                    Console.WriteLine("  :: " + guid + "=" + m3.Groups[1].Value + " ## " + desc + " |" + hashCopy + "|" + dirName);
                 }
             }
         }

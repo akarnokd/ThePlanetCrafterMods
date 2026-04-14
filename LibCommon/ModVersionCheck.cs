@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpaceCraft;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -15,12 +16,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Cache;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
+using OutOfShape = (string guid, string version, string description, bool hashError, string repo);
+using RemoteInfo = (string description, string version, string hash, string directory, string repo);
 
 namespace LibCommon
 {
@@ -51,13 +55,13 @@ namespace LibCommon
             "mcnicki2002/PlanetCrafterMods",
         };
 
-        static Dictionary<string, (string, string)> versionInfo = [];
+        static Dictionary<string, RemoteInfo> versionInfo = [];
 
         static GameObject versionCheckGameObject;
 
         static GameObject notificationGameObject;
 
-        static List<(string, string, string)> outOfDate = [];
+        static List<OutOfShape> outOfDateOrShape = [];
 
         /// <summary>
         /// Checks if the given plugin has any newer version online.
@@ -65,16 +69,29 @@ namespace LibCommon
         /// <param name="plugin">The current plugin to check.</param>
         /// <param name="logInfo">Where to log debug information.</param>
         /// <returns>True if a newer version is available, false if not or there was an error</returns>
-        public static bool Check(BaseUnityPlugin plugin, Action<object> logInfo)
+        public static bool Check(BaseUnityPlugin plugin, Action<object> logInfo, out bool hashError, out string repoURL)
         {
-            return Check(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), logInfo);
+            using var sha2 = SHA256.Create();
+            var filename = plugin.GetType().Assembly.Location;
+            var hash = sha2.ComputeHash(File.ReadAllBytes(plugin.GetType().Assembly.Location));
+            var hashStr = Convert.ToBase64String(hash);
+
+            if (File.Exists(filename.Replace(".dll", ".pdb", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                hashStr = ""; // ignore dev deployments locally if we have PDBs along with the DLLs
+            }
+
+            return Check(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), hashStr, logInfo, out hashError, out repoURL);
         }
 
-        public static bool Check(string localModGuid, string localModVersion, Action<object> logInfo)
+        public static bool Check(string localModGuid, string localModVersion, string localHash, 
+            Action<object> logInfo, out bool hashError, out string repoURL)
         {
             var killswitch = Environment.GetEnvironmentVariable("TPC_MODVERSIONCHECK_OFF");
             if (!string.IsNullOrEmpty(killswitch))
             {
+                hashError = false;
+                repoURL = "";
                 return false;
             }
 
@@ -87,14 +104,14 @@ namespace LibCommon
                 GameObject.DontDestroyOnLoad(versionCheckGameObject);
                 var m = versionCheckGameObject.AddComponent<ModVersionCheckBehaviour>();
                 m.dictionary = versionInfo;
-                m.list = outOfDate;
+                m.list = outOfDateOrShape;
                 var beta = CheckSteamBeta(logInfo, out _);
 
-                List<Task<Dictionary<string, (string, string)>>> allTasks = [];
+                List<Task<Dictionary<string, RemoteInfo>>> allTasks = [];
                 foreach (var repo in REPOSITORIES)
                 {
                     var frepo = repo;
-                    allTasks.Add(Task.Run<Dictionary<string, (string, string)>>(() =>
+                    allTasks.Add(Task.Run<Dictionary<string, RemoteInfo>>(() =>
                     {
                         try
                         {
@@ -103,6 +120,7 @@ namespace LibCommon
                         catch (Exception ex)
                         {
                             logInfo("[ModVersionCheck]   Repo download failed: " + frepo + " (" + ex.Message + ")");
+                            logInfo(ex);
                         }
                         return [];
                     }));
@@ -127,23 +145,31 @@ namespace LibCommon
                 {
                     if (comp.GetType().Name == "ModVersionCheckBehaviour")
                     {
-                        versionInfo = AccessTools.FieldRefAccess<Dictionary<string, (string, string)>>(comp.GetType(), "dictionary")(comp);
+                        versionInfo = AccessTools.FieldRefAccess<Dictionary<string, RemoteInfo>>(comp.GetType(), "dictionary")(comp);
                         // logInfo("[ModVersionCheck]   Found versionInfo with count " + versionInfo.Count);
-                        outOfDate = AccessTools.FieldRefAccess<List<(string, string, string)>>(comp.GetType(), "list")(comp);
-                        // logInfo("[ModVersionCheck]   Found outOfDate with count " + outOfDate.Count);
+                        outOfDateOrShape = AccessTools.FieldRefAccess<List<OutOfShape>>(comp.GetType(), "list")(comp);
+                        // logInfo("[ModVersionCheck]   Found outOfDate with count " + outOfDateOrShape.Count);
                         break;
                     }
                 }
             }
-
             if (versionInfo.TryGetValue(localModGuid, out var version))
             {
                 var localVer = new Version(localModVersion);
-                var remoteVer = new Version(version.Item2);
+                var remoteVer = new Version(version.version);
+                var remoteHash = version.hash;
                 var hasNewer = remoteVer > localVer;
+                var sameHash = remoteHash == localHash || "" == remoteHash || "" == localHash;
                 logInfo("[ModVersionCheck] " + localVer + " <-> " + remoteVer + (hasNewer ? " | Update Available" : ""));
-                return hasNewer;
+                logInfo("[ModHashingCheck] " + localHash + " <-> " + remoteHash + (sameHash ? "" : " | CORRUPTED?"));
+                hashError = !sameHash;
+                repoURL = version.repo;
+                return hasNewer || !sameHash;
             }
+            logInfo("[ModVersionCheck] " + localModGuid + " not found [" + versionInfo.Count + "]" + string.Join("\n", versionInfo));
+
+            hashError = false;
+            repoURL = "";
             return false;
         }
 
@@ -154,99 +180,232 @@ namespace LibCommon
         /// </summary>
         /// <param name="plugin">The current plugin to check.</param>
         /// <param name="logInfo">Where to log debug information.</param>
-        public static void NotifyUser(BaseUnityPlugin plugin, Action<object> logInfo)
+        public static void NotifyUser(BaseUnityPlugin plugin, bool hashError, string repo, Action<object> logInfo)
         {
-            NotifyUser(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), plugin.Info.Metadata.Name, logInfo);
+            NotifyUser(plugin.Info.Metadata.GUID, plugin.Info.Metadata.Version.ToString(), 
+                plugin.Info.Metadata.Name, hashError, repo, logInfo);
         }
 
-        public static void NotifyUser(string localModGuid, string localVersion, string localDescription, Action<object> logInfo)
+        public static void NotifyUser(string localModGuid, string localVersion,
+            string localDescription, bool hashError, string repo, Action<object> logInfo)
         {
-            if (outOfDate.Any(e => e.Item1 == localModGuid))
+            if (outOfDateOrShape.Any(e => e.Item1 == localModGuid))
             {
                 return;
             }
-            outOfDate.Add((localModGuid, localVersion, localDescription));
+            logInfo((localModGuid, localVersion, localDescription, hashError));
+            outOfDateOrShape.Add((localModGuid, localVersion, localDescription, hashError, repo));
 
             notificationGameObject = GameObject.Find("ModVersionNotify");
             if (notificationGameObject == null)
             {
+                UnityEngine.Debug.Log("Creating ModVersionNotify");
                 notificationGameObject = new GameObject("ModVersionNotify");
+                GameObject.DontDestroyOnLoad(notificationGameObject);
                 var canvas = notificationGameObject.AddComponent<Canvas>();
                 canvas.sortingOrder = 1100;
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                GameObject.DontDestroyOnLoad(notificationGameObject);
 
-                Harmony.CreateAndPatchAll(typeof(ModVersionCheck));
+                Harmony.CreateAndPatchAll(typeof(DialogCloser));
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(Intro), "Start")]
-        static void Intro_Start()
-        {
-            for (int i = notificationGameObject.transform.childCount - 1; i >= 0; i--)
+            else
             {
-                UnityEngine.Object.Destroy(notificationGameObject.transform.GetChild(i).gameObject);
-            }
-
-            var background = new GameObject("ModVersionNotifyBackground");
-            background.transform.SetParent(notificationGameObject.transform, false);
-            background.AddComponent<DialogCloser>();
-
-            var img = background.AddComponent<Image>();
-            img.color = new Color(0, 0, 0, 0.995f);
-
-            var rect = background.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(Screen.width * 3 / 4, Screen.height * 3 / 4);
-
-            var textGo = new GameObject("ModVersionNotifyText");
-            textGo.transform.SetParent(background.transform, false);
-            var txt = textGo.AddComponent<Text>();
-
-            txt.fontSize = 25;
-            txt.supportRichText = true;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            txt.color = Color.white;
-            txt.alignment = TextAnchor.UpperCenter;
-            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
-            txt.verticalOverflow = VerticalWrapMode.Truncate;
-
-            var textRect = textGo.GetComponent<RectTransform>();
-            textRect.sizeDelta = rect.sizeDelta - new Vector2(30, 30);
-
-            txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDate.Count + " mod(s) have updates available /!\\/!\\</size></b></color>";
-            txt.text += "\nPlease update them as soon as possible.";
-            txt.text += "\n<color=#CCFF00>[= Press ESC or Controller B to close. =]</color>";
-            foreach (var md in outOfDate)
-            {
-                versionInfo.TryGetValue(md.Item1, out var v2);
-                txt.text += "\n\n" + md.Item3 + "\n    v" + md.Item2 + " -> <color=#80FF80>v" + (v2.Item2 ?? "??") + "</color>";
+                UnityEngine.Debug.Log("Found ModVersionNotify");
             }
         }
 
         public class ModVersionCheckBehaviour : MonoBehaviour
         {
-            public Dictionary<string, (string, string)> dictionary;
+            public Dictionary<string, RemoteInfo> dictionary;
 
-            public List<(string, string, string)> list;
+            public List<OutOfShape> list;
         }
 
         class DialogCloser : MonoBehaviour
         {
+            public static RectTransform textRect;        // Assign the Text's RectTransform
+            public static RectTransform maskRect;        // Optional: the Panel's RectTransform for bounds checking
+            public static Text txt;
+            public static float scrollSpeed = 3f;       // Pixels per second
+            public static Image img;
+
+            private float maxScroll;         // how far we can scroll down
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Intro), "Start")]
+            static void Intro_Start()
+            {
+                // notificationGameObject.SetActive(true);
+                for (int i = notificationGameObject.transform.childCount - 1; i >= 0; i--)
+                {
+                    UnityEngine.Object.Destroy(notificationGameObject.transform.GetChild(i).gameObject);
+                }
+
+                var background = new GameObject("ModVersionNotifyBackground");
+                background.transform.SetParent(notificationGameObject.transform, false);
+                background.AddComponent<DialogCloser>();
+
+                var outline = background.AddComponent<Outline>();
+                outline.effectDistance = new Vector2(2, 2);
+                outline.effectColor = new Color(1f, 0.75f, 0, 1f);
+
+                img = background.AddComponent<Image>();
+                img.color = new Color(0, 0, 0, 0.995f);
+
+                var rect = background.GetComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(Screen.width * 3 / 4, Screen.height * 3 / 4);
+
+                maskRect = background.AddComponent<RectMask2D>().GetComponent<RectTransform>();
+
+                var textGo = new GameObject("ModVersionNotifyText");
+                textGo.transform.SetParent(background.transform, false);
+                txt = textGo.AddComponent<Text>();
+
+                txt.fontSize = 25;
+                txt.supportRichText = true;
+                txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                txt.color = Color.white;
+                txt.alignment = TextAnchor.UpperCenter;
+                txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                txt.verticalOverflow = VerticalWrapMode.Overflow;
+
+                textRect = textGo.GetComponent<RectTransform>();
+                textRect.pivot = new(textRect.pivot.x, 1); 
+
+                txt.text = "<color=#FFCC00><b><size=40>/!\\/!\\ " + outOfDateOrShape.Count + " mod(s) need attention /!\\/!\\</size></b></color>";
+                txt.text += "\nPlease update them as soon as possible.";
+                txt.text += "\n<color=#CCFFCC>[=  Press Ctrl+Enter to manually update. =]</color>";
+                txt.text += "\n<color=#CCCCFF>[=    Up/Down arrow or Mouse to scroll.  =]</color>";
+                txt.text += "\n<color=#CCFF00>[=  Press ESC or Controller B to close.  =]</color>";
+
+                var noDevChecks = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TPC_NODEVCHECKS_ON"));
+
+                var idx = 1;
+                foreach (var md in outOfDateOrShape)
+                {
+                    versionInfo.TryGetValue(md.guid, out var v2);
+                    UnityEngine.Debug.Log(md);
+                    UnityEngine.Debug.Log(v2);
+                    if (md.version != v2.version)
+                    {
+                        txt.text += "\n\n<color=#C0C0C0>" + idx + ")</color> " + md.description + "  ~~~~  v" + md.version + " :::: <color=#80FF80>v" + (v2.version ?? "??") + "</color>";
+                    }
+                    else if (md.hashError && !noDevChecks)
+                    {
+                        txt.text += "\n\n<color=#C0C0C0>" + idx + ")</color> " + md.description + "  ~~~~    <color=#80FF80>v" + md.version + "</color> :::: <color=#FF8080>CORRUPTION?</color>";
+                    }
+
+                    idx++;
+                }
+
+                textRect.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
+            }
+
+            void Start()
+            {
+                // Force layout so the text calculates its full preferred height
+                LayoutRebuilder.ForceRebuildLayoutImmediate(textRect);
+
+                // Calculate how much content is overflowing
+                float visibleHeight = maskRect != null ? maskRect.rect.height : textRect.rect.height;
+                float contentHeight = txt.preferredHeight;   // full height after layout
+
+                maxScroll = Mathf.Max(0f, contentHeight - visibleHeight);
+
+                // === THIS IS THE KEY LINE TO START AT THE TOP ===
+                textRect.anchoredPosition = new Vector2(textRect.anchoredPosition.x, maskRect.rect.height / 2);
+            }
+
+            public void ShiftText(float deltaY)
+            {
+                Vector2 pos = textRect.anchoredPosition;
+                pos.y += deltaY;                          // positive delta = scroll up (reveal earlier text)
+
+                // Clamp so we never go above the header (y=0) or below the bottom
+                pos.y = Mathf.Clamp(pos.y, maskRect.rect.height / 2, maskRect.rect.height / 2 + maxScroll);
+
+                textRect.anchoredPosition = pos;
+            }
+
+            // Optional: continuous auto-scroll example
             void Update()
             {
+                if (Keyboard.current[Key.DownArrow].wasPressedThisFrame
+                    || Mouse.current.scroll.y.value < 0)
+                {
+                    ShiftText(scrollSpeed  * txt.fontSize);
+                }
+
+                if (Keyboard.current[Key.UpArrow].wasPressedThisFrame
+                    || Mouse.current.scroll.y.value > 0)
+                {
+                    ShiftText(-scrollSpeed * txt.fontSize);
+                }
+
                 var gamepad = Gamepad.current;
                 if (Keyboard.current[Key.Escape].wasPressedThisFrame
                     || (gamepad != null && (gamepad[GamepadButton.B]?.wasPressedThisFrame ?? false)))
                 {
                     Destroy(gameObject);
                 }
+                if ((Keyboard.current[Key.Enter].wasPressedThisFrame || Keyboard.current[Key.NumpadEnter].wasPressedThisFrame)
+                    && (Keyboard.current[Key.LeftCtrl].isPressed || Keyboard.current[Key.RightCtrl].isPressed))
+                {
+                    OpenDownloads();
+                }
             }
+
+            void OpenDownloads()
+            {
+                img.color = new Color(0.5f, 0.7f, 0.5f, 1);
+
+                StartCoroutine(Quitter());
+            }
+
+            IEnumerator Quitter()
+            {
+                yield return new WaitForSecondsRealtime(2f);
+
+                var location = Assembly.GetExecutingAssembly().Location;
+                var pluginsIndex = location.IndexOf("plugins", StringComparison.InvariantCultureIgnoreCase);
+                if (pluginsIndex > 0)
+                {
+                    location = location.Substring(0, pluginsIndex + 8);
+                }
+                var url = "file:///" + location.Replace("\\", "/");
+                url = Uri.EscapeUriString(url);
+                Application.OpenURL(url);
+
+                yield return new WaitForSecondsRealtime(1f);
+
+                var urlSet = new HashSet<string>();
+                foreach (var md in outOfDateOrShape)
+                {
+                    if (urlSet.Add(md.repo))
+                    {
+                        foreach (var r in REPOSITORIES)
+                        {
+                            if (md.repo.Contains(r, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                Application.OpenURL("https://github.com/" + r + "/releases/latest");
+                                break;
+                            }
+                        }
+                        yield return new WaitForSecondsRealtime(0.25f);
+                    }
+                }
+
+
+                yield return new WaitForSecondsRealtime(1);
+                Application.Quit();
+                yield break;
+            }
+
         }
 
         public static bool CheckSteamBeta(Action<object> logInfo, out string betaName)
         {
-            var loc = Assembly.GetExecutingAssembly().Location;
+            var loc = typeof(Intro).Assembly.Location;
             var steamapps = loc.IndexOf("steamapps", StringComparison.InvariantCultureIgnoreCase);
             if (steamapps > 0)
             {
@@ -274,7 +433,7 @@ namespace LibCommon
             return false;
         }
 
-        static Dictionary<string, (string, string)> GetVersionTxt(string repository, bool beta, Action<object> logInfo)
+        static Dictionary<string, RemoteInfo> GetVersionTxt(string repository, bool beta, Action<object> logInfo)
         {
             var startUrl = "https://raw.githubusercontent.com/" + repository + "/main/version_info.txt";
 
@@ -295,7 +454,7 @@ namespace LibCommon
 
             logInfo("[ModVersionCheck] Download " + startUrl);
 
-            Dictionary<string, (string, string)> plugins = [];
+            Dictionary<string, RemoteInfo> plugins = [];
 
             var request = WebRequest.Create(MaybeRandom(startUrl)).NoCache();
 
@@ -317,17 +476,25 @@ namespace LibCommon
                     desc = line[2..];
                     continue;
                 }
-                var kv = line.Split('=');
-                if (kv.Length != 2)
+                var kvIndex = line.IndexOf("=");
+                if (kvIndex < 0)
                 {
                     continue;
                 }
+                string[] kv = [line[..kvIndex], line[(kvIndex + 1)..]];
 
                 // logInfo("  -> " + kv[0] + " @ " + kv[1]);
-                plugins[kv[0]] = (desc, kv[1]);
+
+                var subsections = kv[1].Split('|');
+                if (subsections.Length == 1)
+                {
+                    subsections = [subsections[0], "", "", "", startUrl];
+                }
+
+                plugins[kv[0]] = (desc, subsections[0], subsections[1], subsections[2], startUrl);
             }
 
-            logInfo("[ModVersionCheck]   Parsing " + repository + " version_info.txt DONE");
+            logInfo("[ModVersionCheck]   Parsing " + repository + " version_info.txt DONE. " + plugins.Count + " entries found");
 
             return plugins;
         }
