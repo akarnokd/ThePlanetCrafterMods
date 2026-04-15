@@ -30,7 +30,7 @@ namespace MiscDebug
 
         public void Awake()
         {
-            LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.BepInExLoggerFix.SurpriseMF();
 
             logger = Logger;
 

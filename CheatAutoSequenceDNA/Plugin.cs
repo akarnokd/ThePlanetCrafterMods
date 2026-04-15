@@ -112,7 +112,7 @@ namespace CheatAutoSequenceDNA
             me = this;
             logger = Logger;
 
-            LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.BepInExLoggerFix.SurpriseMF();
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 

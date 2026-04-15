@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -34,7 +35,7 @@ namespace LibCommon
         /// <summary>
         /// Apply the logging fix if not already working (i.e., UnityLogListener.WriteStringToUnity is still null).
         /// </summary>
-        public static void ApplyFix()
+        public static void SurpriseMF()
         {
             bool dumpPreviousMods = false;
             var field = AccessTools.DeclaredField(typeof(UnityLogListener), "WriteStringToUnityLog");

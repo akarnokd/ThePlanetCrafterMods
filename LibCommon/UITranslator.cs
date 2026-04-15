@@ -55,7 +55,7 @@ namespace LibCommon
             ConfigFile Config,
             Action<Dictionary<string, string>> onLabelsReady = null)
         {
-            BepInExLoggerFix.ApplyFix();
+            BepInExLoggerFix.SurpriseMF();
 
             if (ModVersionCheck.Check(parent, Logger.LogInfo, out var hashError, out var repoURL))
             {
