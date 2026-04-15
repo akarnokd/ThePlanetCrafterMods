@@ -51,6 +51,8 @@ namespace FeatSpaceCows
             me = this;
 
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -68,7 +70,6 @@ namespace FeatSpaceCows
 
                 fWorldObjectsHandlerItemsPickablesWorldObjects = AccessTools.FieldRefAccess<WorldObjectsHandler, HashSet<WorldObject>>("_itemsPickablesWorldObjects");
 
-                LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
                 var h = Harmony.CreateAndPatchAll(typeof(Plugin));
 
                 ModNetworking.Init(modFeatSpaceCowsGuid, logger);

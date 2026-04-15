@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using BepInEx.Logging;
 using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
+using SpaceCraft;
 using System.Collections;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace SaveAutoSave
 {
@@ -22,6 +23,8 @@ namespace SaveAutoSave
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");

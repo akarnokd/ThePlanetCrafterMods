@@ -65,6 +65,8 @@ namespace CheatWreckMap
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             Logger.LogInfo($"Plugin is enabled.");
 
@@ -93,7 +95,6 @@ namespace CheatWreckMap
 
             OnModConfigChanged(baseColor);
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             ModPlanetLoaded.Patch(h, modWreckMapGuid, _ => PlanetLoader_HandleDataAfterLoad());
         }

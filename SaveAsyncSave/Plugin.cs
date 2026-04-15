@@ -42,6 +42,8 @@ namespace SaveAsyncSave
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
             {
@@ -59,7 +61,6 @@ namespace SaveAsyncSave
             modEnabled = Config.Bind("General", "Enabled", true, "Is this mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging (chatty!)");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

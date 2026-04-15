@@ -24,6 +24,8 @@ namespace LathreyAutoMove
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -32,7 +34,6 @@ namespace LathreyAutoMove
             configToggleAutoMoveKey = Config.Bind("General", "Toggle_Auto_Move_Key", Key.CapsLock,
                 "Pick the key to use in combination with the modifier key to toggle auto move off/on.");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

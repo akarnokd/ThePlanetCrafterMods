@@ -20,6 +20,8 @@ namespace UITelemetryFontSizer
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -27,7 +29,6 @@ namespace UITelemetryFontSizer
             leftTelemetryFontSize = Config.Bind("General", "LeftFontSize", -1, "The font size of the left side text block (coordinates). -1 to use the default.");
             rightTelemetryFontSize = Config.Bind("General", "RightFontSize", -1, "The font size of the right side text block (version + framerate). -1 to use the default.");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

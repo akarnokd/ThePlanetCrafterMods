@@ -34,6 +34,8 @@ namespace MiscCustomizeFlashlight
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -51,7 +53,6 @@ namespace MiscCustomizeFlashlight
             fMultiToolLightBaseT2 = AccessTools.FieldRefAccess<float>(typeof(MultiToolLight), "_baseT2");
             fMultiToolLightBaseT3 = AccessTools.FieldRefAccess<float>(typeof(MultiToolLight), "_baseT3");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

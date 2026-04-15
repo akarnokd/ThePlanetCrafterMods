@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
+using HarmonyLib;
 
 namespace UITranslationCzech
 {
@@ -11,6 +12,8 @@ namespace UITranslationCzech
         public void Awake()
         {
             LibCommon.UITranslator.AddLanguage("czech", "labels-cz.txt", this, Logger, Config);
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
         }
     }
 }

@@ -88,6 +88,8 @@ namespace ItemRods
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             Logger.LogInfo($"Plugin is enabled.");
 
@@ -114,7 +116,6 @@ namespace ItemRods
             emissionTexture.LoadImage(array2);
             emissionTexture.name = "EmissionTexture";
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
             Logger.LogInfo("Plugin is loaded!");

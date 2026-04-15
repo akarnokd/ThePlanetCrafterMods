@@ -13,8 +13,9 @@ namespace UITranslationRomanian
         void Awake()
         {
             var h = LibCommon.UITranslator.AddLanguage("romanian", "labels-ro.txt", this, Logger, Config);
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             h.PatchAll(typeof(Plugin));
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         [HarmonyPrefix]

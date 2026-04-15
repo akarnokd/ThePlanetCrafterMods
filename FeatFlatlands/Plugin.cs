@@ -31,6 +31,8 @@ namespace FeatFlatlands
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             me = this;
             logger = Logger;
@@ -38,7 +40,6 @@ namespace FeatFlatlands
             isEnabled = Config.Bind("General", "Enabled", true, "Is the mod enabled?");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable detailed logging (chatty!)");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

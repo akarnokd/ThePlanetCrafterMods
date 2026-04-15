@@ -14,8 +14,10 @@ namespace UITranslationItalian
         {
             var h = LibCommon.UITranslator.AddLanguage("italian", "labels-it.txt", this, Logger, Config);
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             h.PatchAll(typeof(Plugin));
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         [HarmonyPrefix]

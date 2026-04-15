@@ -33,6 +33,8 @@ namespace LathreyDisableBuildConstraints
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             Logger.LogInfo($"Plugin is loaded!");
 
@@ -43,7 +45,6 @@ namespace LathreyDisableBuildConstraints
             configToggleBuildSnappingKey = Config.Bind("General", "Toggle_Build_Snap_Key", Key.J,
                 "Pick the key to use in combination with the modifier key to toggle building snapping off/on.");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
 
         }

@@ -33,6 +33,8 @@ namespace CheatAutoConsume
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -47,7 +49,6 @@ namespace CheatAutoConsume
             includeList = Config.Bind("General", "IncludeList", "", "Comma separated list of case-insensitive item identifiers that can be auto-consumed. If empty, all eligible items can be consumed. Example: astrofood1, vegetable1growable");
             excludeList = Config.Bind("General", "ExcludeList", "", "Comma separated list of case-insensitive item identifiers that should not be auto-consumed. Example: astrofood1, vegetable1growable");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

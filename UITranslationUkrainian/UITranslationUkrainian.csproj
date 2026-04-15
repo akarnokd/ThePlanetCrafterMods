@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>UITranslationUkrainian</AssemblyName>
     <Description>(UI) Ukrainian Translation</Description>
-    <Version>1.0.0.26</Version>
+    <Version>1.0.0.27</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
@@ -17,6 +17,7 @@
         <Compile Include="..\LibCommon\HarmonyIntegrityCheck.cs" Link="HarmonyIntegrityCheck.cs" />
 		<Compile Include="..\LibCommon\ModVersionCheck.cs" Link="ModVersionCheck.cs" />
 		<Compile Include="..\LibCommon\MainMenuMessage.cs" Link="MainMenuMessage.cs" />
+		<Compile Include="..\LibCommon\GameVersionCheck.cs" Link="GameVersionCheck.cs" />
 	</ItemGroup>
 
 

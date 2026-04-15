@@ -37,6 +37,8 @@ namespace CheatAutoHarvest
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -65,7 +67,6 @@ namespace CheatAutoHarvest
                 }
             }
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(harmony, modCheatAutoHarvest, _ => PlanetLoader_HandleDataAfterLoad());
         }

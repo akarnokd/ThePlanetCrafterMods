@@ -130,6 +130,8 @@ namespace FeatCommandConsole
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
             {
@@ -227,10 +229,8 @@ namespace FeatCommandConsole
             fMachineAutoCrafterWorldObjectsInRange = AccessTools.FieldRefAccess<HashSet<WorldObject>>(typeof(MachineAutoCrafter), "_worldObjectsInRange");
 
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modFeatCommandConsole, _ => PlanetLoader_HandleDataAfterLoad());
-            LibCommon.GameVersionCheck.Patch(h, "(Feat) Command Console - v" + PluginInfo.PLUGIN_VERSION);
         }
 
         static void Log(object o)

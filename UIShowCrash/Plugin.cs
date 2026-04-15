@@ -2,17 +2,18 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using System.Collections.Generic;
-using BepInEx.Logging;
 using BepInEx.Configuration;
-using System.IO;
+using BepInEx.Logging;
+using HarmonyLib;
 using System;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace UIShowCrash
 {
@@ -41,6 +42,8 @@ namespace UIShowCrash
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -52,6 +55,7 @@ namespace UIShowCrash
             testMode = Config.Bind("General", "TestMode", false, "Press F11 to generate a crash log entry.");
 
             backgroundTask = Task.Factory.StartNew(o => ErrorChecker(), null, cancel.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
         }
 
         public void OnDestroy()

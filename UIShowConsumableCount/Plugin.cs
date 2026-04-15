@@ -34,6 +34,8 @@ namespace UIShowConsumableCount
         void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -41,7 +43,6 @@ namespace UIShowConsumableCount
             fontSize = Config.Bind("General", "FontSize", 20, "The font size");
             debugMode = Config.Bind("General", "DebugMode", false, "Enable debug logging (chatty!)");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

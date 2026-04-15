@@ -26,6 +26,8 @@ namespace UIInventoryMoveMultiple
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");
@@ -33,7 +35,6 @@ namespace UIInventoryMoveMultiple
             moveFew = Config.Bind<int>("General", "MoveFewAmount", 5, "How many items to move when only a few to move.").Value;
             moveMany = Config.Bind<int>("General", "MoveManyAmount", 50, "How many items to move when many to move.").Value;
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             Harmony.CreateAndPatchAll(typeof(Plugin));
         }
 

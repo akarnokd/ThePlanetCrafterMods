@@ -59,6 +59,8 @@ namespace UIOverviewPanel
         private void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
             if (LibCommon.ModVersionCheck.Check(this, Logger.LogInfo, out var hashError, out var repoURL))
             {
                 LibCommon.ModVersionCheck.NotifyUser(this, hashError, repoURL, Logger.LogInfo);
@@ -74,7 +76,6 @@ namespace UIOverviewPanel
             key = Config.Bind("General", "Key", "F1", "The keyboard key to toggle the panel (no modifiers)");
             updateFrequency = Config.Bind("General", "UpdateFrequency", 7, "How often to update the item statistics, in seconds");
 
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             var h = Harmony.CreateAndPatchAll(typeof(Plugin));
             LibCommon.ModPlanetLoaded.Patch(h, modUiOverviewPanelGuid, _ => PlanetLoader_HandleDataAfterLoad());
 

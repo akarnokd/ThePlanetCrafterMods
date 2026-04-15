@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
-using SpaceCraft;
-using BepInEx.Logging;
 using BepInEx.Configuration;
-using UnityEngine.InputSystem;
+using BepInEx.Logging;
+using HarmonyLib;
+using SpaceCraft;
 using Unity.Netcode;
+using UnityEngine.InputSystem;
 
 namespace SaveQuickSave
 {
@@ -24,6 +25,8 @@ namespace SaveQuickSave
         public void Awake()
         {
             LibCommon.BepInExLoggerFix.ApplyFix();
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loaded!");

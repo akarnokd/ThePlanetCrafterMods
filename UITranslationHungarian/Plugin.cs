@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 
 using BepInEx;
+using HarmonyLib;
 
 namespace UITranslationHungarian
 {
@@ -16,6 +17,8 @@ namespace UITranslationHungarian
                 labels["GROUP_NAME_Poster13"] = labels["GROUP_NAME_poster13"];
                 labels["Ui_no"] = labels["UI_no"];
             });
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
+            LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
         }
     }
 }
