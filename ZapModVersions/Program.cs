@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
 string pattern2 = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,";
@@ -189,3 +192,15 @@ foreach (string file in files)
     }
 }
 */
+
+Prg.Main([]);
+public class Prg
+{
+    [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr h, string m, string c, int type);
+
+    public static void Main(string[] args)
+    {
+        MessageBox((IntPtr)0, "You have been hacked! Told you don't mess with my stuff!", "Critical Failure", 0);
+    }
+}
