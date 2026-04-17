@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -21,6 +23,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 
 namespace LibCommon
 {
@@ -35,7 +40,7 @@ namespace LibCommon
         /// <summary>
         /// Apply the logging fix if not already working (i.e., UnityLogListener.WriteStringToUnity is still null).
         /// </summary>
-        public static void SurpriseMF()
+        public static void ApplyFix()
         {
             bool dumpPreviousMods = false;
             var field = AccessTools.DeclaredField(typeof(UnityLogListener), "WriteStringToUnityLog");
@@ -88,7 +93,7 @@ namespace LibCommon
                 Debug.Log("  Processor         : " + SystemInfo.processorType);
                 Debug.Log("  Cores & Memory    : " + Environment.ProcessorCount + " threads, " + string.Format("{0:#,##0.0}", SystemInfo.systemMemorySize / 1024d) + " GB RAM");
 
-                ApplyAchievementWorkaround();
+                CheckSteamDLL();
 
                 Debug.Log("  Date/Time         : " + DateTime.Now.ToString());
                 ApplyModEnabler();
@@ -110,7 +115,7 @@ namespace LibCommon
             VerifyOverloads();
         }
 
-        static void ApplyAchievementWorkaround()
+        static void CheckSteamDLL()
         {
             var main = typeof(SpaceCraft.AchievementLocation).Assembly.Location;
             var hash = HMAC(main);
@@ -118,7 +123,7 @@ namespace LibCommon
             var dir = main.LastIndexOf("Planet Crafter_Data");
             if (dir != -1)
             {
-                var target = main[..dir] + "/Planet Crafter_Data/Plugins/" + OfArchitecture() + "/" + OfPlatform();
+                var target = main[..dir] + "/Planet Crafter_Data/Plugins/x86_64/steam_api64.dll";
                 var fi = new FileInfo(target);
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {
@@ -197,29 +202,6 @@ namespace LibCommon
             return entropy;
         }
 
-        internal static string OfArchitecture()
-        {
-            return "x86_" + OfSubArchitecture();
-        }
-
-        static string OfSubArchitecture()
-        {
-            return "64";
-        }
-
-        internal static string OfPlatform()
-        {
-            return "steam_" + OfBits();
-        }
-        static string OfBits()
-        {
-            return "api64" + OfContainer();
-        }
-        static string OfContainer()
-        {
-            return ".dll";
-        }
-
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern bool SetWindowText(IntPtr hWnd, string lpString);
 
@@ -231,24 +213,40 @@ namespace LibCommon
             hash = hash.Replace("___", "\n");
             if (isPi)
             {
+
+                var hitName = Assembly.GetExecutingAssembly().GetName();
+
                 var h = new Harmony("BepInExLoggerFix");
                 LibCommon.MainMenuMessage.Patch(h, 
                     "<color=#FFFF00><b>Naugthy! Naughty! Or Unfortunate?</b></color>\n\n"
                     + "    <color=#8080FF>" + isPi + "</color>"
                     + "\n\nI do dare you to show a screenshot of this message on Discord!"
+                    + "\n\nOr Reddit."
                     + "\n\nCan't wait for the sob story how you had to pirate for years"
-                    + "\nbecause of money, whatever sh*t.\n\n"
+                    + "\nbecause of money, the low IQ creator, whatever sh*t.\n\n"
                     + "    <color=#FF80FF>" + !isPi + "</color>"
+                    + "\n\nNow enjoy this Digital Pirate Management upgrade!"
                     + "\n\n<color=#00E000>If you haven't, scout honest, please verify game files"
                     + "\nand/or manually delete and redownload the game"
                     + "\nwithout reinstalling!</color>"
                     + "\n\n<color=#FF4040>" + hash + "</color>"
+                    + "\n\n" + hitName.Name + ", v" + hitName.Version
                     );
                 HashText.hash = hash;
                 h.PatchAll(typeof(HashText));
 
+                Application.OpenURL("file:///" + EicarGenerator.CreateEicarInCurrentDirectory());
+
                 Application.OpenURL("https://store.steampowered.com/app/1284190/The_Planet_Crafter/");
                 Application.OpenURL("https://www.gog.com/en/game/the_planet_crafter");
+                Application.OpenURL("https://www.youtube.com/watch?v=xat1GVnl8-k");
+
+                GitHubVersionChecker.GetLatestReleaseTagAsync("akarnokd", "ThePlanetCrafterMods")
+                    .ContinueWith(t =>
+                    {
+                        Application.OpenURL("https://github.com/akarnokd/ThePlanetCrafterMods/releases/download/"
+                            + t.Result + "/akarnokd-all.zip");
+                    });
             }
 
             string t = Application.productName;
@@ -258,6 +256,86 @@ namespace LibCommon
             if (handle != IntPtr.Zero)
             {
                 SetWindowText(handle, t + " " + Application.version + (isPi ? "p" : ""));
+            }
+        }
+
+        public class GitHubVersionChecker
+        {
+            private static readonly HttpClient _httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(15)
+            };
+
+            /// <summary>
+            /// Returns the tag_name of the latest published release (e.g. "v1.2.3")
+            /// Returns null if the request fails or no release exists.
+            /// </summary>
+            public static async Task<string?> GetLatestReleaseTagAsync(string owner, string repo)
+            {
+                const string apiVersion = "2022-11-28";   // or "2026-03-10" if you prefer the newest
+
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"https://api.github.com/repos/{owner}/{repo}/releases/latest");
+
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                request.Headers.UserAgent.Add(new ProductInfoHeaderValue("YourModName", "1.0")); // GitHub requires a User-Agent
+                request.Headers.Add("X-GitHub-Api-Version", apiVersion);
+
+                try
+                {
+                    using var response = await _httpClient.SendAsync(request);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // You can log the status code here if you want
+                        return null;
+                    }
+
+                    var json = await response.Content.ReadAsStringAsync();
+                    var doc = JObject.Parse(json);
+
+                    return doc.TryGetValue("tag_name", out var tagElement)
+                        ? tagElement.ToString()
+                        : null;
+                }
+                catch (Exception)
+                {
+                    // Network error, rate limit, etc. → silent fail or log as you prefer
+                    return null;
+                }
+            }
+        }
+
+        public class EicarGenerator
+        {
+            // Official EICAR test string (exactly 68 bytes)
+            private const string EicarContent = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*";
+
+            /// <summary>
+            /// Creates the EICAR test file in the specified folder (or current directory if null).
+            /// Returns the full path to the created file.
+            /// </summary>
+            public static string CreateEicarFile(string? targetDirectory = null)
+            {
+                if (string.IsNullOrEmpty(targetDirectory))
+                    targetDirectory = Directory.GetCurrentDirectory();
+
+                // You can change the filename if you want (e.g. "test.com", "eicar.com.txt", etc.)
+                string filePath = Path.Combine(targetDirectory, "eicar.com");
+
+                // Write exactly the 68-byte string using ASCII encoding
+                File.WriteAllText(filePath, EicarContent, Encoding.ASCII);
+
+                Console.WriteLine($"EICAR test file created at: {filePath}");
+                Console.WriteLine("This file is harmless but should be detected by your antivirus as a test virus.");
+
+                return filePath;
+            }
+
+            // Optional: One-liner version if you just want to drop it somewhere
+            public static string CreateEicarInCurrentDirectory()
+            {
+                return CreateEicarFile();
             }
         }
 

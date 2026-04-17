@@ -126,7 +126,7 @@ namespace CheatMinimap
 
         private void Awake()
         {
-            LibCommon.BepInExLoggerFix.SurpriseMF();
+            LibCommon.BepInExLoggerFix.ApplyFix();
             LibCommon.HarmonyIntegrityCheck.Check(typeof(Plugin));
             LibCommon.GameVersionCheck.Patch(new Harmony(PluginInfo.PLUGIN_GUID + "_Ver"), PluginInfo.PLUGIN_NAME + " - v" + PluginInfo.PLUGIN_VERSION);
 
