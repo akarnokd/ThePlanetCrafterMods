@@ -6,6 +6,8 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
 # The lay of the land.
 
+https://x.com/akarnokd/status/2046271840809587020?s=20
+
 1. I received a 60 day comment ban on NexusMods for telling some moderator to "F".
 
 I'll be now completely stop uploading the mods to NexusMods.
