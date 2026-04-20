@@ -1,0 +1,122 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0E2D77A6-B995-449B-8B8F-0A273F750453}|UITranslationHungarian\\UITranslationHungarian.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\uitranslationhungarian\\uitranslationhungarian.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{0E2D77A6-B995-449B-8B8F-0A273F750453}|UITranslationHungarian\\UITranslationHungarian.csproj|solutionrelative:uitranslationhungarian\\uitranslationhungarian.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F882839-5B21-40E9-88B0-DFAE97E7CFE1}|UITranslationPolish\\UITranslationPolish.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\uitranslationpolish\\uitranslationpolish.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4F882839-5B21-40E9-88B0-DFAE97E7CFE1}|UITranslationPolish\\UITranslationPolish.csproj|solutionrelative:uitranslationpolish\\uitranslationpolish.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F882839-5B21-40E9-88B0-DFAE97E7CFE1}|UITranslationPolish\\UITranslationPolish.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\uitranslationpolish\\labels-pl.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{4F882839-5B21-40E9-88B0-DFAE97E7CFE1}|UITranslationPolish\\UITranslationPolish.csproj|solutionrelative:uitranslationpolish\\labels-pl.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0E2D77A6-B995-449B-8B8F-0A273F750453}|UITranslationHungarian\\UITranslationHungarian.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\uitranslationhungarian\\labels-hu.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{0E2D77A6-B995-449B-8B8F-0A273F750453}|UITranslationHungarian\\UITranslationHungarian.csproj|solutionrelative:uitranslationhungarian\\labels-hu.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{404C0831-AA80-4258-A996-E41B00C54B8A}|LibCommon\\LibCommon.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\libcommon\\gameversioncheck.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{404C0831-AA80-4258-A996-E41B00C54B8A}|LibCommon\\LibCommon.csproj|solutionrelative:libcommon\\gameversioncheck.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{404C0831-AA80-4258-A996-E41B00C54B8A}|LibCommon\\LibCommon.csproj|c:\\users\\akarnokd\\git\\theplanetcraftermods\\libcommon\\bepinexloggerfix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{404C0831-AA80-4258-A996-E41B00C54B8A}|LibCommon\\LibCommon.csproj|solutionrelative:libcommon\\bepinexloggerfix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UITranslationHungarian.csproj",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationHungarian\\UITranslationHungarian.csproj",
+              "RelativeDocumentMoniker": "UITranslationHungarian\\UITranslationHungarian.csproj",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationHungarian\\UITranslationHungarian.csproj",
+              "RelativeToolTip": "UITranslationHungarian\\UITranslationHungarian.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-13T00:36:12.733Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UITranslationPolish.csproj",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationPolish\\UITranslationPolish.csproj",
+              "RelativeDocumentMoniker": "UITranslationPolish\\UITranslationPolish.csproj",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationPolish\\UITranslationPolish.csproj",
+              "RelativeToolTip": "UITranslationPolish\\UITranslationPolish.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-13T00:35:26.259Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "labels-pl.txt",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationPolish\\labels-pl.txt",
+              "RelativeDocumentMoniker": "UITranslationPolish\\labels-pl.txt",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationPolish\\labels-pl.txt",
+              "RelativeToolTip": "UITranslationPolish\\labels-pl.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMkHAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-04-13T00:07:52.163Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "labels-hu.txt",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationHungarian\\labels-hu.txt",
+              "RelativeDocumentMoniker": "UITranslationHungarian\\labels-hu.txt",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\UITranslationHungarian\\labels-hu.txt",
+              "RelativeToolTip": "UITranslationHungarian\\labels-hu.txt",
+              "ViewState": "AgIAAJcHAAAAAAAAAAAAALkHAAD9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-04-13T00:07:43.272Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GameVersionCheck.cs",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\LibCommon\\GameVersionCheck.cs",
+              "RelativeDocumentMoniker": "LibCommon\\GameVersionCheck.cs",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\LibCommon\\GameVersionCheck.cs",
+              "RelativeToolTip": "LibCommon\\GameVersionCheck.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T17:13:36.403Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "BepInExLoggerFix.cs",
+              "DocumentMoniker": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\LibCommon\\BepInExLoggerFix.cs",
+              "RelativeDocumentMoniker": "LibCommon\\BepInExLoggerFix.cs",
+              "ToolTip": "C:\\Users\\akarnokd\\git\\ThePlanetCrafterMods\\LibCommon\\BepInExLoggerFix.cs",
+              "RelativeToolTip": "LibCommon\\BepInExLoggerFix.cs",
+              "ViewState": "AgIAAJUAAAAAAAAAAAAcwKoAAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T16:36:33.698Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
