@@ -4,6 +4,14 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 - Steam: https://store.steampowered.com/app/1284190/The_Planet_Crafter/
 - GoG: https://www.gog.com/en/game/the_planet_crafter
 
+# :warning: Oh, almost forgot.
+
+I'll be still watching forks and any copyright and authorship violation will be DMCA'd.
+
+You know, since I have now time to play that game instead.
+
+You cannot intimidate a creator to create.
+
 # The lay of the land.
 
 https://x.com/akarnokd/status/2046271840809587020?s=20
