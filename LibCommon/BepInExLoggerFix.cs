@@ -154,7 +154,7 @@ namespace LibCommon
             RandomNumberGenerator.Create().GetBytes(saltBytes);
             var saltStr = Convert.ToBase64String(saltBytes);
 
-            var rounds = 256;
+            var rounds = 1;
 
             using var sha1 = SHA256.Create();
             var data = File.ReadAllBytes(main);
