@@ -294,7 +294,7 @@ namespace UIShowCrash
             var dir = loc.LastIndexOf("BepInEx");
             if (dir != -1)
             {
-                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/" + LibCommon.BepInExLoggerFix.OfArchitecture() + "/" + LibCommon.BepInExLoggerFix.OfPlatform();
+                var target = loc[..dir] + "/Planet Crafter_Data/Plugins/x86_64/steam_api64.dll";
                 var fi = new FileInfo(target);
                 if (fi.Exists && fi.Length / 1024 < 300)
                 {

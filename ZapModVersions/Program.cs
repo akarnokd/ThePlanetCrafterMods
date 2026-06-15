@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 string pattern = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,\\s*\"(.*?)\"\\)";
 string pattern2 = "BepInPlugin\\(\"(.*?)\"\\s*,\\s*\"(.*?)\"\\s*,";
@@ -20,6 +23,9 @@ var workdir = Path.GetFullPath(args[0]);
 Console.WriteLine("Checking projects in " + workdir);
 
 List<string> lines = [];
+
+using var sha2 = SHA256.Create();
+
 
 foreach (string dir in Directory.EnumerateDirectories(workdir))
 {
@@ -78,7 +84,6 @@ foreach (string dir in Directory.EnumerateDirectories(workdir))
 
                     string dllFileName = Path.Combine(dir, "bin/Debug/netstandard2.1/"  + assName + ".dll");
                     var data = File.ReadAllBytes(dllFileName);
-                    using var sha2 = SHA256.Create();
                     var hash = sha2.ComputeHash(data);
                     var hashCopy = Convert.ToBase64String(hash);
 
@@ -189,3 +194,15 @@ foreach (string file in files)
     }
 }
 */
+
+Prg.Main([]);
+public class Prg
+{
+    [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr h, string m, string c, int type);
+
+    public static void Main(string[] args)
+    {
+        MessageBox((IntPtr)0, "You have been hacked! Told you don't mess with my stuff!", "Critical Failure", 0);
+    }
+}

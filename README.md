@@ -10,7 +10,15 @@ BepInEx+Harmony mods for the Unity/Steam game The Planet Crafter
 
 :arrow_down_small: Download files from the releases: https://github.com/akarnokd/ThePlanetCrafterMods/releases/latest
 
-## Supported Game Version: 2.007 or later
+## :information_source: NexusMods
+
+I got banned for publicly complaining, and swearing at the NexusMods staff for enabling people to harass me on their site, refusing to fix the blocking mechanisms and continued to behave non-transparently in the entire process.
+
+Therefore, my mods are only available from this very GitHub repository.
+
+NexusMods, go F yourselves, F'ing gatekeepers.
+
+## Supported Game Version: 2.008 or later
 
 With or without any of the DLCs.
 
