@@ -24,6 +24,9 @@ Console.WriteLine("Checking projects in " + workdir);
 
 List<string> lines = [];
 
+using var sha2 = SHA256.Create();
+
+
 foreach (string dir in Directory.EnumerateDirectories(workdir))
 {
     string d = Path.GetFileName(dir);
@@ -81,7 +84,6 @@ foreach (string dir in Directory.EnumerateDirectories(workdir))
 
                     string dllFileName = Path.Combine(dir, "bin/Debug/netstandard2.1/"  + assName + ".dll");
                     var data = File.ReadAllBytes(dllFileName);
-                    using var sha2 = SHA256.Create();
                     var hash = sha2.ComputeHash(data);
                     var hashCopy = Convert.ToBase64String(hash);
 
