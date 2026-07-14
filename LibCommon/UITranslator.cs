@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace LibCommon
 {
@@ -30,6 +31,8 @@ namespace LibCommon
 
         static ConfigEntry<bool> checkMissing;
         static ConfigEntry<bool> dumpLabels;
+        internal static ConfigEntry<Key> reloadKey;
+        internal static ConfigEntry<string> reloadKeyModifiers;
 
         static string currentLanguage;
 
@@ -38,6 +41,10 @@ namespace LibCommon
         static bool diffOnce;
 
         static bool dumpOnce;
+
+        static Action<Dictionary<string, string>> onLabelsReady;
+
+        static string languageFile;
 
         /// <summary>
         /// Adds a new language to the game.
@@ -63,6 +70,8 @@ namespace LibCommon
             }
 
             languageKey = languageCode;
+            UITranslator.onLabelsReady = onLabelsReady;
+            UITranslator.languageFile = languageFile;
 
             // Plugin startup logic
             Logger.LogInfo($"Plugin is loading!");
@@ -71,7 +80,25 @@ namespace LibCommon
 
             checkMissing = Config.Bind("General", "CheckMissing", false, "If enabled, the new language's keys are checked against the english keys to find missing translations. See the logs afterwards.");
             dumpLabels = Config.Bind("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
+            reloadKey = Config.Bind("General", "ReloadKey", Key.F6, "The main key to press to reload translation. See the ReloadKeyModifier for setting custom modifiers.");
+            reloadKeyModifiers = Config.Bind("General", "ReloadKeyModifiers", "CTRL+ALT", "The modifiers to be held while pressing the reload key: any combination of SHIFT, CTRL or ALT allowed");
 
+            LoadLabelFile();
+
+            LibCommon.HarmonyIntegrityCheck.Check(typeof(UITranslator));
+            var h = Harmony.CreateAndPatchAll(typeof(UITranslator));
+
+            parent.StartCoroutine(WaitForLocalizationLoad());
+
+            parent.gameObject.AddComponent<Keywatcher>();
+
+            Logger.LogInfo($"Plugin loaded!");
+
+            return h;
+        }
+
+        static void LoadLabelFile()
+        {
             Assembly me = Assembly.GetExecutingAssembly();
             string dir = Path.GetDirectoryName(me.Location);
 
@@ -95,15 +122,6 @@ namespace LibCommon
                 }
             }
             onLabelsReady?.Invoke(labels);
-
-            LibCommon.HarmonyIntegrityCheck.Check(typeof(UITranslator));
-            var h = Harmony.CreateAndPatchAll(typeof(UITranslator));
-
-            parent.StartCoroutine(WaitForLocalizationLoad());
-
-            Logger.LogInfo($"Plugin loaded!");
-
-            return h;
         }
 
         static int FindSeparator(string line, params char[] separators)
@@ -278,6 +296,57 @@ namespace LibCommon
                             var dir = Path.GetDirectoryName(me.Location);
                             File.WriteAllText(dir + "\\labels." + kvp.Key + ".txt", sb.ToString());
                         }
+                    }
+                }
+            }
+        }
+
+        public static void Reload()
+        {
+            logger.LogInfo("Reloading " + languageKey);
+            LoadLabelFile();
+            var ld = AccessTools.StaticFieldRefAccess<Dictionary<string, Dictionary<string, string>>>(typeof(Localization), "localizationDictionary");
+            var al = AccessTools.StaticFieldRefAccess<List<string>>(typeof(Localization), "availableLanguages");
+            Localization_LoadLocalization(ld, al, true);
+            AdjustNewsletterButton();
+            logger.LogInfo("Reloading " + languageKey + " DONE");
+        }
+
+        internal class Keywatcher : MonoBehaviour
+        {
+            void Update()
+            {
+                var key = reloadKey.Value;
+                var modifiers = reloadKeyModifiers.Value;
+
+                if (!Keyboard.current[key].wasPressedThisFrame)
+                {
+                    return;
+                }
+
+                if (modifiers.Contains("SHIFT", StringComparison.InvariantCultureIgnoreCase)
+                    && !Keyboard.current[Key.LeftShift].isPressed && !Keyboard.current[Key.RightShift].isPressed)
+                {
+                    return;
+                }
+                if (modifiers.Contains("CTRL", StringComparison.InvariantCultureIgnoreCase)
+                    && !Keyboard.current[Key.LeftCtrl].isPressed && !Keyboard.current[Key.RightCtrl].isPressed)
+                {
+                    return;
+                }
+                if (modifiers.Contains("ALT", StringComparison.InvariantCultureIgnoreCase)
+                    && !Keyboard.current[Key.LeftAlt].isPressed && !Keyboard.current[Key.RightAlt].isPressed)
+                {
+                    return;
+                }
+
+                if (languageKey == currentLanguage)
+                {
+                    Reload();
+                    var hud = Managers.GetManager<BaseHudHandler>();
+                    if (hud != null)
+                    {
+                        hud.DisplayCursorText("", 3f, "Labels <" + languageKey + "> reloaded.");
                     }
                 }
             }

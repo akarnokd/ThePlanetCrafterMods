@@ -120,6 +120,8 @@ akarnokd.theplanetcraftermods.uisortsaves=1.0.0.24|9TarwLW/jf2lRFB7svk7wpRHyGkfT
 akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.20|hmOWGTgk5IahPKHnHu3AKwGG4lj7l7nsI9BuAoSTC30=|(UI) Telemetry Font Sizer
 # (UI) Czech Translation
 akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.42|HNSGQvhZGOwvQo4uNAJWRS08KMAgPERp1Oe99fJuEyg=|(UI) Czech Translation
+# (UI) English Plus Translation
+akarnokd.theplanetcraftermods.uitranslationenglishplus=1.0.0.0|Qy8xivpb2Oeoy8Mil+fCsy/0mohJtDkbp0dBZejYbq8=|(UI) English Plus Translation
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.48|OepDdu68VAA7xE6gQvPE2WjLaFuCREr7tQD20r5TJ/g=|(UI) Estonian Translation
 # (UI) Hungarian Translation
