@@ -110,6 +110,7 @@ The new Unity version the game uses has a feature/bug that prevents **all mods**
 ### Translations
 
 - [Český překlad](#ui-cesky-preklad) (Czech translation)
+- [English Plus](#ui-english-plus-translation)
 - [Estonian Translation](#ui-estonian-translation)
 - [Korean Translation](#ui-korean-translation)
 - [Magyar Fordítás](#ui-hungarian-translation) (Hungarian translation)
@@ -1657,6 +1658,33 @@ Traducerea a fost oferită cu amabilitate de Neckro (Discord: neckro#1989).
 ### Configuration
 
 Only diagnostic options. Not relevant for the player.
+
+## (UI) English Plus Translation
+
+Overrides the vanilla English Translation with custom made ones.
+
+TBD: Kindly provided by Ani43 from the TPC Discord.
+
+Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F6</kbd> to live reload the labels if you modified them in the mods' install dir:
+
+`BepInEx\plugins\akarnokd - (UI) English Plus Translation\labels-engplus.txt`
+
+### Configuration
+
+```
+## The main key to press to reload translation. See the ReloadKeyModifier for setting custom modifiers.
+# Setting type: Key
+# Default value: F6
+# Acceptable values: None, Space, Enter, Tab, Backquote, Quote, Semicolon, Comma, Period, Slash, Backslash, LeftBracket, RightBracket, Minus, Equals, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0, LeftShift, RightShift, LeftAlt, RightAlt, AltGr, LeftCtrl, RightCtrl, LeftMeta, LeftWindows, LeftApple, LeftCommand, RightMeta, RightWindows, RightApple, RightCommand, ContextMenu, Escape, LeftArrow, RightArrow, UpArrow, DownArrow, Backspace, PageDown, PageUp, Home, End, Insert, Delete, CapsLock, NumLock, PrintScreen, ScrollLock, Pause, NumpadEnter, NumpadDivide, NumpadMultiply, NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, OEM1, OEM2, OEM3, OEM4, OEM5, IMESelected, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, MediaPlayPause, MediaRewind, MediaForward
+ReloadKey = F6
+
+## The modifiers to be held while pressing the reload key: any combination of SHIFT, CTRL or ALT allowed
+# Setting type: String
+# Default value: CTRL+ALT
+ReloadKeyModifiers = CTRL+ALT
+```
+
+The rest are only diagnostic options, not relevant for the player.
 
 ## (UI) Estonian Translation
 
