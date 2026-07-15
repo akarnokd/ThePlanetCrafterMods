@@ -29,6 +29,7 @@ namespace LibCommon
 
         static readonly Dictionary<string, string> labels = [];
 
+        static ConfigEntry<bool> isEnabled;
         static ConfigEntry<bool> checkMissing;
         static ConfigEntry<bool> dumpLabels;
         internal static ConfigEntry<Key> reloadKey;
@@ -78,6 +79,7 @@ namespace LibCommon
 
             logger = Logger;
 
+            isEnabled = Config.Bind("General", "Enabled", true, "Allows the mod to add/replace the vanilla labels upon game launch.");
             checkMissing = Config.Bind("General", "CheckMissing", false, "If enabled, the new language's keys are checked against the english keys to find missing translations. See the logs afterwards.");
             dumpLabels = Config.Bind("General", "DumpLabels", false, "Dump all labels for all languages in the game?");
             reloadKey = Config.Bind("General", "ReloadKey", Key.F6, "The main key to press to reload translation. See the ReloadKeyModifier for setting custom modifiers.");
@@ -206,6 +208,10 @@ namespace LibCommon
         )
         {
             loadSuccess = ___hasLoadedSuccesfully;
+            if (!isEnabled.Value)
+            {
+                return;
+            }
             // add it to the available languages
             if (!___availableLanguages.Contains(languageKey))
             {
@@ -216,9 +222,14 @@ namespace LibCommon
                 GameConfig.TranslatedLangages.Add(languageKey);
             }
 
+            var englishVanilla = ___localizationDictionary.TryGetValue("english", out var english);
+            if (englishVanilla && !___localizationDictionary.ContainsKey("english-vanilla"))
+            {
+                ___localizationDictionary["english-vanilla"] = new Dictionary<string, string>(english);
+            }
             ___localizationDictionary[languageKey] = labels;
 
-            if (!diffOnce && checkMissing.Value && ___localizationDictionary.TryGetValue("english", out var english))
+            if (!diffOnce && checkMissing.Value && englishVanilla)
             {
                 diffOnce = true;
                 var sbMissing = new StringBuilder(16 * 1024);
