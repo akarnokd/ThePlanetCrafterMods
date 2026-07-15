@@ -120,8 +120,8 @@ namespace UIShowAutoCrafterRecipe
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(UiWindowGroupSelector), nameof(UiWindowGroupSelector.OnOpenAutoCrafter))]
-        static void UiWindowGroupSelector_OnOpenAutoCrafter(UiWindowGroupSelector __instance)
+        [HarmonyPatch(typeof(UiWindowGroupSelector), nameof(UiWindowGroupSelector.OnOpenGroupSelectorUi))]
+        static void UiWindowGroupSelector_OnOpenGroupSelectorUi(UiWindowGroupSelector __instance)
         {
             if (rangeCoroutine != null)
             {
