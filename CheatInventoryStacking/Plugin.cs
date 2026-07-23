@@ -128,6 +128,7 @@ namespace CheatInventoryStacking
         static Func<bool> apiTryToCraftInInventoryHandled;
 
         static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerUpdatingLogisticTasks;
+        static AccessTools.FieldRef<LogisticManager, bool> fLogisticManagerPaused;
         static AccessTools.FieldRef<Inventory, List<WorldObject>> fInventoryWorldObjectsInInventory;
         static AccessTools.FieldRef<MachineGrowerVegetationHarvestable, Inventory> fMachineGrowerVegetationHarvestableSecondInventory;
         static Plugin me;
@@ -284,6 +285,7 @@ namespace CheatInventoryStacking
             }
 
             fLogisticManagerUpdatingLogisticTasks = AccessTools.FieldRefAccess<LogisticManager, bool>("_updatingLogisticTasks");
+            fLogisticManagerPaused = AccessTools.FieldRefAccess<LogisticManager, bool>("_paused");
             fInventoryWorldObjectsInInventory = AccessTools.FieldRefAccess<Inventory, List<WorldObject>>("_worldObjectsInInventory");
 
             fMachineGrowerVegetationHarvestableSecondInventory = AccessTools.FieldRefAccess<MachineGrowerVegetationHarvestable, Inventory>("_secondInventory");
