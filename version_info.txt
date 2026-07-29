@@ -121,11 +121,11 @@ akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.23|4aVfXfqZ4qB0Si6fjSLd
 # (UI) Czech Translation
 akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.45|pt/yLjT5WC3CH0NMXF0dTcISe8H0cSYHzobH84GxfHM=|(UI) Czech Translation
 # (UI) English Plus Translation
-akarnokd.theplanetcraftermods.uitranslationenglishplus=1.0.0.3|4K8vP696/95kM/4TrPFdpwLwv+7Ldlo4MHDLQDj/IA8=|(UI) English Plus Translation
+akarnokd.theplanetcraftermods.uitranslationenglishplus=1.0.0.4|PLQ5KnsPqpS2zzgYm8s48fgCXiyaBz5+1BKaP9Lp13s=|(UI) English Plus Translation
 # (UI) Estonian Translation
 akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.51|OKm2hpjbwse1GrcqL9pg9It2DxlOpkbg7s4TdEYUGgM=|(UI) Estonian Translation
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.35|9Zt+bbSK391Edek11RrMTaRL4XHs2JNc0UelNro9dwE=|(UI) Hungarian Translation
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.36|D+3ktlyw5eBxnexB1vmHH0vi+Dt4312XgJpk9rbMvTk=|(UI) Hungarian Translation
 # (UI) Italian Translation
 akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.43|BkWqy5irvuL7H8groAT4wSJTe4Me0yTbWJHHFGx0pMg=|(UI) Italian Translation
 # (UI) Korean Translation
