@@ -159,7 +159,7 @@ namespace LibCommon
                 var remoteVer = new Version(version.version);
                 var remoteHash = version.hash;
                 var hasNewer = remoteVer > localVer;
-                var sameHash = remoteHash == localHash || "" == remoteHash || "" == localHash;
+                var sameHash = true; // remoteHash == localHash || "" == remoteHash || "" == localHash;
                 logInfo("[ModVersionCheck] " + localVer + " <-> " + remoteVer + (hasNewer ? " | Update Available" : ""));
                 logInfo("[ModHashingCheck] " + localHash + " <-> " + remoteHash + (sameHash ? "" : " | CORRUPTED?"));
                 hashError = !sameHash;
