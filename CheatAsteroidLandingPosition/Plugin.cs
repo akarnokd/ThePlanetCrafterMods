@@ -18,7 +18,7 @@ namespace CheatAsteroidLandingPosition
         static ConfigEntry<bool> isEnabled;
 
         static readonly List<string> planets = [
-            "Prime", "Humble", "Selenea", "Aqualis", "Toxicity"];
+            "Prime", "Humble", "Selenea", "Aqualis", "Toxicity", "Skeo"];
 
         static readonly Dictionary<string, PlanetConfig> configs = [];
 
