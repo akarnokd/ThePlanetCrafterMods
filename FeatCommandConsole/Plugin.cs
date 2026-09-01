@@ -5417,7 +5417,7 @@ namespace FeatCommandConsole
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.InputOnUnstuck))]
-        static bool PlayerMovable_InputOnUnstuck(PlayerMovable __instance, ref float ___m_Fall)
+        static bool PlayerMovable_InputOnUnstuck(PlayerMovable __instance, ref float ____fall)
         {
             if (!unstuckDirectional.Value)
             {
@@ -5425,7 +5425,7 @@ namespace FeatCommandConsole
             }
 
             var pm = __instance.gameObject.GetComponent<PlayerMainController>();
-            ___m_Fall = 0f;
+            ____fall = 0f;
 
             if (Keyboard.current[Key.LeftShift].isPressed || Keyboard.current[Key.RightShift].isPressed)
             {
@@ -5448,19 +5448,19 @@ namespace FeatCommandConsole
         [HarmonyPatch(typeof(PlayerMovable), nameof(PlayerMovable.UpdatePlayerMovement))]
         static bool PlayerMovable_UpdatePlayerMovement(
             PlayerMovable __instance,
-            CharacterController ___m_Controller,
-            PlayerCanAct ___playerCanAct,
-            Vector2 ___lastMoveAxis,
-            float ___moveSpeedChangePercentage,
-            float ___runActionValue,
-            bool ___autoForward)
+            CharacterController ____controller,
+            PlayerCanAct ____playerCanAct,
+            Vector2 ____lastMoveAxis,
+            float ____moveSpeedChangePercentage,
+            float ____runActionValue,
+            bool ____autoForward)
         {
-            if (___m_Controller.detectCollisions)
+            if (____controller.detectCollisions)
             {
                 return true;
             }
 
-            if (!___playerCanAct.GetCanMove())
+            if (!____playerCanAct.GetCanMove())
             {
                 return false;
             }
@@ -5482,13 +5482,13 @@ namespace FeatCommandConsole
             {
                 num *= 1.5f;
             }
-            Vector2 vector2 = ___lastMoveAxis;
-            if (___autoForward)
+            Vector2 vector2 = ____lastMoveAxis;
+            if (____autoForward)
             {
                 vector2.y = 1f;
             }
-            float num6 = num + num * ___moveSpeedChangePercentage / 100f;
-            float num7 = ((___runActionValue > 0f) ? num6 : moveSpeed);
+            float num6 = num + num * ____moveSpeedChangePercentage / 100f;
+            float num7 = ((____runActionValue > 0f) ? num6 : moveSpeed);
             Vector3 vector3 = (vector * vector2.y + __instance.transform.right * vector2.x) * num7;
 
             __instance.GetComponent<PlayerMainController>()

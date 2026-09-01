@@ -127,11 +127,13 @@ foreach (var file in Directory.EnumerateFiles(workdir, "akarnokd-*.zip"))
     }
 }
 
+/*
 if (hashes.Count != 0)
 {
     hashes.Sort();
     File.WriteAllLines(workdir + "hashes.txt", hashes);
 }
+*/
 /*
 Console.WriteLine("---");
 

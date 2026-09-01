@@ -368,7 +368,7 @@ namespace CheatInventoryStacking
                     }
                     if (nonAttributedTasksCacheAllPlanets.TryGetValue(planetHash, out var nonAttributedTaskList))
                     {
-                        if (nextNonAttributedTaskIndex < nonAttributedTaskList.Count)
+                        if (!fLogisticManagerPaused(__instance) && nextNonAttributedTaskIndex < nonAttributedTaskList.Count)
                         {
                             var taskToAttribute = nonAttributedTaskList[nextNonAttributedTaskIndex];
                             nextNonAttributedTaskIndices[planetHash] = nextNonAttributedTaskIndex + 1;
@@ -441,18 +441,21 @@ namespace CheatInventoryStacking
 
                             // Log("      LogisticManager::SetLogisticTasks station candidates: " + stationDistancesCacheCurrentPlanet.Count);
 
-                            stationDistancesCacheCurrentPlanet.Sort();
 
-                            foreach (var dist in stationDistancesCacheCurrentPlanet)
+                            if (!fLogisticManagerPaused(__instance))
                             {
-                                var go = dist.GetMachineDroneStation().TryToReleaseOneDrone();
-                                // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
-                                if (go != null)
+                                stationDistancesCacheCurrentPlanet.Sort();
+                                foreach (var dist in stationDistancesCacheCurrentPlanet)
                                 {
-                                    Drone drone = go.GetComponentInChildren<Drone>();
-                                    drone.AddDroneToFleet();
-                                    drone.SetLogisticTask(task, ____allDroneStations);
-                                    break;
+                                    var go = dist.GetMachineDroneStation().TryToReleaseOneDrone();
+                                    // Log("      LogisticManager::SetLogisticTasks drone found: " + (go != null));
+                                    if (go != null)
+                                    {
+                                        Drone drone = go.GetComponentInChildren<Drone>();
+                                        drone.AddDroneToFleet();
+                                        drone.SetLogisticTask(task, ____allDroneStations);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -503,6 +506,7 @@ namespace CheatInventoryStacking
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), "FindDemandForDroneOrDestroyContent")]
         static bool Patch_LogisticManager_FindDemandForDroneOrDestroyContent(
+            LogisticManager __instance,
             Drone drone,
             List<Inventory> ____demandInventories,
             Dictionary<int, LogisticTask> ____allLogisticTasks,
@@ -532,7 +536,7 @@ namespace CheatInventoryStacking
 
             foreach (var inv in ____demandInventories)
             {
-                if (inv.GetLogisticEntity().GetDemandGroups().Contains(gr) && !IsFullStackedOfInventory(inv, gid))
+                if (!fLogisticManagerPaused(__instance) && inv.GetLogisticEntity().GetDemandGroups().Contains(gr) && !IsFullStackedOfInventory(inv, gid))
                 {
                     var task = CreateNewTaskForWorldObject(droneInv, inv, wo, ____allLogisticTasks);
                     if (task != null)
@@ -679,14 +683,16 @@ namespace CheatInventoryStacking
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.SetANonAttributedTaskToDrone))]
-        static bool Patch_LogisticManager_SetANonAttributedTaskToDrone(Drone drone, HashSet<MachineDroneStation> ____allDroneStations)
+        static bool Patch_LogisticManager_SetANonAttributedTaskToDrone(
+            LogisticManager __instance,
+            Drone drone, HashSet<MachineDroneStation> ____allDroneStations)
         {
             if (nonAttributedTasksCacheAllPlanets.TryGetValue(drone.GetDronePlanetHash(), out var taskList))
             {
                 for (int i = 0; i < taskList.Count; i++)
                 {
                     LogisticTask task = taskList[i];
-                    if (task.GetTaskState() == LogisticData.TaskState.NotAttributed)
+                    if (!fLogisticManagerPaused(__instance) && task.GetTaskState() == LogisticData.TaskState.NotAttributed)
                     {
                         drone.SetLogisticTask(task, ____allDroneStations);
                         return false;
