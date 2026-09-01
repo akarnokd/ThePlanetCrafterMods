@@ -18,7 +18,7 @@ Therefore, my mods are only available from this very GitHub repository.
 
 NexusMods, go F yourselves, F'ing gatekeepers.
 
-## Supported Game Version: 2.008 or later
+## Supported Game Version: 2.102 or later
 
 With or without any of the DLCs.
 
