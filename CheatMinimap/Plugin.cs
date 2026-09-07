@@ -55,6 +55,8 @@ namespace CheatMinimap
         Texture2D aqualisLush;
         Texture2D toxicityBarren;
         Texture2D toxicityLush;
+        Texture2D skeoBarren;
+        Texture2D skeoLush;
 
         ConfigEntry<int> mapSize;
         ConfigEntry<int> mapBottom;
@@ -107,6 +109,7 @@ namespace CheatMinimap
             { "Selenea", new RectMinMax(-2000, -2000, 3000, 3000) },
             { "Aqualis", new RectMinMax(-3000, -3000, 4000, 4000) },
             { "Toxicity", new RectMinMax(-2200, -2200, 2800, 2800) },
+            { "Skeo", new RectMinMax(-4600, -200, -4600 + 6500, -200 + 6500) },
         };
 
         internal class RectMinMax
@@ -170,6 +173,8 @@ namespace CheatMinimap
             fusion = LoadPNG(Path.Combine(dir, "fusion.png"));
             toxicityBarren = LoadPNG(Path.Combine(dir, "toxicity_barren.jpg"));
             toxicityLush = LoadPNG(Path.Combine(dir, "toxicity_lush.jpg"));
+            skeoBarren = LoadPNG(Path.Combine(dir, "skeo_barren.png"));
+            skeoLush = LoadPNG(Path.Combine(dir, "skeo_lush.png"));
 
             mapSize = Config.Bind("General", "MapSize", 400, "The minimap panel size");
             mapBottom = Config.Bind("General", "MapBottom", 350, "Panel position from the bottom of the screen");
@@ -762,6 +767,20 @@ namespace CheatMinimap
                             if (currT >= minT)
                             {
                                 theMap = toxicityLush;
+                            }
+                        }
+                    }
+                    if (pd != null && pd.id == "Skeo")
+                    {
+                        theMap = skeoBarren;
+
+                        if (achievementsHandler != null && worldUnitsHandler != null)
+                        {
+                            var currT = worldUnitsHandler.GetUnit(DataConfig.WorldUnitType.Terraformation).GetValue();
+                            var minT = pd.startMossTerraStage.GetStageStartValue();
+                            if (currT >= minT)
+                            {
+                                theMap = skeoLush;
                             }
                         }
                     }
