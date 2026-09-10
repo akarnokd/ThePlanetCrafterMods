@@ -866,6 +866,12 @@ namespace UIQuickLoot
 
         void Update()
         {
+            if (!takeOne.enabled || !takeAll.enabled)
+            {
+                takeOne.Enable();
+                takeAll.Enable();
+                return;
+            }
             var pm = Managers.GetManager<PlayersManager>();
             if (pm == null)
             {

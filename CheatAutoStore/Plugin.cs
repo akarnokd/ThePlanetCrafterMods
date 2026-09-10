@@ -119,6 +119,11 @@ namespace CheatAutoStore
             {
                 return;
             }
+            if (!storeAction.enabled)
+            {
+                storeAction.Enable();
+                return;
+            }
             var pm = Managers.GetManager<PlayersManager>();
             if (pm == null)
             {

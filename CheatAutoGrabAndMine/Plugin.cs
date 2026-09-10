@@ -136,6 +136,12 @@ namespace CheatAutoGrabAndMine
 
         public void Update()
         {
+            if (!toggleAction.enabled)
+            {
+                toggleAction.Enable();
+                return;
+            }
+
             var wh = Managers.GetManager<WindowsHandler>();
             if (wh == null)
             {

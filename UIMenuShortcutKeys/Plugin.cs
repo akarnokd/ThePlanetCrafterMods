@@ -75,6 +75,13 @@ namespace UIMenuShortcutKeys
 
         public void Update()
         {
+            if (!containerTakeAll.enabled || !sortPlayerInventory.enabled || !sortOtherInventory.enabled)
+            {
+                containerTakeAll.Enable();
+                sortPlayerInventory.Enable();
+                sortOtherInventory.Enable();
+                return;
+            }
             var wh = Managers.GetManager<WindowsHandler>();
             if (wh == null)
             {

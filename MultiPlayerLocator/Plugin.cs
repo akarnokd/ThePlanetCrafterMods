@@ -58,6 +58,11 @@ namespace MultiPlayerLocator
 
         public void Update()
         {
+            if (!playerLocatorAction.enabled)
+            {
+                playerLocatorAction.Enable();
+                return;
+            }
             var pm = Managers.GetManager<PlayersManager>();
             if (pm == null)
             {

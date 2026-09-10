@@ -24,6 +24,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static UnityEngine.GridBrushBase;
 
 namespace FeatCommandConsole
 {
@@ -298,6 +299,13 @@ namespace FeatCommandConsole
 
         void Update()
         {
+            if (!toggleAction.enabled || !toggleActionController.enabled)
+            {
+                toggleAction.Enable();
+                toggleActionController.Enable();
+                return;
+            }
+
             var wh = Managers.GetManager<WindowsHandler>();
             if (wh == null)
             {
