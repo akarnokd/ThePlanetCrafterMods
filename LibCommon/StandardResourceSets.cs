@@ -41,7 +41,8 @@ namespace LibCommon
             "ToxicGoo",
             "ToxicSpores",
             "Minable-Tungsten",
-            "PristineMushroom"
+            "PristineMushroom",
+            "Amber"
         ];
 
         internal static readonly string defaultOres = string.Join(",", defaultOreSet);
@@ -60,7 +61,8 @@ namespace LibCommon
             "Butterfly17Larvae",
             "Butterfly18Larvae",
             "Butterfly19Larvae",
-            "Butterfly20Larvae"
+            "Butterfly20Larvae",
+            "Butterfly21Larvae",
         ]);
 
         internal static readonly string defaultFish = string.Join(",",
@@ -99,7 +101,8 @@ namespace LibCommon
             "Frog12Eggs",
             "Frog13Eggs",
             "Frog14Eggs",
-            "Frog15Eggs"
+            "Frog15Eggs",
+            "Frog16Eggs"
         ]);
     }
 }
