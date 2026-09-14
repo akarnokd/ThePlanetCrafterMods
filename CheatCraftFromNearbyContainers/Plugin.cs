@@ -135,6 +135,11 @@ namespace CheatCraftFromNearbyContainers
 
         public void Update()
         {
+            if (!toggleAction.enabled)
+            {
+                toggleAction.Enable();
+                return;
+            }
             var pm = Managers.GetManager<PlayersManager>();
             if (pm == null)
             {

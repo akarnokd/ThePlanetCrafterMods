@@ -246,6 +246,12 @@ namespace CheatMinimap
 
         void Update()
         {
+            if (!xRayAction.enabled || !mapAction.enabled)
+            {
+                xRayAction.Enable();
+                mapAction.Enable();
+                return;
+            }
             PlayersManager pm = Managers.GetManager<PlayersManager>();
             PlayerMainController player = pm?.GetActivePlayerController();
             WindowsHandler wh = Managers.GetManager<WindowsHandler>();

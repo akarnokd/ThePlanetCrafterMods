@@ -101,6 +101,11 @@ namespace CheatNearbyResourcesHighlight
 
         public void Update()
         {
+            if (!scanInput.enabled)
+            {
+                scanInput.Enable();
+                return;
+            }
             PlayersManager p = Managers.GetManager<PlayersManager>();
             if (p != null)
             {

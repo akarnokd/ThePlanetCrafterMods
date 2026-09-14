@@ -41,6 +41,11 @@ namespace SaveQuickSave
 
         public void Update()
         {
+            if (!quickSaveAction.enabled)
+            {
+                quickSaveAction.Enable();
+                return;
+            }
             if (modEnabled.Value && quickSaveAction.WasPressedThisFrame())
             {
                 logger.LogInfo("Quick Save Action");
