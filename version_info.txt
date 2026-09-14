@@ -1,138 +1,138 @@
 # (Cheat) Asteroid Landing Position Override
-akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.32|ZAkyMSkWBr3Li+PHCHQOuKR0ddDtBkjmYH/5W8olZxI=|(Cheat) Asteroid Landing Position Override
+akarnokd.theplanetcraftermods.cheatasteroidlandingposition=1.0.0.32|QRa0qm+nysy+2ngDBuy9GTKZtAaRN6SBOm+p28oRW8A=|(Cheat) Asteroid Landing Position Override
 # (Cheat) Auto Consume Oxygen-Water-Food
-akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.36|vFElXPGv8g9nP/AwHb//XbrvSC41OxhJsnue5Eehg0g=|(Cheat) Auto Consume Oxygen-Water-Food
+akarnokd.theplanetcraftermods.cheatautoconsume=1.0.0.36|KadQA/rFeOS965IuVpTcsDmzfpTicPH8XxMln93ykIU=|(Cheat) Auto Consume Oxygen-Water-Food
 # (Cheat) Auto Grab and Mine
-akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.41|0I4lHcHv4QM+7r04ocwPJpvLUpkmFwuWIx8BCFGHLg8=|(Cheat) Auto Grab and Mine
+akarnokd.theplanetcraftermods.cheatautograbandmine=1.0.0.41|rV/qqZgTQTwCVwRL4b1+1nlCE2Elm0tZOoHU+AllFQM=|(Cheat) Auto Grab and Mine
 # (Cheat) Automatically Harvest Food n Algae
-akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.50|gpzvbYpoZr8tFSXjWt5bcqWGWCP570e6HhsKnJ9f62Y=|(Cheat) Automatically Harvest Food n Algae
+akarnokd.theplanetcraftermods.cheatautoharvest=1.0.0.50|qyiPnE1pUm7wZDnF/9pl0DRXtcf5aRdWWCFQz6ik9rA=|(Cheat) Automatically Harvest Food n Algae
 # (Cheat) Auto Launch Rockets
-akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.28|LoPrWwxonbEmxPJJC5qILzupPg4MQExV5pygsfgCVdE=|(Cheat) Auto Launch Rockets
+akarnokd.theplanetcraftermods.cheatautolaunchrocket=1.0.0.28|s+fuXmRmkAWryf/wH4BEm8sTKVzMxhR4s/bsm2Obebc=|(Cheat) Auto Launch Rockets
 # (Cheat) Auto Sequence DNA
-akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.48|/BGyytF7LjwIATHluc4sGeZ65NhivF3Dq7Wc+3Od0jo=|(Cheat) Auto Sequence DNA
+akarnokd.theplanetcraftermods.cheatautosequencedna=1.0.0.48|4Y5w4nnkQQox2mc73rQuMj/D1A5l4GQ/Q+uZo/9TFEw=|(Cheat) Auto Sequence DNA
 # (Cheat) Auto Store
-akarnokd.theplanetcraftermods.cheatautostore=1.0.0.33|Xtb11l4kRxIZ2FrCAEKa7VaCcbXpdieXfh12A443WbA=|(Cheat) Auto Store
+akarnokd.theplanetcraftermods.cheatautostore=1.0.0.33|MsGawxONl3vVKgNOQXtLkrGxGwBM2yta3B2s8kdEiEU=|(Cheat) Auto Store
 # (Cheat) Craft From Nearby Containers
-akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.95|KwNa8TbO+QLHbfTTuzl9dt8Cgn4DhNPlz11x2hMm/QA=|(Cheat) Craft From Nearby Containers
+akarnokd.theplanetcraftermods.cheatcraftfromnearbycontainers=1.0.0.95|J9fPoDTnscNXYM6N14b9Xziqjw/Bau6UwNh5vWLJf8U=|(Cheat) Craft From Nearby Containers
 # (Cheat) Inventory Stacking
-akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.2.26|HxydsQOrDFTYbkndWbuZC49rA/d8jvUzWdOOQwIoA4Y=|(Cheat) Inventory Stacking
+akarnokd.theplanetcraftermods.cheatinventorystacking=1.0.2.26|Z3mwtq7t5JAE6gQvdDU9YkOcHdSK97OpVbv/3eVVsJM=|(Cheat) Inventory Stacking
 # (Cheat) Machines Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.57|L/H8XIc/PTnCajD0Dtbgrv0BmMYWx20uKSjaljPlh0Y=|(Cheat) Machines Deposit Into Remote Containers
+akarnokd.theplanetcraftermods.cheatmachineremotedeposit=1.0.0.57|KOaVQDiLx7bL4ZlP8FIDaH3Tw2a9yxaKYWjc4nK8F70=|(Cheat) Machines Deposit Into Remote Containers
 # (Cheat) Minimap
-akarnokd.theplanetcraftermods.cheatminimap=1.0.0.84|RFDTOYmScPqqt4MuknKy1Amm2NscE/20U343qaZjzGk=|(Cheat) Minimap
+akarnokd.theplanetcraftermods.cheatminimap=1.0.0.84|J7Eeu22Q344kecZ31elTcnfrXtGSg6GSjRSB+ogcQlo=|(Cheat) Minimap
 # (Cheat) More Trade
-akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.26|41jtZEzHUSzXGvL/XKOV+qTPIUV735DC43qD2gdOvf8=|(Cheat) More Trade
+akarnokd.theplanetcraftermods.cheatmoretrade=1.0.0.26|Ei4YLYWVOWSx8QB5T4k6jJdLdexlC8C8LdfHXacmRWk=|(Cheat) More Trade
 # (Cheat) Highlight Nearby Resources
-akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.51|0zeyx4q036sYxmiyWhbBJ0KTpQQTDe+7upjbZQy/6x4=|(Cheat) Highlight Nearby Resources
+akarnokd.theplanetcraftermods.cheatnearbyresourceshighlight=1.0.0.51|whfyXR/q+VoW7CuIgefvQehIINmvlelmfNxerBVm3t8=|(Cheat) Highlight Nearby Resources
 # (Cheat) Hide Water in Photomode
-akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.30|+3ZZW3GoXCMDmlaTpQyXcOOtE4J+TFGgyDyYFCOn1ic=|(Cheat) Hide Water in Photomode
+akarnokd.theplanetcraftermods.uiphotomodehidewater=1.0.0.30|Nip9Z0ERIlsRTT3lCfNsv+jS8WPaVwYPRCs7t4rIlXU=|(Cheat) Hide Water in Photomode
 # (Cheat) Recyclers Deposit Into Remote Containers
-akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.40|ChIDVNuf4iaDSR9Y3b0Agd+Hmy66pmdoBVgWJRnkrD8=|(Cheat) Recyclers Deposit Into Remote Containers
+akarnokd.theplanetcraftermods.cheatrecyclerremotedeposit=1.0.0.40|D24HPoplPXptFODS8kOoJsMDjzk6de8CH6JVZbb82Rw=|(Cheat) Recyclers Deposit Into Remote Containers
 # (Cheat) Wreck Map
-akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.23|8ddNyTWTWME2zrACVYC8FxVEy9+yAxisNe4n+kXssPE=|(Cheat) Wreck Map
+akarnokd.theplanetcraftermods.cheatwreckmap=1.0.0.23|GUPQgHAYBSM+zsivrQbS9cgcyMuR9jygWFcMBjsBxRI=|(Cheat) Wreck Map
 # (Feat) Command Console
-akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.54|LF0IRdO2FOCWgikEL8U6CCbK5o6h8K2HN2eiau6MQYY=|(Feat) Command Console
+akarnokd.theplanetcraftermods.featcommandconsole=1.0.1.54|0fkPqEF18DH3i2tG5bQrAouwQlcLq1R5fWyLStofnc8=|(Feat) Command Console
 # (Feat) Flatlands
-akarnokd.theplanetcraftermods.featflatlands=1.0.0.15|WcmbY+ZThsrV6OsxkFwtSBhvpzs8AFfE+0TpWqc/zpI=|(Feat) Flatlands
+akarnokd.theplanetcraftermods.featflatlands=1.0.0.15|gN2h8FnVh/30DmmJq3zHz0flPwkiE5vxe4850EwbJWs=|(Feat) Flatlands
 # (Feat) Space Cows
-akarnokd.theplanetcraftermods.featspacecows=1.0.0.44|jeJDCqtKOnp4XXXUW7BXIgcYc5YI5GGOow8Ra+TUtQE=|(Feat) Space Cows
+akarnokd.theplanetcraftermods.featspacecows=1.0.0.44|wyV7ZamTf62S97W86O1xLkJQcMymk4l5bR+7iJWt4jk=|(Feat) Space Cows
 # (Feat) Technicians Exile
-akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.53|jKfDtty6TdOxQ2O70S2+FnSenJ401jTVEs2RR9uxoYE=|(Feat) Technicians Exile
+akarnokd.theplanetcraftermods.feattechniciansexile=0.1.0.53|k41C7Jm+7R0/FhZETm7lAubDkMXj8R9mf+E75z4nFd8=|(Feat) Technicians Exile
 # (Fix) Unofficial Patches
-akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.81|9HsXjmTFyLMoK3um+V2tNQ6/UucpPB2czwff1yZPruY=|(Fix) Unofficial Patches
+akarnokd.theplanetcraftermods.fixunofficialpatches=1.0.0.81|N/2xfDYVgd3vN0cVZHMGkCdmObsjRuQgXtIScJ1q8Ls=|(Fix) Unofficial Patches
 # (Item) Rods
-akarnokd.theplanetcraftermods.itemrods=1.0.0.23|hpleQkHeeiRvA85ioL9BbQmAIkYWyvXseXNxLCAK718=|(Item) Rods
+akarnokd.theplanetcraftermods.itemrods=1.0.0.23|uo2D2CANI4kCLE/+ZVsPQoRJe/ZwMBUQzjuaB4Ou+P0=|(Item) Rods
 # (Lathrey) Auto Move
-akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.27|2rVGA7JPtSjiHLMYKFkn6vmuNAIwfy1bEeN8i/1an08=|(Lathrey) Auto Move
+akarnokd.theplanetcraftermods.lathreyautomove=1.0.0.27|I/pFu8ozurp4tKq925KUCbendELCNEen1OBhnYPV4Ok=|(Lathrey) Auto Move
 # (Lathrey) Disable Build Constraints
-akarnokd.theplanetcraftermods.lathreydisablebuildconstraints=1.0.0.27|Py3Mhm5hiZwAzAEEyQ4VwqhFp44tvuwljqcQdkG9JTE=|(Lathrey) Disable Build Constraints
+akarnokd.theplanetcraftermods.lathreydisablebuildconstraints=1.0.0.27|vVznX8cfmtI+okS7ZWdIzJ3IWfimpr3cz3Gn1vyJdLU=|(Lathrey) Disable Build Constraints
 # (Lib) Common tools for other mods
-akarnokd.theplanetcraftermods.libcommon=1.0.0.0|Giy7gcLLlwwH2GjN3Rn1GljdjUIHmEL1GF1zPSpHDBQ=|(Lib) Common tools for other mods
+akarnokd.theplanetcraftermods.libcommon=1.0.0.0|zh9KsLwXyzErsKVn/+6KTB0WOwQw4xqkJc3sEnBY/CM=|(Lib) Common tools for other mods
 # (Misc) Customize Flashlight
-akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.21|/2u/9ImrFykDarT77uhUglACU4vHVOUMVw34dOrCCg0=|(Misc) Customize Flashlight
+akarnokd.theplanetcraftermods.misccustomizeflashlight=1.0.0.21|wFi+Kc4nshLI/aHbGggvs/jnxSz7XPgJ3wT1+7YIoCA=|(Misc) Customize Flashlight
 # (Misc) Debug
-akarnokd.theplanetcraftermods.miscdebug=1.0.0.9|PsQptnNcpd8IHQ45Xs7ayR1IK24HigKmSdtPO/rrVr4=|(Misc) Debug
+akarnokd.theplanetcraftermods.miscdebug=1.0.0.9|rsZCBTQXXK7tYnfail8QD+cLq6dyViAQ5WKOtHpRjMw=|(Misc) Debug
 # (Misc) Mod Enabler
-akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.29|jR2KBx+1PfWR1JNprMGSMbDMA8288fdLFIIi58AXp6A=|(Misc) Mod Enabler
+akarnokd.theplanetcraftermods.miscmodenabler=1.0.0.29|oUs18Mhkj61OxLG+HDIU5IyjlzjwHkvOlWznOD9N2Rs=|(Misc) Mod Enabler
 # (Misc) Plugin Update Checker
-akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.35|srrIZiqbnm2MxEuWRyl7qCD3rAyk8Tp8eOvMNLHop8U=|(Misc) Plugin Update Checker
+akarnokd.theplanetcraftermods.miscpluginupdatechecker=1.0.0.35|WEu8o9riCWM8cBiMZaou7IunV1LIJKtJDk75gFUrfRA=|(Misc) Plugin Update Checker
 # (Multi) Player Locator
-akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.23|oFiTxQeMJq5riSMqgCsLhu072vD7DDiZi7KqGB9zISQ=|(Multi) Player Locator
+akarnokd.theplanetcraftermods.multiplayerlocator=1.0.0.23|xZeQUMiUG66hfyi7wZy5mb2KzGe9THYpDFvJpJ6MeFg=|(Multi) Player Locator
 # (Perf) Startup
-akarnokd.theplanetcraftermods.perfstartup=1.0.0.32|Znyi7EF4QMHXd8fMT3purEQM1yV2yF/wwWKpCdCd6so=|(Perf) Startup
+akarnokd.theplanetcraftermods.perfstartup=1.0.0.32|eFEEXeYp31bfMbZeUDiPmu+4MVnA9Px+I7z9f+a0o58=|(Perf) Startup
 # (Save) Async Save
-akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.24|d7UZPsxdmYfhsjtGPK2SA5Q+AgrTiqWrD1UU/LfIuoY=|(Save) Async Save
+akarnokd.theplanetcraftermods.saveasyncsave=1.0.0.24|M/nHJ+TOY5biMJz8cHVnPA2/+QCnT9e4lUqoKjYXsUs=|(Save) Async Save
 # (Save) Auto Backup
-akarnokd.theplanetcraftermods.saveautobackup=1.0.0.28|dzBfFFeY33QjxuSCMxIRij2YHCUMsW+cYFvIktBwH+M=|(Save) Auto Backup
+akarnokd.theplanetcraftermods.saveautobackup=1.0.0.28|DX7QrQPKlpt92ERMDOR/5OQAgwlwpShbBQptpWe/91E=|(Save) Auto Backup
 # (Save) Auto Save
-akarnokd.theplanetcraftermods.saveautosave=1.0.0.31|pFTLEtLs5Y2pg0fQSmyUmeAM1qF9LMHimSTfjeFqyu0=|(Save) Automatic Save
+akarnokd.theplanetcraftermods.saveautosave=1.0.0.31|0oHiL/EvkC4oNuDhTxOpBGtNOvsXF6BuvhL7Grnf2U4=|(Save) Automatic Save
 # (Save) Quick Save
-akarnokd.theplanetcraftermods.savequicksave=1.0.0.34|/R+s6XElsf9H/l49EklKoafv+0jaroYcGBDL+ZR96lQ=|(Save) Quick Save
+akarnokd.theplanetcraftermods.savequicksave=1.0.0.34|4s5b+eBwZ5dnRRtXIteVsv91Ww92YTFz/NPL1PUH1zc=|(Save) Quick Save
 # (UI) Beacon Text
-akarnokd.theplanetcraftermods.uibeacontext=1.0.0.37|BNCO0F4PUcBll20LzM3hHjC+0rcqtTo+i8NdL1XkRRY=|(UI) Beacon Text
+akarnokd.theplanetcraftermods.uibeacontext=1.0.0.37|gsGzogk15OCwuzTVtctqqe+pG4QdxX4ToGuTIqVyFAA=|(UI) Beacon Text
 # (UI) Continue
-akarnokd.theplanetcraftermods.uicontinue=1.0.0.43|ssUlV5MzVUBcJ4GYeTSORui2jnYUZ6Xo2n6PIesf/ks=|(UI) Continue
+akarnokd.theplanetcraftermods.uicontinue=1.0.0.43|QW5rYSHVMATkkZ8DBEtMfSw1JWmzs2yWSLw5JM2GhGY=|(UI) Continue
 # (UI) Customize Inventory Sort Order
-akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.29|9Sjt8I1wrsYcRLQFZbbsL5YQTm7ipg1HsyncBYBYTpY=|(UI) Customize Inventory Sort Order
+akarnokd.theplanetcraftermods.uicustominventorysortall=1.0.0.29|pew+X4RS7lIhIUv7AxQKb3bfvWbK8qhvJUvAM/W1zHk=|(UI) Customize Inventory Sort Order
 # (UI) Prevent Accidental Deconstruct
-akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.31|+bR3qnr6lUWNSckw+mx93WPvLep4E/FQmx56EyrYPKg=|(UI) Prevent Accidental Deconstruction
+akarnokd.theplanetcraftermods.uideconstructpreventaccidental=1.0.0.31|EQkGI95XuIemU60wzkqWYaRY4/bgWXs8QU7kcD73Fww=|(UI) Prevent Accidental Deconstruction
 # (UI) Hotbar
-akarnokd.theplanetcraftermods.uihotbar=1.0.0.53|fgU3OGcR8hQXbPcG5i5KWkk9Stv01OzkbrkQejPqC9o=|(UI) Hotbar
+akarnokd.theplanetcraftermods.uihotbar=1.0.0.53|2kIMnkp7nEDtuSriViskh+YkqBsAlcVoHECX0KXD4rQ=|(UI) Hotbar
 # (UI) Inventory Move Multiple Items
-akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.27|Wn0HtxV38jIISCrAuk9zKF5qiFuXTBulTAY1S8iNTyE=|(UI) Inventory Move Multiple Items
+akarnokd.theplanetcraftermods.uiinventorymovemultiple=1.0.0.27|2/i/WjVXXAKtze2uo2Yad9fJwxXgf8nKtx96aAQvdKA=|(UI) Inventory Move Multiple Items
 # (UI) Logistic Select All
-akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.26|Tf4+toc9q08JCbujyDMbmsHzVlaWoqlTHsAHtKEEkH4=|(UI) Logistic Select All
+akarnokd.theplanetcraftermods.uilogisticselectall=1.0.0.26|p47cOL2fLTdZ/7FOIBImGSFpaHZbDpwtQkPeSCXypdc=|(UI) Logistic Select All
 # (UI) Menu Shortcut Keys
-akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.32|+UhJsQFx2N5Ag8utiFi+4RfrqNEt0TkfUX3Ysh6kWTw=|(UI) Menu Shortcut Keys
+akarnokd.theplanetcraftermods.uimenushortcutkeys=1.0.0.32|ga9dF3lzVboxTNxuwo+3S3r7OEVDrdmxaKP+bSSUAdk=|(UI) Menu Shortcut Keys
 # (UI) Mod Config Menu
-akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.33|g2URX6iftI7bUFOEohccOxeY/4Gdmxr+4qCvICLqWwI=|(UI) Mod Config Menu
+akarnokd.theplanetcraftermods.uimodconfigmenu=1.0.0.33|5kgTcZfzBCZh+dxMh15CYNuBcxSNvNjynn917yGZujs=|(UI) Mod Config Menu
 # (UI) Overview Panel
-akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.63|ICj5Vkp656JoDpv5VEnyPla6XZn+An/wEQC3vbNCmnc=|(UI) Overview Panel
+akarnokd.theplanetcraftermods.uioverviewpanel=1.0.0.63|QhRoB8kqXoKqg5Rd9DXlJs5/EuWh/jsSAN1d43WTA30=|(UI) Overview Panel
 # (UI) Pin Recipe to Screen
-akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.48|9LOnhhgMRaLY6oxeWBh2aBURKRV5ZrVXKbEYf3IL3Vc=|(UI) Pin Recipe to Screen
+akarnokd.theplanetcraftermods.uipinrecipe=1.0.0.48|cSf/iQjCyIXjIT+xUbikW/Kliiyr93HwwIjMvMZoUXU=|(UI) Pin Recipe to Screen
 # (UI) Quick Loot
-akarnokd.theplanetcraftermods.uiquickloot=1.0.0.17|kq0V3AX7hwxU9MX/9ZdYjNH6PjmqKJwrRwpouW8eJiY=|(UI) Quick Loot
+akarnokd.theplanetcraftermods.uiquickloot=1.0.0.17|fNZyilHO6GmqEQdrkNzyomexhV7nbO4zSpRmJLKBMKQ=|(UI) Quick Loot
 # (UI) Save When Quitting
-akarnokd.theplanetcraftermods.saveonquit=1.0.0.28|k7MHut7219lYA9MHrGXaWtkvvn+SVa55vEzOeltODh8=|(UI) Save When Quitting
+akarnokd.theplanetcraftermods.saveonquit=1.0.0.28|irA6A9GHOWCmUO4GF5MIflxLjebp79LvdxXjsP0xahU=|(UI) Save When Quitting
 # (UI) Show Auto-Crafter Recipe
-akarnokd.theplanetcraftermods.uishowautocrafterrecipe=1.0.0.15|FNqZb8Ka8fP1fmhi3McxCPke+AOaWTxhIJZcyDpASo0=|(UI) Show Auto-Crafter Recipe
+akarnokd.theplanetcraftermods.uishowautocrafterrecipe=1.0.0.15|q4UejWBHXdcfFSniwxqrIbYjYts/HaPLN2tykDYr/6E=|(UI) Show Auto-Crafter Recipe
 # (UI) Show Consumable Counts
-akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.34|O1Kpx+7VavAF30RWwOV9qnE3R7k+WHh0gaX7hLar4BA=|(UI) Show Consumable Counts
+akarnokd.theplanetcraftermods.uishowconsumablecount=1.0.0.34|8K7C80Kl2ipqPPnyqySdA6mC9XCCyBUXAQRxyC7IH8c=|(UI) Show Consumable Counts
 # (UI) Show Container Content Info
-akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.35|6GdGECL7LBFRb3uR8QHAn8/MEZq8mpoLEvjV5h0A5/o=|(UI) Show Container Content Info
+akarnokd.theplanetcraftermods.uishowcontainerinfo=1.0.0.35|nOtjeNAPv0oEQlrjOkhv74+CgxTyXJN+FS/mVYOT+/U=|(UI) Show Container Content Info
 # (UI) Show Crash
-akarnokd.theplanetcraftermods.uishowcrash=1.0.0.29|HBo8RVGZjB3/mgOCCfUxaryjCwMh+oeglnIMX8MsAfA=|(UI) Show Crash
+akarnokd.theplanetcraftermods.uishowcrash=1.0.0.29|32qGWTaujjrP8GEB4MhlhIUkH2B/v4osvG5DOh4hgVw=|(UI) Show Crash
 # (UI) Show ETA
-akarnokd.theplanetcraftermods.uishoweta=1.0.0.30|qop47Y6qyIbXZ5fdeh+6ArQSt2vFA4gEKiFAtQ2gaUo=|(UI) Show ETA
+akarnokd.theplanetcraftermods.uishoweta=1.0.0.30|Cr6F2l6/9eLndT9ZSnSb4cBXSVeHRDZda4aj6tY/8rs=|(UI) Show ETA
 # (UI) Show Grab N Mine Count
-akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.32|VtL1X9UHKnWegGNNfywXCfcpIc82w5yp1bDJew4t44c=|(UI) Show Grab N Mine Count
+akarnokd.theplanetcraftermods.uishowgrabnminecount=1.0.0.32|A5T8d7TxfURiLvfM3kncgM4nYov5voUIpkZ/xSfkujE=|(UI) Show Grab N Mine Count
 # (UI) Show MultiTool Mode
-akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.29|aaJ7OGbF8iiGEkfLu1b0TQKjQQiv8a4odFAA5ZdxvrY=|(UI) Show MultiTool Mode
+akarnokd.theplanetcraftermods.uishowmultitoolmode=1.0.0.29|JCTfPWtfxa27iDRCbwi1ylyVnJnwXC6ELo78Z7dlN0I=|(UI) Show MultiTool Mode
 # (UI) Show Player Inventory Counts
-akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.31|d7UBv+7OHVw/q1JxVmbBDWgK1mfMIgC35iBGu3EnWj8=|(UI) Show Player Inventory Counts
+akarnokd.theplanetcraftermods.uishowplayerinventorycount=1.0.0.31|XBJ3HsHrHyOQXcJ9l7iBY1QeKin2ptJII9ailwO2QqQ=|(UI) Show Player Inventory Counts
 # (UI) Show Player Tooltip Item Count
-akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.29|zbGGcMReLFI8jGc7rWhBf6vh7kb/gy80oHorCjQOYpQ=|(UI) Show Player Tooltip Item Count
+akarnokd.theplanetcraftermods.uishowplayertooltipitemcount=1.0.0.29|Hu4uQqbvtttz0qVT3XO4u5n4sNAueybAk9QUs8YmpM0=|(UI) Show Player Tooltip Item Count
 # (UI) Show Rocket Counts
-akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.37|8jMAc+Y98/XrjC/++l6BPpRY8MnzDfiRycNXRyyVplE=|(UI) Show Rocket Counts
+akarnokd.theplanetcraftermods.uishowrocketcount=1.0.0.37|yGU8RCxyEWDf7kPHpG9gzI+EfT/zr6YIEPPY5nlT6SM=|(UI) Show Rocket Counts
 # (UI) Sort Saves On The Load Screen
-akarnokd.theplanetcraftermods.uisortsaves=1.0.0.28|AOz2LZ5eVmEixEyBNXzsUj6ntpvS7QlT1AEWB0TnOQA=|(UI) Sort Saves On The Load Screen
+akarnokd.theplanetcraftermods.uisortsaves=1.0.0.28|MTvxFulGz1iRQ+1AdUEl/1RmOcGZz0/aG8Lx0wLuV7M=|(UI) Sort Saves On The Load Screen
 # (UI) Telemetry Font Sizer
-akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.24|FoiEQ0zrw+3Sm51Xqw7aFykF1O0AVm5lr3A1i9UQa8Q=|(UI) Telemetry Font Sizer
+akarnokd.theplanetcraftermods.uitelemetryfontsizer=1.0.0.24|O5x8RWx2BdG1nGmwifEsGIg5GUF6Tt6I5v4vEnnzzKw=|(UI) Telemetry Font Sizer
 # (UI) Czech Translation
-akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.47|0ySDonlrZoeQIOeoIZ9zyxeIUEL2JH0iihRmNaPnA8Q=|(UI) Czech Translation
+akarnokd.theplanetcraftermods.uitranslationczech=1.0.0.47|q+C4p2gSpHP18HakAHZUnLA4YuCWuYUge9lbbVZswLk=|(UI) Czech Translation
 # (UI) English Plus Translation
-akarnokd.theplanetcraftermods.uitranslationenglishplus=1.0.0.5|V7iUS23XJEOJnx+biFI8QjfLlJvI4DHPhc64i5QFzsM=|(UI) English Plus Translation
+akarnokd.theplanetcraftermods.uitranslationenglishplus=1.0.0.5|efUMqG5gG8Vhy6dyRb9lKrBzOKOK0+VqfXCP4kVjtdw=|(UI) English Plus Translation
 # (UI) Estonian Translation
-akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.52|tXBWFYXVlw63BLIVeQtv0m/ZcHmqdEBlypLTK4nn91I=|(UI) Estonian Translation
+akarnokd.theplanetcraftermods.uitranslationestonian=1.0.0.52|rHZFfswbA1ksJcrmS5raYm/E7ocP8VDij31pC1ZNNYM=|(UI) Estonian Translation
 # (UI) Hungarian Translation
-akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.37|5Ih2A2k9tOYU1Gh2p+2JEiO23Q91fVc2JqmoN8pI1ss=|(UI) Hungarian Translation
+akarnokd.theplanetcraftermods.uitranslationhungarian=1.0.1.37|zsYkrm8QEJGCVmTY41o4ji9hHhh06zQ9za+whdm/4DA=|(UI) Hungarian Translation
 # (UI) Italian Translation
-akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.44|Osi/71Map9Te0/OXSu4OVl28s3ZHTRHAhS6S9vMUTvU=|(UI) Italian Translation
+akarnokd.theplanetcraftermods.uitranslationitalian=1.0.0.44|FJg9IGqqp7Gvl2o4RpwU0LLPLFMVdwW2xhZd2MmB4zM=|(UI) Italian Translation
 # (UI) Korean Translation
-akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.33|LX3BA+2xG767MLELiOIOar0pfW0sWpJ+pDuZlceMtK4=|(UI) Korean Translation
+akarnokd.theplanetcraftermods.uitranslationkorean=1.0.0.33|u4CGBwhoVqLuAJCWrVDz94VZytx5vZ4sxcOz/ncg+lk=|(UI) Korean Translation
 # (UI) Polish Translation
-akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.77|wOLskx9WyGr8Siz7my6G/9x+GWbk+VKeWKNfLxX929s=|(UI) Polish Translation
+akarnokd.theplanetcraftermods.uitranslationpolish=1.0.0.77|tTDv14P7ObDXCUyphNbqH7yVhRVciPqMjLCixaQfK+k=|(UI) Polish Translation
 # (UI) Romanian Translation
-akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.40|vEpVudHlA0xTzipUA7HPYv8Xh7TNkv8wfimOZ6do4NE=|(UI) Romanian Translation
+akarnokd.theplanetcraftermods.uitranslationromanian=1.0.0.40|InCSY+YBVP8HqZs7le+9oBlI1XXIKPMqMnXCZMnyIMw=|(UI) Romanian Translation
 # (UI) Ukrainian Translation
-akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.33|86ZfnL4y428G2psGEEVcWLPPe1IVcJFjiiYDKSSQahA=|(UI) Ukrainian Translation
+akarnokd.theplanetcraftermods.uitranslationukrainian=1.0.0.33|mEfQKGbVi97JxlQWqfQ4srmELuUJTu7whXt7vJ4x4vg=|(UI) Ukrainian Translation
