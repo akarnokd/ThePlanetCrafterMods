@@ -141,49 +141,49 @@ namespace CheatInventoryStacking
                 {
                     if (!stackOreExtractors.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("WaterCollector", StringComparison.Ordinal))
                 {
                     if (!stackWaterCollectors.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("GasExtractor", StringComparison.Ordinal))
                 {
                     if (!stackGasExtractors.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Beehive", StringComparison.Ordinal))
                 {
                     if (!stackBeehives.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Biodome", StringComparison.Ordinal))
                 {
                     if (!stackBiodomes.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("HarvestingRobot", StringComparison.Ordinal))
                 {
                     if (!stackHarvestingRobots.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 else if (gid.StartsWith("Ecosystem", StringComparison.Ordinal))
                 {
                     if (!stackEcosystems.Value)
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
             }

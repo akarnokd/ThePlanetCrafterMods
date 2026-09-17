@@ -19,7 +19,7 @@ namespace CheatInventoryStacking
             MachineGrowerVegetationHarvestable __instance,
             Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            DontStack(inventory.GetId());
 
             __instance.StartCoroutine(MachineGrowerVegetationHarvestable_WaitForSecondInventory(__instance));
         }
@@ -30,7 +30,7 @@ namespace CheatInventoryStacking
         {
             if (____secondInventory != null)
             {
-                noStackingInventories.Add(____secondInventory.GetId());
+                DontStack(____secondInventory.GetId());
             }
         }
 
@@ -40,7 +40,7 @@ namespace CheatInventoryStacking
         {
             if (____secondInventory != null)
             {
-                noStackingInventories.Add(____secondInventory.GetId());
+                DontStack(____secondInventory.GetId());
             }
         }
 
@@ -56,7 +56,7 @@ namespace CheatInventoryStacking
                 }
                 else
                 {
-                    noStackingInventories.Add(inv.GetId());
+                    DontStack(inv.GetId());
                     yield break;
                 }
             }
@@ -70,7 +70,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(MachineGrowerVegetationStatic), nameof(MachineGrowerVegetationStatic.SetGrowerInventory))]
         static void Patch_MachineGrowerVegetationStatic_SetGrowerInventory(Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            DontStack(inventory.GetId());
         }
     }
 }

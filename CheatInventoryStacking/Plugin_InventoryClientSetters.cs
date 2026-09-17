@@ -48,9 +48,9 @@ namespace CheatInventoryStacking
                     {
                         Patch_MachineDroneStation_SetDroneStationInventory(inventory);
                     }
-                    if (__instance.TryGetComponent<MachineAutoCrafter>(out _))
+                    if (__instance.TryGetComponent<MachineAutoCrafter>(out var mac))
                     {
-                        Patch_MachineAutoCrafter_SetAutoCrafterInventory(inventory);
+                        Patch_MachineAutoCrafter_SetAutoCrafterInventory(mac, inventory);
                     }
                     if (__instance.TryGetComponent<MachineRocketBackAndForth>(out var mrbaf))
                     {
@@ -70,7 +70,7 @@ namespace CheatInventoryStacking
                     }
                     if (!stackPlanetaryDepots.Value && (wo?.GetGroup()?.GetId().StartsWith("PlanetaryDeliveryDepot", StringComparison.Ordinal) ?? false))
                     {
-                        noStackingInventories.Add(inventory.GetId());
+                        DontStack(inventory.GetId());
                     }
                 }
                 finally

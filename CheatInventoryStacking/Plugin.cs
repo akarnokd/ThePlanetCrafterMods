@@ -56,6 +56,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackInterplanetaryRockets;
         static ConfigEntry<bool> stackPlanetaryDepots;
         static ConfigEntry<bool> stackEcosystems;
+        static ConfigEntry<bool> stackIncubatorT2;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<bool> debugModeLogMachineGenerator;
@@ -192,6 +193,7 @@ namespace CheatInventoryStacking
             stackOreCrusherOut = Config.Bind("General", "StackOreCrusherOut", true, "Humble DLC: Stack the output of the Ore Crusher?");
             stackDetoxifyIn = Config.Bind("General", "StackDetoxifyIn", true, "Toxicity DLC: Stack the input of the Detoxify Machine?");
             stackDetoxifyOut = Config.Bind("General", "StackDetoxifyOut", true, "Toxicity DLC: Stack the output of the Detoxify Machine?");
+            stackIncubatorT2 = Config.Bind("General", "StackIncubatorT2", false, "Stack the Incubator T2 output?");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");
@@ -330,6 +332,12 @@ namespace CheatInventoryStacking
             {
                 logger.LogInfo(s);
             }
+        }
+
+        static void DontStack(int inventoryId)
+        {
+            //Log("DontStack <" + inventoryId + "> " + Environment.StackTrace);
+            noStackingInventories.Add(inventoryId);
         }
 
         static Action<EventTriggerCallbackData> CreateMouseCallback(MethodInfo mi, InventoryDisplayer __instance)

@@ -19,7 +19,7 @@ namespace CheatInventoryStacking
         {
             if (!stackOptimizer.Value)
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 

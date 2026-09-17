@@ -23,7 +23,7 @@ namespace CheatInventoryStacking
             {
                 if (!stackDetoxifyIn.Value)
                 {
-                    noStackingInventories.Add(inventory.GetId());
+                    DontStack(inventory.GetId());
                 }
                 if (!stackDetoxifyOut.Value)
                 {
@@ -34,7 +34,7 @@ namespace CheatInventoryStacking
             {
                 if (!stackOreCrusherIn.Value)
                 {
-                    noStackingInventories.Add(inventory.GetId());
+                    DontStack(inventory.GetId());
                 }
                 if (!stackOreCrusherOut.Value)
                 {
@@ -64,7 +64,7 @@ namespace CheatInventoryStacking
             }
 
             var inv = fMachineDisintegratorSecondInventory(__instance);
-            noStackingInventories.Add(inv.GetId());
+            DontStack(inv.GetId());
         }
 
         [HarmonyPrefix]
@@ -82,7 +82,7 @@ namespace CheatInventoryStacking
 
             if (!stackOreCrusherOut.Value)
             {
-                noStackingInventories.Add(____secondInventory.GetId());
+                DontStack(____secondInventory.GetId());
             }
 
             foreach (var wo in fInventoryWorldObjectsInInventory(____firstIventory))

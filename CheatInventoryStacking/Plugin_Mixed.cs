@@ -18,7 +18,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(MachineConvertRecipe), nameof(MachineConvertRecipe.SetConverterInventory))]
         static void Patch_MachineConvertRecipe_SetConverterInventory(Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            DontStack(inventory.GetId());
         }
 
         /// <summary>
@@ -30,11 +30,11 @@ namespace CheatInventoryStacking
         static void Patch_MachineFlockSpawner_Start(
             MachineFlockSpawner __instance)
         {
-            if (__instance.GetComponent<MachineGenerator>() == null)
+            if (__instance.GetComponent<MachineGenerator>() == null && __instance.GetComponent<MachineAutoCrafter>() == null)
             {
                 if (__instance.TryGetComponent<InventoryAssociatedProxy>(out var iap))
                 {
-                    iap.GetInventory((inv, _) => noStackingInventories.Add(inv.GetId()));
+                    iap.GetInventory((inv, _) => DontStack(inv.GetId()));
                 }
             }
         }
@@ -49,12 +49,20 @@ namespace CheatInventoryStacking
             {
                 if (!stackOptimizer.Value)
                 {
-                    noStackingInventories.Add(inventory.GetId());
+                    DontStack(inventory.GetId());
+                }
+            }
+            else
+            if (__instance.GetComponent<MachineAutoCrafter>() != null)
+            {
+                if (!stackIncubatorT2.Value)
+                {
+                        DontStack(inventory.GetId());
                 }
             }
             else
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 
@@ -62,7 +70,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryLockContent), "FirstInventoryCheck")]
         static void Patch_InventoryLockContent_FirstInventoryCheck(Inventory ____inventory)
         {
-            noStackingInventories.Add(____inventory.GetId());
+            DontStack(____inventory.GetId());
         }
 
         static bool overrideBufferSizeInRpc;
@@ -117,7 +125,7 @@ namespace CheatInventoryStacking
         static void Patch_InventorySpawnContent_RegisterToInventory(
             Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            DontStack(inventory.GetId());
         }
 
         [HarmonyPostfix]
@@ -136,11 +144,11 @@ namespace CheatInventoryStacking
 
                 if (ia != null && (iap == null || NetworkManager.Singleton.IsServer))
                 {
-                    ia.GetInventory(inv => noStackingInventories.Add(inv.GetId()));
+                    ia.GetInventory(inv => DontStack(inv.GetId()));
                 }
                 else if (iap != null)
                 {
-                    iap.GetInventory((inv, wo) => noStackingInventories.Add(inv.GetId()));
+                    iap.GetInventory((inv, wo) => DontStack(inv.GetId()));
                 }
             }
         }
@@ -151,7 +159,7 @@ namespace CheatInventoryStacking
         {
             if (__instance is UiWindowDNAExtractor)
             {
-                noStackingInventories.Add(inventoryRight.GetId());
+                DontStack(inventoryRight.GetId());
             }
         }
 
@@ -159,7 +167,7 @@ namespace CheatInventoryStacking
         [HarmonyPatch(typeof(InventoryChangeMaterial), "CheckInventory")]
         static void Patch_InventoryChangeMaterial_CheckInventory(Inventory inventory)
         {
-            noStackingInventories.Add(inventory.GetId());
+            DontStack(inventory.GetId());
         }
 
         [HarmonyPostfix]
@@ -180,7 +188,7 @@ namespace CheatInventoryStacking
             if (!stackPlanetaryDepots.Value 
                 && __instance.gameObject.name.StartsWith("PlanetaryDeliveryDepot", StringComparison.Ordinal))
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 

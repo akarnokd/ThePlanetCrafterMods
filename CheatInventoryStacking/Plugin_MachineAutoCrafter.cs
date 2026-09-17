@@ -24,11 +24,19 @@ namespace CheatInventoryStacking
         /// <param name="_inventory">The inventory of the AutoCrafter.</param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MachineAutoCrafter), nameof(MachineAutoCrafter.SetAutoCrafterInventory))]
-        static void Patch_MachineAutoCrafter_SetAutoCrafterInventory(Inventory autoCrafterInventory)
+        static void Patch_MachineAutoCrafter_SetAutoCrafterInventory(MachineAutoCrafter __instance, Inventory autoCrafterInventory)
         {
+            if (__instance.name.Contains("Incubator2"))
+            {
+                if (!stackIncubatorT2.Value)
+                {
+                    DontStack(autoCrafterInventory.GetId());
+                }
+            }
+            else
             if (!stackAutoCrafters.Value)
             {
-                noStackingInventories.Add(autoCrafterInventory.GetId());
+                DontStack(autoCrafterInventory.GetId());
             }
         }
 

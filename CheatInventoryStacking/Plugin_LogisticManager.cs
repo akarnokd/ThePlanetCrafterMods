@@ -625,7 +625,7 @@ namespace CheatInventoryStacking
         {
             if (!stackDroneStation.Value)
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 

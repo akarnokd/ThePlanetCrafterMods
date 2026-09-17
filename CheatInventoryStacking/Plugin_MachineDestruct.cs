@@ -21,7 +21,7 @@ namespace CheatInventoryStacking
         {
             if (!stackShredder.Value)
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 

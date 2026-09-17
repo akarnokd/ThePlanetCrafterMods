@@ -35,7 +35,7 @@ namespace CheatInventoryStacking
         {
             if (!IsBackAndForthStackable(__instance))
             {
-                noStackingInventories.Add(inventory.GetId());
+                DontStack(inventory.GetId());
             }
         }
 
