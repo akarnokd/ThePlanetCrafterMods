@@ -2069,4 +2069,8 @@ MULTIPLAYER_Sign_Into_Platform_Account=Kérlek, jelentkezz be az online játékh
 UI_Enter_Text=Szövegbevitel...
 UI_Planet_Owner=A bolygó tulajdonosa:
 Menu_Options_Keys_VehicleJetpack=Függőleges meghajtás
-
+UI_BINDING_NAME_TouchPadButton_PS=Érintőpad gomb
+UI_Rebind_Info=Bevitelre várok...
+UI_Rebind_Already_Assigned=már hozzá van rendelve:
+UI_Rebind_Continue=Szeretnéd folytatni?
+UI_Rebind_Reset=Ez visszaállítja a hozzárendeléseket alapértelmezettre.\nBiztos vagy benne?
