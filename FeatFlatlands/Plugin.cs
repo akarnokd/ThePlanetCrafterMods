@@ -199,8 +199,10 @@ namespace FeatFlatlands
             {
                 onlyOnMap.AddComponent<DisableParent>();
             }
+            /*
             Log("  Hiding /World/WorldVegetation");
             world.transform.Find("WorldVegetation").gameObject.SetActive(false);
+            */
             Log("  Hiding /World/WorldMarkers");
             world.transform.Find("WorldMarkers").gameObject.SetActive(false);
             Log("  Hiding /World/Occluders");
