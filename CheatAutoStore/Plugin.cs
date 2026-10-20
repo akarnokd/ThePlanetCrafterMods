@@ -88,8 +88,8 @@ namespace CheatAutoStore
             storeByNameAliases = Config.Bind("General", "StoreByNameAliases", "", "A comma separated list of itemId:name elements, denoting which item should find which container containing that name. The itemId is case sensitive, the name is case-insensitive. Example: Iron:A,Uranim:B,ice:C");
             storeByNameMarker = Config.Bind("General", "StoreByNameMarker", "!", "The prefix for when using default item ids for storage naming. To disambiguate with other remote deposit mods that use star.");
             keepList = Config.Bind("General", "KeepList", "", "A comma separated list of itemId:amount elements to keep a minimum amount of that item. itemId is case sensitive. Example: WaterBottle1:5,OxygenCapsule1:5 to keep 5 water bottles and oxygen capsules in the backpack");
-            includeContainerList = Config.Bind("General", "ContainerIncludeList", "", "The comma separated list of case-sensitive container ids to include as a possible deposit target. See https://www.nexusmods.com/planetcrafter/articles/4 for identifiers.");
-            excludeContainerList = Config.Bind("General", "ContainerExcludeList", "", "The comma separated list of case-sensitive container ids to exclude as a possible deposit target. Takes priority over include and the default Container*. See https://www.nexusmods.com/planetcrafter/articles/4 for identifiers.");
+            includeContainerList = Config.Bind("General", "ContainerIncludeList", "", "The comma separated list of case-sensitive container ids to include as a possible deposit target. See https://github.com/akarnokd/ThePlanetCrafterMods/wiki/Item-identifiers for identifiers.");
+            excludeContainerList = Config.Bind("General", "ContainerExcludeList", "", "The comma separated list of case-sensitive container ids to exclude as a possible deposit target. Takes priority over include and the default Container*. See https://github.com/akarnokd/ThePlanetCrafterMods/wiki/Item-identifiers for identifiers.");
 
             fWorldObjectPlanetHash = AccessTools.FieldRefAccess<WorldObject, int>("_planetHash");
 

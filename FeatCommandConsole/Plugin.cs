@@ -4504,7 +4504,7 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/list-tech-names", "Lists all technology identifiers, their ingame name and description. First argument to sort by id|name|desc, second argument to filter by contains")]
+        [Command("/list-tech-names", "Lists all technology identifiers, their ingame name and description. First argument to sort by id|name|desc, second argument to filter by contains or --markdown for formatting")]
         public void ListTechDetails(List<string> args)
         {
             var filter = "";
@@ -4513,10 +4513,19 @@ namespace FeatCommandConsole
             {
                 sort = args[1];
             }
+            var separator = "\t";
+            var prefixPostfix = "";
             if (args.Count > 2)
             {
                 filter = args[2];
+                if (filter.StartsWith("--markdown"))
+                {
+                    filter = "";
+                    separator = "|";
+                    prefixPostfix = "|";
+                }
             }
+
             var gds = new List<SpaceCraft.Group>(GroupsHandler.GetAllGroups());
             if (sort == "id")
             {
@@ -4542,7 +4551,7 @@ namespace FeatCommandConsole
                     |  nm.Contains(filter, StringComparison.InvariantCultureIgnoreCase)
                 )
                 {
-                    AddLine("<color=#FFFF00>" + gid + "</color>\t<color=#00FF00>" + nm + "</color>\t" + dsc);
+                    AddLine(prefixPostfix + "<color=#FFFF00>" + gid + "</color>" + separator + "<color=#00FF00>" + nm + "</color>" + separator + dsc + prefixPostfix);
                 }
             }
         }
