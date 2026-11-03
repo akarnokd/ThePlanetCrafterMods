@@ -63,7 +63,7 @@ namespace UIMenuShortcutKeys
 
             UpdateKeyBindings();
 
-            fPlayerEquipmentHasCleanConstructionChip = AccessTools.FieldRefAccess<PlayerEquipment, bool>("hasCleanConstructionChip");
+            fPlayerEquipmentHasCleanConstructionChip = AccessTools.FieldRefAccess<PlayerEquipment, bool>("_hasCleanConstructionChip");
             mUiWindowConstructionCreateGrid = AccessTools.Method(typeof(UiWindowConstruction), "CreateGrid");
             fUiWindowConstructionGroupListDisplayers = AccessTools.FieldRefAccess<UiWindowConstruction, List<GroupListGridDisplayer>>("_groupListDisplayers");
 

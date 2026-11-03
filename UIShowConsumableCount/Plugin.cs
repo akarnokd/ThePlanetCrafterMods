@@ -85,7 +85,7 @@ namespace UIShowConsumableCount
             healthCount = AddTextForGauge(PlayerGaugeHealth.Instance, "FoodConsumableCounter");
             waterCount = AddTextForGauge(PlayerGaugeThirst.Instance, "WaterConsumableCounter");
             oxygenCount = AddTextForGauge(PlayerGaugeOxygen.Instance, "OxygenConsumableCounter");
-            purifyCount = AddTextForGauge(PlayerGaugeToxic.Instance, "PurifyConsumableCounter");
+            purifyCount = AddTextForGauge(PlayerGaugeDamages.Instance, "PurifyConsumableCounter");
 
             counts[DataConfig.UsableType.Eatable] = healthCount;
             counts[DataConfig.UsableType.Drinkable] = waterCount;

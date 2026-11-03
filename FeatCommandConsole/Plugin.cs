@@ -2080,7 +2080,7 @@ namespace FeatCommandConsole
             gh.AddHealth(100);
             gh.AddWater(100);
             gh.AddOxygen(1000);
-            gh.RemoveToxic(10000);
+            gh.RemoveDamages(10000);
             AddLine("<margin=1em>Health, Water and Oxygen refilled");
         }
 
@@ -2116,7 +2116,7 @@ namespace FeatCommandConsole
                             gh.AddHealth(100);
                             gh.AddWater(100);
                             gh.AddOxygen(1000);
-                            gh.RemoveToxic(10000);
+                            gh.RemoveDamages(10000);
 
                             yield return new WaitForSeconds(1);
 
@@ -2183,23 +2183,24 @@ namespace FeatCommandConsole
             }
         }
 
-        [Command("/remove-toxic", "Removes a specific amount of toxicity from the player.")]
+        [Command("/remove-damages", "Removes a specific amount of damage effect from the player.")]
         public void RemoveToxic(List<string> args)
         {
             if (args.Count != 2)
             {
-                AddLine("<margin=1em>Removes a specific amount of toxicity from the player");
+                AddLine("<margin=1em>Removes a specific amount of damage effect from the player");
                 AddLine("<margin=1em>Usage:");
-                AddLine("<margin=2em><color=#FFFF00>/remove-toxic amount</color> - Toxicity -= amount");
+                AddLine("<margin=2em><color=#FFFF00>/remove-damages amount</color> - Damages -= amount");
                 AddLine("<margin=1em>See also <color=#FFFF00>/add-health</color>, <color=#FFFF00>/add-water</color> or <color=#FFFF00>/add-air</color>");
             }
             else
             {
                 var pm = Managers.GetManager<PlayersManager>().GetActivePlayerController();
                 var gh = pm.GetGaugesHandler();
-                gh.RemoveToxic(int.Parse(args[1]));
+                gh.RemoveDamages(int.Parse(args[1]));
             }
         }
+
 
         [Command("/add-purity", "Adds a specific purity amount to the current planet.")]
         public void AddPurity(List<string> args)

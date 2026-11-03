@@ -169,8 +169,8 @@ namespace CheatAutoConsume
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(PlayerGaugeToxic), "GaugeVerifications")]
-        static void PlayerGaugeToxic_GaugeVerifications_Pre(float ___gaugeValue, bool ___isInited, float ___maxValue)
+        [HarmonyPatch(typeof(PlayerGaugeDamages), "GaugeVerifications")]
+        static void PlayerGaugeDamages_GaugeVerifications_Pre(float ___gaugeValue, bool ___isInited, float ___maxValue)
         {
             if (!___isInited)
             {
