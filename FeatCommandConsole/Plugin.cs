@@ -2218,6 +2218,22 @@ namespace FeatCommandConsole
             }
         }
 
+        [Command("/add-magnetic", "Adds a specific magnetic stabilization amount to the current planet.")]
+        public void AddMagnetic(List<string> args)
+        {
+            if (args.Count != 2)
+            {
+                AddLine("<margin=1em>Adds a specific magnetic stabilization amount to the current planet");
+                AddLine("<margin=1em>Usage:");
+                AddLine("<margin=2em><color=#FFFF00>/add-magnetic amount</color> - Magnetic stabilization += amount");
+            }
+            else
+            {
+                var newValue = AddToWorldUnit(DataConfig.WorldUnitType.MagneticStabilization, float.Parse(args[1], CultureInfo.InvariantCulture));
+                AddLine("<margin=1em>Magnetic stabilization updated. Now at <color=#00FF00>" + string.Format("{0:#,##0}", newValue));
+            }
+        }
+
 
         [Command("/die", "Kills the player.")]
         public void Die(List<string> _)

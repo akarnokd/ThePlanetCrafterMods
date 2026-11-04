@@ -307,12 +307,14 @@ namespace CheatInventoryStacking
         static bool Patch_MachineGetInRange_GetGroupsInRange(
             MachineGetInRange __instance,
             float range, 
-            Action<GameObject, Group> result
+            Action<GameObject, Group> result,
+            GameObject referencePositionObject
         )
         {
+            Vector3 vector = (referencePositionObject != null) ? referencePositionObject.transform.position : __instance.transform.position;
             if (NetworkManager.Singleton.IsServer && !__instance.gameObject.activeInHierarchy)
             {
-                MachineGetInRangeTryScan(__instance, range, result);
+                MachineGetInRangeTryScan(__instance, range, result, vector);
                 return false;
             }
             if (!__instance.gameObject.activeInHierarchy)
@@ -323,10 +325,10 @@ namespace CheatInventoryStacking
             return true;
         }
 
-        private static void MachineGetInRangeTryScan(MachineGetInRange __instance, float range, Action<GameObject, Group> result)
+        private static void MachineGetInRangeTryScan(MachineGetInRange __instance, float range, 
+            Action<GameObject, Group> result, Vector3 position)
         {
             var self = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
-            var position = __instance.transform.position;
             var h = self.GetPlanetHash();
             int n = Math.Min(4, Environment.ProcessorCount);
 

@@ -57,6 +57,7 @@ namespace CheatInventoryStacking
         static ConfigEntry<bool> stackPlanetaryDepots;
         static ConfigEntry<bool> stackEcosystems;
         static ConfigEntry<bool> stackIncubatorT2;
+        static ConfigEntry<bool> stackPlasmaCollector;
 
         static ConfigEntry<bool> debugMode;
         static ConfigEntry<bool> debugModeLogMachineGenerator;
@@ -194,6 +195,7 @@ namespace CheatInventoryStacking
             stackDetoxifyIn = Config.Bind("General", "StackDetoxifyIn", true, "Toxicity DLC: Stack the input of the Detoxify Machine?");
             stackDetoxifyOut = Config.Bind("General", "StackDetoxifyOut", true, "Toxicity DLC: Stack the output of the Detoxify Machine?");
             stackIncubatorT2 = Config.Bind("General", "StackIncubatorT2", false, "Stack the Incubator T2 output?");
+            stackPlasmaCollector = Config.Bind("General", "StackPlasmaCollectors", true, "Stack Plasma Collectors?");
 
             networkBufferScaling = Config.Bind("General", "NetworkBufferScaling", 1024, "Workaround for the limited vanilla network buffers and too big stack sizes.");
             logisticsTimeLimit = Config.Bind("General", "LogisticsTimeLimit", 5000, "Maximum time allowed to run the logistics calculations per frame, approximately, in microseconds.");

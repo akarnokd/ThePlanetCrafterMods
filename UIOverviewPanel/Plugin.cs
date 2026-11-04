@@ -159,6 +159,10 @@ namespace UIOverviewPanel
                 AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.Purification), PurityVisible());
                 AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.Purification), PurityVisible());
 
+                AddTextRow(Translate("OverviewPanel_MagneticStabilization"), CreateWorldUnitCurrentValue(WorldUnitType.MagneticStabilization), MagneticStabilizationVisible());
+                AddTextRow(Translate("OverviewPanel_NextUnlockAt"), CreateWorldUnitUnlock(WorldUnitType.MagneticStabilization), MagneticStabilizationVisible());
+                AddTextRow(Translate("OverviewPanel_NextUnlockItem"), CreateWorldUnitUnlockItem(WorldUnitType.MagneticStabilization), MagneticStabilizationVisible());
+
                 AddTextRow("", () => "");
 
                 AddTextRow(Translate("OverviewPanel_NextTIStage"), CreateNextTiStage());
@@ -205,6 +209,15 @@ namespace UIOverviewPanel
             {
                 var wu = Managers.GetManager<WorldUnitsHandler>();
                 return wu.GetUnit(WorldUnitType.Purification) is WorldUnitPurification pur && pur.GetValue() >= 0;
+            };
+        }
+
+        Func<bool> MagneticStabilizationVisible()
+        {
+            return () =>
+            {
+                var wu = Managers.GetManager<WorldUnitsHandler>();
+                return wu.GetUnit(WorldUnitType.MagneticStabilization) is WorldUnitMagneticStabilization mgs && mgs.GetValue() >= 0;
             };
         }
 
@@ -938,6 +951,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_NA"] = "N/A";
                 dict["OverviewPanel_YearPlus"] = "Év+";
                 dict["OverviewPanel_Max"] = " - Maximum: ";
+                dict["OverviewPanel_MagneticStabilization"] = "Mágneses Stabilizáció";
             }
             if (___localizationDictionary.TryGetValue("english", out dict))
             {
@@ -983,6 +997,7 @@ namespace UIOverviewPanel
                 dict["OverviewPanel_NA"] = "N/A";
                 dict["OverviewPanel_YearPlus"] = "Year+";
                 dict["OverviewPanel_Max"] = " - Maximum: ";
+                dict["OverviewPanel_MagneticStabilization"] = "Magnetic Stabilization";
             }
             if (___localizationDictionary.TryGetValue("russian", out dict))
             {

@@ -186,6 +186,13 @@ namespace CheatInventoryStacking
                         DontStack(inventory.GetId());
                     }
                 }
+                else if (gid.StartsWith("PlasmaCollector", StringComparison.Ordinal))
+                {
+                    if (!stackPlasmaCollector.Value)
+                    {
+                        DontStack(inventory.GetId());
+                    }
+                }
             }
         }
     }

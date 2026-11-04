@@ -279,11 +279,15 @@ namespace UIContinue
             dest.unitPlantsLevel += src.unitPlantsLevel;
             dest.unitInsectsLevel += src.unitInsectsLevel;
             dest.unitAnimalsLevel += src.unitAnimalsLevel;
+            dest.unitPurificationLevel += Math.Max(0, src.unitPurificationLevel);
+            dest.unitMagneticStabilizationLevel += Math.Max(0, src.unitMagneticStabilizationLevel);
         }
 
         static string CreateTiAndUnit(JsonablePlanetState ws)
         {
-            var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel;
+            var ti = ws.unitHeatLevel + ws.unitPressureLevel + ws.unitOxygenLevel
+                + ws.unitPlantsLevel + ws.unitInsectsLevel + ws.unitAnimalsLevel
+                + ws.unitPurificationLevel + ws.unitMagneticStabilizationLevel;
 
             string tiAndUnit;
             if (ti >= 1E24)
