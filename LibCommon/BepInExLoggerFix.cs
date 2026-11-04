@@ -555,7 +555,7 @@ namespace LibCommon
                         Debug.Log(exc);
                     }
 
-                    str += " - Modded (" + Chainloader.PluginInfos.Count + " mods)";
+                    str += " - " + Chainloader.PluginInfos.Count + " mods";
                     txt.text = str;
                     txt.font = subtitleTmp.font;
                     txt.fontSize = Math.Max(12, subtitleTmp.fontSize / 2);
@@ -564,9 +564,9 @@ namespace LibCommon
                     var rt = txt.rectTransform;
                     rt.sizeDelta = new Vector2(txt.preferredWidth, txt.preferredHeight);
 
-                    var dw = Math.Max(0, (logoRt.sizeDelta.x - rt.sizeDelta.x) / 2);
+                    var dw = (rt.sizeDelta.x - logoRt.sizeDelta.x) / 2;
 
-                    rt.localPosition = subtitleRt.localPosition + new Vector3(rt.sizeDelta.x / 2 + dw, -rt.sizeDelta.y, 0);
+                    rt.localPosition = subtitleRt.localPosition + new Vector3(dw, -rt.sizeDelta.y, 0);
                 }
                 catch (Exception ex)
                 {

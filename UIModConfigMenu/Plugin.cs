@@ -145,11 +145,17 @@ namespace UIModConfigMenu
             ClearTooltips();
         }
 
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         [HarmonyPatch(typeof(ButtonApplyOptions), nameof(ButtonApplyOptions.Apply))]
-        static void ButtonApplyOptions_Apply()
+        static bool ButtonApplyOptions_Apply(RebindSaveLoad ___rebindSaveLoad)
         {
+            if (___rebindSaveLoad != null)
+            {
+                ___rebindSaveLoad.SaveBindings();
+            }
+            GameOptions.Apply();
             ClearTooltips();
+            return false;
         }
 
         static void ClearTooltips()
