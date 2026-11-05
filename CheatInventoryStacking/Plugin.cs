@@ -94,6 +94,10 @@ namespace CheatInventoryStacking
             101703877, // fusion generator in the stargate
             101484917, // fusion generator in the luxury cruiser with 3 slots
             107983344, // fusion generator in the lava ship with 2 slots
+            102321054, // magnetaris lightning rod @ 449 400, 748 w/ 3 slots
+            104889720, // magnetaris lightning rod @ 159 401 1252 w/ 1 slot
+            106163012, // magnetaris lightning rod @ 1287 490 1238 w/ 1 slot
+            105013661  // magnetaris lightning rod @ 2382 374 421 w/ 1 slot
         ];
 
         /// <summary>
