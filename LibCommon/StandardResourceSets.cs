@@ -104,7 +104,8 @@ namespace LibCommon
             "Frog13Eggs",
             "Frog14Eggs",
             "Frog15Eggs",
-            "Frog16Eggs"
+            "Frog16Eggs",
+            "Frog17Eggs"     // Magnetaris
         ]);
     }
 }

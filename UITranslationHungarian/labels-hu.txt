@@ -2140,3 +2140,4 @@ GROUP_NAME_FloatingWater=Lebegő vízcsepp
 GROUP_DESC_FloatingWater=Oltja a szomjadat egy kicsit
 GROUP_NAME_LaunchPlatform2=Kilövőállás t2
 GROUP_DESC_LaunchPlatform2=Lehetővé teszi a rakéták automatikus építését és indítását. Helyezz tárolókat a platform tetejére és lásd el azokat a szükséges nyersanyagokkal.
+GROUP_NAME_Frog17Eggs=Magnex békapete
