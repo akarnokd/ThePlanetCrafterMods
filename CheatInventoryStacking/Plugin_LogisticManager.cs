@@ -368,7 +368,7 @@ namespace CheatInventoryStacking
                     }
                     if (nonAttributedTasksCacheAllPlanets.TryGetValue(planetHash, out var nonAttributedTaskList))
                     {
-                        if (!fLogisticManagerPaused(__instance) && nextNonAttributedTaskIndex < nonAttributedTaskList.Count)
+                        if (!__instance.GetPaused() && nextNonAttributedTaskIndex < nonAttributedTaskList.Count)
                         {
                             var taskToAttribute = nonAttributedTaskList[nextNonAttributedTaskIndex];
                             nextNonAttributedTaskIndices[planetHash] = nextNonAttributedTaskIndex + 1;
@@ -442,7 +442,7 @@ namespace CheatInventoryStacking
                             // Log("      LogisticManager::SetLogisticTasks station candidates: " + stationDistancesCacheCurrentPlanet.Count);
 
 
-                            if (!fLogisticManagerPaused(__instance))
+                            if (!__instance.GetPaused())
                             {
                                 stationDistancesCacheCurrentPlanet.Sort();
                                 foreach (var dist in stationDistancesCacheCurrentPlanet)
@@ -536,7 +536,7 @@ namespace CheatInventoryStacking
 
             foreach (var inv in ____demandInventories)
             {
-                if (!fLogisticManagerPaused(__instance) && inv.GetLogisticEntity().GetDemandGroups().Contains(gr) && !IsFullStackedOfInventory(inv, gid))
+                if (!__instance.GetPaused() && inv.GetLogisticEntity().GetDemandGroups().Contains(gr) && !IsFullStackedOfInventory(inv, gid))
                 {
                     var task = CreateNewTaskForWorldObject(droneInv, inv, wo, ____allLogisticTasks);
                     if (task != null)
@@ -692,7 +692,7 @@ namespace CheatInventoryStacking
                 for (int i = 0; i < taskList.Count; i++)
                 {
                     LogisticTask task = taskList[i];
-                    if (!fLogisticManagerPaused(__instance) && task.GetTaskState() == LogisticData.TaskState.NotAttributed)
+                    if (!__instance.GetPaused() && task.GetTaskState() == LogisticData.TaskState.NotAttributed)
                     {
                         drone.SetLogisticTask(task, ____allDroneStations);
                         return false;
