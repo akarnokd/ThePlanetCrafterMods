@@ -323,11 +323,12 @@ namespace UIMenuShortcutKeys
             }
             else if (ui == DataConfig.UiType.Container || ui == DataConfig.UiType.GroupSelector)
             {
+                var hasOtherInventory = true;
                 if (window is UiWindowContainer uiWindowContainer)
                 {
                     var invD = uiWindowContainer.containerInventoryContainer.GetComponentInChildren<InventoryDisplayer>();
-
-                    if (invD.iconMoveAll.activeSelf)
+                    hasOtherInventory = invD != null;
+                    if (invD != null && invD.iconMoveAll.activeSelf)
                     {
                         entries.Add(CreateEntry("ContainerTakeAll", configContainerTakeAll.Value.Replace("<Keyboard>/", ""), "Take All", shortcutBar.transform));
                     }
@@ -339,7 +340,10 @@ namespace UIMenuShortcutKeys
                 }
 
                 entries.Add(CreateEntry("SortPlayerInventory", configSortPlayerInventory.Value.Replace("<Keyboard>/", ""), "Sort Backpack", shortcutBar.transform));
-                entries.Add(CreateEntry("SortOtherInventory", configSortOtherInventory.Value.Replace("<Keyboard>/", ""), "Sort Container", shortcutBar.transform));
+                if (hasOtherInventory)
+                {
+                    entries.Add(CreateEntry("SortOtherInventory", configSortOtherInventory.Value.Replace("<Keyboard>/", ""), "Sort Container", shortcutBar.transform));
+                }
             }
             else if (ui == DataConfig.UiType.Equipment)
             {

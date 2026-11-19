@@ -135,6 +135,10 @@ namespace UIShowContainerInfo
         static void OnInventory(Inventory inventory, Actionnable __instance,
             BaseHudHandler ____hudHandler)
         {
+            if (inventory == null)
+            {
+                return;
+            }
             string custom = "";
             WorldObjectText woText = __instance.GetComponent<WorldObjectText>();
             if (woText != null && woText.GetTextIsSet())

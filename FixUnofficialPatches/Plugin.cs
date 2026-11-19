@@ -249,52 +249,6 @@ namespace FixUnofficialPatches
             jsonableWorldObject.grwth = Mathf.Clamp(jsonableWorldObject.grwth, 0, 100);
         }
 
-        /*
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(TerrainVisualsHandler), "GetTerrainLayerDataByName")]
-        static bool TerrainVisualsHandler_GetTerrainLayerDataByName(ref bool __result)
-        {
-            var pl = Managers.GetManager<PlanetLoader>();
-            if (pl == null)
-            {
-                __result = false;
-                return false;
-            }
-            var cd = pl.GetCurrentPlanetData();
-            if (cd == null)
-            {
-                __result = false;
-                return false;
-            }
-            return true;
-        }
-        */
-
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(JSONExport), nameof(JSONExport.LoadFromJson))]
-        static void JSONExport_LoadFromJson(
-            JsonableWorldState ____worldState,
-            List<JsonableProceduralInstance> ____proceduralInstances)
-        {
-            if (!droneLogisticFixes.Value)
-            {
-                return;
-            }
-            if (____worldState != null && ____proceduralInstances != null)
-            {
-                for (int i = ____proceduralInstances.Count - 1; i >= 0; i--)
-                {
-                    if (____worldState.openedInstanceSeed == 0 
-                        || ____proceduralInstances[i].owner != ____worldState.openedInstanceSeed)
-                    {
-                        ____proceduralInstances.RemoveAt(i);
-                    }
-                }
-            }
-        }
-        */
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LogisticManager), nameof(LogisticManager.InitLogistics))]
         static void LogisticManager_InitLogistics(Dictionary<int, Dictionary<int, int>> ____taskPriorities)
@@ -316,5 +270,13 @@ namespace FixUnofficialPatches
         {
             ___DLCCanvas ??= new GameObject("DLCCanvasFix");
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(IntroPromotion), "OnDestroy")]
+        static void IntroPromotion_OnDestroy(ref List<HideDLCIfOwnPlanet> ___promotionBlocksOwnershipCheckers)
+        {
+            ___promotionBlocksOwnershipCheckers ??= new();
+        }
+
     }
 }

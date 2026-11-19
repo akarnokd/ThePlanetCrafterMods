@@ -529,6 +529,10 @@ namespace UIQuickLoot
             {
                 return;
             }
+            if (inventory == null)
+            {
+                return;
+            }
             currentActionable = __instance;
             currentInventory = inventory;
             inventory.inventoryContentModified += OnInventoyModified;
