@@ -84,47 +84,46 @@ namespace CheatInventoryStacking
                 if (fMachineAutoCrafterHasEnergy(__instance))
                 {
                     fMachineAutoCrafterTimeHasCrafted(__instance) = Time.time;
-                    var inv = fMachineAutoCrafterInventory(__instance);
-                    if (inv != null)
-                    {
-                        var machineWo = __instance.GetComponent<WorldObjectAssociated>()?.GetWorldObject();
-                        if (machineWo != null)
-                        {
-                            var routineId = CreateRoutineId(inv.GetId());
 
-                            if (!CoroutineCoordinator.CanRun(routineId))
+                    var machineWo = __instance.GetComponent<WorldObjectAssociated>().GetWorldObject();
+
+                    if (machineWo != null)
+                    {
+                        var inv = fMachineAutoCrafterInventory(__instance);
+                        var iid = inv?.GetId() ?? machineWo.GetId();
+
+                        var routineId = CreateRoutineId(iid);
+
+                        if (!CoroutineCoordinator.CanRun(routineId))
+                        {
+                            yield return null;
+                            continue;
+                        }
+
+                        var linkedGroups = machineWo.GetLinkedGroups();
+                        if (linkedGroups != null && linkedGroups.Count != 0)
+                        {
+                            var gr = linkedGroups[0];
+
+                            if (inv == null || !IsFullStackedOfInventory(inv, gr.id))
+                            {
+                                AutoCrafterTry(gr, worldObjectsInRange,
+                                    mSetItemsInRange, mCraftIfPossible);
+                            }
+                        }
+
+
+                        var frameTimeLimit = logisticsTimeLimit.Value / 1000d;
+
+                        var elaps0 = sw.Elapsed.TotalMilliseconds;
+                        if (elaps0 > frameTimeLimit)
+                        {
+                            CoroutineCoordinator.Yield(routineId, elaps0);
+                            do
                             {
                                 yield return null;
-                                continue;
                             }
-
-
-                            var linkedGroups = machineWo.GetLinkedGroups();
-                            if (linkedGroups != null && linkedGroups.Count != 0)
-                            {
-
-                                var gr = linkedGroups[0];
-
-                                if (!IsFullStackedOfInventory(inv, gr.id))
-                                {
-                                    AutoCrafterTry(gr, worldObjectsInRange, 
-                                        mSetItemsInRange, mCraftIfPossible);
-                                }
-                            }
-
-
-                            var frameTimeLimit = logisticsTimeLimit.Value / 1000d;
-
-                            var elaps0 = sw.Elapsed.TotalMilliseconds;
-                            if (elaps0 > frameTimeLimit)
-                            {
-                                CoroutineCoordinator.Yield(routineId, elaps0);
-                                do
-                                {
-                                    yield return null;
-                                }
-                                while (!CoroutineCoordinator.CanRun(routineId));
-                            }
+                            while (!CoroutineCoordinator.CanRun(routineId));
                         }
                     }
                 }
@@ -518,12 +517,16 @@ namespace CheatInventoryStacking
         static void AutoCrafterGetInRangeProcessInventory(int iid, 
             Dictionary<Group, List<WorldObject>> q)
         {
-            var items = fInventoryWorldObjectsInInventory(InventoriesHandler.Instance.GetInventoryById(iid));
-            foreach (var worldObject in items)
+            var inv = InventoriesHandler.Instance.GetInventoryById(iid);
+            if (inv != null)
             {
-                if (worldObject.GetPosition() == Vector3.zero || worldObject.GetGrowth() == 100f)
+                var items = fInventoryWorldObjectsInInventory(inv);
+                foreach (var worldObject in items)
                 {
-                    AddToAutoCrafterWorldObjects(worldObject, q);
+                    if (worldObject.GetPosition() == Vector3.zero || worldObject.GetGrowth() == 100f)
+                    {
+                        AddToAutoCrafterWorldObjects(worldObject, q);
+                    }
                 }
             }
         }
